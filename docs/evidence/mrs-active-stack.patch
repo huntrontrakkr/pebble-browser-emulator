@@ -1,0 +1,12 @@
+--- a/vendor/rp2350-emu/src/core/execute_thumb32.rs
++++ b/vendor/rp2350-emu/src/core/execute_thumb32.rs
+@@ -1224,6 +1224,9 @@
+     /// MRS — read a special system register into a general-purpose register.
+     /// Encoding: 11110_0111_11_R_1111  10_00_Rd_SYSm
+     fn thumb32_mrs(&mut self, hw1: u16) -> u32 {
++        // Ordinary stack instructions update r13 directly. MRS must report
++        // that live value for the active bank, not the last exception's SP.
++        self.regs.sync_sp_to_banked();
+         let rd = ((hw1 >> 8) & 0xF) as usize;
+         let sysm = (hw1 & 0xFF) as u8;
+ 

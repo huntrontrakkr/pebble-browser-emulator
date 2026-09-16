@@ -1,6 +1,7 @@
 [workspace]
-members = ["crates/emulator-core", "crates/emulator-wasm"]
+members = ["crates/emulator-core", "crates/emulator-wasm", "crates/qemu-emery"]
 resolver = "2"
+exclude = ["vendor/rp2350-emu"]
 
 [workspace.package]
 version = "0.1.0"
@@ -12,3 +13,6 @@ repository = "https://github.com/huntrontrakkr/pebble-browser-emulator"
 lto = true
 opt-level = 3
 panic = "abort"
+
+[patch.crates-io]
+rp2350-emu = { path = "vendor/rp2350-emu" }

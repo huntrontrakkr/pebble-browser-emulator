@@ -1,0 +1,44 @@
+--- a/vendor/rp2350-emu/src/core/mod.rs
++++ b/vendor/rp2350-emu/src/core/mod.rs
+@@ -908,11 +908,20 @@
+     pub(crate) fn bus_read8<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u8 {
+         self.counters.classify_access(addr, false);
+         if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+-            // PPB registers are word-access-only; byte reads return 0.
++            // NVIC_IPR and SCB_SHPR are byte-accessible priority registers.
++            // CMSIS uses uint8_t lanes for NVIC_SetPriority/GetPriority.
++            let offset = addr & 0xFFFF;
++            let priority_lane = (0xE400..0xE434).contains(&offset)
++                || (0xED18..0xED24).contains(&offset);
++            let value = if priority_lane {
++                (self.ppb.read32(addr & !3) >> ((addr & 3) * 8)) as u8
++            } else {
++                0
++            };
+             if bus.mmio_trace_enabled() {
+-                bus.emit_mmio_trace('R', 1, addr, 0, self.core_id);
+-            }
+-            0
++                bus.emit_mmio_trace('R', 1, addr, value as u32, self.core_id);
++            }
++            value
+         } else if Self::is_sio_local(addr) {
+             // Matches the pre-Stage-3 `Bus::read8` 0xD path: read the
+             // containing 32-bit SIO register and slice the byte.
+@@ -933,7 +942,15 @@
+         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
+         self.did_write_this_quantum = true;
+         if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+-            // PPB registers are word-access-only; byte writes drop.
++            // Priority registers explicitly permit byte accesses. Preserve
++            // neighboring lanes; write32 applies implemented priority bits.
++            let offset = addr & 0xFFFF;
++            if (0xE400..0xE434).contains(&offset) || (0xED18..0xED24).contains(&offset) {
++                let shift = (addr & 3) * 8;
++                let old = self.ppb.read32(addr & !3);
++                let word = (old & !(0xFF << shift)) | ((val as u32) << shift);
++                self.ppb.write32(addr & !3, word);
++            }
+             if bus.mmio_trace_enabled() {
+                 bus.emit_mmio_trace('W', 1, addr, val as u32, self.core_id);
+             }

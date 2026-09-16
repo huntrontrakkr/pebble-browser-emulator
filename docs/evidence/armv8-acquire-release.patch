@@ -1,0 +1,55 @@
+--- a/src/core/execute_thumb32.rs
++++ b/src/core/execute_thumb32.rs
+@@ -773,6 +773,52 @@
+                     .set_pc(self.read_pc().wrapping_add((byte as u32) << 1));
+             }
+             return 4;
++        }
++
++        // Armv8-M acquire/release forms (LDA[B/H], STL[B/H],
++        // LDAEX[B/H], STLEX[B/H]). This core commits each bus operation
++        // synchronously, so acquire/release need no additional reordering
++        // barrier in the single-core scheduler. Exclusive forms retain the
++        // same monitor rules as LDREX/STREX below.
++        // Decode before LDRD/STRD: the latter's fallback would silently
++        // perform a doubleword access and leave STLEX's status unchanged.
++        let ar_class = hw0 & 0xFFF0;
++        let ar_op = (hw1 >> 4) & 0xF;
++        let ar_load = ar_class == 0xE8D0;
++        let ar_exclusive = ar_op & 4 != 0;
++        if (ar_load || ar_class == 0xE8C0)
++            && hw1 & 0x0F00 == 0x0F00
++            && matches!(ar_op, 8 | 9 | 10 | 12 | 13 | 14)
++            && ((!ar_load && ar_exclusive) || hw1 & 0xF == 0xF)
++        {
++            let rn = (hw0 & 0xF) as usize;
++            let rt = (hw1 >> 12) as usize;
++            let addr = self.regs.r[rn];
++            let width = ar_op & 3;
++            if ar_load {
++                let value = match width {
++                    0 => self.bus_read8(addr, bus) as u32,
++                    1 => self.bus_read16(addr, bus) as u32,
++                    _ => self.bus_read32(addr, bus),
++                };
++                self.regs.r[rt] = value;
++                if ar_exclusive { self.exclusive_address = Some(addr & !3); }
++            } else {
++                let permitted = !ar_exclusive || self.exclusive_address == Some(addr & !3);
++                if permitted {
++                    let value = self.regs.r[rt];
++                    match width {
++                        0 => self.bus_write8(addr, value as u8, bus),
++                        1 => self.bus_write16(addr, value as u16, bus),
++                        _ => self.bus_write32(addr, value, bus),
++                    }
++                }
++                if ar_exclusive {
++                    self.regs.r[(hw1 & 0xF) as usize] = if permitted { 0 } else { 1 };
++                    self.exclusive_address = None;
++                }
++            }
++            return 2;
+         }
+ 
+         // LDREX: hw0 = 1110_1000_0101_Rn (0xE85x)

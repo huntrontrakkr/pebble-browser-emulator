@@ -1,0 +1,16 @@
+{
+  "pbwSha256": "4e218776f099ae7fd74dd5e18ec725c12c1f204f6f45475368cccd8139ac831f",
+  "framebufferSha256": "ff5e62857b3d6e14c4a2d7cbc57a57e64f3f89471c483f09c599c4d3ea3b470b",
+  "wasmSha256": "5bc95dc96f7dfbec67e98709cc5e79e4571688f4728ad05c468ae85b86088c84",
+  "microSha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+  "flashSha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+  "epoch": 1789545600,
+  "battery": 57,
+  "charging": false,
+  "appMessage": {
+    "0": "GPS 40.71"
+  },
+  "generation": 1,
+  "instructions": 219900000,
+  "virtualSeconds": 7.003672765625
+}

@@ -15,37 +15,47 @@ CI may build the website/toolchains but must never compile visitors' projects re
 
 - [x] Initialize Git, Angular, Rust workspace, versioned Worker/Wasm boundary, and tests.
 - [x] Run an actual Thumb diagnostic and inspect its framebuffer/registers.
-- [ ] Pin an unchanged qemu_emery firmware build and independent native QEMU reference.
+- [x] Pin unchanged qemu_emery 4.37.0 / 4.36.0 firmware and an independent native QEMU reference.
 - [ ] Implement required Armv8-M instructions, exceptions, NVIC, privilege, MPU, stack
       limits, and FPU. Compare against independent execution, not only internal unit tests.
-- [ ] Implement qemu_emery's memory map, clocks, UART, flash, timers, RTC, buttons, and display.
-- [ ] Match firmware boot logs, screenshots, and scripted interactions against QEMU.
+- [x] Implement the generic memory map, UART, flash, virtual timers, RTC, buttons, and committed display updates.
+- [ ] Validate remaining peripherals and architectural edge cases; calibrate timing.
+- [x] Match an aligned app framebuffer against native QEMU in all 45,600 bytes.
+- [ ] Extend matching to long-running interactions, additional apps, and firmware revisions.
 
 Exit: real qemu_emery firmware boots in the Rust browser core. Keep this explicitly labeled
 emulator firmware; it does not establish production Time 2 compatibility.
 
 ## 2. Public repository to running watchface
 
-- [ ] GitHub REST tree + raw content import, pinned to a commit; local folder/archive import.
-- [ ] Standard package.json/appinfo.json layouts; optional pebble-browser.yaml for supported
-      SDK/root/target/source settings. Detect unsupported custom scripts.
-- [ ] Pinned ARM Clang/LLD Wasm, SDK 4.33.1 Emery assets, exact resources/FreeType fonts,
-      metadata/relocations, dependency integrity, PKJS bundling, and real PBW packaging.
+- [x] GitHub REST tree + raw content import, pinned to a commit, and local ZIP import.
+- [ ] Local folder import.
+- [x] Standard package.json native Emery profile; reject unsupported custom build scripts.
+- [ ] Legacy appinfo.json layouts and declarative configuration where needed.
+- [x] Pinned ARM Clang/LLD Wasm, local SDK 4.33.1 subset, exact app metadata/relocations,
+      empty resource pack, system fonts, single-file PKJS, and real PBW packaging.
+- [ ] Custom resources/FreeType fonts, dependency packages, and PKJS module bundling.
 - [ ] Honor target declarations and lockfiles; never substitute another platform library.
 - [ ] Full independent demo with resource/font, battery/connection, settings, and AppMessage.
-- [ ] Install via real virtual-phone transfers and retain ELF/debug metadata.
-- [ ] Cache source/toolchains and demonstrate offline rebuild after first setup.
+- [x] Install and reinstall via real BlobDB/AppFetch/PutBytes and retain ELF build output.
+- [x] Cache source/SDK locally in IndexedDB and verified toolchain assets in Cache Storage.
+- [ ] Verify offline rebuild and offline application reload.
 
 Exit: a fresh browser imports the public demo, compiles a PBW locally, installs it through
 the phone protocol, and runs it in firmware. No application backend or proxy.
 
 ## 3. Virtual phone and inspection
 
+Implemented: isolated QuickJS, app storage, virtual timers, geolocation, actual AppMessage
+ACK/NACK, packet capture/filter/export, and manual packet injection. Full service coverage
+and reproducible sessions remain open.
+
 - [ ] Pairing/connection lifecycle, transfers/checksums/retries, app services, notifications,
       settings, time, storage, location, timeline/BlobDB, and isolated PebbleKit JS execution.
 - [ ] Raw/decoded packet capture with layer/direction/virtual time; filters, breakpoints,
       fault injection, export/import, and deterministic replay.
-- [ ] Profile-appropriate battery/charging, sensors, audio/haptics, buttons/touch/backlight.
+- [x] Inject battery/charging, RTC, buttons, logical Bluetooth connection, and phone location.
+- [ ] Model consumption, sensors, audio/haptics, touch, and hardware-controlled optics.
 - [ ] CORS-permitted live PKJS network calls and fixture/replay responses otherwise.
 - [ ] Versioned sessions/snapshots including clocks, randomness, and all external inputs.
 
@@ -68,6 +78,9 @@ firmware is not implicitly supported. Track vendor component constraints; upload
 not evidence that usage/redistribution terms are satisfied.
 
 ## 5. Release, speed, and physical connections
+
+Implemented: clean utility interface, light/dark themes, exact pixels, adjustable reflective
+approximation, and rotatable official Time 2 CAD with the live screen.
 
 - [ ] Public static release of the first useful firmware/app workflow.
 - [ ] Current desktop Chrome/Edge/Firefox/Safari verification; cancellable builds, quotas,

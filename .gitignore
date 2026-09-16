@@ -46,6 +46,7 @@ Thumbs.db
 # Rust and generated browser binary
 /target/
 /public/wasm/
+/public/licenses/
 /.openai/*.tar.gz
 
 # Pebble example outputs

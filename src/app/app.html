@@ -1,13 +1,13 @@
 <header class="topbar">
-  <a class="identity" href="/" aria-label="Pebble Browser Emulator home"
-    ><span class="mark">P<span>B</span></span>
-    <div>
-      <strong>Pebble Browser Emulator</strong
-      ><span class="subtitle">HARDWARE &amp; DEVELOPMENT WORKBENCH</span>
-    </div></a
-  >
-  <div class="header-meta">
-    <span class="version">FOUNDATION · 0.1</span
+  <a class="identity" href="./">Pebble Browser Emulator</a>
+  <div class="header-actions">
+    <span class="connection"
+      ><i [class.connected]="ready()"></i>{{ ready() ? 'Core ready' : 'Loading core' }}</span
+    ><label class="theme-control"
+      >Theme<select [ngModel]="theme()" (ngModelChange)="setTheme($event)">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select></label
     ><a
       href="https://github.com/huntrontrakkr/pebble-browser-emulator"
       target="_blank"
@@ -17,130 +17,318 @@
   </div>
 </header>
 <main>
-  <section class="workspace-heading">
+  <div class="machine-bar">
     <div>
-      <p class="eyebrow">EMULATOR</p>
-      <h1>Inspect every instruction.</h1>
+      <span class="label">Machine</span
+      ><strong>{{
+        profile() === 'qemu_emery' ? 'PebbleOS · QEMU Emery' : 'Diagnostic board'
+      }}</strong
+      ><span class="tag">{{
+        running() ? 'Running' : state()?.fault ? 'Faulted' : loaded() ? 'Paused' : 'Idle'
+      }}</span>
     </div>
-    <div class="core-status">
-      <span [class.connected]="ready()" class="status-light"></span
-      >{{ ready() ? 'Rust / WebAssembly' : 'Connecting to core' }}
-    </div>
-  </section>
-  <div class="notice">
-    <strong>Development foundation</strong
-    ><span
-      >The diagnostic runs real ARM instructions in Rust. PebbleOS boot, production Time 2 hardware,
-      and watchface compilation are not implemented yet.</span
-    >
+    <span class="program-name" [title]="firmwareName()">{{ firmwareName() }}</span>
   </div>
   @if (error()) {
-    <div class="error" role="alert">{{ error() }}</div>
+    <div class="error" role="alert">
+      <span>{{ error() }}</span
+      ><button (click)="error.set('')" aria-label="Dismiss error">×</button>
+    </div>
   }
   <div class="workspace">
-    <aside class="left-panel panel">
-      <div class="section-label">01 / MACHINE</div>
-      <h2>Diagnostic board</h2>
-      <p class="muted">A small, explicit test machine for building the emulator core.</p>
-      <dl class="specs">
-        <div>
-          <dt>Profile</dt>
-          <dd>diagnostic-v1</dd>
-        </div>
-        <div>
-          <dt>Instruction set</dt>
-          <dd>Thumb subset</dd>
-        </div>
-        <div>
-          <dt>Display</dt>
-          <dd>200 × 228 · 64 colors</dd>
-        </div>
-        <div>
-          <dt>SRAM</dt>
-          <dd>512 KiB</dd>
-        </div>
-      </dl>
-      <div class="divider"></div>
-      <div class="section-label">PROGRAM</div>
-      <p class="file-name">{{ firmwareName() }}</p>
-      <button class="primary full" (click)="diagnostic()" [disabled]="!ready()">
-        Load diagnostic <span>↳</span>
-      </button>
-      <label class="file-button" [class.disabled]="!ready()"
-        >Import diagnostic .bin<input
-          type="file"
-          accept=".bin"
-          [disabled]="!ready()"
-          (change)="loadImage($event)"
-      /></label>
-      <p class="small muted">
-        Raw vector-table images for this test board only. Production firmware uses a different
-        hardware profile.
-      </p>
-      <div class="divider"></div>
-      <div class="section-label">ROADMAP</div>
-      <ol class="milestones">
-        <li class="active">Rust execution foundation</li>
-        <li>PebbleOS emulator firmware</li>
-        <li>Build &amp; install watchfaces</li>
-        <li>Production Time 2 hardware</li>
-      </ol>
-    </aside>
-    <section class="device-panel panel">
-      <div class="device-toolbar">
-        <span>DISPLAY OUTPUT</span
-        ><span>{{
-          running() ? 'RUNNING' : state()?.fault ? 'FAULTED' : loaded() ? 'PAUSED / HALTED' : 'IDLE'
-        }}</span>
+    <section class="display-panel panel" aria-label="Watch display">
+      <div class="display-toolbar">
+        <nav class="segmented" aria-label="Display view">
+          <button
+            [class.selected]="displayMode() === 'pixels'"
+            [attr.aria-pressed]="displayMode() === 'pixels'"
+            (click)="setDisplay('pixels')"
+          >
+            Pixels</button
+          ><button
+            [class.selected]="displayMode() === 'reflective'"
+            [attr.aria-pressed]="displayMode() === 'reflective'"
+            (click)="setDisplay('reflective')"
+          >
+            Reflective</button
+          ><button
+            [class.selected]="displayMode() === 'model'"
+            [attr.aria-pressed]="displayMode() === 'model'"
+            (click)="setDisplay('model')"
+          >
+            3D watch
+          </button>
+        </nav>
+        <label class="compact" [hidden]="displayMode() === 'model'"
+          >Scale<select [(ngModel)]="zoom">
+            <option [ngValue]="1">1×</option>
+            <option [ngValue]="2">2×</option>
+            <option [ngValue]="3">3×</option>
+          </select></label
+        >
       </div>
-      <div class="display-stage">
-        <div class="display-wrap">
-          <canvas
-            #screen
-            width="200"
-            height="228"
-            aria-label="Diagnostic board framebuffer"
-          ></canvas>
+      <div class="display-stage" [class.model-view]="displayMode() === 'model'">
+        <div #modelHost class="model-host" [hidden]="displayMode() !== 'model'"></div>
+        <div
+          class="pixel-screen"
+          [hidden]="displayMode() === 'model'"
+          [style.width.px]="200 * zoom"
+          [style.height.px]="228 * zoom"
+        >
+          <canvas #screen width="200" height="228" aria-label="Live watch framebuffer"></canvas>
           @if (!loaded()) {
-            <div class="screen-empty">
-              <span>PB</span><strong>No program loaded</strong>
-              <p>Load the diagnostic to begin</p>
-            </div>
+            <div class="empty-display">No firmware loaded</div>
           }
         </div>
+        @if (displayMode() === 'model' && modelStatus()) {
+          <div class="model-status" role="status">{{ modelStatus() }}</div>
+        }
       </div>
-      <div class="display-caption"><span>200 × 228 source pixels</span><span>ARGB2222</span></div>
+      @if (displayMode() !== 'pixels') {
+        <div class="display-options">
+          <label
+            >Ambient light <span>{{ ambient }}%</span
+            ><input
+              type="range"
+              min="0"
+              max="100"
+              [(ngModel)]="ambient"
+              (ngModelChange)="redraw()" /></label
+          ><label
+            >Backlight <span>{{ backlight }}%</span
+            ><input
+              type="range"
+              min="0"
+              max="100"
+              [(ngModel)]="backlight"
+              (ngModelChange)="redraw()"
+          /></label>
+          @if (displayMode() === 'model') {
+            <label
+              >Case<select [(ngModel)]="finish" (ngModelChange)="redraw()">
+                <option value="silver">Silver</option>
+                <option value="black">Black</option>
+              </select></label
+            ><button (click)="resetModel()">Reset view</button>
+          }
+        </div>
+      }
+      <div class="display-caption">
+        <span>200 × 228 · 64 colors</span
+        ><span>{{
+          displayMode() === 'pixels' ? 'Raw framebuffer' : 'Uncalibrated optical preview'
+        }}</span>
+      </div>
+      @if (displayMode() === 'model') {
+        <p class="model-credit">
+          Drag to rotate · Scroll to zoom ·
+          <a
+            href="https://github.com/coredevices/hardware/tree/cb50db8e68c053e7dd595188313dd54aba693bc9/watch/Pebble%20Time%202%20%28obelix%29"
+            target="_blank"
+            rel="noopener"
+            >Official Time 2 geometry</a
+          >
+        </p>
+      }
       <div class="execution-controls">
         <button
-          [disabled]="!loaded() || !ready() || !!state()?.halted"
           class="primary"
+          [disabled]="!loaded() || !ready() || !!state()?.halted || installing()"
           (click)="running() ? pause() : run()"
         >
-          {{ running() ? 'Ⅱ Pause' : '▶ Run' }}</button
+          {{ running() ? 'Pause' : 'Run' }}</button
         ><button
-          [disabled]="!loaded() || !ready() || !!state()?.halted"
+          [disabled]="!loaded() || !ready() || !!state()?.halted || running() || installing()"
           (click)="send({ type: 'step' })"
         >
           Step</button
-        ><button [disabled]="!loaded() || !ready()" (click)="reset()">↺ Reset</button>
+        ><button
+          [disabled]="!loaded() || !ready()"
+          (click)="reset()"
+          [title]="
+            profile() === 'qemu_emery'
+              ? 'Restart the watch; keep installed apps and clock'
+              : 'Restart the diagnostic'
+          "
+        >
+          Reset
+        </button>
+        <div class="execution-stats">
+          <strong>{{ state()?.instructions || 0 | number }}</strong
+          ><span>{{ profile() === 'qemu_emery' ? 'Scheduler steps' : 'Instructions' }}</span>
+        </div>
       </div>
-      <div class="execution-metric">
-        <strong>{{ state()?.instructions || 0 | number }}</strong
-        ><span>INSTRUCTIONS EXECUTED</span>
-      </div>
-      <div class="snapshot-controls">
-        <button [disabled]="!loaded()" (click)="send({ type: 'snapshot' })">Save state</button
-        ><button [disabled]="!snapshotAvailable()" (click)="restore()">Restore state</button>
+      @if (installStatus()) {
+        <p class="install-status" role="status">{{ installStatus() }}</p>
+      }
+      <div class="watch-buttons" aria-label="Watch buttons">
+        @for (item of buttonList; track item.mask) {
+          <button
+            [disabled]="!loaded()"
+            [class.pressed]="isPressed(item.mask)"
+            [attr.aria-pressed]="isPressed(item.mask)"
+            (pointerdown)="handleButton(item.mask, true)"
+            (pointerup)="handleButton(item.mask, false)"
+            (pointerleave)="handleButton(item.mask, false)"
+            (pointercancel)="handleButton(item.mask, false)"
+            (keydown.enter)="handleButton(item.mask, true)"
+            (keyup.enter)="handleButton(item.mask, false)"
+            (keydown.space)="handleButton(item.mask, true); $event.preventDefault()"
+            (keyup.space)="handleButton(item.mask, false)"
+            (blur)="handleButton(item.mask, false)"
+          >
+            {{ item.name }}
+          </button>
+        }
       </div>
     </section>
-    <aside class="right-panel panel">
-      <div class="section-label">02 / INSPECT</div>
-      <nav class="tabs" aria-label="Inspector">
-        @for (name of ['Registers', 'Inputs', 'Protocol']; track name) {
-          <button [class.selected]="tab() === name" (click)="tab.set(name)">{{ name }}</button>
+    <section class="tools-panel panel">
+      <nav class="tabs" aria-label="Development tools">
+        @for (name of ['Firmware', 'Projects', 'Inputs', 'Phone', 'Debug', 'Packets']; track name) {
+          <button
+            [class.selected]="tab() === name"
+            [attr.aria-current]="tab() === name ? 'page' : null"
+            (click)="tab.set(name)"
+          >
+            {{ name }}
+          </button>
         }
       </nav>
-      @if (tab() === 'Registers') {
+      <div class="tool-content" [hidden]="tab() !== 'Firmware'">
+        <firmware-panel (loadFirmware)="loadFirmware($event)" />
+        <hr />
+        <h3>Core diagnostic</h3>
+        <p class="help">A separate test board for instruction and framebuffer checks.</p>
+        <div class="actions">
+          <button (click)="diagnostic()" [disabled]="!ready()">Load diagnostic</button
+          ><label class="file-button"
+            >Open diagnostic .bin<input
+              type="file"
+              accept=".bin"
+              (change)="loadImage($event)"
+              [disabled]="!ready()"
+          /></label>
+        </div>
+      </div>
+      <div class="tool-content" [hidden]="tab() !== 'Projects'">
+        <project-panel (packageReady)="installPackage($event)" (scriptReady)="setScript($event)" />
+      </div>
+      <div class="tool-content" [hidden]="tab() !== 'Inputs'">
+        <h2>Device inputs</h2>
+        <label
+          >Battery level
+          <div class="range-number">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              [ngModel]="battery()"
+              (ngModelChange)="setBattery(+$event)"
+              [disabled]="profile() === 'qemu_emery' && !watchReady()"
+            /><input
+              type="number"
+              min="0"
+              max="100"
+              [ngModel]="battery()"
+              (ngModelChange)="setBattery(+$event)"
+              [disabled]="profile() === 'qemu_emery' && !watchReady()"
+            /><span>%</span>
+          </div></label
+        >
+        <p class="help">
+          {{
+            profile() === 'diagnostic-v1'
+              ? 'Writes the diagnostic battery register.'
+              : 'Sets the firmware battery reading through the QEMU control interface.'
+          }}
+          Electrical discharge and power consumption are not modeled.
+        </p>
+        <label class="checkbox"
+          ><input
+            type="checkbox"
+            [(ngModel)]="charging"
+            (ngModelChange)="setCharge()"
+            [disabled]="profile() !== 'qemu_emery' || !watchReady()"
+          />
+          Charging</label
+        ><label class="checkbox"
+          ><input
+            type="checkbox"
+            [ngModel]="linked()"
+            (ngModelChange)="setConnection($event)"
+            [disabled]="profile() !== 'qemu_emery' || !watchReady()"
+          />
+          Virtual phone connected</label
+        >
+        <hr />
+        <h3>Phone location</h3>
+        <p class="help">
+          Coordinates delivered to PebbleKit JS geolocation callbacks. Time 2 gets location from the
+          phone.
+        </p>
+        <div class="field-grid">
+          <label
+            >Latitude<input
+              type="number"
+              min="-90"
+              max="90"
+              step="0.0001"
+              [(ngModel)]="latitude" /></label
+          ><label
+            >Longitude<input
+              type="number"
+              min="-180"
+              max="180"
+              step="0.0001"
+              [(ngModel)]="longitude"
+          /></label>
+        </div>
+        <label>Accuracy (meters)<input type="number" min="0" [(ngModel)]="accuracy" /></label
+        ><button (click)="applyLocation()">Apply location</button>
+        <hr />
+        <h3>Watch clock</h3>
+        <label
+          >Date and time (UTC)<input
+            type="datetime-local"
+            [(ngModel)]="epochValue"
+            [disabled]="profile() !== 'qemu_emery'" /></label
+        ><button [disabled]="profile() !== 'qemu_emery' || !loaded()" (click)="setClock()">
+          Set clock
+        </button>
+        <p class="help">
+          Virtual elapsed time: {{ virtualSeconds() | number: '1.2-2' }} s. Execution speed is not
+          calibrated to physical hardware.
+        </p>
+      </div>
+      <div class="tool-content" [hidden]="tab() !== 'Phone'">
+        <h2>Virtual phone</h2>
+        <p class="help">
+          PebbleKit JS runs in an isolated JavaScript engine. Location, time, and storage belong to
+          this virtual phone.
+        </p>
+        <dl class="properties">
+          <div>
+            <dt>Script</dt>
+            <dd>{{ phoneScriptName() }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ phoneStatus() }}</dd>
+          </div>
+        </dl>
+        <div class="actions">
+          <button (click)="startPhone()" [disabled]="!phoneScript()">Run script</button
+          ><button (click)="stopPhone()" [disabled]="phoneStatus() === 'Stopped'">Stop</button
+          ><button (click)="advancePhone()" [disabled]="phoneStatus() !== 'Running'">
+            Advance 1 s</button
+          ><button (click)="locationDemo()">Location test</button>
+        </div>
+        <pre class="source-preview">{{
+          phoneScript() || 'Import a project with src/pkjs/index.js to load its companion script.'
+        }}</pre>
+      </div>
+      <div class="tool-content" [hidden]="tab() !== 'Debug'">
+        <h2>CPU registers</h2>
         <div class="registers">
           @for (value of state()?.registers || []; track $index) {
             <div>
@@ -151,117 +339,121 @@
             </div>
           }
         </div>
-        <div class="flags">
-          <span>xPSR</span><code>{{ hex(state()?.flags || 0) }}</code>
+        <dl class="properties">
+          <div>
+            <dt>xPSR</dt>
+            <dd>
+              <code>{{ hex(state()?.flags || 0) }}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Profile</dt>
+            <dd>{{ profile() }}</dd>
+          </div>
+        </dl>
+        <hr />
+        <h3>State snapshots</h3>
+        <div class="actions">
+          <button
+            [disabled]="!loaded() || profile() !== 'diagnostic-v1'"
+            (click)="send({ type: 'snapshot' })"
+          >
+            Save state</button
+          ><button
+            [disabled]="!snapshotAvailable() || profile() !== 'diagnostic-v1'"
+            (click)="restore()"
+          >
+            Restore state
+          </button>
         </div>
-        <p class="small muted">
-          Values come directly from the Rust machine. Instruction ticks are not hardware cycle
-          estimates.
+        <p class="help">
+          Snapshots currently support the diagnostic board. Firmware snapshots need CPU, flash, and
+          peripheral state serialization.
         </p>
-      }
-      @if (tab() === 'Inputs') {
-        <label class="input-label"
-          >Battery reading <strong>{{ battery() }}%</strong></label
-        ><input
-          type="range"
-          min="0"
-          max="100"
-          [ngModel]="battery()"
-          (ngModelChange)="setBattery(+$event)"
-          [disabled]="!ready()"
-          aria-label="Diagnostic battery reading"
-        />
-        <p class="small muted">Injected register value. No battery chemistry or power model yet.</p>
-        <div class="divider"></div>
-        <p class="input-label">
-          Buttons <code>{{ buttons.toString(2).padStart(4, '0') }}</code>
-        </p>
-        <div class="button-grid">
-          @for (
-            item of [
-              { name: 'Back', mask: 1 },
-              { name: 'Up', mask: 2 },
-              { name: 'Select', mask: 4 },
-              { name: 'Down', mask: 8 },
-            ];
-            track item.mask
-          ) {
-            <button
-              [disabled]="!ready()"
-              (pointerdown)="handleButton(item.mask, true)"
-              (pointerup)="handleButton(item.mask, false)"
-              (pointerleave)="handleButton(item.mask, false)"
-              (pointercancel)="handleButton(item.mask, false)"
-              (keydown.enter)="handleButton(item.mask, true)"
-              (keyup.enter)="handleButton(item.mask, false)"
-              (keydown.space)="handleButton(item.mask, true); $event.preventDefault()"
-              (keyup.space)="handleButton(item.mask, false)"
-              (blur)="handleButton(item.mask, false)"
-            >
-              {{ item.name }}
-            </button>
+      </div>
+      <div class="tool-content" [hidden]="tab() !== 'Packets'">
+        <div class="section-heading">
+          <h2>Packets</h2>
+          <div class="actions">
+            <button (click)="packets.set([])">Clear</button
+            ><button (click)="exportPackets()" [disabled]="!packets().length">Export</button>
+          </div>
+        </div>
+        <label
+          >Filter<input [(ngModel)]="packetFilter" placeholder="Endpoint, number, or direction"
+        /></label>
+        <div class="packet-list">
+          @for (p of packetRows(); track p.id) {
+            <details>
+              <summary>
+                <span>{{ p.direction === 'phone' ? 'Phone → Watch' : 'Watch → Phone' }}</span
+                ><strong>{{ endpointName(p.endpoint) }}</strong
+                ><span>{{ p.bytes.length }} B · {{ p.time | number: '1.3-3' }} s</span>
+              </summary>
+              <pre>{{ packetHex(p.bytes) }}</pre>
+            </details>
+          }
+          @if (!packetRows().length) {
+            <p class="help">Connect the virtual phone or install an app to capture traffic.</p>
           }
         </div>
-        <p class="small muted">
-          The color diagnostic does not read these inputs. Custom diagnostic programs can read the
-          input registers.
+        <hr />
+        <h3>Send packet</h3>
+        <p class="help">
+          Inject a payload into the live Pebble protocol. The transport adds framing.
         </p>
-      }
-      @if (tab() === 'Protocol') {
-        <h3>Pebble packet codec</h3>
-        <p class="muted">Inspect bytes encoded by the Rust protocol module.</p>
-        <button
-          class="full"
-          [disabled]="!ready()"
-          (click)="send({ type: 'ping', cookie: 305419896 })"
-        >
-          Encode a Ping packet
+        <label>Endpoint (decimal or hex)<input [(ngModel)]="injectEndpoint" /></label
+        ><label
+          >Payload (hex bytes)<textarea
+            [(ngModel)]="injectHex"
+            rows="3"
+            placeholder="01 00 …"
+          ></textarea></label
+        ><button [disabled]="!watchReady() || profile() !== 'qemu_emery'" (click)="injectPacket()">
+          Send to watch
         </button>
-        @if (packet()) {
-          <div class="packet">
-            <span>ENDPOINT 0x07D1 · PING</span><code>{{ packet() }}</code>
-          </div>
+        @if (profile() === 'diagnostic-v1') {
+          <hr />
+          <h3>Codec diagnostic</h3>
+          <button (click)="send({ type: 'ping', cookie: 305419896 })">Encode Ping</button>
+          @if (packet()) {
+            <pre class="packet">{{ packet() }}</pre>
+          }
         }
-        <p class="small muted">
-          Codec inspection only. The packet is not delivered to a watch; virtual Bluetooth and the
-          phone service are upcoming.
-        </p>
-      }
-    </aside>
+      </div>
+    </section>
   </div>
   <section class="console panel">
     <div class="console-heading">
-      <div>
-        <span class="section-label">03 / TRACE</span>
-        <h2>
-          Session log <span>{{ trace().length }}</span>
-        </h2>
-      </div>
-      <div>
+      <h2>
+        Session log <span>{{ trace().length }}</span>
+      </h2>
+      <div class="actions">
         <button (click)="trace.set([])">Clear</button
-        ><button (click)="exportTrace()" [disabled]="!trace().length">Export JSON ↗</button>
+        ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
       </div>
     </div>
-    <div class="console-lines" role="log" aria-live="polite">
+    <div class="console-lines" role="log">
       @for (event of trace(); track event.index) {
         <div>
-          <span>{{ event.index.toString().padStart(4, '0') }}</span
+          <span>{{ event.index }}</span
           ><strong>{{ event.kind }}</strong
           ><code>{{ event.text }}</code>
         </div>
       }
       @if (!trace().length) {
-        <p class="muted">Events appear here when you interact with the machine.</p>
+        <p class="help">Execution, compiler, and device events appear here.</p>
       }
     </div>
   </section>
   <footer>
-    <span>Runs on your computer. No application backend.</span
-    ><a
-      href="https://github.com/huntrontrakkr/pebble-browser-emulator/blob/main/docs/ROADMAP.md"
+    <span>Local compilation and emulation</span>
+    <a href="licenses/NOTICE.md" target="_blank" rel="noopener">Licenses</a>
+    <a
+      href="https://github.com/huntrontrakkr/pebble-browser-emulator/blob/main/docs/STATUS.md"
       target="_blank"
       rel="noopener"
-      >Compatibility &amp; implementation roadmap ↗</a
+      >Compatibility and known gaps ↗</a
     >
   </footer>
 </main>

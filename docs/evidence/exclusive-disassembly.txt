@@ -1,0 +1,27 @@
+
+/vectors.o:	file format elf32-littlearm
+
+Disassembly of section .text:
+
+00000000 <vectors>:
+       0: e850 1f00    	ldrex	r1, [r0]
+       4: e840 2300    	strex	r3, r2, [r0]
+       8: e8d0 1f4f    	ldrexb	r1, [r0]
+       c: e8c0 2f43    	strexb	r3, r2, [r0]
+      10: e8d0 1f5f    	ldrexh	r1, [r0]
+      14: e8c0 2f53    	strexh	r3, r2, [r0]
+      18: e8d0 1fef    	ldaex	r1, [r0]
+      1c: e8c0 2fe3    	stlex	r3, r2, [r0]
+      20: e8d0 1fcf    	ldaexb	r1, [r0]
+      24: e8c0 2fc3    	stlexb	r3, r2, [r0]
+      28: e8d0 1fdf    	ldaexh	r1, [r0]
+      2c: e8c0 2fd3    	stlexh	r3, r2, [r0]
+      30: e8d0 1faf    	lda	r1, [r0]
+      34: e8c0 2faf    	stl	r2, [r0]
+      38: e8d0 1f8f    	ldab	r1, [r0]
+      3c: e8c0 2f8f    	stlb	r2, [r0]
+      40: e8d0 1f9f    	ldah	r1, [r0]
+      44: e8c0 2f9f    	stlh	r2, [r0]
+      48: f3bf 8f2f    	clrex
+      4c: f3ef 8409    	mrs	r4, psp
+      50: f384 8809    	msr	psp, r4

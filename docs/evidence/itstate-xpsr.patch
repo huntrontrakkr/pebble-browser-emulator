@@ -1,0 +1,16 @@
+--- a/src/core/exceptions.rs
++++ b/src/core/exceptions.rs
+@@ -34,11 +34,11 @@
+ 
+     pub(crate) fn encode_it_to_xpsr(&self) -> u32 {
+         let it = self.it_state as u32;
+-        ((it & 0xC0) << 19) | ((it & 0x3F) << 10) // bits [26:25] | [15:10]
++        ((it & 0x03) << 25) | ((it & 0xFC) << 8) // bits [26:25] | [15:10]
+     }
+ 
+     pub(crate) fn decode_it_from_xpsr(xpsr: u32) -> u8 {
+-        (((xpsr >> 19) & 0xC0) | ((xpsr >> 10) & 0x3F)) as u8
++        (((xpsr >> 25) & 0x03) | ((xpsr >> 8) & 0xFC)) as u8
+     }
+ 
+     // --- Return address selection ---

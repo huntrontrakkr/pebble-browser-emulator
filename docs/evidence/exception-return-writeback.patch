@@ -1,0 +1,42 @@
+--- a/vendor/rp2350-emu/src/core/execute_thumb32.rs
++++ b/vendor/rp2350-emu/src/core/execute_thumb32.rs
+@@ -602,7 +602,21 @@
+             let base = self.regs.r[rn];
+             let addr = if p { base.wrapping_add(offset) } else { base };
+ 
+-            // Perform the memory access before writeback
++            // An EXC_RETURN load must commit base writeback before unstacking.
++            // In particular POP {pc} aliases LDR pc,[sp],#4: exception exit
++            // reads the updated MSP, and may replace r13 with the thread PSP.
++            if load && size == 0b10 && !sign && rt == 15 {
++                let val = self.bus_read32(addr, bus);
++                if w || !p {
++                    self.regs.r[rn] = base.wrapping_add(offset);
++                }
++                if Self::is_exc_return(val) {
++                    return self.exit_exception(val, bus);
++                }
++                self.regs.set_pc(val & !1);
++                return 5;
++            }
++            // Other accesses retain their ordinary access/writeback ordering.
+             let cycles = self.thumb32_ls_single_access(size, sign, load, rt, addr, bus);
+ 
+             // Writeback: pre-index (p=true, w=true) or post-index (p=false)
+@@ -706,6 +720,16 @@
+                     let val = self.bus_read32(addr, bus);
+                     if i == 15 {
+                         if Self::is_exc_return(val) {
++                            // POP.W must advance SP before exception unstacking,
++                            // just as the 16-bit POP path does. Writeback after
++                            // exit would also overwrite a restored thread PSP.
++                            if w && reglist & (1 << rn) == 0 {
++                                self.regs.r[rn] = match op {
++                                    0b01 => self.regs.r[rn].wrapping_add(count * 4),
++                                    0b10 => self.regs.r[rn].wrapping_sub(count * 4),
++                                    _ => unreachable!(),
++                                };
++                            }
+                             bus.set_burst_mode(false);
+                             return self.exit_exception(val, bus);
+                         }

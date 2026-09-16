@@ -1,7 +1,7 @@
 {
   "name": "pebble-browser-demo",
   "version": "1.0.0",
-  "author": "Pebble Browser Emulator contributors",
+  "author": "Browser Emulator contributors",
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {},
@@ -11,9 +11,17 @@
     "sdkVersion": "3",
     "projectType": "native",
     "enableMultiJS": true,
-    "targetPlatforms": ["emery"],
-    "watchapp": {"watchface": true},
-    "messageKeys": {"status": 0},
-    "resources": {"media": []}
+    "targetPlatforms": [
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": {
+      "status": 0
+    },
+    "resources": {
+      "media": []
+    }
   }
 }

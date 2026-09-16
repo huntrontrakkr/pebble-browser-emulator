@@ -1,10 +1,19 @@
+import { AppMessageRouter } from './app-message-router.ts';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { FirmwarePanel } from './firmware-panel.ts';
+import { ProjectPanel } from './project-panel.ts';
+import { renderPixels, type DisplayMode } from './display.ts';
+import type { WatchModel } from './watch-model.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
 
-@Component({ selector: 'app-root', imports: [FormsModule, DecimalPipe], templateUrl: './app.html' })
+@Component({
+  selector: 'app-root',
+  imports: [FormsModule, DecimalPipe, FirmwarePanel, ProjectPanel],
+  templateUrl: './app.html',
+})
 export class App implements AfterViewInit, OnDestroy {
   @ViewChild('screen') screen!: ElementRef<HTMLCanvasElement>;
   ready = signal(false);
@@ -12,7 +21,55 @@ export class App implements AfterViewInit, OnDestroy {
   running = signal(false);
   state = signal<MachineState | null>(null);
   error = signal('');
-  tab = signal('Registers');
+  tab = signal('Firmware');
+  profile = signal<'diagnostic-v1' | 'qemu_emery'>('diagnostic-v1');
+  displayMode = signal<DisplayMode>('pixels');
+  theme = signal('light');
+  ambient = 80;
+  backlight = 0;
+  finish = 'silver';
+  zoom = 2;
+  modelStatus = signal('');
+  private model?: WatchModel;
+  private modelAbort?: AbortController;
+  private modelLoading = false;
+  private destroyed = false;
+  @ViewChild('modelHost') modelHost!: ElementRef<HTMLElement>;
+  private phoneWorker?: Worker;
+  private phoneAccepting = false;
+  private watchGeneration = -1;
+  private phoneMessages = new AppMessageRouter<Worker>();
+  private phoneAppId = 'project';
+  private phoneKeys: Record<string, number> = {};
+  private qemuWorker?: Worker;
+  private qemuReady?: Promise<void>;
+  private diagnosticReady = false;
+  virtualSeconds = signal(0);
+  phoneScript = signal('');
+  phoneScriptName = signal('No script loaded');
+  latitude = 37.7749;
+  longitude = -122.4194;
+  accuracy = 10;
+  phoneStatus = signal('Stopped');
+  watchReady = signal(false);
+  linked = signal(false);
+  installing = signal(false);
+  installStatus = signal('');
+  charging = false;
+  packets = signal<
+    { id: number; direction: string; endpoint: number; bytes: Uint8Array; time: number }[]
+  >([]);
+  packetFilter = '';
+  injectEndpoint = '0x30';
+  injectHex = '';
+  private packetIndex = 0;
+  epochValue = new Date().toISOString().slice(0, 16);
+  readonly buttonList = [
+    { name: 'Back', mask: 1 },
+    { name: 'Up', mask: 2 },
+    { name: 'Select', mask: 4 },
+    { name: 'Down', mask: 8 },
+  ];
   battery = signal(100);
   buttons = 0;
   trace = signal<{ index: number; kind: string; text: string }[]>([]);
@@ -27,12 +84,18 @@ export class App implements AfterViewInit, OnDestroy {
   private loadRevision = 0;
   protected hex = (n: number) => '0x' + (n >>> 0).toString(16).padStart(8, '0');
   ngAfterViewInit() {
+    try {
+      this.setTheme(localStorage.getItem('pebble.theme') ?? 'light');
+    } catch {}
     this.cleanupInspector = registerInspector(
       (document as Document & { modelContext?: InspectorRegistry }).modelContext,
       () => this.state(),
     );
     this.worker = new Worker(new URL('./emulator.worker', import.meta.url), { type: 'module' });
     this.worker.onmessage = ({ data }: MessageEvent<EmulatorEvent>) => {
+      if (data.type === 'ready') this.diagnosticReady = true;
+      if (data.type === 'error' && data.fatal) this.diagnosticReady = false;
+      if (this.profile() !== 'diagnostic-v1') return;
       if (data.type === 'ready') {
         this.ready.set(true);
         this.log('CORE', 'Rust/Wasm ABI v1 connected');
@@ -83,16 +146,32 @@ export class App implements AfterViewInit, OnDestroy {
     };
   }
   ngOnDestroy() {
+    this.destroyed = true;
     this.cleanupInspector();
     this.worker?.terminate();
+    this.qemuWorker?.terminate();
+    this.phoneWorker?.terminate();
+    this.modelAbort?.abort();
+    this.model?.dispose();
   }
   send(command: EmulatorCommand) {
-    if (this.ready()) this.worker?.postMessage(command);
+    if (this.ready())
+      (this.profile() === 'qemu_emery' ? this.qemuWorker : this.worker)?.postMessage(command);
   }
   log(kind: string, text: string) {
     this.trace.update((t) => [...t, { index: ++this.index, kind, text }].slice(-200));
   }
   diagnostic() {
+    if (this.installing()) {
+      this.error.set(
+        'Wait for installation to finish, or reset the watch before switching profiles.',
+      );
+      return;
+    }
+    this.stopPhone();
+    this.qemuWorker?.postMessage({ type: 'pause' });
+    this.profile.set('diagnostic-v1');
+    this.ready.set(this.diagnosticReady);
     this.loadRevision++;
     this.error.set('');
     this.send({ type: 'diagnostic' });
@@ -106,19 +185,34 @@ export class App implements AfterViewInit, OnDestroy {
     this.send({ type: 'pause' });
   }
   reset() {
+    this.buttons = 0;
     this.error.set('');
     this.running.set(false);
     this.send({ type: 'reset' });
-    this.log('RESET', 'Machine reset to image vector table');
+    this.log(
+      'RESET',
+      this.profile() === 'qemu_emery'
+        ? 'Watch restarted; installed apps and RTC retained'
+        : 'Machine reset to image vector table',
+    );
   }
   setBattery(value: number) {
+    if (!Number.isFinite(value)) return;
+    value = Math.round(Math.min(100, Math.max(0, value)));
     this.battery.set(value);
+    if (this.profile() === 'qemu_emery') {
+      this.setCharge();
+      return;
+    }
     this.send({
       type: 'inputs',
       buttons: this.buttons,
       battery: value,
       inputRevision: ++this.inputRevision,
     });
+  }
+  isPressed(mask: number) {
+    return (this.buttons & mask) !== 0;
   }
   handleButton(mask: number, pressed: boolean) {
     this.buttons = pressed ? this.buttons | mask : this.buttons & ~mask;
@@ -145,7 +239,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.download(
       'pebble-trace.json',
       new TextEncoder().encode(
-        JSON.stringify({ version: 1, profile: 'diagnostic-v1', events: this.trace() }, null, 2),
+        JSON.stringify({ version: 1, profile: this.profile(), events: this.trace() }, null, 2),
       ),
     );
   }
@@ -167,6 +261,14 @@ export class App implements AfterViewInit, OnDestroy {
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (revision !== this.loadRevision) return;
       this.error.set('');
+      if (this.installing())
+        throw new Error(
+          'Wait for installation to finish, or reset the watch before switching profiles.',
+        );
+      this.stopPhone();
+      this.qemuWorker?.postMessage({ type: 'pause' });
+      this.profile.set('diagnostic-v1');
+      this.ready.set(this.diagnosticReady);
       this.send({ type: 'image', bytes, name: file.name });
     } catch (e) {
       if (revision === this.loadRevision) this.error.set(String(e));
@@ -175,16 +277,422 @@ export class App implements AfterViewInit, OnDestroy {
     }
   }
   draw(bytes: Uint8Array) {
+    if (!this.screen) return;
     const context = this.screen.nativeElement.getContext('2d');
     if (!context) return;
-    const image = context.createImageData(200, 228);
-    for (let i = 0; i < bytes.length; i++) {
-      const p = bytes[i];
-      image.data[i * 4] = ((p >> 4) & 3) * 85;
-      image.data[i * 4 + 1] = ((p >> 2) & 3) * 85;
-      image.data[i * 4 + 2] = (p & 3) * 85;
-      image.data[i * 4 + 3] = 255;
+    const rgba = renderPixels(bytes, {
+      mode: this.displayMode(),
+      ambient: this.ambient / 100,
+      backlight: this.backlight / 100,
+    });
+    context.putImageData(new ImageData(rgba as Uint8ClampedArray<ArrayBuffer>, 200, 228), 0, 0);
+    this.model?.pixels(rgba);
+  }
+  redraw() {
+    const state = this.state();
+    if (state) this.draw(state.framebuffer);
+    this.model?.finish(this.finish);
+  }
+  setTheme(value: string) {
+    this.theme.set(value);
+    document.documentElement.dataset['theme'] = value;
+    try {
+      localStorage.setItem('pebble.theme', value);
+    } catch {}
+  }
+  async setDisplay(mode: DisplayMode) {
+    this.displayMode.set(mode);
+    this.redraw();
+    if (mode !== 'model' || this.model || this.modelLoading) return;
+    this.modelLoading = true;
+    this.modelStatus.set('Loading official CAD model…');
+    this.modelAbort = new AbortController();
+    try {
+      const { WatchModel } = await import('./watch-model.ts');
+      if (this.destroyed) return;
+      this.model = new WatchModel(this.modelHost.nativeElement);
+      await this.model.load(this.modelAbort.signal);
+      this.modelStatus.set('');
+      this.redraw();
+    } catch (e) {
+      this.model?.dispose();
+      this.model = undefined;
+      this.modelStatus.set(String(e));
+    } finally {
+      this.modelLoading = false;
     }
-    context.putImageData(image, 0, 0);
+  }
+  resetModel() {
+    this.model?.reset();
+  }
+  async loadFirmware(data: { micro: Uint8Array; flash: Uint8Array; name: string }) {
+    const revision = ++this.loadRevision;
+    this.worker?.postMessage({ type: 'pause' });
+    this.error.set('');
+    try {
+      if (!this.qemuWorker) {
+        this.qemuWorker = new Worker(new URL('./qemu.worker', import.meta.url), { type: 'module' });
+        const watch = this.qemuWorker;
+        this.watchGeneration = -1;
+        this.phoneMessages.resetWorker();
+        this.qemuReady = new Promise((resolve, reject) => {
+          this.qemuWorker!.onmessage = ({ data }) => {
+            if (this.qemuWorker !== watch) return;
+            if (data.type === 'ready') {
+              resolve();
+              return;
+            }
+            if (data.type === 'error') {
+              this.error.set(data.message);
+              this.running.set(false);
+              reject(new Error(data.message));
+              return;
+            }
+            this.handleQemuEvent(data);
+            if (data.type === 'state' && this.profile() === 'qemu_emery') {
+              this.state.set(data.state);
+              this.running.set(data.state.running);
+              this.loaded.set(data.state.loaded);
+              this.firmwareName.set(data.state.programName);
+              this.virtualSeconds.set(data.virtualSeconds);
+              this.watchReady.set(data.firmwareReady);
+              this.installing.set(data.installing);
+              this.battery.set(data.state.battery);
+              this.charging = data.charging;
+              if (data.state.fault) this.error.set(data.state.fault);
+              this.draw(data.state.framebuffer);
+            }
+            if (data.type === 'serial') {
+              if (data.port === 2) this.log('UART', data.text);
+              else
+                this.log(
+                  'PACKET',
+                  `UART ${data.port}: ${Array.from(data.bytes as Uint8Array, (b) => b.toString(16).padStart(2, '0')).join(' ')}`,
+                );
+            }
+          };
+          this.qemuWorker!.onerror = (e) => {
+            if (this.qemuWorker !== watch) return;
+            this.error.set(e.message);
+            this.running.set(false);
+            reject(new Error(e.message));
+          };
+          this.qemuWorker!.postMessage({
+            type: 'init',
+            wasmUrl: new URL('wasm/qemu-emery.wasm', document.baseURI).href,
+          });
+        });
+      }
+      await this.qemuReady;
+      if (revision !== this.loadRevision || this.destroyed) return;
+      this.profile.set('qemu_emery');
+      this.ready.set(true);
+      this.watchReady.set(false);
+      this.buttons = 0;
+      this.qemuWorker.postMessage({ type: 'firmware', ...data });
+      this.log('LOAD', data.name);
+      this.tab.set('Inputs');
+    } catch (e) {
+      if (revision !== this.loadRevision) return;
+      this.qemuWorker?.terminate();
+      this.qemuWorker = undefined;
+      this.qemuReady = undefined;
+      this.error.set(String(e));
+    }
+  }
+  installPackage(data: { bytes: Uint8Array; name: string }) {
+    if (this.profile() !== 'qemu_emery' || !this.watchReady()) {
+      this.error.set(
+        'Load and run QEMU Emery firmware until boot completes, then install the app.',
+      );
+      return;
+    }
+    this.error.set('');
+    this.qemuWorker?.postMessage({ type: 'install', ...data });
+  }
+  handleQemuEvent(data: any) {
+    if (data.type === 'session') {
+      this.watchGeneration = data.generation;
+      this.phoneMessages.beginSession(data.generation);
+      this.linked.set(false);
+      this.phoneWorker?.postMessage({ type: 'connection', connected: false });
+      return;
+    }
+    if (data.type === 'firmware-ready') {
+      this.watchReady.set(true);
+      this.log('FIRMWARE', 'Boot complete. Ready for app installation.');
+    }
+    if (data.type === 'connection') {
+      this.linked.set(data.connected);
+      this.phoneWorker?.postMessage({ type: 'connection', connected: data.connected });
+    }
+    if (data.type === 'install-status') {
+      this.installing.set(data.busy);
+      this.installStatus.set(data.message);
+    }
+    if (data.type === 'installed') {
+      this.installStatus.set('Installed and launched: ' + data.uuid);
+      this.log('INSTALL', this.installStatus());
+      this.setScript({
+        source: data.script,
+        name: data.name + '/pebble-js-app.js',
+        appId: data.uuid,
+        messageKeys: data.appinfo.appKeys ?? {},
+      });
+      if (data.script) this.startPhone();
+    }
+    if (data.type === 'protocol') {
+      this.packets.update((rows) =>
+        [
+          ...rows,
+          {
+            id: ++this.packetIndex,
+            direction: data.direction,
+            endpoint: data.endpoint,
+            bytes: data.bytes,
+            time: data.virtualSeconds,
+          },
+        ].slice(-300),
+      );
+    }
+    if (data.type === 'appmessage') {
+      if (data.generation !== this.watchGeneration) return;
+      const message = data.message;
+      if (message.kind === 'ack' || message.kind === 'nack') {
+        const pending = this.phoneMessages.settle(data.generation, message.transactionId);
+        if (pending && this.phoneAccepting && pending.owner === this.phoneWorker) {
+          pending.owner.postMessage({
+            type: 'ack',
+            transactionId: pending.transactionId,
+            accepted: message.kind === 'ack',
+          });
+        }
+      } else if (this.phoneStatus() === 'Running' && message.uuid === this.phoneAppId) {
+        this.phoneWorker?.postMessage({
+          type: 'appmessage',
+          payload: message.payload,
+          transactionId: message.transactionId,
+          transportGeneration: data.generation,
+        });
+      } else {
+        this.qemuWorker?.postMessage({
+          type: 'appmessage-ack',
+          generation: data.generation,
+          transactionId: message.transactionId,
+          accepted: false,
+        });
+      }
+    }
+  }
+  setConnection(value: boolean) {
+    this.qemuWorker?.postMessage({ type: 'connection', connected: value });
+  }
+  setCharge() {
+    this.qemuWorker?.postMessage({
+      type: 'battery',
+      percent: this.battery(),
+      charging: this.charging,
+    });
+  }
+  packetRows() {
+    const query = this.packetFilter.toLowerCase();
+    return this.packets().filter((p) =>
+      (
+        this.endpointName(p.endpoint) +
+        ' ' +
+        p.endpoint +
+        ' ' +
+        this.hex(p.endpoint) +
+        ' ' +
+        p.direction
+      )
+        .toLowerCase()
+        .includes(query),
+    );
+  }
+  endpointName(value: number) {
+    return (
+      {
+        48: 'AppMessage',
+        52: 'App run state',
+        6033: 'App fetch',
+        45531: 'BlobDB',
+        48879: 'PutBytes',
+        2001: 'Ping',
+        17: 'Phone version',
+        11: 'Time',
+      }[value] ?? 'Endpoint ' + value
+    );
+  }
+  packetHex(bytes: Uint8Array) {
+    return (
+      Array.from(bytes.subarray(0, 256), (b) => b.toString(16).padStart(2, '0')).join(' ') +
+      (bytes.length > 256 ? ' …' : '')
+    );
+  }
+  exportPackets() {
+    this.download(
+      'pebble-packets.json',
+      new TextEncoder().encode(
+        JSON.stringify(
+          {
+            version: 1,
+            profile: this.profile(),
+            packets: this.packets().map((p) => ({ ...p, bytes: Array.from(p.bytes) })),
+          },
+          null,
+          2,
+        ),
+      ),
+    );
+  }
+  injectPacket() {
+    const endpoint = Number(this.injectEndpoint),
+      hex = this.injectHex.replace(/\s+/g, '');
+    if (
+      !Number.isInteger(endpoint) ||
+      endpoint < 0 ||
+      endpoint > 65535 ||
+      hex.length % 2 ||
+      !/^[0-9a-f]*$/i.test(hex) ||
+      hex.length > 131070
+    ) {
+      this.error.set('Enter an endpoint from 0 to 65535 and complete hexadecimal byte pairs.');
+      return;
+    }
+    const bytes = Uint8Array.from(hex.match(/../g) ?? [], (v) => parseInt(v, 16));
+    this.qemuWorker?.postMessage({ type: 'packet', endpoint, bytes });
+  }
+  setScript(data: {
+    source: string;
+    name: string;
+    appId?: string;
+    messageKeys?: Record<string, number>;
+  }) {
+    this.stopPhone();
+    this.phoneAppId = data.appId ?? data.name;
+    this.phoneKeys = data.messageKeys ?? {};
+    this.phoneScript.set(data.source);
+    this.phoneScriptName.set(data.name);
+  }
+  startPhone() {
+    this.phoneWorker?.terminate();
+    this.phoneWorker = new Worker(new URL('./phone.worker', import.meta.url), { type: 'module' });
+    const phone = this.phoneWorker;
+    this.phoneAccepting = true;
+    this.phoneStatus.set('Starting…');
+    this.phoneWorker.onmessage = ({ data }) => {
+      if (this.phoneWorker !== phone) return;
+      if (data.type === 'status') this.phoneStatus.set(data.status);
+      if (data.type === 'error') {
+        this.phoneStatus.set('Error');
+        this.log('PHONE', data.message);
+      }
+      if (data.type === 'inbound-result' && data.transportGeneration === this.watchGeneration)
+        this.qemuWorker?.postMessage({
+          type: 'appmessage-ack',
+          generation: data.transportGeneration,
+          transactionId: data.transactionId,
+          accepted: data.accepted,
+        });
+      if (data.type === 'event') {
+        const event = data.event;
+        this.log('PHONE', event.text ?? event.message ?? JSON.stringify(event));
+        if (event.type === 'outbound' && this.phoneAccepting) {
+          if (!this.linked() || this.profile() !== 'qemu_emery') {
+            phone.postMessage({ type: 'ack', transactionId: event.transactionId, accepted: false });
+            return;
+          }
+          const wireId = this.phoneMessages.allocate(
+            this.watchGeneration,
+            event.transactionId,
+            phone,
+          );
+          if (wireId === undefined) {
+            this.log(
+              'PHONE',
+              'No free AppMessage transaction IDs; waiting for outstanding watch acknowledgements.',
+            );
+            phone.postMessage({ type: 'ack', transactionId: event.transactionId, accepted: false });
+            return;
+          }
+          this.qemuWorker?.postMessage({
+            type: 'appmessage',
+            generation: this.watchGeneration,
+            uuid: event.appId,
+            transactionId: wireId,
+            payload: event.payload,
+          });
+        }
+      }
+      if (data.type === 'storage') {
+        try {
+          sessionStorage.setItem('pebble.phone.' + data.appId, JSON.stringify(data.storage));
+        } catch {}
+      }
+    };
+    this.phoneWorker.onerror = (e) => {
+      if (this.phoneWorker !== phone) return;
+      this.phoneStatus.set('Error');
+      this.log('PHONE', e.message);
+    };
+    let storage = {};
+    try {
+      storage = JSON.parse(sessionStorage.getItem('pebble.phone.' + this.phoneAppId) ?? '{}');
+    } catch {}
+    this.phoneWorker.postMessage({
+      type: 'start',
+      wasmUrl: new URL('wasm/quickjs.wasm', document.baseURI).href,
+      source: this.phoneScript(),
+      name: this.phoneScriptName(),
+      appId: this.phoneAppId,
+      messageKeys: this.phoneKeys,
+      storage,
+      coordinates: { latitude: this.latitude, longitude: this.longitude, accuracy: this.accuracy },
+      connected: this.linked(),
+    });
+  }
+  stopPhone() {
+    this.phoneAccepting = false;
+    this.phoneWorker?.postMessage({ type: 'stop' });
+  }
+  advancePhone() {
+    this.phoneWorker?.postMessage({ type: 'advance', milliseconds: 1000 });
+  }
+  locationDemo() {
+    this.setScript({
+      name: 'Location test',
+      source: `Pebble.addEventListener('ready', function () {
+  navigator.geolocation.watchPosition(function (position) {
+    console.log('Location', position.coords.latitude, position.coords.longitude, 'accuracy', position.coords.accuracy);
+  });
+});`,
+    });
+    this.startPhone();
+  }
+  applyLocation() {
+    if (
+      !Number.isFinite(this.latitude) ||
+      Math.abs(this.latitude) > 90 ||
+      !Number.isFinite(this.longitude) ||
+      Math.abs(this.longitude) > 180 ||
+      !Number.isFinite(this.accuracy) ||
+      this.accuracy < 0
+    ) {
+      this.error.set('Enter valid latitude, longitude, and nonnegative accuracy.');
+      return;
+    }
+    if (this.phoneStatus() !== 'Running') {
+      this.log('PHONE', 'Location saved. Start a phone script to deliver it.');
+      return;
+    }
+    this.phoneWorker?.postMessage({
+      type: 'location',
+      coordinates: { latitude: this.latitude, longitude: this.longitude, accuracy: this.accuracy },
+    });
+  }
+  setClock() {
+    const epoch = new Date(this.epochValue + 'Z').getTime() / 1000;
+    if (Number.isFinite(epoch)) this.qemuWorker?.postMessage({ type: 'epoch', epoch });
   }
 }

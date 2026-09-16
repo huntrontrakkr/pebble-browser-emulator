@@ -16,9 +16,11 @@
   no web target. Use as a behavior reference; a direct source port carries licensing duties.
 - [microbit-clang-wasm](https://github.com/carlosperate/microbit-clang-wasm) version
   21.11.0-alpha.1: ARM Clang/LLD in Wasm; LLVM Apache-2.0 WITH LLVM-exception, wrapper ISC.
-  Published package exposes createSession/writeFile/run/readFile. Actual ARM object generation
-  was verified separately in Node's WebAssembly runtime during research, not in this app.
-  Runtime assets total about 98 MB uncompressed; self-host with all component notices.
+  Published package exposes createSession/writeFile/run/readFile. The actual Compiler Worker builds the included
+  C/PKJS app to an installable PBW; SDK metadata, CRCs, resources, and relocations were
+  independently compared with official SDK output.
+  Runtime assets total about 94 MiB; pinned external binaries are hash-verified and cached,
+  while the browser JS loader and notices are self-hosted.
 - [SDK 4.33.1 archive](https://sdk.repebble.com/releases/4.33.1/sdk-core.tar.gz): archive endpoint
   lacks CORS and archive-wide license notices; use user local import or an audited build from
   separately licensed upstream sources. Do not silently proxy or redistribute the whole archive.
@@ -27,7 +29,8 @@
 - [pblboot](https://github.com/coredevices/pblboot): public second-stage bootloader; silicon
   boot ROM is a separate dependency. Matching ROM-labelled SDK images to PT2 revisions remains
   unverified.
-- [picoem Rust core](https://github.com/0x4D44/picoem): MIT/Apache candidate for an adaptation
-  spike, not integrated. Its M33 CPU has RP2350-specific bus/PPB/cache assumptions.
+- [picoem Rust core](https://github.com/0x4D44/picoem): MIT/Apache Cortex-M33 core integrated as pinned
+  `rp2350-emu` 0.2.6. Its M33 CPU has RP2350-specific bus/PPB/cache assumptions.
 
-No third-party firmware or SDK binaries are bundled in this foundation.
+No third-party firmware or SDK binaries are bundled. See the compatibility matrix and
+`docs/evidence` for the current unchanged-firmware, app-transfer, and native-framebuffer gates.

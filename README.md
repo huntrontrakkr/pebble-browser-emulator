@@ -1,16 +1,17 @@
 # Pebble Browser Emulator
 
-A browser-only Pebble emulator and development workbench using **Angular and Rust/WebAssembly**.
+A browser-only Pebble development utility with an Angular interface, a Rust/Wasm firmware
+emulator, a Wasm ARM compiler, and an isolated PebbleKit JS phone runtime. No application
+backend, remote build service, or CORS proxy.
 
-**Early development foundation. This does not boot PebbleOS or run Pebble watchfaces yet.**
-The current `diagnostic-v1` board executes a small real ARM Thumb program, exposes its CPU
-registers, and renders bytes written by that program into a 200×228 framebuffer. It is not
-an approximation presented as a completed watch emulator.
+The current target is **QEMU Emery emulator firmware**. The physical 2026 Pebble Time 2 uses
+an Obelix/SiFli board that requires a separate implementation. Firmware/repository support
+is measured per combination; there is no claim that every published firmware or app works.
+See [compatibility and verification](docs/STATUS.md).
 
 ## Run locally
 
-Install Node.js 24 and Rust using rustup. The checked-in Rust toolchain configuration includes
-the Wasm target. Then:
+Install Node.js 24 and Rust using rustup, then:
 
 ```sh
 npm ci
@@ -18,10 +19,33 @@ npm run build:wasm
 npm run dev
 ```
 
-Open the development URL, select **Load diagnostic**, then **Run**. Inspect registers,
-step/reset execution, save/restore state, inject diagnostic inputs, and encode a Pebble Ping
-packet. The color diagnostic does not read the input registers. Packet encoding does not
-send traffic to a watch. Saved snapshots currently last only for this browser session.
+1. In **Firmware**, find release **v4.37.0** or browse official releases. Download a matching QEMU Emery micro-flash
+   and SPI-flash pair, open both files, select **Load firmware**, then **Run**. First boot
+   initializes the flash filesystem. Full PebbleOS **4.37.0** and **4.36.0** pass the current
+   app installation gate. Reset keeps installed apps; reloading the original images clears them.
+2. In **Projects**, load the included example or import a public GitHub repository. Enter
+   a branch/commit and app subfolder when needed. Imports are pinned to the resolved commit.
+3. Open the official **SDK 4.33.1 core archive**. Select **Build PBW**. The ARM compiler's
+   approximately 94 MiB of assets are downloaded once, verified, and cached on the device.
+   Supported source projects compile entirely inside a cancellable browser Worker.
+4. Select **Install on watch**. The phone transfers the executable/resources through real
+   firmware protocols. A packaged companion script starts in QuickJS after installation.
+5. Use **Inputs**, **Phone**, **Debug**, and **Packets** to inspect execution and inject values.
+
+Existing Emery PBWs can be opened without compiling. GitHub release and SDK downloads lack
+suitable CORS headers, so those files are opened locally. Source files, the required SDK
+subset, and compiler downloads stay on the device. Firmware is not included or uploaded.
+
+Display modes are exact 64-color pixels, an **uncalibrated** reflective preview, and a
+rotatable model using official Time 2 CAD fetched from its pinned upstream revision. Light
+and dark interface themes are available. Optical/material previews do not change guest pixels.
+
+## Current build profile
+
+SDK 3 native C projects targeting Emery, `package.json`, conventional SDK Waf templates,
+firmware system fonts, explicitly numbered message keys, and one PKJS entry file. Custom
+resources/fonts, dependency packages, background workers, C++, custom Waf, legacy layouts,
+and other watch platforms currently produce explicit unsupported errors.
 
 ## Verify
 
@@ -32,42 +56,33 @@ cargo test --workspace --locked
 npm run check
 ```
 
-`npm run check` builds the Rust Wasm, tests its actual binary and Worker contract, and creates
-the static Angular build in `dist/client`. There is no server component or application backend.
-The Node Worker transport test is not browser rendering validation.
-
-For an independent CPU comparison (optional Python tooling):
+Tests exercise the actual Rust Wasm, Worker lifecycle, archive integrity, firmware image
+normalization, compiler binary formats, UART protocols, and sandboxed phone scripts. They
+are not a substitute for cross-browser visual testing. See `docs/STATUS.md` for the
+optional official-firmware integration gate and independent reference evidence.
 
 ```sh
 uv run --with unicorn==2.1.4 python scripts/verify-reference.py
 ```
 
-This executes the same image in Unicorn's ARM M-class emulator, comparing instruction count,
-registers, and every framebuffer byte against our compiled Wasm. It validates only the
-executed diagnostic instruction path, not complete ARM/Pebble compatibility.
+This independent CPU comparison checks the diagnostic instruction path against Unicorn,
+including all 45,600 framebuffer bytes. It does not establish complete Cortex-M33 fidelity.
 
-## Project layout
+## Structure
 
-- `crates/emulator-core`: original CPU diagnostic, memory/framebuffer, snapshots, packet framing.
-- `crates/emulator-wasm`: small versioned ABI; no host imports.
-- `src/app`: Angular workbench and dedicated emulator Worker.
-- `examples/watchface`: standalone Pebble demo source for the future build/install pipeline.
-- `docs`: [current status](docs/STATUS.md), [architecture](docs/ARCHITECTURE.md),
-  [approved roadmap](docs/ROADMAP.md), and [research/provenance](docs/RESEARCH.md).
+- `crates/emulator-core`, `crates/emulator-wasm`: independent diagnostic board and ABI.
+- `crates/qemu-emery`: original generic board adapter, scheduler, and Wasm ABI.
+- `vendor/rp2350-emu`: pinned permissive Rust Cortex-M33 dependency with documented fixes.
+- `src/app`: Angular UI, emulator/phone/archive Workers, imports, protocol, and display.
+- `public/compiler`: portable compiler worker, package builder, and licensed JS loader.
+- `examples/watchface`: standalone C/PKJS demo with time, battery, connection, and messages.
+- `docs`: [architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and evidence.
 
-## Next acceptance gate
-
-Run unchanged `qemu_emery` firmware on a Rust Armv8-M implementation and compare it with
-native QEMU. This requires substantially more CPU/system/peripheral implementation.
-The actual Time 2 uses a separate Obelix/SiFli board; emulator-firmware support will not be
-presented as production hardware fidelity. Browser compilation and the virtual phone follow
-as separate measured milestones.
-
-A Sites project is reserved in `.openai/hosting.json`. Public application release is deferred
-until the first useful firmware/watchface workflow passes its gate; a diagnostic foundation
-is not advertised as the completed emulator.
+`npm run build` produces portable static files in `dist/client`. The application does not
+require a server process. Hosting configuration is in `.openai/hosting.json`.
 
 ## License
 
-Original source: Apache-2.0. See [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md).
-No Pebble firmware or proprietary SDK binaries are included. This is an independent project.
+Original source: Apache-2.0. Dependencies retain their own licenses; see
+[third-party notices](THIRD_PARTY_NOTICES.md). No firmware or proprietary SDK binary is
+committed. This is an independent project.

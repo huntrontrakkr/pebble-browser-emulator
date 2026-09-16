@@ -1,0 +1,15 @@
+{
+  "dimensions": [200, 228],
+  "format": "ARGB2222",
+  "bytes_compared": 45600,
+  "differing_bytes": 0,
+  "rust_sha256": "ff5e62857b3d6e14c4a2d7cbc57a57e64f3f89471c483f09c599c4d3ea3b470b",
+  "native_sha256": "ff5e62857b3d6e14c4a2d7cbc57a57e64f3f89471c483f09c599c4d3ea3b470b",
+  "rtc_epoch_set": 1789545600,
+  "display_time": "08:00",
+  "battery_percent": 57,
+  "status": "GPS 40.71",
+  "native_screen_white": 100,
+  "raw_white": 255,
+  "screen_difference": "Native QEMU applies its documented ambient backlight floor; this comparison uses raw display pixels."
+}

@@ -4,7 +4,7 @@
 
 Angular frontend, Rust/Wasm hardware core, browser-only application runtime. No remote
 compilation service, application backend, or CORS proxy. Preserve the approved roadmap
-in docs/ROADMAP.md. The current diagnostic is an early foundation, not PebbleOS emulation.
+in docs/ROADMAP.md. Keep diagnostic-v1 separate from the experimental QEMU Emery firmware runtime.
 
 ## Accuracy
 
@@ -18,6 +18,7 @@ in docs/ROADMAP.md. The current diagnostic is an early foundation, not PebbleOS 
 ## Development
 
 - npm ci; npm run build:wasm; npm run dev.
+- Keep vendor provenance and reviewable CPU patches; never patch guest firmware to hide CPU bugs.
 - cargo test --workspace --locked checks Rust behavior.
 - npm test checks the compiled Wasm ABI. npm run build produces static dist/client.
 - Generated Wasm/build output stays ignored; commit Cargo.lock and package-lock.json.

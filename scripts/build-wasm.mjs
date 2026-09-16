@@ -14,6 +14,8 @@ const result = spawnSync(
     'wasm32-unknown-unknown',
     '-p',
     'pebble-emulator-wasm',
+    '-p',
+    'emulator-qemu',
   ],
   { stdio: 'inherit' },
 );
@@ -25,4 +27,13 @@ mkdirSync('public/wasm', { recursive: true });
 copyFileSync(
   'target/wasm32-unknown-unknown/release/pebble_emulator_wasm.wasm',
   'public/wasm/emulator.wasm',
+);
+
+copyFileSync(
+  'target/wasm32-unknown-unknown/release/emulator_qemu.wasm',
+  'public/wasm/qemu-emery.wasm',
+);
+copyFileSync(
+  'node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm',
+  'public/wasm/quickjs.wasm',
 );

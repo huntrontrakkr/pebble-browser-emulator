@@ -1,0 +1,38 @@
+{
+  "package": "microbit-clang-wasm",
+  "version": "21.11.0-alpha.1",
+  "source": "https://registry.npmjs.org/microbit-clang-wasm/-/microbit-clang-wasm-21.11.0-alpha.1.tgz",
+  "upstream": "https://github.com/carlosperate/microbit-clang-wasm",
+  "llvmCommit": "0bac08d50952133963671eeeb8c3e67695a32f49",
+  "unchangedBundle": true,
+  "files": {
+    "COMPONENT-LICENSES.md": {
+      "bytes": 1637,
+      "sha256": "ad48828c9d08c03ef8e4da502ff211576e260606593c59773f12c34015227d2d"
+    },
+    "JCO-LICENSE.txt": {
+      "bytes": 12243,
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    "LICENSE-APACHE-2.0.txt": {
+      "bytes": 11378,
+      "sha256": "65c6633c2c9effa87f95bfe794d5da07bd3faab2814e4a0a15883e28ec4e543f"
+    },
+    "LICENSE-ISC.txt": {
+      "bytes": 763,
+      "sha256": "dfc801f3db426280b60a2808c56b944e48f66025a2fcdd60826ae43084351800"
+    },
+    "README.md": {
+      "bytes": 1378,
+      "sha256": "868b6ee75bf722b5f7bb190e532e347614865d151f0478bc6f10192e098612ef"
+    },
+    "bundle.js": {
+      "bytes": 260652,
+      "sha256": "360573c46f4cbbeedfddc756f5a761f02514acda1bedb26ad3507b15f91cd6e9"
+    }
+  },
+  "noticeSources": {
+    "LICENSE-ISC.txt": "https://registry.npmjs.org/@yowasp/runtime/-/runtime-11.0.67.tgz",
+    "JCO-LICENSE.txt": "https://raw.githubusercontent.com/bytecodealliance/jco/main/LICENSE"
+  }
+}

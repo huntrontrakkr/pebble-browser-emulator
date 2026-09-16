@@ -1,0 +1,50 @@
+{
+  "profile": "qemu_emery functional Cortex-M33 virtual board, not Obelix production hardware",
+  "firmware": {
+    "version": "4.37.0",
+    "micro_sha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+    "spi_sha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5"
+  },
+  "app": {
+    "uuid": "7c5f2e40-63c4-4d17-9cd6-8a85f0ced130",
+    "pbw_sha256": "4e218776f099ae7fd74dd5e18ec725c12c1f204f6f45475368cccd8139ac831f",
+    "source": "current examples/watchface; browser WebAssembly Clang compiler"
+  },
+  "checked": [
+    "unchanged official full firmware boots without Wasm imports",
+    "BlobDB/AppFetch/PutBytes app and resources transfer ACKs",
+    "actual full screen time, battery and status render",
+    "QEMU channel5 battery57 updates native watchface",
+    "AppMessage endpoint0x30 key0 string GPS40.71 ACKff01 and native text updates"
+  ],
+  "resolved": [
+    "Armv8-M acquire/release instruction decoder missing",
+    "exact-zero SysTick transition",
+    "priority register STRB/LDRB support: PendSV/SysTick previously stayed priority0 and broke critical sections",
+    "ITSTATE split xPSR packing",
+    "POP.W/LDR-PC exception writeback order",
+    "WFE wake handling",
+    "display completion presentation buffer prevents tearing"
+  ],
+  "caveats": [
+    "verified stages; no claim of physical Obelix peripheral/cycle accuracy",
+    "only tested firmware versions and feature paths; not arbitrary production firmware support",
+    "phone proof here replays raw AppMessage; separate QuickJS harness verified actual JS-to-firmware ACK",
+    "Bluetooth disconnect display grace not part of this acceptance"
+  ],
+  "framebuffer_comparison": {
+    "dimensions": [200, 228],
+    "format": "ARGB2222",
+    "bytes_compared": 45600,
+    "differing_bytes": 0,
+    "rust_sha256": "ff5e62857b3d6e14c4a2d7cbc57a57e64f3f89471c483f09c599c4d3ea3b470b",
+    "native_sha256": "ff5e62857b3d6e14c4a2d7cbc57a57e64f3f89471c483f09c599c4d3ea3b470b",
+    "rtc_epoch_set": 1789545600,
+    "display_time": "08:00",
+    "battery_percent": 57,
+    "status": "GPS 40.71",
+    "native_screen_white": 100,
+    "raw_white": 255,
+    "screen_difference": "Native QEMU applies its documented ambient backlight floor; this comparison uses raw display pixels."
+  }
+}
