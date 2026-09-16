@@ -1,0 +1,267 @@
+<header class="topbar">
+  <a class="identity" href="/" aria-label="Pebble Browser Emulator home"
+    ><span class="mark">P<span>B</span></span>
+    <div>
+      <strong>Pebble Browser Emulator</strong
+      ><span class="subtitle">HARDWARE &amp; DEVELOPMENT WORKBENCH</span>
+    </div></a
+  >
+  <div class="header-meta">
+    <span class="version">FOUNDATION · 0.1</span
+    ><a
+      href="https://github.com/huntrontrakkr/pebble-browser-emulator"
+      target="_blank"
+      rel="noopener"
+      >GitHub ↗</a
+    >
+  </div>
+</header>
+<main>
+  <section class="workspace-heading">
+    <div>
+      <p class="eyebrow">EMULATOR</p>
+      <h1>Inspect every instruction.</h1>
+    </div>
+    <div class="core-status">
+      <span [class.connected]="ready()" class="status-light"></span
+      >{{ ready() ? 'Rust / WebAssembly' : 'Connecting to core' }}
+    </div>
+  </section>
+  <div class="notice">
+    <strong>Development foundation</strong
+    ><span
+      >The diagnostic runs real ARM instructions in Rust. PebbleOS boot, production Time 2 hardware,
+      and watchface compilation are not implemented yet.</span
+    >
+  </div>
+  @if (error()) {
+    <div class="error" role="alert">{{ error() }}</div>
+  }
+  <div class="workspace">
+    <aside class="left-panel panel">
+      <div class="section-label">01 / MACHINE</div>
+      <h2>Diagnostic board</h2>
+      <p class="muted">A small, explicit test machine for building the emulator core.</p>
+      <dl class="specs">
+        <div>
+          <dt>Profile</dt>
+          <dd>diagnostic-v1</dd>
+        </div>
+        <div>
+          <dt>Instruction set</dt>
+          <dd>Thumb subset</dd>
+        </div>
+        <div>
+          <dt>Display</dt>
+          <dd>200 × 228 · 64 colors</dd>
+        </div>
+        <div>
+          <dt>SRAM</dt>
+          <dd>512 KiB</dd>
+        </div>
+      </dl>
+      <div class="divider"></div>
+      <div class="section-label">PROGRAM</div>
+      <p class="file-name">{{ firmwareName() }}</p>
+      <button class="primary full" (click)="diagnostic()" [disabled]="!ready()">
+        Load diagnostic <span>↳</span>
+      </button>
+      <label class="file-button" [class.disabled]="!ready()"
+        >Import diagnostic .bin<input
+          type="file"
+          accept=".bin"
+          [disabled]="!ready()"
+          (change)="loadImage($event)"
+      /></label>
+      <p class="small muted">
+        Raw vector-table images for this test board only. Production firmware uses a different
+        hardware profile.
+      </p>
+      <div class="divider"></div>
+      <div class="section-label">ROADMAP</div>
+      <ol class="milestones">
+        <li class="active">Rust execution foundation</li>
+        <li>PebbleOS emulator firmware</li>
+        <li>Build &amp; install watchfaces</li>
+        <li>Production Time 2 hardware</li>
+      </ol>
+    </aside>
+    <section class="device-panel panel">
+      <div class="device-toolbar">
+        <span>DISPLAY OUTPUT</span
+        ><span>{{
+          running() ? 'RUNNING' : state()?.fault ? 'FAULTED' : loaded() ? 'PAUSED / HALTED' : 'IDLE'
+        }}</span>
+      </div>
+      <div class="display-stage">
+        <div class="display-wrap">
+          <canvas
+            #screen
+            width="200"
+            height="228"
+            aria-label="Diagnostic board framebuffer"
+          ></canvas>
+          @if (!loaded()) {
+            <div class="screen-empty">
+              <span>PB</span><strong>No program loaded</strong>
+              <p>Load the diagnostic to begin</p>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="display-caption"><span>200 × 228 source pixels</span><span>ARGB2222</span></div>
+      <div class="execution-controls">
+        <button
+          [disabled]="!loaded() || !ready() || !!state()?.halted"
+          class="primary"
+          (click)="running() ? pause() : run()"
+        >
+          {{ running() ? 'Ⅱ Pause' : '▶ Run' }}</button
+        ><button
+          [disabled]="!loaded() || !ready() || !!state()?.halted"
+          (click)="send({ type: 'step' })"
+        >
+          Step</button
+        ><button [disabled]="!loaded() || !ready()" (click)="reset()">↺ Reset</button>
+      </div>
+      <div class="execution-metric">
+        <strong>{{ state()?.instructions || 0 | number }}</strong
+        ><span>INSTRUCTIONS EXECUTED</span>
+      </div>
+      <div class="snapshot-controls">
+        <button [disabled]="!loaded()" (click)="send({ type: 'snapshot' })">Save state</button
+        ><button [disabled]="!snapshotAvailable()" (click)="restore()">Restore state</button>
+      </div>
+    </section>
+    <aside class="right-panel panel">
+      <div class="section-label">02 / INSPECT</div>
+      <nav class="tabs" aria-label="Inspector">
+        @for (name of ['Registers', 'Inputs', 'Protocol']; track name) {
+          <button [class.selected]="tab() === name" (click)="tab.set(name)">{{ name }}</button>
+        }
+      </nav>
+      @if (tab() === 'Registers') {
+        <div class="registers">
+          @for (value of state()?.registers || []; track $index) {
+            <div>
+              <span>{{
+                $index === 13 ? 'SP' : $index === 14 ? 'LR' : $index === 15 ? 'PC' : 'R' + $index
+              }}</span
+              ><code>{{ hex(value) }}</code>
+            </div>
+          }
+        </div>
+        <div class="flags">
+          <span>xPSR</span><code>{{ hex(state()?.flags || 0) }}</code>
+        </div>
+        <p class="small muted">
+          Values come directly from the Rust machine. Instruction ticks are not hardware cycle
+          estimates.
+        </p>
+      }
+      @if (tab() === 'Inputs') {
+        <label class="input-label"
+          >Battery reading <strong>{{ battery() }}%</strong></label
+        ><input
+          type="range"
+          min="0"
+          max="100"
+          [ngModel]="battery()"
+          (ngModelChange)="setBattery(+$event)"
+          [disabled]="!ready()"
+          aria-label="Diagnostic battery reading"
+        />
+        <p class="small muted">Injected register value. No battery chemistry or power model yet.</p>
+        <div class="divider"></div>
+        <p class="input-label">
+          Buttons <code>{{ buttons.toString(2).padStart(4, '0') }}</code>
+        </p>
+        <div class="button-grid">
+          @for (
+            item of [
+              { name: 'Back', mask: 1 },
+              { name: 'Up', mask: 2 },
+              { name: 'Select', mask: 4 },
+              { name: 'Down', mask: 8 },
+            ];
+            track item.mask
+          ) {
+            <button
+              [disabled]="!ready()"
+              (pointerdown)="handleButton(item.mask, true)"
+              (pointerup)="handleButton(item.mask, false)"
+              (pointerleave)="handleButton(item.mask, false)"
+              (pointercancel)="handleButton(item.mask, false)"
+              (keydown.enter)="handleButton(item.mask, true)"
+              (keyup.enter)="handleButton(item.mask, false)"
+              (keydown.space)="handleButton(item.mask, true); $event.preventDefault()"
+              (keyup.space)="handleButton(item.mask, false)"
+              (blur)="handleButton(item.mask, false)"
+            >
+              {{ item.name }}
+            </button>
+          }
+        </div>
+        <p class="small muted">
+          The color diagnostic does not read these inputs. Custom diagnostic programs can read the
+          input registers.
+        </p>
+      }
+      @if (tab() === 'Protocol') {
+        <h3>Pebble packet codec</h3>
+        <p class="muted">Inspect bytes encoded by the Rust protocol module.</p>
+        <button
+          class="full"
+          [disabled]="!ready()"
+          (click)="send({ type: 'ping', cookie: 305419896 })"
+        >
+          Encode a Ping packet
+        </button>
+        @if (packet()) {
+          <div class="packet">
+            <span>ENDPOINT 0x07D1 · PING</span><code>{{ packet() }}</code>
+          </div>
+        }
+        <p class="small muted">
+          Codec inspection only. The packet is not delivered to a watch; virtual Bluetooth and the
+          phone service are upcoming.
+        </p>
+      }
+    </aside>
+  </div>
+  <section class="console panel">
+    <div class="console-heading">
+      <div>
+        <span class="section-label">03 / TRACE</span>
+        <h2>
+          Session log <span>{{ trace().length }}</span>
+        </h2>
+      </div>
+      <div>
+        <button (click)="trace.set([])">Clear</button
+        ><button (click)="exportTrace()" [disabled]="!trace().length">Export JSON ↗</button>
+      </div>
+    </div>
+    <div class="console-lines" role="log" aria-live="polite">
+      @for (event of trace(); track event.index) {
+        <div>
+          <span>{{ event.index.toString().padStart(4, '0') }}</span
+          ><strong>{{ event.kind }}</strong
+          ><code>{{ event.text }}</code>
+        </div>
+      }
+      @if (!trace().length) {
+        <p class="muted">Events appear here when you interact with the machine.</p>
+      }
+    </div>
+  </section>
+  <footer>
+    <span>Runs on your computer. No application backend.</span
+    ><a
+      href="https://github.com/huntrontrakkr/pebble-browser-emulator/blob/main/docs/ROADMAP.md"
+      target="_blank"
+      rel="noopener"
+      >Compatibility &amp; implementation roadmap ↗</a
+    >
+  </footer>
+</main>

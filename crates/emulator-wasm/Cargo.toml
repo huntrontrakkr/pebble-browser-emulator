@@ -1,0 +1,11 @@
+[package]
+name = "pebble-emulator-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pebble-emulator-core = { path = "../emulator-core" }
