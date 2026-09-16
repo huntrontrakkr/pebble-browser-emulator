@@ -1,0 +1,58 @@
+[
+  {
+    "platform": "aplite",
+    "pbwBytes": 10433,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "5c76bb6cc072c8c1397fb1b28ad6307c5938b5b3d87680caa0c930f91ba5a0b0"
+  },
+  {
+    "platform": "basalt",
+    "pbwBytes": 10434,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "86d1e85fb58f2a2551a82a0f99fcf177821d9e17bd3596c7a9ba50eaf191445b"
+  },
+  {
+    "platform": "chalk",
+    "pbwBytes": 10427,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "578b6560b351c52716741b050684e8438a4a6abbca0bd208d0a4c26357a9b0da"
+  },
+  {
+    "platform": "diorite",
+    "pbwBytes": 10440,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "f90ed28862320fcf87de1fdbaa5c1e6ce9627342a0c61350176376fd40c6b93d"
+  },
+  {
+    "platform": "emery",
+    "pbwBytes": 10429,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "dfbc0c53ef855626be17e84806d160a3f0c814a426c4db02744f43f220ab6851"
+  },
+  {
+    "platform": "flint",
+    "pbwBytes": 10429,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "8d3831f453db51adef032017aaa60525f4f2ec4a8656d6b105cbf94f4664e327"
+  },
+  {
+    "platform": "gabbro",
+    "pbwBytes": 10435,
+    "load": 1583,
+    "virtual": 1656,
+    "resources": ["START_MESSAGE"],
+    "sha256": "f6cbb2a9adb6ea42316f2ca0fda2382b0f2463f58f5cf728f832f7fecb907871"
+  }
+]

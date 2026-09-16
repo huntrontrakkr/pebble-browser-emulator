@@ -1,5 +1,7 @@
+import { compilerSdkFiles } from './sdk-files.ts';
+import { APP_PLATFORMS, type AppPlatform } from './watch-profiles.ts';
 import { readLocal, writeLocal, clearLocal } from './local-store.ts';
-import { Component, EventEmitter, Output, OnDestroy, signal } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   importRepository,
@@ -51,10 +53,17 @@ import type { PackageInfo } from './archives.ts';
     <hr />
     <h3>Browser compiler</h3>
     <p class="help">
-      The current profile builds native C apps for Emery with SDK 4.33.1, system fonts, and a single
-      PebbleKit JS file. Custom resources, package dependencies, background workers, and custom
-      build scripts are not supported yet.
+      Builds SDK 4.33.1 native C apps locally. Select the app platform matching your watch. PNG/PBI
+      and raw resources, local JS modules, and locked JavaScript packages are supported. Custom
+      fonts, build scripts, and native package libraries need additional support.
     </p>
+    <label
+      >Build platform<select [(ngModel)]="platform" [disabled]="busy()">
+        @for (target of platforms; track target) {
+          <option [value]="target">{{ target }}</option>
+        }
+      </select></label
+    >
     <label class="file-button"
       >Open SDK 4.33.1 .tar.gz<input
         type="file"
@@ -92,12 +101,15 @@ import type { PackageInfo } from './archives.ts';
   `,
 })
 export class ProjectPanel implements OnDestroy {
+  @Input() platform: AppPlatform = 'emery';
+  readonly platforms = Object.keys(APP_PLATFORMS) as AppPlatform[];
   @Output() packageReady = new EventEmitter<{ bytes: Uint8Array; name: string }>();
   @Output() scriptReady = new EventEmitter<{
     source: string;
     name: string;
     appId?: string;
     messageKeys?: Record<string, number>;
+    appInfo?: Record<string, unknown>;
   }>();
   repo = '';
   ref = '';
@@ -179,7 +191,7 @@ export class ProjectPanel implements OnDestroy {
   async demo() {
     this.repo = 'huntrontrakkr/pebble-browser-emulator';
     this.ref = 'main';
-    this.root = 'examples/watchface';
+    this.root = 'examples/platform-watchface';
     await this.import();
   }
   setProject(p: SourceSnapshot, persist = true) {
@@ -193,10 +205,16 @@ export class ProjectPanel implements OnDestroy {
     this.selected.set(p.files['package.json'] ? 'package.json' : Object.keys(p.files)[0]);
     const js = p.files['src/pkjs/index.js'];
     this.scriptReady.emit({
-      source: js ? new TextDecoder().decode(js) : '',
+      source:
+        js && !/\b(?:require\s*\(|import\s|export\s)/.test(new TextDecoder().decode(js))
+          ? new TextDecoder().decode(js)
+          : '',
       name: `${p.repository}/src/pkjs/index.js`,
       appId: (p.metadata?.['pebble'] as any)?.uuid,
-      messageKeys: (p.metadata?.['pebble'] as any)?.messageKeys,
+      messageKeys:
+        (p.metadata?.['pebble'] as any)?.messageKeys ??
+        (p.metadata?.['appKeys'] as Record<string, number>),
+      appInfo: p.metadata ?? {},
     });
   }
   async archive(file: File, kind: 'sdk' | 'package' | 'source'): Promise<any> {
@@ -251,18 +269,7 @@ export class ProjectPanel implements OnDestroy {
       const job = this.job;
       this.status.set('Extracting SDK…');
       const files = await this.archive(file, 'sdk');
-      const selected: Record<string, Uint8Array> = Object.create(null);
-      for (const [path, bytes] of Object.entries(files)) {
-        const p = path.replace(/^sdk-core\//, '');
-        if (
-          p === 'manifest.json' ||
-          p === 'pebble/emery/lib/libpebble.a' ||
-          p.startsWith('pebble/emery/include/') ||
-          p === 'pebble/common/pebble_app.ld.template' ||
-          p === 'pebble/common/include/_pkjs_shared_additions.js'
-        )
-          selected[p] = bytes as Uint8Array;
-      }
+      const selected = compilerSdkFiles(files);
       this.sdk = selected;
       this.sdkName.set(file.name);
       this.storageRevision++;
@@ -316,6 +323,7 @@ export class ProjectPanel implements OnDestroy {
         name: file.name + '/pebble-js-app.js',
         appId: app.uuid,
         messageKeys: app.appKeys,
+        appInfo: app,
       });
       this.status.set(`${file.name} opened. Use Install on watch to transfer it.`);
     });
@@ -326,6 +334,7 @@ export class ProjectPanel implements OnDestroy {
     this.buildLog.set('');
     this.built.set(null);
     this.status.set('Loading compiler…');
+    const platform = this.platform;
     const job = ++this.job;
     let worker: Worker | undefined;
     try {
@@ -352,6 +361,7 @@ export class ProjectPanel implements OnDestroy {
         worker.postMessage({
           type: 'build',
           id: job,
+          platform,
           sourceFiles: this.project()!.files,
           sdkFiles: this.sdk,
         });
@@ -359,7 +369,7 @@ export class ProjectPanel implements OnDestroy {
       if (job !== this.job) return;
       this.built.set(result.pbw);
       this.status.set(
-        `Build complete · ${result.pbw.length} bytes · ${result.metadata.relocations.length} relocations`,
+        `Build complete · ${platform} · ${result.pbw.length} bytes · ${result.metadata.relocations.length} relocations`,
       );
     } catch (e) {
       if (job === this.job) this.status.set(String(e));

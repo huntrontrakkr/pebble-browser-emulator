@@ -1,0 +1,25 @@
+{
+  "package": "pebble-clay",
+  "version": "1.0.4",
+  "source": "https://registry.npmjs.org/pebble-clay/-/pebble-clay-1.0.4.tgz",
+  "license": "MIT",
+  "npmIntegrity": "sha512-/rXxmltdW8JyohDzXINdea+d2wnFJVNFiTXfuZsKpySURZSCFMMucX9sZPZvbHnEA4xFINM4iicyhBbvY4ALfw==",
+  "archiveSha256": "1dc5765e4eb0f450ee08c597b331d563366904c27fb91ab920d76c22d249d002",
+  "bundleSha256": "99f269f7069a938863c0be46dd9c808f74b58fec4db9338b769bc10bc7d58800",
+  "bundleBytes": 155434,
+  "configurationUrlCharacters": 83180,
+  "input": {
+    "NAME": {
+      "value": "Lin",
+      "type": "string"
+    }
+  },
+  "stored": {
+    "clay-settings": "{\"NAME\":\"Lin\"}"
+  },
+  "outbound": {
+    "10000": "Lin"
+  },
+  "tests": "SDK metadata aliases, detached Pebble.on/off, actual pinned Clay open/close/storage/pending AppMessage all pass; explicit host ACK settles exactly once.",
+  "scope": "Actual esbuild WebAssembly + actual QuickJS. Configuration HTML generated but no DOM rendered. No physical watch or real firmware ACK claimed for this test."
+}

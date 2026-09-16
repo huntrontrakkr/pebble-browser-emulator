@@ -206,12 +206,8 @@ test('metadata rejects unsupported features and escapes C strings', () => {
   assert.equal(normalizePackage(pkg).companyName, 'Test author');
   for (const [mutate, pattern] of [
     [(p) => (p.dependencies = { example: '1.0.0' }), /dependencies/],
-    [
-      (p) => (p.pebble.resources.media = [{ name: 'IMAGE', type: 'bitmap', file: 'x.png' }]),
-      /resources/,
-    ],
     [(p) => (p.author = 'x'.repeat(32)), /31 UTF-8/],
-    [(p) => (p.pebble.messageKeys = ['status']), /numbered/],
+    [(p) => (p.pebble.messageKeys = ['status', 'status']), /Duplicate/],
     [(p) => (p.pebble.uuid = 'bad'), /UUID/],
     [(p) => (p.pebble.targetPlatforms = ['basalt']), /emery/],
   ]) {
@@ -219,7 +215,7 @@ test('metadata rejects unsupported features and escapes C strings', () => {
     mutate(value);
     assert.throws(() => normalizePackage(value), pattern);
   }
-  const escaped = generateAppinfoC(normalizePackage({ ...pkg, author: 'A"\\\n' }));
+  const escaped = generateAppinfoC({ ...normalizePackage(pkg), companyName: 'A"\\\n' });
   assert(escaped.includes('\\101\\042\\134\\012'));
   assert(escaped.includes('PROCESS_INFO_WATCH_FACE'));
 });

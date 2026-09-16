@@ -890,3 +890,8 @@ textarea {
   padding: 10px;
   margin-bottom: 0;
 }
+
+.pixel-screen.round-screen {
+  border-radius: 50%;
+  overflow: hidden;
+}

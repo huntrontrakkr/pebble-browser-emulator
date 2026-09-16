@@ -54,6 +54,8 @@ pub(crate) const NVIC_IPR_WORDS: usize = 13;
 /// Phase 3: slim — only what the bootrom needs.
 pub struct Ppb {
     // SCB registers
+    /// Host-configured CPU identification; reset default remains RP2350 Cortex-M33.
+    pub cpuid: u32,
     pub vtor: u32,      // Vector Table Offset (0xE000ED08, reset: 0)
     pub aircr: u32,     // App Interrupt/Reset Control (0xE000ED0C)
     pub scr: u32,       // System Control (0xE000ED10)
@@ -173,6 +175,7 @@ pub struct Ppb {
 impl Default for Ppb {
     fn default() -> Self {
         Self {
+            cpuid: 0x411F_D210,
             vtor: 0,
             aircr: 0,
             scr: 0,
@@ -285,7 +288,7 @@ impl Ppb {
             0x1004 => self.read_cyccnt(self.latest_cycles),
 
             // CPUID
-            0xED00 => 0x411F_D210,
+            0xED00 => self.cpuid,
 
             // ICSR
             0xED04 => self.icsr,

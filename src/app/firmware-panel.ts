@@ -1,3 +1,4 @@
+import { WATCH_PRODUCTS, fileProfile, type FirmwareProfile } from './watch-profiles.ts';
 import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { microFlashImage } from './firmware-image.ts';
 import { FormsModule } from '@angular/forms';
@@ -18,11 +19,25 @@ import type { PackageInfo } from './archives.ts';
         {{ releases().length ? 'Browse more releases' : 'Browse official releases' }}
       </button>
     </div>
-    <p class="help">
-      Use a matching pair of QEMU Emery micro flash and SPI flash images. After loading, press Run;
-      first boot initializes flash and takes several seconds. Production Time 2 firmware requires
-      the Obelix hardware profile, which is not implemented.
-    </p>
+    <label
+      >Watch model<select [ngModel]="productId()" (ngModelChange)="selectProduct($event)">
+        @for (product of products; track product.id) {
+          <option [value]="product.id">{{ product.name }} · {{ product.platform }}</option>
+        }
+      </select></label
+    >
+    <p class="help">{{ product().note }}</p>
+    @if (product().runtime) {
+      <p class="help">
+        Use matching {{ product().runtime }} micro flash and SPI flash images. Load them, then press
+        Run. First boot initializes flash and takes several seconds.
+      </p>
+    } @else {
+      <p class="status-message">
+        Firmware execution is not available for this hardware yet. You can inspect firmware packages
+        and build apps for its platform in Projects.
+      </p>
+    }
     <label>Release tag<input [(ngModel)]="releaseTag" placeholder="v4.37.0" /></label>
     <button (click)="findRelease()" [disabled]="busy()">Find release</button>
     @if (releases().length) {
@@ -46,7 +61,7 @@ import type { PackageInfo } from './archives.ts';
         </div>
       }
       @if (selectedTag() && !selectedAssets().length) {
-        <p class="help">This release has no QEMU Emery or production Time 2 images.</p>
+        <p class="help">This release has no images for the selected emulator board.</p>
       }
       <p class="help">
         GitHub release downloads do not permit browser imports across origins. Download the files
@@ -55,9 +70,9 @@ import type { PackageInfo } from './archives.ts';
     }
     <div class="field-grid">
       <label class="file-button"
-        >Open micro flash .bin<input
+        >Open micro flash .bin / .elf<input
           type="file"
-          accept=".bin"
+          accept=".bin,.elf"
           (change)="read($event, 'micro')" /></label
       ><label class="file-button"
         >Open SPI flash .bin<input type="file" accept=".bin" (change)="read($event, 'flash')"
@@ -73,13 +88,17 @@ import type { PackageInfo } from './archives.ts';
         <dd>{{ flashName() || 'No file selected' }}</dd>
       </div>
     </dl>
-    <button class="primary" [disabled]="!micro || !flash || busy()" (click)="boot()">
+    <button
+      class="primary"
+      [disabled]="!product().runtime || !micro || !flash || busy()"
+      (click)="boot()"
+    >
       Load firmware
     </button>
     <hr />
     <h3>Inspect a firmware package</h3>
     <p class="help">
-      Open a production PBZ to inspect its board and slot metadata. It cannot run on the QEMU
+      Open a watch firmware PBZ to inspect its board and slot metadata. It cannot run on the QEMU
       profile.
     </p>
     <label class="file-button"
@@ -94,11 +113,28 @@ import type { PackageInfo } from './archives.ts';
   `,
 })
 export class FirmwarePanel {
+  readonly products = WATCH_PRODUCTS;
+  productId = signal('time-2');
+  product() {
+    return this.products.find((p) => p.id === this.productId())!;
+  }
+  selectProduct(id: string) {
+    if (!this.products.some((p) => p.id === id)) return;
+    this.productId.set(id);
+    this.revisions.micro++;
+    this.revisions.flash++;
+    this.micro = undefined;
+    this.flash = undefined;
+    this.microName.set('');
+    this.flashName.set('');
+    this.status.set('');
+  }
   releaseTag = 'v4.37.0';
   @Output() loadFirmware = new EventEmitter<{
     micro: Uint8Array;
     flash: Uint8Array;
     name: string;
+    profile: FirmwareProfile;
   }>();
   @Output() event = new EventEmitter<string>();
   releases = signal<FirmwareRelease[]>([]);
@@ -122,7 +158,9 @@ export class FirmwarePanel {
   }
   private revisions = { micro: 0, flash: 0 };
   selectedAssets() {
-    return this.releases().find((r) => r.tag === this.selectedTag())?.assets ?? [];
+    return (this.releases().find((r) => r.tag === this.selectedTag())?.assets ?? []).filter((a) =>
+      this.product().runtime ? a.board === this.product().runtime : a.kind === 'production',
+    );
   }
   async catalog() {
     this.begin();
@@ -178,8 +216,13 @@ export class FirmwarePanel {
             ? 'Micro flash input must be at most 24 MiB (ELF) or 4 MiB after normalization.'
             : 'SPI flash must be exactly 32 MiB.',
         );
-      if (/obelix|normal_|recovery_/.test(file.name))
-        throw new Error('Production firmware is not compatible with the QEMU Emery board.');
+      if (/normal_|recovery_|\.pbz$/i.test(file.name))
+        throw new Error(
+          'Physical watch firmware needs its own hardware profile. Select emulator images.',
+        );
+      const detected = fileProfile(file.name);
+      if (!this.product().runtime || (detected && detected !== this.product().runtime))
+        throw new Error('Image board does not match the selected watch model.');
       const bytes = new Uint8Array(await file.arrayBuffer());
       const asset = this.releases()
         .flatMap((r) => r.assets)
@@ -213,7 +256,8 @@ export class FirmwarePanel {
     }
   }
   boot() {
-    if (!this.micro || !this.flash) return;
+    const profile = this.product().runtime;
+    if (!profile || !this.micro || !this.flash) return;
     const a = this.microName().match(/v\d+\.\d+\.\d+/)?.[0],
       b = this.flashName().match(/v\d+\.\d+\.\d+/)?.[0];
     if (a && b && a !== b) {
@@ -222,7 +266,12 @@ export class FirmwarePanel {
       );
       return;
     }
-    this.loadFirmware.emit({ micro: this.micro, flash: this.flash, name: this.microName() });
+    this.loadFirmware.emit({
+      micro: this.micro,
+      flash: this.flash,
+      name: this.microName(),
+      profile,
+    });
   }
   async inspect(event: Event) {
     const input = event.target as HTMLInputElement,

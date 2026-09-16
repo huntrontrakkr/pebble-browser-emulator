@@ -24,6 +24,11 @@ export interface VirtualPhoneLimits {
   pendingJobs: number;
   pendingMessages: number;
   messageTimeoutMs: number;
+  pendingNetworkRequests: number;
+  networkRequestBytes: number;
+  networkResponseBytes: number;
+  networkTimeoutMs: number;
+  configurationBytes: number;
 }
 export interface VirtualPhoneOptions {
   appId: string;
@@ -32,6 +37,13 @@ export interface VirtualPhoneOptions {
   storage?: Readonly<Record<string, string>>;
   messageKeys?: Readonly<Record<string, number>> | readonly string[];
   limits?: Partial<VirtualPhoneLimits>;
+  watchInfo?: PhoneWatchInfo | null;
+  /** Compatibility extension: JSON metadata supplied by the loaded app package. */
+  appInfo?: Readonly<Record<string, unknown>>;
+  /** Explicit simulator identity, not a real Pebble account/device credential. */
+  accountToken?: string;
+  watchToken?: string;
+  network?: PhoneNetworkOptions;
 }
 export type VirtualPhoneEvent =
   | {
@@ -47,7 +59,54 @@ export type VirtualPhoneEvent =
       payload: AppMessageDictionary;
       timestamp: number;
     }
-  | { type: 'storage'; key: string | null; value: string | null; timestamp: number }
-  | { type: 'configuration'; url: string; timestamp: number }
+  | {
+      type: 'storage';
+      key: string | null;
+      value: string | null;
+      timestamp: number;
+    }
+  | { type: 'configuration'; requestId: number; url: string; timestamp: number }
+  | { type: 'network-request'; request: PhoneNetworkRequest; timestamp: number }
+  | { type: 'network-cancel'; requestId: number; timestamp: number }
   | { type: 'error'; message: string; timestamp: number }
   | { type: 'limit'; resource: 'output'; message: string; timestamp: number };
+
+export interface PhoneWatchInfo {
+  platform: string;
+  model: string;
+  language: string;
+  firmware: { major: number; minor: number; patch: number; suffix: string };
+}
+export interface PhoneNetworkRequest {
+  id: number;
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body: string | null;
+  timeoutMs: number;
+}
+export type PhoneNetworkResult =
+  | {
+      status: number;
+      statusText?: string;
+      headers?: Record<string, string>;
+      body: string;
+      url?: string;
+      redirected?: boolean;
+    }
+  | {
+      error: 'network' | 'timeout' | 'abort' | 'disabled' | 'limit';
+      message?: string;
+    };
+export interface PhoneNetworkFixture {
+  url: string;
+  method?: string;
+  /** Omit to match any request body; null matches an absent body. */
+  body?: string | null;
+  response: PhoneNetworkResult;
+  delayMs?: number;
+}
+export interface PhoneNetworkOptions {
+  mode: 'disabled' | 'fixtures' | 'cors';
+  fixtures?: readonly PhoneNetworkFixture[];
+}

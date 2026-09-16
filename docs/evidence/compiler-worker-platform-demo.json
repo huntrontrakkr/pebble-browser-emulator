@@ -1,0 +1,18 @@
+{
+  "actualCompilerWorker": true,
+  "platform": "flint",
+  "pbwSha256": "8d3831f453db51adef032017aaa60525f4f2ec4a8656d6b105cbf94f4664e327",
+  "pbwBytes": 10429,
+  "identicalToIndependentlyBuiltPbw": true,
+  "phoneNetworkFixtureProducedSdkKey10000": true,
+  "progressEvents": 10,
+  "sourceHashes": {
+    "README.md": "e4c8845c320ae871a6ca13fb3982f8143de559260a3dd3248f17cc08286f8575",
+    "package.json": "4bca1b444738df587065f0c91ac5da15629f4b362c2fdac289527e1dddf580b1",
+    "resources/start-message.txt": "02cc953b240d540be92b92fd080a48bd9aa0ed13e9cc2a332745b6d993172cec",
+    "src/c/main.c": "b41663301d0119e75b08db1ca8dbfb8cbe4397551d12b1bac05bbd0e0156297a",
+    "src/common/status.js": "b6275c0f7bf44b5590dd5ce111ca463a22662e7a3f1aed58f1c5cc705b0ed063",
+    "src/pkjs/index.js": "a54e16f3caf43d850603fc5cc88d6c953a6af493017aea35a69f3f31ba31b568",
+    "src/pkjs/settings.json": "de8f1bb02bcb0e8a6e92f8bc4c10965803da4130e58bd7e62d3a39fb697199bb"
+  }
+}

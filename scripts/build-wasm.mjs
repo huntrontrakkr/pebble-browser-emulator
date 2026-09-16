@@ -1,3 +1,4 @@
+import { build, stop as stopEsbuild } from 'esbuild-wasm';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -37,3 +38,20 @@ copyFileSync(
   'node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm',
   'public/wasm/quickjs.wasm',
 );
+
+mkdirSync('public/compiler/esbuild', { recursive: true });
+copyFileSync('node_modules/esbuild-wasm/esm/browser.min.js', 'public/compiler/esbuild/browser.mjs');
+copyFileSync('node_modules/esbuild-wasm/esbuild.wasm', 'public/compiler/esbuild/esbuild.wasm');
+
+try {
+  await build({
+    entryPoints: ['src/app/archives.ts'],
+    bundle: true,
+    platform: 'browser',
+    format: 'esm',
+    target: 'es2022',
+    outfile: 'public/compiler/archive-tools.mjs',
+  });
+} finally {
+  stopEsbuild();
+}

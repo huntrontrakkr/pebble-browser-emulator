@@ -1,0 +1,19 @@
+{
+  "profile": "flint",
+  "ready": true,
+  "steps": 192000000,
+  "frames": 51,
+  "ticks": 457309031,
+  "seconds": 10.966204119,
+  "pc": 609202,
+  "fault": 0,
+  "cfsr": 0,
+  "hfsr": 0,
+  "width": 144,
+  "height": 168,
+  "frameLen": 24192,
+  "guestFrameLen": 3360,
+  "codeSha": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+  "flashSha": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+  "wasmSha": "66efc22afcc944c845094350096a4e416e65cb5a292f496f006771cae2fe66d9"
+}

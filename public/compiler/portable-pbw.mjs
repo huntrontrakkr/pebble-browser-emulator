@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Google LLC
 // SPDX-License-Identifier: Apache-2.0
 // SDK format/CRC behavior follows Apache-2.0 PebbleOS tools by Google LLC (2024).
-// This spike supports SDK 4.33.1 emery native apps with no custom resources.
+// SDK 4.33.1 platform-specific native app packaging.
 const text = new TextEncoder();
 const read = new TextDecoder();
 const cstring = (bytes, at) => {
@@ -91,7 +91,14 @@ export function emptyResourcePack() {
   new DataView(pack.buffer).setUint32(4, 0xffffffff, true);
   return pack;
 }
-export function injectMetadata(parsed, raw, resources, timestamp, hasJs) {
+export function injectMetadata(
+  parsed,
+  raw,
+  resources,
+  timestamp,
+  hasJs,
+  { maxAppMemory = 131072, maxAppBinary = 131072, hasWorker = false } = {},
+) {
   const relocations = [];
   for (const section of parsed.sections) {
     if (section.name.startsWith('.rel.data') && section.type === 9) {
@@ -113,7 +120,10 @@ export function injectMetadata(parsed, raw, resources, timestamp, hasJs) {
     parsed.sections.find((s) => s.name === '.bss') ||
     parsed.sections.find((s) => s.name === '.data');
   const virtualSize = bss ? bss.address + bss.size : raw.length;
-  if (virtualSize > 65535 || raw.length + 4 * relocations.length > 131072)
+  if (
+    virtualSize > Math.min(65535, maxAppMemory) ||
+    raw.length + 4 * relocations.length > maxAppBinary
+  )
     throw new Error('Pebble app exceeds process size fields');
   const out = new Uint8Array(raw.length + 4 * relocations.length);
   out.set(raw);
@@ -124,10 +134,19 @@ export function injectMetadata(parsed, raw, resources, timestamp, hasJs) {
   view.setUint32(0x10, main.type === 2 ? main.value & ~1 : main.value, true);
   view.setUint32(0x14, stm32crc(raw.subarray(0x82)), true);
   view.setUint32(0x5c, table.value, true);
-  view.setUint32(0x60, view.getUint32(0x60, true) | (hasJs ? 8 : 0), true);
+  view.setUint32(0x60, view.getUint32(0x60, true) | (hasJs ? 8 : 0) | (hasWorker ? 16 : 0), true);
   view.setUint32(0x64, relocations.length, true);
-  // For the supported resource-free build the content CRC is the initial state.
-  view.setUint32(0x78, 0xffffffff, true);
+  if (resources && resources.length < 12) throw new Error('Invalid resource pack');
+  view.setUint32(
+    0x78,
+    resources
+      ? new DataView(resources.buffer, resources.byteOffset, resources.byteLength).getUint32(
+          4,
+          true,
+        )
+      : 0,
+    true,
+  );
   view.setUint32(0x7c, timestamp, true);
   view.setUint16(0x80, virtualSize, true);
   relocations.forEach((offset, i) => view.setUint32(raw.length + 4 * i, offset, true));
@@ -198,11 +217,33 @@ export function storedZip(files) {
   }
   return out;
 }
-export function packagePbw({ elf, appinfo, js, timestamp }) {
+export function packagePbw({
+  elf,
+  appinfo,
+  js,
+  timestamp,
+  platform = 'emery',
+  resources = emptyResourcePack(),
+  maxAppMemory,
+  maxAppBinary,
+  workerElf,
+  maxWorkerMemory = 10240,
+}) {
   const parsed = parseElf(elf),
-    raw = flattenElf(parsed),
-    resources = emptyResourcePack();
-  const metadata = injectMetadata(parsed, raw, resources, timestamp, Boolean(js));
+    raw = flattenElf(parsed);
+  const metadata = injectMetadata(parsed, raw, resources, timestamp, Boolean(js), {
+    maxAppMemory,
+    maxAppBinary,
+    hasWorker: Boolean(workerElf),
+  });
+  const workerParsed = workerElf ? parseElf(workerElf) : null;
+  const workerMetadata = workerParsed
+    ? injectMetadata(workerParsed, flattenElf(workerParsed), null, timestamp, Boolean(js), {
+        maxAppMemory: maxWorkerMemory,
+        maxAppBinary,
+        hasWorker: true,
+      })
+    : null;
   const binary = metadata.binary;
   const manifest = {
     manifestVersion: 2,
@@ -222,14 +263,33 @@ export function packagePbw({ elf, appinfo, js, timestamp }) {
       size: resources.length,
       crc: stm32crc(resources),
     },
-    type: 'application',
+    type: workerMetadata ? 'worker' : 'application',
+    ...(workerMetadata
+      ? {
+          worker: {
+            timestamp,
+            sdk_version: { major: workerMetadata.binary[10], minor: workerMetadata.binary[11] },
+            name: 'pebble-worker.bin',
+            size: workerMetadata.binary.length,
+            crc: stm32crc(workerMetadata.binary),
+          },
+        }
+      : {}),
   };
   const files = {
     'appinfo.json': text.encode(JSON.stringify(appinfo)),
     ...(js ? { 'pebble-js-app.js': text.encode(js) } : {}),
-    'emery/pebble-app.bin': binary,
-    'emery/app_resources.pbpack': resources,
-    'emery/manifest.json': text.encode(JSON.stringify(manifest)),
+    [`${platform}/pebble-app.bin`]: binary,
+    [`${platform}/app_resources.pbpack`]: resources,
+    ...(workerMetadata ? { [`${platform}/pebble-worker.bin`]: workerMetadata.binary } : {}),
+    [`${platform}/manifest.json`]: text.encode(JSON.stringify(manifest)),
   };
-  return { pbw: storedZip(files), files, metadata, manifest, elf };
+  return {
+    pbw: storedZip(files),
+    files,
+    metadata,
+    manifest,
+    elf,
+    ...(workerMetadata ? { workerMetadata, workerElf } : {}),
+  };
 }

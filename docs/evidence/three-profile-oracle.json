@@ -1,0 +1,23 @@
+{
+  "wasm_sha256": "6b08d47b8edc9f94d331e0f02448ca5c30f113e81d8168771685568048bea07a",
+  "frames": [
+    {
+      "profile": "flint",
+      "bytes": 24192,
+      "differing_bytes": 0,
+      "sha256": "2a0728860441548b52b9a4c74681e7379bb0de01987dffbd4f6806a42cf0f04e"
+    },
+    {
+      "profile": "emery",
+      "bytes": 45600,
+      "differing_bytes": 0,
+      "sha256": "ff5e62857b3d6e14c4a2d7cbc57a57e64f3f89471c483f09c599c4d3ea3b470b"
+    },
+    {
+      "profile": "gabbro",
+      "bytes": 67600,
+      "differing_bytes": 0,
+      "sha256": "70cb02c8ad3461308ec1a0ae3227fd50f3c5cc9ca7234505553622e3e8ec804d"
+    }
+  ]
+}

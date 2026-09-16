@@ -1,6 +1,7 @@
+import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './watch-profiles.ts';
 /// <reference lib="webworker" />
 import { PebbleTransport, encodeAppMessage, decodeAppMessage } from './pebble-transport.ts';
-import { emeryAppPackage } from './archives.ts';
+import { appPackage } from './archives.ts';
 import type { MachineState } from './emulator.types.ts';
 let api: any,
   running = false,
@@ -10,6 +11,7 @@ let api: any,
   buttons = 0,
   timer: ReturnType<typeof setTimeout> | undefined,
   lastFrame = -1;
+let profile: FirmwareProfile = 'qemu_emery';
 const decoder = new TextDecoder();
 let transport: PebbleTransport | undefined,
   firmwareReady = false,
@@ -112,7 +114,11 @@ function state(force = true) {
       ? `Bus ${api.spike_fault_write() ? 'write' : 'read'} at 0x${address.toString(16)}; PC 0x${api.spike_fault_pc().toString(16)}`
       : '';
   if (fault) stop();
-  const framebuffer = new Uint8Array(api.memory.buffer, api.spike_frame(), 45600).slice();
+  const framebuffer = new Uint8Array(
+    api.memory.buffer,
+    api.spike_frame(),
+    api.spike_frame_len(),
+  ).slice();
   const value: MachineState = {
     registers: Array.from({ length: 16 }, (_, i) => api.spike_register(i)),
     flags: api.spike_xpsr(),
@@ -131,7 +137,7 @@ function state(force = true) {
     {
       type: 'state',
       state: value,
-      profile: 'qemu_emery',
+      profile,
       virtualSeconds: api.spike_ticks() / 64000000,
       firmwareReady,
       linked,
@@ -171,16 +177,29 @@ function resetSession() {
   postMessage({ type: 'install-status', busy: false, message: '' });
   state();
 }
-function boot(candidate: { micro: Uint8Array; flash: Uint8Array }, candidateName: string) {
+function boot(
+  candidate: { micro: Uint8Array; flash: Uint8Array; profile?: FirmwareProfile },
+  candidateName: string,
+) {
+  const selected = candidate.profile ?? 'qemu_emery';
+  if (!isFirmwareProfile(selected)) throw new Error('Unsupported firmware profile.');
   stop();
   const bytes = new Uint8Array(candidate.micro.length + candidate.flash.length);
   bytes.set(candidate.micro);
   bytes.set(candidate.flash, candidate.micro.length);
   upload(bytes);
-  if (!api.spike_boot(candidate.micro.length, candidate.flash.length))
-    throw new Error('Firmware vector table or image sizes are not valid for QEMU Emery.');
+  if (
+    !api.spike_boot_profile(
+      FIRMWARE_PROFILES[selected].id,
+      candidate.micro.length,
+      candidate.flash.length,
+    )
+  )
+    throw new Error('Firmware vector table or image sizes are not valid for ' + selected + '.');
+  profile = selected;
   name = candidateName;
   api.spike_set_epoch(Date.now() / 1000);
+  postMessage({ type: 'firmware-loaded', profile, name });
   resetSession();
 }
 function restart() {
@@ -203,7 +222,7 @@ self.onmessage = async ({ data }) => {
     if (!api) throw new Error('QEMU core is still loading.');
     switch (data.type) {
       case 'firmware':
-        boot({ micro: data.micro, flash: data.flash }, data.name);
+        boot({ micro: data.micro, flash: data.flash, profile: data.profile }, data.name);
         break;
       case 'run':
         if (!loaded) throw new Error('Load firmware first.');
@@ -269,7 +288,7 @@ self.onmessage = async ({ data }) => {
         if (!firmwareReady)
           throw new Error('Run the firmware until boot completes before installing an app.');
         if (installing) throw new Error('An installation is already running.');
-        const parts = emeryAppPackage(data.bytes);
+        const parts = appPackage(data.bytes, FIRMWARE_PROFILES[profile].platform);
         stop();
         installing = true;
         running = true;

@@ -7,14 +7,15 @@ import { resolve } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 // Lifecycle tests use repository assets. Official firmware tests are explicitly opt-in.
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
+const profile = process.env.PEBBLE_PROFILE ?? 'qemu_emery';
 const firmwareDir = process.env.PEBBLE_FIRMWARE_DIR;
 const firmwareVersion = process.env.PEBBLE_FIRMWARE_VERSION ?? '4.37.0';
 const microPath =
   process.env.PEBBLE_MICRO ??
-  (firmwareDir && resolve(firmwareDir, `qemu_emery_v${firmwareVersion}_micro_flash.bin`));
+  (firmwareDir && resolve(firmwareDir, `${profile}_v${firmwareVersion}_micro_flash.bin`));
 const flashPath =
   process.env.PEBBLE_FLASH ??
-  (firmwareDir && resolve(firmwareDir, `qemu_emery_v${firmwareVersion}_spi_flash.bin`));
+  (firmwareDir && resolve(firmwareDir, `${profile}_v${firmwareVersion}_spi_flash.bin`));
 const pbwPath = process.env.PEBBLE_PBW;
 const wasmPath = process.env.PEBBLE_WASM ?? resolve(repo, 'public/wasm/qemu-emery.wasm');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -156,9 +157,10 @@ async function boot(h) {
   const [micro, flash] = await Promise.all([readFile(microPath), readFile(flashPath)]);
   h.send({
     type: 'firmware',
+    profile,
     micro: new Uint8Array(micro),
     flash: new Uint8Array(flash),
-    name: 'Official 4.37 QEMU Emery',
+    name: `Official ${firmwareVersion} ${profile}`,
   });
   await h.wait((m) => m.type === 'state' && m.state.loaded);
   h.send({ type: 'run' });
@@ -346,12 +348,13 @@ test(
       await h.wait((m) => m.type === 'ready');
       const micro = new Uint8Array(0x104),
         v = new DataView(micro.buffer);
-      v.setUint32(0, 0x20080000, true);
+      v.setUint32(0, profile === 'qemu_flint' ? 0x20040000 : 0x20080000, true);
       v.setUint32(4, 0x101, true);
       v.setUint16(0x100, 0x222a, true);
       v.setUint16(0x102, 0xe7fe, true);
       h.send({
         type: 'firmware',
+        profile,
         micro,
         flash: new Uint8Array(32 * 1024 * 1024).fill(255),
         name: 'Synthetic reset fixture',

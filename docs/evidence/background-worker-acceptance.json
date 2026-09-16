@@ -1,0 +1,21 @@
+{
+  "profile": "emery",
+  "runtime": "rust-wasm",
+  "firmware": "4.37.0",
+  "epoch": 1789545600,
+  "battery": 57,
+  "charging": false,
+  "status": "GPS 40.71",
+  "appSha256": "8983979d932cd8a4f173e18ccb3a55edd342ef02e16aa08cfa6d24bf7a26b193",
+  "pbwSha256": "f8a9926a01faf7be3a9cf63d0bc0833bbac2982abf2bf16e0d20683b652800ef",
+  "workerSha256": "b6cc0015fc94e6011e572fc95ca28105d7a59611e453cd1e314d6834967d2d40",
+  "install": {
+    "uuid": "7c5f2e40-63c4-4d17-9cd6-8a85f0ced130",
+    "appId": 1
+  },
+  "ack": "ff01",
+  "steps": 229235000,
+  "fault": 0,
+  "cfsr": 0,
+  "hfsr": 0
+}

@@ -4,11 +4,11 @@
 
 Angular frontend, Rust/Wasm hardware core, browser-only application runtime. No remote
 compilation service, application backend, or CORS proxy. Preserve the approved roadmap
-in docs/ROADMAP.md. Keep diagnostic-v1 separate from the experimental QEMU Emery firmware runtime.
+in docs/ROADMAP.md. Keep diagnostic-v1 separate from the experimental generic Pebble firmware runtime.
 
 ## Accuracy
 
-- Keep diagnostic-v1, qemu_emery, and production Obelix as separate board profiles.
+- Keep diagnostic-v1, qemu_flint/emery/gabbro, legacy boards, and physical Asterix/Obelix/Getafix as separate profiles.
 - Never hide unsupported instructions, return zero for unknown registers, silently patch
   firmware, manufacture packet responses, or render a pretend watchface as firmware output.
 - Report measured instructions separately from hardware cycles or estimated energy.

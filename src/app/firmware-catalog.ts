@@ -1,3 +1,4 @@
+import { fileProfile } from './watch-profiles.ts';
 import { githubJson } from './projects.ts';
 export interface FirmwareAsset {
   id: number;
@@ -23,15 +24,11 @@ export function describeAsset(asset: {
   digest?: string | null;
 }): FirmwareAsset {
   const name = asset.name.toLowerCase();
-  const board = name.includes('qemu_emery')
-    ? 'qemu_emery'
-    : name.includes('obelix')
-      ? 'obelix'
-      : name.includes('qemu_flint')
-        ? 'qemu_flint'
-        : name.includes('qemu_gabbro')
-          ? 'qemu_gabbro'
-          : 'other';
+  const board =
+    fileProfile(name) ??
+    name.match(/(?:normal|recovery)_([a-z0-9]+)/)?.[1] ??
+    name.match(/(?:^|[_-])(obelix|asterix|getafix)(?:[_\-.]|$)/)?.[1] ??
+    'other';
   const kind = name.includes('micro_flash')
     ? 'qemu-code'
     : name.includes('spi_flash')
@@ -68,9 +65,7 @@ function releaseInfo(r: any): FirmwareRelease {
     published: r.published_at,
     url: r.html_url,
     prerelease: r.prerelease,
-    assets: r.assets
-      .map(describeAsset)
-      .filter((a: FirmwareAsset) => a.board === 'qemu_emery' || a.board === 'obelix'),
+    assets: r.assets.map(describeAsset).filter((a: FirmwareAsset) => a.kind !== 'other'),
   };
 }
 export async function fetchFirmwareRelease(tag: string): Promise<FirmwareRelease> {

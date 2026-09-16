@@ -50,3 +50,18 @@ No Pebble firmware is distributed here. Some production images contain separatel
 vendor components; the open PebbleOS top-level license does not settle all component terms.
 Official QEMU and Unicorn are separate local verification oracles only, never linked into
 or used as a backend for this application.
+
+## JavaScript bundling and resource conversion
+
+esbuild-wasm 0.28.2 is MIT, copyright Evan Wallace. Its browser API and Wasm binary are copied
+from the locked npm dependency during the site build; full license text ships at
+`licenses/ESBUILD.txt`. Visitor scripts are parsed/bundled with Wasm inside the compiler Worker.
+
+`public/compiler/vendor/pako.esm.mjs` is unmodified pako 2.1.0 (MIT), copyright Vitaly Puzrin
+and Andrey Tupitsin. Its license is retained alongside it. The SHA-256 and SDK source provenance
+for the original resource-format port are recorded in `docs/BROWSER_COMPILER.md`.
+The generated dependency-archive helper bundles our existing archive validation with MIT fflate;
+its license is included in the generated JavaScript notices.
+
+Imported npm packages remain user-selected build inputs and retain their own licenses.
+Package scripts are not executed; package source/firmware/SDK files are not redistributed by this repository.

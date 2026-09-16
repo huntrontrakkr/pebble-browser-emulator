@@ -1,5 +1,6 @@
-//! Original deterministic models of the published qemu_emery register contract.
+//! Original deterministic models of the published generic Pebble QEMU register contracts.
 //! Functional bring-up model; timing has not been validated against hardware.
+use crate::profile::BoardProfile;
 use std::collections::VecDeque;
 #[derive(Default)]
 pub struct Uart {
@@ -17,6 +18,7 @@ pub struct Timer {
     pub started: u64,
 }
 pub struct Devices {
+    pub profile: BoardProfile,
     pub systick_fraction: u64,
     pub systick_source: u32,
     pub uart: [Uart; 3],
@@ -40,9 +42,15 @@ pub struct Devices {
 }
 impl Default for Devices {
     fn default() -> Self {
+        Self::with_profile(BoardProfile::EMERY)
+    }
+}
+impl Devices {
+    pub fn with_profile(profile: BoardProfile) -> Self {
         let mut backup = [0; 16];
         backup[0] = 2;
         Self {
+            profile,
             systick_fraction: 0,
             systick_source: 0,
             uart: std::array::from_fn(|_| Uart::default()),
@@ -56,7 +64,20 @@ impl Default for Devices {
             buttons: 0,
             edges: 0,
             gpio_ctrl: 0,
-            display: [0, 0, 200, 228, 8, 0, 255, 0, 0, 255, 255, 255],
+            display: [
+                0,
+                0,
+                profile.width as u32,
+                profile.height as u32,
+                profile.guest_bpp,
+                profile.round as u32,
+                255,
+                0,
+                0,
+                255,
+                255,
+                255,
+            ],
             frames: 0,
             flash_addr: 0,
             sync_len: 0,
@@ -173,11 +194,11 @@ impl Devices {
                 _ => 0,
             },
             0x40007000 => match off {
-                0 => 2,
-                4 => 3,
-                8 => 200,
-                12 => 228,
-                16 => 8,
+                0 => self.profile.id,
+                4 => self.profile.features(),
+                8 => self.profile.width as u32,
+                12 => self.profile.height as u32,
+                16 => self.profile.guest_bpp,
                 _ => 0,
             },
             0x40008000 => self.display.get((off / 4) as usize).copied().unwrap_or(0),
@@ -187,8 +208,12 @@ impl Devices {
                 0x18 => self.sync_len,
                 _ => 0,
             },
-            0x40011000 => self.touch.get((off / 4) as usize).copied().unwrap_or(0),
-            0x40012000 => self.audio.get((off / 4) as usize).copied().unwrap_or(0),
+            0x40011000 if self.profile.touch => {
+                self.touch.get((off / 4) as usize).copied().unwrap_or(0)
+            }
+            0x40012000 if self.profile.audio => {
+                self.audio.get((off / 4) as usize).copied().unwrap_or(0)
+            }
             _ => return None,
         })
     }
@@ -287,12 +312,12 @@ impl Devices {
                 0x18 => self.sync_len = v,
                 _ => {}
             },
-            0x40011000 => match off {
+            0x40011000 if self.profile.touch => match off {
                 12 => self.touch[3] = v & 1,
                 16 => self.touch[4] &= !v,
                 _ => {}
             },
-            0x40012000 => match off {
+            0x40012000 if self.profile.audio => match off {
                 0 | 8 | 16 | 28 => self.audio[(off / 4) as usize] = v,
                 20 => self.audio[5] &= !v,
                 _ => {}

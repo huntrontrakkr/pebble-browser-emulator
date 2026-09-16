@@ -3,13 +3,13 @@
 The static Angular application orchestrates independent Workers:
 
 - **Diagnostic Worker:** original small Thumb test machine, snapshots, packet-codec checks.
-- **QEMU Emery Worker:** Rust Cortex-M33 core, original generic board adapter, virtual time,
+- **Generic Pebble Worker:** Rust M4/M33 instruction engine, original generic board adapter, virtual time,
   firmware flash/SRAM/framebuffer, and UART transport. No Wasm host imports.
 - **Compiler Worker:** version-pinned Clang/LLD Wasm, isolated memory filesystem, user SDK,
   a declarative supported build profile, original SDK-compatible PBW packaging. Project
   Python/Waf and package installation scripts are never executed. Cancel terminates the Worker.
 - **Phone Worker:** isolated QuickJS Wasm runtime, bounded memory/stack/execution/output,
-  virtual timers, local storage, injected location, and actual AppMessage acknowledgments.
+  virtual timers, local storage, injected location, HTTP fixtures/CORS requests, configuration events, and actual AppMessage acknowledgments.
 - **Archive Worker:** bounded ZIP/TAR/gzip extraction and package inspection with path,
   expanded-size, header, size, and CRC validation.
 
@@ -21,7 +21,9 @@ assets are fetched directly; release and SDK artifacts without CORS are opened l
 `diagnostic-v1` is a separate development machine, with input registers at 0x40000000 and
 0x40000004. Those addresses do not mean the same thing on QEMU Emery or physical Obelix.
 
-QEMU Emery uses the generic 64 MHz Cortex-M33 board:
+The generic boards use a nominal 64 MHz clock. Emery/Gabbro advertise Cortex-M33; Flint advertises Cortex-M4. Shared instruction-engine architecture exclusions remain incomplete. Geometry, memory, CPUID, and device feature registers come from the selected profile.
+
+Emery memory map:
 
 | Region                           | Address / size                                             |
 | -------------------------------- | ---------------------------------------------------------- |
@@ -52,7 +54,7 @@ Raw packets are `payload_length:u16BE | endpoint:u16BE | payload`. UART1 uses a 
 channels deliver battery and logical Bluetooth state. This is not physical Bluetooth RF.
 
 Installation sends AppMetadata through BlobDB, handles the firmware's AppFetch request,
-transfers executable/resources with PutBytes, checks real ACK cookies and CRC commits,
+transfers executable/resources/background worker with PutBytes, checks real ACK cookies and CRC commits,
 and waits for the requested UUID's running-app event. It does not manufacture success.
 AppMessage dictionaries travel through endpoint 0x30; QuickJS success callbacks depend on
 received firmware ACKs. Wire transaction IDs retain their owning phone instance until
@@ -75,3 +77,15 @@ reset preserves the current SPI flash and RTC time while restarting CPU, RAM, pe
 and transport. Reopening the original firmware pair restores its original flash contents.
 Diagnostic snapshots are session-local.
 Complete firmware/phone save states and deterministic replay are future gates.
+
+## Platform builds and dependencies
+
+The compiler uses each selected platform's SDK headers, library, feature defines and memory limits.
+Resource conversion runs on raw PNG bytes and reproduces SDK output without browser color management.
+esbuild's Wasm browser API resolves local JS/JSON modules and integrity-checked npm archives in a
+bounded in-memory filesystem. Pebble package `dist.zip` artifacts supply their `dist/js` entry.
+No npm lifecycle script, custom Python or repository-provided plugin runs on the host.
+
+The app changes its running model only after the Worker accepts a firmware image. Failed loads retain
+the previous board identity and framebuffer geometry. Flint's packed 1bpp pixels expand to canonical
+ARGB2222 only at completed display updates; round-screen clipping is a presentation-only mask.

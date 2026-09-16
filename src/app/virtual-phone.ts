@@ -1,3 +1,5 @@
+import { NETWORK_BOOTSTRAP } from './network-bootstrap.ts';
+import { normalizeNetworkResult, normalizeNetworkOptions } from './phone-network.ts';
 import type {
   QuickJSContext,
   QuickJSHandle,
@@ -5,6 +7,7 @@ import type {
   QuickJSWASMModule,
 } from 'quickjs-emscripten';
 import type {
+  PhoneNetworkResult,
   AppMessageDictionary,
   PhoneCoordinates,
   VirtualPhoneEvent,
@@ -12,6 +15,7 @@ import type {
   VirtualPhoneOptions,
 } from './virtual-phone.types.ts';
 export type {
+  PhoneNetworkResult,
   AppMessageDictionary,
   PhoneCoordinates,
   VirtualPhoneEvent,
@@ -27,12 +31,17 @@ const DEFAULT_LIMITS: VirtualPhoneLimits = {
   storageBytes: 256 * 1024,
   eventBytes: 16 * 1024,
   eventCount: 256,
-  outputBytes: 256 * 1024,
+  outputBytes: 1024 * 1024,
   timers: 128,
   timerCallbacks: 1000,
   pendingJobs: 1000,
   pendingMessages: 32,
   messageTimeoutMs: 10000,
+  pendingNetworkRequests: 8,
+  networkRequestBytes: 8 * 1024,
+  networkResponseBytes: 1024 * 1024,
+  networkTimeoutMs: 30000,
+  configurationBytes: 512 * 1024,
 };
 const utf8 = new TextEncoder();
 
@@ -73,6 +82,19 @@ export class VirtualPhone {
     const coordinates = normalizeCoordinates(
       options.coordinates ?? { latitude: 0, longitude: 0, accuracy: 0 },
     );
+    const config = {
+      appId: options.appId,
+      nowMs: this.nowMs,
+      coordinates,
+      storage: options.storage ?? {},
+      messageKeys: options.messageKeys ?? {},
+      limits: this.limits,
+      network: normalizeNetworkOptions(options.network, this.limits),
+      watchInfo: options.watchInfo ?? null,
+      appInfo: options.appInfo ?? { uuid: options.appId },
+      accountToken: String(options.accountToken ?? ''),
+      watchToken: String(options.watchToken ?? ''),
+    };
     this.runtime = module.newRuntime();
     this.runtime.setMemoryLimit(this.limits.memoryBytes);
     this.runtime.setMaxStackSize(this.limits.stackBytes);
@@ -85,14 +107,6 @@ export class VirtualPhone {
     });
     this.context.setProp(this.context.global, '__phoneEmit', bridge);
     bridge.dispose();
-    const config = {
-      appId: options.appId,
-      nowMs: this.nowMs,
-      coordinates,
-      storage: options.storage ?? {},
-      messageKeys: options.messageKeys ?? {},
-      limits: this.limits,
-    };
     try {
       this.withBudget(() => {
         const result = this.context.evalCode(
@@ -118,7 +132,9 @@ export class VirtualPhone {
       throw new Error('PKJS source limit exceeded.');
     this.started = true;
     this.withBudget(() => {
-      const result = this.context.evalCode(source, filename, { type: 'global' });
+      const result = this.context.evalCode(source, filename, {
+        type: 'global',
+      });
       if (result.error) throw this.takeError(result.error);
       result.value.dispose();
       this.drainJobs();
@@ -144,8 +160,18 @@ export class VirtualPhone {
   showConfiguration(): void {
     this.perform('configuration');
   }
-  closeConfiguration(response: string | null): void {
-    this.perform('configurationClosed', response);
+  closeConfiguration(response: string | null, requestId?: number): boolean {
+    if (response !== null && typeof response !== 'string')
+      throw new TypeError('Configuration response must be a string or null.');
+    if (response !== null && utf8.encode(response).length > this.limits.configurationBytes)
+      throw new Error('Configuration response limit exceeded.');
+    return this.perform('configurationClosed', response, requestId ?? null) === true;
+  }
+  /** Delivers only bounded text/JSON response data, never a host object or function. */
+  deliverNetworkResponse(requestId: number, result: PhoneNetworkResult): boolean {
+    if (!Number.isSafeInteger(requestId) || requestId < 1) return false;
+    const normalized = normalizeNetworkResult(result, this.limits.networkResponseBytes);
+    return this.perform('networkResponse', requestId, JSON.stringify(normalized)) === true;
   }
   setConnected(connected: boolean): void {
     this.perform('connection', connected);
@@ -253,8 +279,13 @@ export class VirtualPhone {
   }
   private record(serialized: string): boolean {
     const size = utf8.encode(serialized).length;
+    const parsed = JSON.parse(serialized) as VirtualPhoneEvent;
+    const eventLimit =
+      parsed.type === 'configuration'
+        ? this.limits.configurationBytes + 256
+        : this.limits.eventBytes;
     if (
-      size > this.limits.eventBytes ||
+      size > eventLimit ||
       this.events.length >= this.limits.eventCount - 1 ||
       this.outputBytes + size > this.limits.outputBytes - 192
     ) {
@@ -270,7 +301,7 @@ export class VirtualPhone {
       }
       return false;
     }
-    this.events.push(JSON.parse(serialized) as VirtualPhoneEvent);
+    this.events.push(parsed);
     this.outputBytes += size;
     return true;
   }
@@ -311,16 +342,37 @@ const BOOTSTRAP = String.raw`function(config) {
   'use strict';
   const emitHost = globalThis.__phoneEmit;
   delete globalThis.__phoneEmit;
+  // The official PKJS startup script aliases window to its own JS global.
+  // This remains the isolated QuickJS global; no browser window/DOM is exposed.
+  globalThis.window = globalThis;
   const stringify = JSON.stringify, parse = JSON.parse, keys = Object.keys;
   const NativeDate = Date;
   const limits = config.limits, appId = config.appId;
   let now = config.nowMs, connected = false, nextTimer = 1, nextWatch = 1, nextTransaction = 1;
-  let coordinates = config.coordinates, ready = false;
+  let coordinates = config.coordinates, ready = false, nextConfiguration = 1, activeConfiguration = null;
   const startedAt = now, timers = new Map(), watchers = new Map(), listeners = new Map(), pending = new Map();
   const keyMap = Object.create(null), reverseKeys = Object.create(null), stored = Object.create(null);
   const messageKeys = config.messageKeys;
-  if (Array.isArray(messageKeys)) messageKeys.forEach((key, index) => { keyMap[key] = index; });
-  else for (const key of keys(messageKeys)) keyMap[key] = messageKeys[key];
+  if (Array.isArray(messageKeys)) {
+    let nextKey = 10000;
+    const blocks = [], singles = [];
+    for (const key of messageKeys) {
+      if (typeof key !== 'string') throw new TypeError('Message keys must be strings.');
+      if (key.includes(']')) {
+        const match = /^([_a-zA-Z][_a-zA-Z0-9]*)\[(\d+)\]$/.exec(key);
+        if (!match || !Number.isSafeInteger(Number(match[2])) || Number(match[2]) < 1) throw new Error('Invalid message key block.');
+        blocks.push([match[1],Number(match[2])]);
+      } else {
+        if (!/^[_a-zA-Z][_a-zA-Z0-9]*$/.test(key)) throw new Error('Invalid message key name.');
+        singles.push([key,1]);
+      }
+    }
+    // SDK allocation: reserve array blocks first, then singles in declaration order.
+    for (const [key,count] of [...blocks,...singles]) {
+      if (Object.hasOwn(keyMap,key) || nextKey + count > 4294967296) throw new Error('Duplicate or overflowing message key.');
+      keyMap[key] = nextKey; nextKey += count;
+    }
+  } else for (const key of keys(messageKeys)) keyMap[key] = messageKeys[key];
   for (const key of keys(keyMap)) reverseKeys[String(keyMap[key])] = key;
   function emit(event) { event.timestamp = now; return emitHost(stringify(event)); }
   function byteLength(value) {
@@ -386,6 +438,7 @@ const BOOTSTRAP = String.raw`function(config) {
     if (typeof chosen.callback === 'string') (0,eval)(chosen.callback); else chosen.callback(...chosen.args);
     return true;
   }
+  const network = (${NETWORK_BOOTSTRAP})({emit, schedule, cancelTimer:id=>timers.delete(id), byteLength, limits, mode:config.network.mode, fixtures:config.network.fixtures});
   function locationValue() { return {coords:{...coordinates},timestamp:now}; }
   globalThis.navigator = Object.freeze({geolocation:Object.freeze({
     getCurrentPosition(success,_error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.'); schedule(() => success(locationValue()),0,false,[]); },
@@ -399,7 +452,7 @@ const BOOTSTRAP = String.raw`function(config) {
     emit({type:'log',level,text});
   }
   globalThis.console = Object.freeze({log:(...a)=>log('log',a),info:(...a)=>log('info',a),warn:(...a)=>log('warn',a),error:(...a)=>log('error',a),debug:(...a)=>log('debug',a)});
-  function dispatch(type,event) { for (const callback of [...(listeners.get(type) ?? [])]) callback(event); }
+  function dispatch(type,event) { event.type = type; for (const callback of [...(listeners.get(type) ?? [])]) callback(event); }
   function dictionary(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('AppMessage requires a dictionary.');
     const result = Object.create(null);
@@ -424,10 +477,12 @@ const BOOTSTRAP = String.raw`function(config) {
     },0,false,[]);
     return true;
   }
-  globalThis.Pebble = Object.freeze({
+  const pebble = globalThis.Pebble = Object.freeze({
     addEventListener(type,callback) { if(typeof callback !== 'function') throw new TypeError('Event listener must be a function.');
       type=String(type); if (!listeners.has(type)) listeners.set(type,new Set()); listeners.get(type).add(callback); return true; },
     removeEventListener(type,callback) {return listeners.get(String(type))?.delete(callback) ?? false;},
+    on(type,callback) {return pebble.addEventListener(type,callback);},
+    off(type,callback) {return pebble.removeEventListener(type,callback);},
     sendAppMessage(value,success,failure) {
       const payload = dictionary(value);
       if (pending.size >= limits.pendingMessages) throw new Error('Pending AppMessage limit exceeded.');
@@ -440,7 +495,18 @@ const BOOTSTRAP = String.raw`function(config) {
       else if (!connected) settle(id,false,'NOT_CONNECTED');
       return id;
     },
-    openURL(url) {emit({type:'configuration',url:String(url).slice(0,4096)});},
+    getActiveWatchInfo() {return config.watchInfo === null ? null : parse(stringify(config.watchInfo));},
+    getAppInfo() {return parse(stringify(config.appInfo));},
+    getWatchToken() {return config.watchToken;},
+    getAccountToken() {return config.accountToken;},
+    openURL(url) {
+      url=String(url);
+      if (!/^(https?:\/\/|data:text\/html(?:[;,]))/i.test(url)) throw new TypeError('Configuration requires HTTP(S) or an HTML data URL.');
+      if (byteLength(url)>limits.configurationBytes) throw new Error('Configuration URL limit exceeded.');
+      const requestId=nextConfiguration++;
+      if(!emit({type:'configuration',requestId,url}))throw new Error('Configuration output limit exceeded.');
+      activeConfiguration=requestId; return url;
+    },
   });
   // A small CommonJS hook matches the SDK's generated message_keys module.
   // It never loads code, files, packages, or modules from the host.
@@ -451,7 +517,8 @@ const BOOTSTRAP = String.raw`function(config) {
     location(json) {coordinates=parse(json); for (const [id,callback] of watchers) schedule(()=>{if(watchers.has(id))callback(locationValue());},0,false,[]);},
     appmessage(json) {const incoming=parse(json), payload=Object.create(null); for(const key of keys(incoming)) payload[reverseKeys[key] ?? key]=incoming[key]; dispatch('appmessage',{payload});},
     configuration() {dispatch('showConfiguration',{});},
-    configurationClosed(response) {dispatch('webviewclosed',{response});},
+    configurationClosed(response,requestId) {if(activeConfiguration===null || (requestId!==null && requestId!==activeConfiguration))return false; activeConfiguration=null;dispatch('webviewclosed',{response});return true;},
+    networkResponse(id,json) {return network.respond(id,json);},
     connection(value) {connected=!!value; if (!connected) for(const id of [...pending.keys()]) settle(id,false,'NOT_CONNECTED');},
     ack(id,accepted) {const result=settle(id,!!accepted,accepted?'ACK':'NACK'); return result;},
     storage() {return stringify(stored);},

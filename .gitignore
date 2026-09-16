@@ -52,3 +52,6 @@ Thumbs.db
 # Pebble example outputs
 /examples/**/build/
 /examples/**/.lock-waf*
+
+/public/compiler/esbuild/
+/public/compiler/archive-tools.mjs

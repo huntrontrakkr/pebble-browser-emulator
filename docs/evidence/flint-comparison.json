@@ -1,0 +1,12 @@
+{
+  "profile": "flint",
+  "width": 144,
+  "height": 168,
+  "guest_bytes": 3360,
+  "presentation_bytes": 24192,
+  "guest_different_bytes": 0,
+  "presentation_different_bytes": 0,
+  "rust_guest_sha256": "3d4cc3ab16b1094f0e1cd5c8295d9cc81efa4418ca89b4c879ad84fe96fe2d93",
+  "native_guest_sha256": "3d4cc3ab16b1094f0e1cd5c8295d9cc81efa4418ca89b4c879ad84fe96fe2d93",
+  "canonical_frame_sha256": "2a0728860441548b52b9a4c74681e7379bb0de01987dffbd4f6806a42cf0f04e"
+}

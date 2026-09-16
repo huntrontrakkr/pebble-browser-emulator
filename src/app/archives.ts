@@ -1,3 +1,4 @@
+import { APP_PLATFORMS, type AppPlatform } from './watch-profiles.ts';
 import { Gunzip, Unzip, UnzipInflate } from 'fflate';
 import { stm32Crc } from './pebble-transport.ts';
 import { crc32, zipDirectory } from './integrity.ts';
@@ -135,8 +136,14 @@ export function untarGzip(bytes: Uint8Array): Record<string, Uint8Array> {
       throw new Error('SDK archive contains symbolic/hard links; use a resolved archive.');
     at += 512 + Math.ceil(size / 512) * 512;
   }
-  if (!Object.keys(files).some((p) => p.endsWith('/pebble/emery/include/pebble.h')))
-    throw new Error('No Emery SDK headers found in this archive.');
+  if (
+    !Object.keys(files).some((p) =>
+      /(?:^|\/)pebble\/(aplite|basalt|chalk|diorite|emery|flint|gabbro)\/include\/pebble\.h$/.test(
+        p,
+      ),
+    )
+  )
+    throw new Error('No Pebble SDK headers found in this archive.');
   return files;
 }
 export interface PackageInfo {
@@ -173,8 +180,11 @@ export function inspectPackage(bytes: Uint8Array): PackageInfo {
   };
 }
 
-/** Select one actual Emery executable and verify the manifest before UART installation. */
-export function emeryAppPackage(bytes: Uint8Array): {
+/** Select the requested platform and verify each part before UART installation. */
+export function appPackage(
+  bytes: Uint8Array,
+  platform: AppPlatform,
+): {
   app: Uint8Array;
   resources?: Uint8Array;
   worker?: Uint8Array;
@@ -184,8 +194,10 @@ export function emeryAppPackage(bytes: Uint8Array): {
   const info = inspectPackage(bytes);
   if (info.kind !== 'app') throw new Error('Select an app PBW, not a firmware PBZ.');
   const files = info.files,
-    prefix = files['emery/manifest.json'] ? 'emery/' : '';
-  if (!files[prefix + 'manifest.json']) throw new Error('This PBW has no Emery manifest.');
+    prefix = files[platform + '/manifest.json'] ? platform + '/' : '';
+  if (!Object.hasOwn(APP_PLATFORMS, platform)) throw new Error('Unknown app platform.');
+  if (!files[prefix + 'manifest.json'])
+    throw new Error('This PBW has no ' + platform + ' manifest.');
   const manifest = JSON.parse(new TextDecoder().decode(files[prefix + 'manifest.json']));
   const part = (key: string, required = false): Uint8Array | undefined => {
     const descriptor = manifest[key];
@@ -201,17 +213,36 @@ export function emeryAppPackage(bytes: Uint8Array): {
     return data;
   };
   const app = part('application', true)!;
-  if (app.length < 130) throw new Error('PBW application header is too short.');
-  const view = new DataView(app.buffer, app.byteOffset, app.byteLength);
-  if (((view.getUint32(96, true) >> 6) & 15) !== 5)
-    throw new Error('This executable targets a different watch platform; Emery is required.');
+  const validate = (binary: Uint8Array, label: string) => {
+    if (binary.length < 130 || ![80, 66, 76, 65, 80, 80, 0, 0].every((v, i) => binary[i] === v))
+      throw new Error('Invalid PBW ' + label + ' header.');
+    const view = new DataView(binary.buffer, binary.byteOffset, binary.byteLength);
+    const flags = view.getUint32(96, true);
+    if (((flags >> 6) & 15) !== APP_PLATFORMS[platform].id)
+      throw new Error(
+        'This ' + label + ' targets a different watch platform; ' + platform + ' is required.',
+      );
+    return flags;
+  };
+  const flags = validate(app, 'application');
+  const worker = part('worker');
+  if (Boolean(flags & 0x10) !== Boolean(worker))
+    throw new Error('PBW background worker flag does not match its contents.');
+  if (worker) {
+    const workerFlags = validate(worker, 'worker');
+    if (!(workerFlags & 0x10) || !app.subarray(104, 120).every((v, i) => worker[104 + i] === v))
+      throw new Error('PBW worker does not belong to this application.');
+  }
   return {
     app,
     resources: part('resources'),
-    worker: part('worker'),
+    worker,
     script: files['pebble-js-app.js'] ? new TextDecoder().decode(files['pebble-js-app.js']) : '',
     appinfo: files['appinfo.json']
       ? JSON.parse(new TextDecoder().decode(files['appinfo.json']))
       : {},
   };
 }
+
+/** Compatibility alias for existing callers. */
+export const emeryAppPackage = (bytes: Uint8Array) => appPackage(bytes, 'emery');

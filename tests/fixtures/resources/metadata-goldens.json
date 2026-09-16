@@ -1,0 +1,58 @@
+[
+  {
+    "input": {},
+    "output": {}
+  },
+  {
+    "input": {
+      "status": 0,
+      "big": 4294967295
+    },
+    "output": {
+      "status": 0,
+      "big": 4294967295
+    }
+  },
+  {
+    "input": [
+      "status",
+      "ready"
+    ],
+    "output": {
+      "status": 10000,
+      "ready": 10001
+    }
+  },
+  {
+    "input": [
+      "Z",
+      "A[3]",
+      "B",
+      "C[2]"
+    ],
+    "output": {
+      "A": 10000,
+      "C": 10003,
+      "Z": 10005,
+      "B": 10006
+    }
+  },
+  {
+    "input": [
+      "block[10]",
+      "tail"
+    ],
+    "output": {
+      "block": 10000,
+      "tail": 10010
+    }
+  },
+  {
+    "input": [
+      "one"
+    ],
+    "output": {
+      "one": 10000
+    }
+  }
+]

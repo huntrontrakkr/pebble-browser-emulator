@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import vm from 'node:vm';
+import { FIRMWARE_PROFILES, profileDisplay, isFirmwareProfile } from '../src/app/watch-profiles.ts';
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
 const { default: ts } = await import(
   pathToFileURL(resolve(repo, 'node_modules/typescript/lib/typescript.js'))
@@ -77,6 +78,9 @@ function makeApp() {
     exports,
     signal,
     AppMessageRouter,
+    FIRMWARE_PROFILES,
+    profileDisplay,
+    isFirmwareProfile,
     Worker: Port,
     URL,
     TextEncoder,
@@ -241,4 +245,22 @@ test('events from a terminated phone worker cannot route new packets', () => {
     before,
     'Late event from a replaced worker was forwarded',
   );
+});
+
+test('UI profile follows accepted firmware and retains the old profile on rejected load', () => {
+  const app = makeApp();
+  app.handleQemuEvent({ type: 'error', message: 'invalid Flint firmware' });
+  assert.equal(app.profile(), 'qemu_emery');
+  app.handleQemuEvent({ type: 'firmware-loaded', profile: 'qemu_flint' });
+  assert.equal(app.profile(), 'qemu_flint');
+  assert.equal(app.display().width, 144);
+  assert.equal(app.defaultWatchInfo(), null);
+});
+
+test('phone fixtures and explicit context are valid JSON; default context uses known model codes', () => {
+  const app = makeApp();
+  assert.equal(JSON.parse(app.phoneFixtures)[0].response.status, 200);
+  app.firmwareName.set('qemu_emery_v4.37.0_micro_flash.bin');
+  assert.equal(app.defaultWatchInfo().model, 'pebble_time_2_silver_gray');
+  assert.equal(app.defaultWatchInfo().firmware.major, 4);
 });

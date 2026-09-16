@@ -1,10 +1,13 @@
 use rp2350_emu::{CortexM33, core::CoreBus, threaded::CoreAtomics};
 use std::sync::Arc;
 pub mod peripherals;
+pub mod profile;
+use profile::BoardProfile;
 
 const RAM: u32 = 0x2000_0000;
 const FRAME: u32 = 0x5000_0000;
 pub struct PebbleBus {
+    pub profile: BoardProfile,
     pub atomics: Arc<CoreAtomics>,
     pub code: Vec<u8>,
     pub ram: Vec<u8>,
@@ -22,14 +25,18 @@ pub struct PebbleBus {
 }
 impl PebbleBus {
     pub fn new(code: Vec<u8>, atomics: Arc<CoreAtomics>) -> Self {
+        Self::with_profile(code, atomics, BoardProfile::EMERY)
+    }
+    pub fn with_profile(code: Vec<u8>, atomics: Arc<CoreAtomics>, profile: BoardProfile) -> Self {
         Self {
+            profile,
             atomics,
             code,
-            ram: vec![0; 512 * 1024],
+            ram: vec![0; profile.ram_bytes],
             frame: vec![0; 128 * 1024],
-            presented_frame: vec![0; 200 * 228],
+            presented_frame: vec![0; profile.frame_len()],
             flash: vec![255; 32 * 1024 * 1024],
-            devices: Default::default(),
+            devices: peripherals::Devices::with_profile(profile),
             active_pc: 0,
             failed: None,
             wait: 0,
@@ -117,8 +124,21 @@ impl CoreBus for PebbleBus {
         let frames = self.devices.frames;
         if self.devices.write(a, v, &mut self.flash) {
             if self.devices.frames != frames {
-                self.presented_frame
-                    .copy_from_slice(&self.frame[..200 * 228]);
+                if self.profile.guest_bpp == 1 {
+                    // Pebble monochrome rows are 32-bit aligned, LSB first.
+                    for y in 0..self.profile.height {
+                        for x in 0..self.profile.width {
+                            let white = self.frame[y * self.profile.guest_stride() + x / 8]
+                                & (1 << (x % 8))
+                                != 0;
+                            self.presented_frame[y * self.profile.width + x] =
+                                if white { 0xff } else { 0xc0 };
+                        }
+                    }
+                } else {
+                    self.presented_frame
+                        .copy_from_slice(&self.frame[..self.profile.frame_len()]);
+                }
             }
             return;
         }
@@ -212,9 +232,15 @@ fn image(words: &[u16]) -> Vec<u8> {
     b
 }
 pub fn boot(code: Vec<u8>) -> (CortexM33, PebbleBus) {
+    boot_profile(code, BoardProfile::EMERY)
+}
+/// The shared instruction engine executes the common M4/M33 instruction set.
+/// CPUID and memory differ per board; complete architecture exclusion is not yet modeled.
+pub fn boot_profile(code: Vec<u8>, profile: BoardProfile) -> (CortexM33, PebbleBus) {
     let a = Arc::new(CoreAtomics::default());
-    let mut bus = PebbleBus::new(code, a.clone());
+    let mut bus = PebbleBus::with_profile(code, a.clone(), profile);
     let mut cpu = CortexM33::new(0, a);
+    cpu.ppb.cpuid = profile.cpuid;
     cpu.regs.msp = bus.read32(0, 0);
     cpu.regs.r[13] = cpu.regs.msp;
     cpu.regs.r[14] = u32::MAX;
@@ -478,6 +504,13 @@ pub extern "C" fn spike_upload(size: u32) -> *mut u8 {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn spike_boot(code_len: u32, flash_len: u32) -> u32 {
+    spike_boot_profile(BoardProfile::EMERY.id, code_len, flash_len)
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_boot_profile(profile_id: u32, code_len: u32, flash_len: u32) -> u32 {
+    let Some(profile) = BoardProfile::from_id(profile_id) else {
+        return 0;
+    };
     if !(8..=4 * 1024 * 1024).contains(&code_len) || flash_len != 32 * 1024 * 1024 {
         return 0;
     }
@@ -488,7 +521,7 @@ pub extern "C" fn spike_boot(code_len: u32, flash_len: u32) -> u32 {
     let supplied = &image[..code_len as usize];
     let msp = u32::from_le_bytes(supplied[..4].try_into().unwrap());
     let reset = u32::from_le_bytes(supplied[4..8].try_into().unwrap());
-    if !(0x20000000..=0x20080000).contains(&msp)
+    if !(RAM..=RAM + profile.ram_bytes as u32).contains(&msp)
         || msp & 7 != 0
         || reset & 1 == 0
         || (reset & !1) as u64 + 2 > code_len as u64
@@ -497,7 +530,7 @@ pub extern "C" fn spike_boot(code_len: u32, flash_len: u32) -> u32 {
     }
     let mut code = supplied.to_vec();
     code.resize(4 * 1024 * 1024, 0);
-    let (mut cpu, mut bus) = boot(code);
+    let (mut cpu, mut bus) = boot_profile(code, profile);
     bus.flash = image[code_len as usize..].to_vec();
     cpu.ppb.syst_csr = 0;
     bus.failed = None;
@@ -759,7 +792,7 @@ pub extern "C" fn spike_restart() -> u32 {
         bus.ram.fill(0);
         bus.frame.fill(0);
         bus.presented_frame.fill(0);
-        bus.devices = peripherals::Devices::default();
+        bus.devices = peripherals::Devices::with_profile(bus.profile);
         bus.devices.epoch = rtc.0;
         bus.devices.rtc_set_at = rtc.1;
         bus.devices.ticks = rtc.2;
@@ -773,6 +806,7 @@ pub extern "C" fn spike_restart() -> u32 {
         // A new core also discards instruction-cache and exclusive-monitor
         // state. Reusing the bus retains both flash allocations without copies.
         let mut fresh = CortexM33::new(0, atomics);
+        fresh.ppb.cpuid = bus.profile.cpuid;
         fresh.regs.msp = bus.read32(0, 0);
         fresh.regs.r[13] = fresh.regs.msp;
         fresh.regs.r[14] = u32::MAX;
@@ -961,4 +995,80 @@ mod restart_regressions {
             assert_eq!(bus.devices.now(), 1_800_000_005);
         });
     }
+}
+
+/// Display exports describe the completed, canonical ARGB2222 presentation buffer.
+/// Round clipping and backlight are host presentation choices; guest bytes remain intact.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_profile() -> u32 {
+    MACHINE.with(|m| m.borrow().as_ref().map_or(0, |(_, b)| b.profile.id))
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_width() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.profile.width as u32)
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_height() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.profile.height as u32)
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_len() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.presented_frame.len() as u32)
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_format() -> u32 {
+    if spike_profile() == 0 { 0 } else { 8 }
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_stride() -> u32 {
+    spike_frame_width()
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_round() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.profile.round as u32)
+    })
+}
+/// Raw guest drawing memory, for oracle/debug capture. It may contain an unfinished update.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_guest_frame() -> *const u8 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(std::ptr::null(), |(_, b)| b.frame.as_ptr())
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_guest_frame_len() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.profile.guest_frame_len() as u32)
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_guest_frame_stride() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.profile.guest_stride() as u32)
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_guest_frame_format() -> u32 {
+    MACHINE.with(|m| m.borrow().as_ref().map_or(0, |(_, b)| b.profile.guest_bpp))
 }

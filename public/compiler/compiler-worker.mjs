@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-import { buildPebbleApp } from './portable-builder.mjs';
+import { bundlePhone } from './pkjs-bundler.mjs';
+import { loadLockedPackages } from './locked-packages.mjs';
+import { buildPebbleApp, normalizeMessageKeys, readProjectMetadata } from './portable-builder.mjs';
 const VERSION = '21.11.0-alpha.1';
 const BASE = `https://unpkg.com/microbit-clang-wasm@${VERSION}/gen/`;
 const ASSETS = {
@@ -26,7 +28,23 @@ const ASSETS = {
 };
 const total = Object.values(ASSETS).reduce((n, a) => n + a.size, 0);
 let compilerPromise = null,
+  bundlerPromise = null,
   active = null;
+async function getBundler() {
+  bundlerPromise ??= import('./esbuild/browser.mjs')
+    .then(async (esbuild) => {
+      await esbuild.initialize({
+        wasmURL: new URL('./esbuild/esbuild.wasm', import.meta.url).href,
+        worker: false,
+      });
+      return esbuild;
+    })
+    .catch((error) => {
+      bundlerPromise = null;
+      throw error;
+    });
+  return bundlerPromise;
+}
 const post = (id, message, transfer = []) => self.postMessage({ id, ...message }, transfer);
 async function cachedAsset(name, job) {
   const asset = ASSETS[name];
@@ -39,15 +57,13 @@ async function cachedAsset(name, job) {
   const cached = cache ? await cache.match(url) : null;
   const response = cached || (await fetch(url, { mode: 'cors', signal: job.controller.signal }));
   if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
-  let bytes;
-  if (cached) {
-    bytes = new Uint8Array(await response.arrayBuffer());
-    job.sizes[name] = bytes.length;
-  } else {
-    const reader = response.body.getReader();
-    const chunks = [];
-    let loaded = 0;
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Compiler asset has no response body: ' + name);
+  const chunks = [];
+  let loaded = 0;
+  try {
     while (true) {
+      job.controller.signal.throwIfAborted();
       const { done, value } = await reader.read();
       if (done) break;
       loaded += value.length;
@@ -61,12 +77,19 @@ async function cachedAsset(name, job) {
         total,
       });
     }
-    bytes = new Uint8Array(loaded);
-    let offset = 0;
-    for (const chunk of chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.length;
-    }
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    if (cached && cache) await cache.delete(url).catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+  job.controller.signal.throwIfAborted();
+  const bytes = new Uint8Array(loaded);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.length;
   }
   if (bytes.length !== asset.size) throw new Error('Compiler asset size mismatch: ' + name);
   const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
@@ -111,22 +134,49 @@ self.onmessage = async ({ data }) => {
   const job = { id: data.id, controller: new AbortController(), sizes: {} };
   active = job;
   try {
+    const log = (message) => post(job.id, { type: 'log', message });
+    const files = data.sourceFiles;
+    const { projectInfo } = readProjectMetadata(files);
+    const jsPaths = Object.keys(files).filter((p) =>
+      /^src\/(?:pkjs|js|common)\/.*\.(?:[cm]?js|json)$/.test(p),
+    );
+    let bundledJs;
+    // Parse every companion through the bundler. Lexical regex checks miss valid
+    // import/export/require syntax and silently omit simple legacy companions.
+    if (jsPaths.length) {
+      const esbuild = await getBundler();
+      job.controller.signal.throwIfAborted();
+      const expanded = await loadLockedPackages({
+        sourceFiles: files,
+        signal: job.controller.signal,
+        log,
+      });
+      const messageKeys = normalizeMessageKeys(
+        projectInfo.messageKeys ?? projectInfo.appKeys ?? {},
+      );
+      bundledJs = await bundlePhone({ sourceFiles: expanded, esbuild, messageKeys, log });
+    }
+    job.controller.signal.throwIfAborted();
     post(job.id, { type: 'log', message: 'Loading ARM compiler ' + VERSION });
     compilerPromise ??= import('./vendor/bundle.js').catch((error) => {
       compilerPromise = null;
       throw error;
     });
     const compiler = await compilerPromise;
+    job.controller.signal.throwIfAborted();
     compiler.setAssetLoader((name) => cachedAsset(name, job));
     const session = compiler.createSession();
     const result = await buildPebbleApp({
       sourceFiles: data.sourceFiles,
       sdkFiles: data.sdkFiles,
+      platform: data.platform ?? 'emery',
+      bundledJs,
       projectRoot: data.projectRoot || '',
       timestamp: data.timestamp ?? Math.floor(Date.now() / 1000),
       session,
       log: (message) => post(job.id, { type: 'log', message }),
     });
+    job.controller.signal.throwIfAborted();
     post(
       job.id,
       {
@@ -147,6 +197,7 @@ self.onmessage = async ({ data }) => {
   } catch (error) {
     post(job.id, { type: 'error', message: error?.message || String(error) });
   } finally {
+    job.controller.abort();
     active = null;
   }
 };

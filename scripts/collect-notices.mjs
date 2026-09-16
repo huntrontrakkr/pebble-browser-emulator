@@ -45,3 +45,5 @@ copyFileSync(
 );
 copyFileSync('THIRD_PARTY_NOTICES.md', 'public/licenses/NOTICE.md');
 copyFileSync('LICENSE', 'public/licenses/PROJECT.txt');
+
+copyFileSync('node_modules/esbuild-wasm/LICENSE.md', 'public/licenses/ESBUILD.txt');

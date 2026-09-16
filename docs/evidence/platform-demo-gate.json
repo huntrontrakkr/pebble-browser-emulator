@@ -1,0 +1,114 @@
+{
+  "root_base_commit": "1b873693138e241b3dd1e4e3b0876fd18104fa15",
+  "root_wasm_sha256": "6b08d47b8edc9f94d331e0f02448ca5c30f113e81d8168771685568048bea07a",
+  "source_sha256": {
+    "examples/platform-watchface/README.md": "e4c8845c320ae871a6ca13fb3982f8143de559260a3dd3248f17cc08286f8575",
+    "examples/platform-watchface/package.json": "4bca1b444738df587065f0c91ac5da15629f4b362c2fdac289527e1dddf580b1",
+    "examples/platform-watchface/resources/start-message.txt": "02cc953b240d540be92b92fd080a48bd9aa0ed13e9cc2a332745b6d993172cec",
+    "examples/platform-watchface/src/pkjs/index.js": "a54e16f3caf43d850603fc5cc88d6c953a6af493017aea35a69f3f31ba31b568",
+    "examples/platform-watchface/src/pkjs/settings.json": "de8f1bb02bcb0e8a6e92f8bc4c10965803da4130e58bd7e62d3a39fb697199bb",
+    "examples/platform-watchface/src/common/status.js": "b6275c0f7bf44b5590dd5ce111ca463a22662e7a3f1aed58f1c5cc705b0ed063",
+    "examples/platform-watchface/src/c/main.c": "b41663301d0119e75b08db1ca8dbfb8cbe4397551d12b1bac05bbd0e0156297a"
+  },
+  "firmware_release": "v4.37.0",
+  "oracle": "coredevices/qemu v10.1.5-pebble17",
+  "records": [
+    {
+      "profile": "flint",
+      "runtime": "rust-wasm",
+      "firmware": "4.37.0",
+      "epoch": 1789545600,
+      "battery": 57,
+      "charging": false,
+      "status": "23C | 40.71, -74.00",
+      "messageKey": 10000,
+      "appSha256": "b24089cd9a90389783effc545608d90d821174b5ac921d16650330d6a226dbff",
+      "pbwSha256": "8d3831f453db51adef032017aaa60525f4f2ec4a8656d6b105cbf94f4664e327",
+      "workerSha256": null,
+      "install": {
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appId": 1
+      },
+      "ack": "ff01",
+      "steps": 214415000,
+      "fault": 0,
+      "cfsr": 0,
+      "hfsr": 0,
+      "frame_sha256": "ff54bd064047aad68d8fd6bdf64d7c3a3115fc47c5dc461144ac69f1edc88085",
+      "frame_bytes": 24192,
+      "native_comparison": {
+        "profile": "flint",
+        "width": 144,
+        "height": 168,
+        "guest_bytes": 3360,
+        "presentation_bytes": 24192,
+        "guest_different_bytes": 0,
+        "presentation_different_bytes": 0,
+        "rust_guest_sha256": "c00149f80696e18b8a47729b07d3e99447630adc7ab6fd18c3b6e6125af96d7a",
+        "native_guest_sha256": "c00149f80696e18b8a47729b07d3e99447630adc7ab6fd18c3b6e6125af96d7a",
+        "canonical_frame_sha256": "ff54bd064047aad68d8fd6bdf64d7c3a3115fc47c5dc461144ac69f1edc88085"
+      }
+    },
+    {
+      "profile": "emery",
+      "runtime": "rust-wasm",
+      "firmware": "4.37.0",
+      "epoch": 1789545600,
+      "battery": 57,
+      "charging": false,
+      "status": "23C | 40.71, -74.00",
+      "messageKey": 10000,
+      "appSha256": "ee85f5fc7655b88bcc4b1dd86078349cf6f472cbd4157926f51b50c0619d5b66",
+      "pbwSha256": "dfbc0c53ef855626be17e84806d160a3f0c814a426c4db02744f43f220ab6851",
+      "workerSha256": null,
+      "install": {
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appId": 1
+      },
+      "ack": "ff01",
+      "steps": 227055000,
+      "fault": 0,
+      "cfsr": 0,
+      "hfsr": 0,
+      "frame_sha256": "929f8cd171c8435c83a9a25281c42ef23517b3e191c9997022d5187d472b3aa8",
+      "frame_bytes": 45600
+    },
+    {
+      "profile": "gabbro",
+      "runtime": "rust-wasm",
+      "firmware": "4.37.0",
+      "epoch": 1789545600,
+      "battery": 57,
+      "charging": false,
+      "status": "23C | 40.71, -74.00",
+      "messageKey": 10000,
+      "appSha256": "9bbb72a9e47228da0b6e1b3f0fd02db455a25ca4f956d56e724f5f6b18e03fd5",
+      "pbwSha256": "f6cbb2a9adb6ea42316f2ca0fda2382b0f2463f58f5cf728f832f7fecb907871",
+      "workerSha256": null,
+      "install": {
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appId": 1
+      },
+      "ack": "ff01",
+      "steps": 233575000,
+      "fault": 0,
+      "cfsr": 0,
+      "hfsr": 0,
+      "frame_sha256": "6f3054c5e1d0294cddbf93363875984810983c2f7c741295220e94f05f06ae32",
+      "frame_bytes": 67600,
+      "native_comparison": {
+        "profile": "gabbro",
+        "width": 260,
+        "height": 260,
+        "guest_bytes": 67600,
+        "presentation_bytes": 67600,
+        "guest_different_bytes": 0,
+        "presentation_different_bytes": 0,
+        "rust_guest_sha256": "6f3054c5e1d0294cddbf93363875984810983c2f7c741295220e94f05f06ae32",
+        "native_guest_sha256": "6f3054c5e1d0294cddbf93363875984810983c2f7c741295220e94f05f06ae32",
+        "canonical_frame_sha256": "6f3054c5e1d0294cddbf93363875984810983c2f7c741295220e94f05f06ae32"
+      }
+    }
+  ],
+  "note": "The key10000 location/weather string was injected through real UART/AppMessage transport. This gate does not independently execute the bundled PKJS network client."
+}

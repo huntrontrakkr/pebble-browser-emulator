@@ -1,0 +1,39 @@
+{
+  "name": "pebble-platform-demo",
+  "version": "1.0.0",
+  "author": "Browser Emulator contributors",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Platform Demo",
+    "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+    "sdkVersion": "3",
+    "projectType": "native",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [
+      "status"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "raw",
+          "name": "START_MESSAGE",
+          "file": "start-message.txt"
+        }
+      ]
+    }
+  }
+}

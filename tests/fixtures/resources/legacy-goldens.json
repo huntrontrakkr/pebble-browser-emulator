@@ -1,0 +1,166 @@
+[
+  {
+    "name": "npm-legacy-fallback",
+    "files": {
+      "package.json": {
+        "name": "npm-support",
+        "dependencies": {
+          "js-package": "1.0.0"
+        }
+      },
+      "appinfo.json": {
+        "shortName": "Short",
+        "longName": "The complete old app name",
+        "companyName": "Legacy <verbatim>",
+        "versionLabel": "1.0",
+        "sdkVersion": "3",
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appKeys": {
+          "status": 5
+        }
+      }
+    },
+    "projectInfo": {
+      "shortName": "Short",
+      "longName": "The complete old app name",
+      "companyName": "Legacy <verbatim>",
+      "versionLabel": "1.0",
+      "sdkVersion": "3",
+      "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+      "appKeys": {
+        "status": 5
+      }
+    },
+    "targets": [
+      "flint",
+      "emery",
+      "diorite",
+      "chalk",
+      "basalt",
+      "aplite",
+      "gabbro"
+    ]
+  },
+  {
+    "name": "modern-precedence",
+    "files": {
+      "package.json": {
+        "name": "test",
+        "version": "1.0.0",
+        "author": "Some Author <person@example.com> (https://example.com)",
+        "pebble": {
+          "displayName": "Modern",
+          "sdkVersion": "3",
+          "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82"
+        }
+      },
+      "appinfo.json": {
+        "shortName": "Short",
+        "longName": "The complete old app name",
+        "companyName": "Legacy <verbatim>",
+        "versionLabel": "1.0",
+        "sdkVersion": "3",
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appKeys": {
+          "status": 5
+        }
+      }
+    },
+    "projectInfo": {
+      "displayName": "Modern",
+      "sdkVersion": "3",
+      "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+      "name": "test",
+      "shortName": "Modern",
+      "longName": "Modern",
+      "versionLabel": "1.0.0",
+      "companyName": "Some Author"
+    },
+    "targets": [
+      "flint",
+      "emery",
+      "diorite",
+      "chalk",
+      "basalt",
+      "aplite",
+      "gabbro"
+    ]
+  },
+  {
+    "name": "legacy-empty-targets",
+    "files": {
+      "appinfo.json": {
+        "shortName": "Short",
+        "longName": "The complete old app name",
+        "companyName": "Legacy <verbatim>",
+        "versionLabel": "1.0",
+        "sdkVersion": "3",
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appKeys": {
+          "status": 5
+        },
+        "targetPlatforms": []
+      }
+    },
+    "projectInfo": {
+      "shortName": "Short",
+      "longName": "The complete old app name",
+      "companyName": "Legacy <verbatim>",
+      "versionLabel": "1.0",
+      "sdkVersion": "3",
+      "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+      "appKeys": {
+        "status": 5
+      },
+      "targetPlatforms": []
+    },
+    "targets": [
+      "flint",
+      "emery",
+      "diorite",
+      "chalk",
+      "basalt",
+      "aplite",
+      "gabbro"
+    ]
+  },
+  {
+    "name": "legacy-restricted-targets",
+    "files": {
+      "appinfo.json": {
+        "shortName": "Short",
+        "longName": "The complete old app name",
+        "companyName": "Legacy <verbatim>",
+        "versionLabel": "1.0",
+        "sdkVersion": "3",
+        "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+        "appKeys": {
+          "status": 5
+        },
+        "targetPlatforms": [
+          "aplite",
+          "flint"
+        ]
+      }
+    },
+    "projectInfo": {
+      "shortName": "Short",
+      "longName": "The complete old app name",
+      "companyName": "Legacy <verbatim>",
+      "versionLabel": "1.0",
+      "sdkVersion": "3",
+      "uuid": "81d7fc6b-55cc-4eb7-bb7a-06466f283a82",
+      "appKeys": {
+        "status": 5
+      },
+      "targetPlatforms": [
+        "aplite",
+        "flint"
+      ]
+    },
+    "targets": [
+      "aplite",
+      "flint"
+    ]
+  }
+]

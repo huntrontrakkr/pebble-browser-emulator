@@ -1,0 +1,19 @@
+{
+  "profile": "gabbro",
+  "ready": true,
+  "steps": 189000000,
+  "frames": 48,
+  "ticks": 432496977,
+  "seconds": 10.819502322,
+  "pc": 864924,
+  "fault": 0,
+  "cfsr": 0,
+  "hfsr": 0,
+  "width": 260,
+  "height": 260,
+  "frameLen": 67600,
+  "guestFrameLen": 67600,
+  "codeSha": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+  "flashSha": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+  "wasmSha": "66efc22afcc944c845094350096a4e416e65cb5a292f496f006771cae2fe66d9"
+}

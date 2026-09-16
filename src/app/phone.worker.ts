@@ -6,6 +6,7 @@ import {
 } from 'quickjs-emscripten-core';
 import RELEASE_SYNC from '@jitl/quickjs-wasmfile-release-sync';
 import { VirtualPhone } from './virtual-phone.ts';
+import { PhoneCorsNetwork } from './phone-network.ts';
 let moduleLoad: Promise<QuickJSWASMModule> | undefined;
 let module: QuickJSWASMModule | undefined,
   phone: VirtualPhone | undefined,
@@ -15,10 +16,14 @@ let module: QuickJSWASMModule | undefined,
   lastStorage = '',
   generation = 0,
   desiredConnection = false;
+let network: PhoneCorsNetwork | undefined;
 const storage = new Map<string, Record<string, string>>();
 function output() {
   if (!phone) return;
-  for (const event of phone.drainEvents()) postMessage({ type: 'event', event });
+  for (const event of phone.drainEvents()) {
+    postMessage({ type: 'event', phoneGeneration: generation, event });
+    network?.handle(event);
+  }
   const values = phone.getStorage(),
     serialized = JSON.stringify(values);
   storage.set(appId, values);
@@ -29,6 +34,8 @@ function output() {
 }
 function stop() {
   generation++;
+  network?.dispose();
+  network = undefined;
   clearInterval(timer);
   timer = undefined;
   if (phone) {
@@ -56,7 +63,9 @@ self.onmessage = async ({ data }) => {
           const response = await fetch(data.wasmUrl);
           if (!response.ok) throw new Error('Phone engine download failed.');
           return newQuickJSWASMModuleFromVariant(
-            newVariant(RELEASE_SYNC, { wasmBinary: await response.arrayBuffer() }),
+            newVariant(RELEASE_SYNC, {
+              wasmBinary: await response.arrayBuffer(),
+            }),
           );
         })().catch((error) => {
           moduleLoad = undefined;
@@ -74,11 +83,44 @@ self.onmessage = async ({ data }) => {
         coordinates: data.coordinates,
         storage: storage.get(appId) ?? data.storage ?? {},
         messageKeys: data.messageKeys ?? {},
+        watchInfo: data.watchInfo,
+        appInfo: data.appInfo,
+        watchToken: data.watchToken,
+        accountToken: data.accountToken,
+        network: data.network,
       });
+      if (data.network?.mode === 'cors') {
+        const owner = phone;
+        network = new PhoneCorsNetwork((requestId, result) => {
+          if (job !== generation || phone !== owner) return;
+          try {
+            const accepted = owner.deliverNetworkResponse(requestId, result);
+            postMessage({
+              type: 'network-result',
+              phoneGeneration: generation,
+              requestId,
+              accepted,
+              ...('error' in result
+                ? { error: result.error, message: result.message }
+                : {
+                    status: result.status,
+                    responseBytes: new TextEncoder().encode(result.body).length,
+                  }),
+            });
+            output();
+          } catch (e) {
+            fail(e);
+          }
+        });
+      }
       phone.setConnected(desiredConnection);
       phone.start(data.source, data.name);
       output();
-      postMessage({ type: 'status', status: 'Running' });
+      postMessage({
+        type: 'status',
+        status: 'Running',
+        phoneGeneration: generation,
+      });
       timer = setInterval(() => {
         try {
           phone?.advanceTime((nowMs += 100));
@@ -136,7 +178,8 @@ self.onmessage = async ({ data }) => {
         phone.showConfiguration();
         break;
       case 'configurationClosed':
-        phone.closeConfiguration(data.response);
+        if (data.phoneGeneration !== undefined && data.phoneGeneration !== generation) return;
+        phone.closeConfiguration(data.response, data.requestId);
         break;
       default:
         throw new Error('Unknown phone command.');

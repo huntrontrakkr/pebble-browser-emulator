@@ -39,3 +39,8 @@ advances virtual timers while asleep, and models SEVONPEND transitions. Its test
 masked and disabled interrupts, event consumption, NMI, MSP/PSP exception returns, and
 priority-register byte lanes. These corrections do not establish full Cortex-M fidelity;
 see `docs/STATUS.md` for the remaining compatibility limits.
+
+`bus/ppb.rs`: make the CPUID identification value configurable by the embedding board while
+retaining the upstream default. Generic Pebble profiles supply the official QEMU Cortex-M4
+or Cortex-M33 identity. This does not enforce the complete architecture-specific instruction
+availability or implement physical-watch CPU timing. Profile ABI tests cover the values.

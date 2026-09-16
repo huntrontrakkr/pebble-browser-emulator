@@ -4,8 +4,8 @@
 
 A public browser-only Pebble development environment, Angular interface, actual Rust/Wasm
 hardware core, functional virtual phone, packet inspection, and local browser compilation.
-Target the current Core Devices Pebble Time 2. Validate fidelity progressively against the
-owner's physical Time 2. Standard Pebble repositories come first; arbitrary legacy build
+Cover the full Pebble watch family, including both Time 2 generations; see PRODUCT_MATRIX.md.
+Validate fidelity progressively against independent references and the owner's physical Time 2. Standard Pebble repositories come first; arbitrary legacy build
 environments and real Bluetooth connections come later.
 
 The public project is `huntrontrakkr/pebble-browser-emulator`. Host only static assets.
@@ -20,7 +20,8 @@ CI may build the website/toolchains but must never compile visitors' projects re
       limits, and FPU. Compare against independent execution, not only internal unit tests.
 - [x] Implement the generic memory map, UART, flash, virtual timers, RTC, buttons, and committed display updates.
 - [ ] Validate remaining peripherals and architectural edge cases; calibrate timing.
-- [x] Match an aligned app framebuffer against native QEMU in all 45,600 bytes.
+- [x] Implement distinct Flint/Emery/Gabbro generic board profiles and verify all display bytes against native QEMU.
+- [ ] Implement legacy Tintin/Snowy/Spalding/Silk/Robert boards and establish firmware gates for each.
 - [ ] Extend matching to long-running interactions, additional apps, and firmware revisions.
 
 Exit: real qemu_emery firmware boots in the Rust browser core. Keep this explicitly labeled
@@ -30,13 +31,17 @@ emulator firmware; it does not establish production Time 2 compatibility.
 
 - [x] GitHub REST tree + raw content import, pinned to a commit, and local ZIP import.
 - [ ] Local folder import.
-- [x] Standard package.json native Emery profile; reject unsupported custom build scripts.
-- [ ] Legacy appinfo.json layouts and declarative configuration where needed.
+- [x] Standard package.json native profiles for all seven SDK platforms; reject unsupported custom build scripts.
+- [x] Legacy SDK 3 appinfo.json layouts.
+- [ ] Declarative configuration for additional build layouts where needed.
 - [x] Pinned ARM Clang/LLD Wasm, local SDK 4.33.1 subset, exact app metadata/relocations,
       empty resource pack, system fonts, single-file PKJS, and real PBW packaging.
-- [ ] Custom resources/FreeType fonts, dependency packages, and PKJS module bundling.
-- [ ] Honor target declarations and lockfiles; never substitute another platform library.
-- [ ] Full independent demo with resource/font, battery/connection, settings, and AppMessage.
+- [x] PNG/PBI/raw resources, aliases and platform variants, JS module bundling, locked JS dependencies.
+- [x] Compile, package, install and execute background workers.
+- [ ] Custom FreeType fonts, SVG/vector resources, native C packages and library resources.
+- [x] Honor target declarations and supported npm lockfiles; never substitute another platform library.
+- [x] Adaptive seven-platform demo with raw resource, system fonts, battery/connection, JS modules, location/weather and AppMessage.
+- [ ] Custom-font and embedded configuration-page demo.
 - [x] Install and reinstall via real BlobDB/AppFetch/PutBytes and retain ELF build output.
 - [x] Cache source/SDK locally in IndexedDB and verified toolchain assets in Cache Storage.
 - [ ] Verify offline rebuild and offline application reload.
@@ -56,15 +61,18 @@ and reproducible sessions remain open.
       fault injection, export/import, and deterministic replay.
 - [x] Inject battery/charging, RTC, buttons, logical Bluetooth connection, and phone location.
 - [ ] Model consumption, sensors, audio/haptics, touch, and hardware-controlled optics.
-- [ ] CORS-permitted live PKJS network calls and fixture/replay responses otherwise.
+- [x] CORS-permitted text/JSON XHR/fetch and deterministic response fixtures.
+- [x] Configuration request/return events, explicit metadata and test identities.
+- [ ] Embedded configuration WebView, automatic return interception and network replay.
 - [ ] Versioned sessions/snapshots including clocks, randomness, and all external inputs.
 
 Exit: reproducible app/configuration/notification/sensor/low-battery/disconnect scenarios.
 Separate modeled analog behavior from verified logical behavior.
 
-## 4. Production Time 2 fidelity
+## 4. Physical-watch fidelity across the family
 
-- [ ] Implement Obelix/SiFli memory/CPU, reset/clocks, XIP/flash, DMA, IRQ, timers, RTC,
+- [ ] Implement Asterix/nRF52840 and legacy STM32 board families, preserving model/revision distinctions.
+- [ ] Implement Obelix/Getafix SiFli memory/CPU, reset/clocks, XIP/flash, DMA, IRQ, timers, RTC,
       PMIC, JDI display, touch, sensors, audio, and haptics.
 - [ ] Execute byte-identical production-target payload from an explicitly documented
       post-bootloader state. Then implement bootloader/slots/recovery/watchdog/update behavior.
@@ -82,7 +90,7 @@ not evidence that usage/redistribution terms are satisfied.
 Implemented: clean utility interface, light/dark themes, exact pixels, adjustable reflective
 approximation, and rotatable official Time 2 CAD with the live screen.
 
-- [ ] Public static release of the first useful firmware/app workflow.
+- [x] Public static release of the first useful firmware/app workflow.
 - [ ] Current desktop Chrome/Edge/Firefox/Safari verification; cancellable builds, quotas,
       responsive UI, no-backend request audit, static deployment portability.
 - [ ] Browser-to-real-watch adapters for measured browser/firmware combinations.

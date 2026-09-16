@@ -1,7 +1,8 @@
+import { stm32Crc } from '../src/app/pebble-transport.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { zipSync, strToU8 } from 'fflate';
-import { unzipBounded, inspectPackage } from '../src/app/archives.ts';
+import { unzipBounded, inspectPackage, appPackage } from '../src/app/archives.ts';
 test('archive extraction keeps binaries and rejects path traversal and size overflow', () => {
   const zip = zipSync({ 'data.bin': new Uint8Array([0, 255, 128]) });
   assert.deepEqual(unzipBounded(zip)['data.bin'], new Uint8Array([0, 255, 128]));
@@ -28,4 +29,35 @@ test('incomplete ZIP directory and corrupt content are rejected', () => {
   const offset = new DataView(corrupt.buffer).getUint16(26, true) + 30;
   corrupt[offset] ^= 1;
   assert.throws(() => unzipBounded(corrupt), /CRC/);
+});
+
+test('PBW selection validates worker platform, UUID, presence and header before transfer', () => {
+  const binary = (platform, flags = 0x10) => {
+    const bytes = new Uint8Array(140);
+    bytes.set([80, 66, 76, 65, 80, 80, 0, 0]);
+    new DataView(bytes.buffer).setUint32(96, (platform << 6) | flags, true);
+    bytes[104] = 42;
+    return bytes;
+  };
+  const pack = (app, worker) => {
+    const descriptor = (name, bytes) => ({ name, size: bytes.length, crc: stm32Crc(bytes) });
+    return zipSync({
+      'flint/manifest.json': strToU8(
+        JSON.stringify({
+          application: descriptor('app.bin', app),
+          ...(worker ? { worker: descriptor('worker.bin', worker) } : {}),
+        }),
+      ),
+      'flint/app.bin': app,
+      ...(worker ? { 'flint/worker.bin': worker } : {}),
+    });
+  };
+  assert.equal(appPackage(pack(binary(6), binary(6)), 'flint').worker.length, 140);
+  assert.throws(() => appPackage(pack(binary(6), binary(5)), 'flint'), /different watch platform/);
+  const mismatch = binary(6);
+  mismatch[104] = 43;
+  assert.throws(() => appPackage(pack(binary(6), mismatch), 'flint'), /does not belong/);
+  assert.throws(() => appPackage(pack(binary(6), null), 'flint'), /flag/);
+  assert.throws(() => appPackage(pack(binary(6, 0), binary(6)), 'flint'), /flag/);
+  assert.throws(() => appPackage(pack(binary(6), new Uint8Array(140)), 'flint'), /header/);
 });

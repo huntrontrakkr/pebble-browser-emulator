@@ -1,3 +1,10 @@
+import {
+  FIRMWARE_PROFILES,
+  profileDisplay,
+  isFirmwareProfile,
+  type FirmwareProfile,
+  type MachineProfile,
+} from './watch-profiles.ts';
 import { AppMessageRouter } from './app-message-router.ts';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
@@ -22,7 +29,24 @@ export class App implements AfterViewInit, OnDestroy {
   state = signal<MachineState | null>(null);
   error = signal('');
   tab = signal('Firmware');
-  profile = signal<'diagnostic-v1' | 'qemu_emery'>('diagnostic-v1');
+  profile = signal<MachineProfile>('diagnostic-v1');
+  isFirmware() {
+    return this.profile() !== 'diagnostic-v1';
+  }
+  display() {
+    return profileDisplay(this.profile());
+  }
+  machineName() {
+    const p = this.profile();
+    return p === 'diagnostic-v1' ? 'Diagnostic board' : FIRMWARE_PROFILES[p].label;
+  }
+  appPlatform() {
+    const p = this.profile();
+    return p === 'diagnostic-v1' ? 'emery' : FIRMWARE_PROFILES[p].platform;
+  }
+  hasModel() {
+    return this.profile() === 'qemu_emery' || this.profile() === 'diagnostic-v1';
+  }
   displayMode = signal<DisplayMode>('pixels');
   theme = signal('light');
   ambient = 80;
@@ -41,6 +65,17 @@ export class App implements AfterViewInit, OnDestroy {
   private phoneMessages = new AppMessageRouter<Worker>();
   private phoneAppId = 'project';
   private phoneKeys: Record<string, number> = {};
+  private phoneAppInfo: Record<string, unknown> = {};
+  private phoneGeneration = -1;
+  phoneNetworkMode: 'disabled' | 'fixtures' | 'cors' = 'disabled';
+  phoneFixtures =
+    '[\n  {\n    "url": "https://weather.example/forecast",\n    "response": { "status": 200, "body": "{\\"temperature\\":23}" },\n    "delayMs": 50\n  }\n]';
+  phoneWatchOverride = '';
+  accountToken = '';
+  watchToken = '';
+  phoneHttp = signal<string[]>([]);
+  configuration = signal<{ url: string; requestId: number; generation: number } | null>(null);
+  configurationResponse = '';
   private qemuWorker?: Worker;
   private qemuReady?: Promise<void>;
   private diagnosticReady = false;
@@ -155,11 +190,15 @@ export class App implements AfterViewInit, OnDestroy {
     this.model?.dispose();
   }
   send(command: EmulatorCommand) {
-    if (this.ready())
-      (this.profile() === 'qemu_emery' ? this.qemuWorker : this.worker)?.postMessage(command);
+    if (this.ready()) (this.isFirmware() ? this.qemuWorker : this.worker)?.postMessage(command);
   }
   log(kind: string, text: string) {
-    this.trace.update((t) => [...t, { index: ++this.index, kind, text }].slice(-200));
+    this.trace.update((t) =>
+      [
+        ...t,
+        { index: ++this.index, kind, text: text.length > 6000 ? text.slice(0, 6000) + ' …' : text },
+      ].slice(-200),
+    );
   }
   diagnostic() {
     if (this.installing()) {
@@ -191,7 +230,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.send({ type: 'reset' });
     this.log(
       'RESET',
-      this.profile() === 'qemu_emery'
+      this.isFirmware()
         ? 'Watch restarted; installed apps and RTC retained'
         : 'Machine reset to image vector table',
     );
@@ -200,7 +239,7 @@ export class App implements AfterViewInit, OnDestroy {
     if (!Number.isFinite(value)) return;
     value = Math.round(Math.min(100, Math.max(0, value)));
     this.battery.set(value);
-    if (this.profile() === 'qemu_emery') {
+    if (this.isFirmware()) {
       this.setCharge();
       return;
     }
@@ -285,8 +324,17 @@ export class App implements AfterViewInit, OnDestroy {
       ambient: this.ambient / 100,
       backlight: this.backlight / 100,
     });
-    context.putImageData(new ImageData(rgba as Uint8ClampedArray<ArrayBuffer>, 200, 228), 0, 0);
-    this.model?.pixels(rgba);
+    const { width, height } = this.display();
+    if (bytes.length !== width * height) return;
+    const canvas = this.screen.nativeElement;
+    if (canvas.width !== width) canvas.width = width;
+    if (canvas.height !== height) canvas.height = height;
+    context.putImageData(
+      new ImageData(rgba as Uint8ClampedArray<ArrayBuffer>, width, height),
+      0,
+      0,
+    );
+    if (this.hasModel()) this.model?.pixels(rgba);
   }
   redraw() {
     const state = this.state();
@@ -301,6 +349,7 @@ export class App implements AfterViewInit, OnDestroy {
     } catch {}
   }
   async setDisplay(mode: DisplayMode) {
+    if (mode === 'model' && !this.hasModel()) return;
     this.displayMode.set(mode);
     this.redraw();
     if (mode !== 'model' || this.model || this.modelLoading) return;
@@ -325,7 +374,12 @@ export class App implements AfterViewInit, OnDestroy {
   resetModel() {
     this.model?.reset();
   }
-  async loadFirmware(data: { micro: Uint8Array; flash: Uint8Array; name: string }) {
+  async loadFirmware(data: {
+    micro: Uint8Array;
+    flash: Uint8Array;
+    name: string;
+    profile?: FirmwareProfile;
+  }) {
     const revision = ++this.loadRevision;
     this.worker?.postMessage({ type: 'pause' });
     this.error.set('');
@@ -349,7 +403,7 @@ export class App implements AfterViewInit, OnDestroy {
               return;
             }
             this.handleQemuEvent(data);
-            if (data.type === 'state' && this.profile() === 'qemu_emery') {
+            if (data.type === 'state' && this.isFirmware()) {
               this.state.set(data.state);
               this.running.set(data.state.running);
               this.loaded.set(data.state.loaded);
@@ -385,10 +439,6 @@ export class App implements AfterViewInit, OnDestroy {
       }
       await this.qemuReady;
       if (revision !== this.loadRevision || this.destroyed) return;
-      this.profile.set('qemu_emery');
-      this.ready.set(true);
-      this.watchReady.set(false);
-      this.buttons = 0;
       this.qemuWorker.postMessage({ type: 'firmware', ...data });
       this.log('LOAD', data.name);
       this.tab.set('Inputs');
@@ -401,9 +451,9 @@ export class App implements AfterViewInit, OnDestroy {
     }
   }
   installPackage(data: { bytes: Uint8Array; name: string }) {
-    if (this.profile() !== 'qemu_emery' || !this.watchReady()) {
+    if (!this.isFirmware() || !this.watchReady()) {
       this.error.set(
-        'Load and run QEMU Emery firmware until boot completes, then install the app.',
+        'Load and run matching emulator firmware until boot completes, then install the app.',
       );
       return;
     }
@@ -411,6 +461,15 @@ export class App implements AfterViewInit, OnDestroy {
     this.qemuWorker?.postMessage({ type: 'install', ...data });
   }
   handleQemuEvent(data: any) {
+    if (data.type === 'firmware-loaded' && isFirmwareProfile(data.profile)) {
+      this.stopPhone();
+      this.profile.set(data.profile);
+      this.ready.set(true);
+      this.watchReady.set(false);
+      this.buttons = 0;
+      if (!this.hasModel() && this.displayMode() === 'model') this.displayMode.set('pixels');
+      return;
+    }
     if (data.type === 'session') {
       this.watchGeneration = data.generation;
       this.phoneMessages.beginSession(data.generation);
@@ -438,6 +497,7 @@ export class App implements AfterViewInit, OnDestroy {
         name: data.name + '/pebble-js-app.js',
         appId: data.uuid,
         messageKeys: data.appinfo.appKeys ?? {},
+        appInfo: data.appinfo,
       });
       if (data.script) this.startPhone();
     }
@@ -568,14 +628,33 @@ export class App implements AfterViewInit, OnDestroy {
     name: string;
     appId?: string;
     messageKeys?: Record<string, number>;
+    appInfo?: Record<string, unknown>;
   }) {
     this.stopPhone();
     this.phoneAppId = data.appId ?? data.name;
     this.phoneKeys = data.messageKeys ?? {};
+    this.phoneAppInfo = data.appInfo ?? {};
     this.phoneScript.set(data.source);
     this.phoneScriptName.set(data.name);
   }
   startPhone() {
+    let fixtures = [],
+      watchInfo = null;
+    try {
+      if (this.phoneNetworkMode === 'fixtures') {
+        if (this.phoneFixtures.length > 4 * 1048576) throw new Error('Fixture JSON exceeds 4 MiB.');
+        fixtures = JSON.parse(this.phoneFixtures);
+        if (!Array.isArray(fixtures)) throw new Error('Network fixtures must be a JSON array.');
+      }
+      if (this.phoneWatchOverride.trim()) watchInfo = JSON.parse(this.phoneWatchOverride);
+      else watchInfo = this.defaultWatchInfo();
+    } catch (error) {
+      this.error.set(String(error));
+      return;
+    }
+    this.configuration.set(null);
+    this.phoneGeneration = -1;
+    this.phoneHttp.set([]);
     this.phoneWorker?.terminate();
     this.phoneWorker = new Worker(new URL('./phone.worker', import.meta.url), { type: 'module' });
     const phone = this.phoneWorker;
@@ -583,7 +662,12 @@ export class App implements AfterViewInit, OnDestroy {
     this.phoneStatus.set('Starting…');
     this.phoneWorker.onmessage = ({ data }) => {
       if (this.phoneWorker !== phone) return;
-      if (data.type === 'status') this.phoneStatus.set(data.status);
+      if (data.type === 'status') {
+        this.phoneStatus.set(data.status);
+        if (data.phoneGeneration !== undefined) this.phoneGeneration = data.phoneGeneration;
+      }
+      if (data.type === 'network-result')
+        this.phoneHttp.update((rows) => [...rows, JSON.stringify(data)].slice(-100));
       if (data.type === 'error') {
         this.phoneStatus.set('Error');
         this.log('PHONE', data.message);
@@ -597,9 +681,24 @@ export class App implements AfterViewInit, OnDestroy {
         });
       if (data.type === 'event') {
         const event = data.event;
-        this.log('PHONE', event.text ?? event.message ?? JSON.stringify(event));
+        if (event.type === 'configuration' && this.phoneAccepting) {
+          this.configuration.set({
+            url: event.url,
+            requestId: event.requestId,
+            generation: data.phoneGeneration,
+          });
+          this.configurationResponse = '';
+        }
+        if (event.type === 'network-request' || event.type === 'network-cancel')
+          this.phoneHttp.update((rows) => [...rows, JSON.stringify(event)].slice(-100));
+        this.log(
+          'PHONE',
+          event.type === 'configuration'
+            ? `Configuration ${event.requestId}: ${event.url.length} characters`
+            : (event.text ?? event.message ?? JSON.stringify(event)),
+        );
         if (event.type === 'outbound' && this.phoneAccepting) {
-          if (!this.linked() || this.profile() !== 'qemu_emery') {
+          if (!this.linked() || !this.isFirmware()) {
             phone.postMessage({ type: 'ack', transactionId: event.transactionId, accepted: false });
             return;
           }
@@ -647,14 +746,54 @@ export class App implements AfterViewInit, OnDestroy {
       name: this.phoneScriptName(),
       appId: this.phoneAppId,
       messageKeys: this.phoneKeys,
+      appInfo: this.phoneAppInfo,
+      watchInfo,
+      accountToken: this.accountToken,
+      watchToken: this.watchToken,
+      network: { mode: this.phoneNetworkMode, fixtures },
       storage,
       coordinates: { latitude: this.latitude, longitude: this.longitude, accuracy: this.accuracy },
       connected: this.linked(),
     });
   }
   stopPhone() {
+    this.configuration.set(null);
     this.phoneAccepting = false;
     this.phoneWorker?.postMessage({ type: 'stop' });
+  }
+  defaultWatchInfo() {
+    const version = this.firmwareName().match(/v?(\d+)\.(\d+)\.(\d+)([-+][\w.-]+)?/);
+    if (!this.isFirmware() || !version) return null;
+    const profile = this.profile() as FirmwareProfile;
+    return {
+      platform: this.appPlatform(),
+      model: FIRMWARE_PROFILES[profile].model,
+      language: 'en_US',
+      firmware: {
+        major: +version[1],
+        minor: +version[2],
+        patch: +version[3],
+        suffix: version[4] ?? '',
+      },
+    };
+  }
+  showConfiguration() {
+    this.phoneWorker?.postMessage({ type: 'configuration' });
+  }
+  closeConfiguration(canceled = false) {
+    const view = this.configuration();
+    if (!view) return;
+    this.phoneWorker?.postMessage({
+      type: 'configurationClosed',
+      requestId: view.requestId,
+      phoneGeneration: view.generation,
+      response: canceled ? null : this.configurationResponse,
+    });
+    this.configuration.set(null);
+  }
+  configurationLink() {
+    const url = this.configuration()?.url ?? '';
+    return /^https?:\/\//i.test(url) ? url : null;
   }
   advancePhone() {
     this.phoneWorker?.postMessage({ type: 'advance', milliseconds: 1000 });

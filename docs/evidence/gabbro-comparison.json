@@ -1,0 +1,12 @@
+{
+  "profile": "gabbro",
+  "width": 260,
+  "height": 260,
+  "guest_bytes": 67600,
+  "presentation_bytes": 67600,
+  "guest_different_bytes": 0,
+  "presentation_different_bytes": 0,
+  "rust_guest_sha256": "70cb02c8ad3461308ec1a0ae3227fd50f3c5cc9ca7234505553622e3e8ec804d",
+  "native_guest_sha256": "70cb02c8ad3461308ec1a0ae3227fd50f3c5cc9ca7234505553622e3e8ec804d",
+  "canonical_frame_sha256": "70cb02c8ad3461308ec1a0ae3227fd50f3c5cc9ca7234505553622e3e8ec804d"
+}

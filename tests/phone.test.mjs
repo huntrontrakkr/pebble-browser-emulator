@@ -15,7 +15,7 @@ const logs = (vm) =>
     .filter((e) => e.type === 'log')
     .map((e) => e.text);
 
-test('executes real PKJS ready and hides host/network APIs', () => {
+test('executes real PKJS ready and keeps host APIs isolated', () => {
   const vm = make();
   try {
     vm.start(`Pebble.addEventListener('ready',()=>{
@@ -24,7 +24,7 @@ test('executes real PKJS ready and hides host/network APIs', () => {
     try {require('node:fs')} catch(e){console.log('module denied')}
   });`);
     assert.deepEqual(logs(vm), [
-      'ready undefined undefined undefined undefined undefined',
+      'ready undefined function function undefined undefined',
       'undefined',
       'module denied',
     ]);
@@ -201,5 +201,35 @@ test('memory is bounded and disposal is idempotent', () => {
   } finally {
     vm.dispose();
     vm.dispose();
+  }
+});
+
+test('SDK array message keys allocate blocks first from 10000 and preserve declaration order', () => {
+  const vm = make({ messageKeys: ['Temperature', 'Hourly[3]', 'Condition', 'Flags[2]'] });
+  try {
+    vm.setConnected(true);
+    vm.start(`console.log(JSON.stringify(require('message_keys')));
+      Pebble.addEventListener('appmessage', e => console.log(e.payload.Hourly,e.payload.Temperature));
+      Pebble.sendAppMessage({Temperature:23,Condition:'sun',Hourly:7,Flags:1});`);
+    const events = vm.drainEvents();
+    assert.deepEqual(JSON.parse(events.find((e) => e.type === 'log').text), {
+      Hourly: 10000,
+      Flags: 10003,
+      Temperature: 10005,
+      Condition: 10006,
+    });
+    assert.deepEqual(events.find((e) => e.type === 'outbound').payload, {
+      10000: 7,
+      10003: 1,
+      10005: 23,
+      10006: 'sun',
+    });
+    vm.injectAppMessage({ 10000: 4, 10005: 19 });
+    assert.deepEqual(logs(vm), ['4 19']);
+  } finally {
+    vm.dispose();
+  }
+  for (const messageKeys of [['X[0]'], ['X[4294967296]'], ['X', 'X[2]'], [42]]) {
+    assert.throws(() => make({ messageKeys }), /message key|Message keys/);
   }
 });

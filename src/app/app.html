@@ -19,10 +19,7 @@
 <main>
   <div class="machine-bar">
     <div>
-      <span class="label">Machine</span
-      ><strong>{{
-        profile() === 'qemu_emery' ? 'PebbleOS · QEMU Emery' : 'Diagnostic board'
-      }}</strong
+      <span class="label">Machine</span><strong>{{ machineName() }}</strong
       ><span class="tag">{{
         running() ? 'Running' : state()?.fault ? 'Faulted' : loaded() ? 'Paused' : 'Idle'
       }}</span>
@@ -55,6 +52,12 @@
             [class.selected]="displayMode() === 'model'"
             [attr.aria-pressed]="displayMode() === 'model'"
             (click)="setDisplay('model')"
+            [disabled]="!hasModel()"
+            [title]="
+              hasModel()
+                ? 'Rotate the watch'
+                : 'A verified 3D model is not available for this watch yet'
+            "
           >
             3D watch
           </button>
@@ -72,8 +75,9 @@
         <div
           class="pixel-screen"
           [hidden]="displayMode() === 'model'"
-          [style.width.px]="200 * zoom"
-          [style.height.px]="228 * zoom"
+          [style.width.px]="display().width * zoom"
+          [class.round-screen]="display().round"
+          [style.height.px]="display().height * zoom"
         >
           <canvas #screen width="200" height="228" aria-label="Live watch framebuffer"></canvas>
           @if (!loaded()) {
@@ -146,7 +150,7 @@
           [disabled]="!loaded() || !ready()"
           (click)="reset()"
           [title]="
-            profile() === 'qemu_emery'
+            isFirmware()
               ? 'Restart the watch; keep installed apps and clock'
               : 'Restart the diagnostic'
           "
@@ -155,7 +159,7 @@
         </button>
         <div class="execution-stats">
           <strong>{{ state()?.instructions || 0 | number }}</strong
-          ><span>{{ profile() === 'qemu_emery' ? 'Scheduler steps' : 'Instructions' }}</span>
+          ><span>{{ isFirmware() ? 'Scheduler steps' : 'Instructions' }}</span>
         </div>
       </div>
       @if (installStatus()) {
@@ -211,7 +215,11 @@
         </div>
       </div>
       <div class="tool-content" [hidden]="tab() !== 'Projects'">
-        <project-panel (packageReady)="installPackage($event)" (scriptReady)="setScript($event)" />
+        <project-panel
+          [platform]="appPlatform()"
+          (packageReady)="installPackage($event)"
+          (scriptReady)="setScript($event)"
+        />
       </div>
       <div class="tool-content" [hidden]="tab() !== 'Inputs'">
         <h2>Device inputs</h2>
@@ -224,14 +232,14 @@
               max="100"
               [ngModel]="battery()"
               (ngModelChange)="setBattery(+$event)"
-              [disabled]="profile() === 'qemu_emery' && !watchReady()"
+              [disabled]="isFirmware() && !watchReady()"
             /><input
               type="number"
               min="0"
               max="100"
               [ngModel]="battery()"
               (ngModelChange)="setBattery(+$event)"
-              [disabled]="profile() === 'qemu_emery' && !watchReady()"
+              [disabled]="isFirmware() && !watchReady()"
             /><span>%</span>
           </div></label
         >
@@ -248,7 +256,7 @@
             type="checkbox"
             [(ngModel)]="charging"
             (ngModelChange)="setCharge()"
-            [disabled]="profile() !== 'qemu_emery' || !watchReady()"
+            [disabled]="!isFirmware() || !watchReady()"
           />
           Charging</label
         ><label class="checkbox"
@@ -256,15 +264,15 @@
             type="checkbox"
             [ngModel]="linked()"
             (ngModelChange)="setConnection($event)"
-            [disabled]="profile() !== 'qemu_emery' || !watchReady()"
+            [disabled]="!isFirmware() || !watchReady()"
           />
           Virtual phone connected</label
         >
         <hr />
         <h3>Phone location</h3>
         <p class="help">
-          Coordinates delivered to PebbleKit JS geolocation callbacks. Time 2 gets location from the
-          phone.
+          Coordinates delivered to PebbleKit JS geolocation callbacks. Pebble watches get location
+          from the phone.
         </p>
         <div class="field-grid">
           <label
@@ -291,10 +299,8 @@
           >Date and time (UTC)<input
             type="datetime-local"
             [(ngModel)]="epochValue"
-            [disabled]="profile() !== 'qemu_emery'" /></label
-        ><button [disabled]="profile() !== 'qemu_emery' || !loaded()" (click)="setClock()">
-          Set clock
-        </button>
+            [disabled]="!isFirmware()" /></label
+        ><button [disabled]="!isFirmware() || !loaded()" (click)="setClock()">Set clock</button>
         <p class="help">
           Virtual elapsed time: {{ virtualSeconds() | number: '1.2-2' }} s. Execution speed is not
           calibrated to physical hardware.
@@ -323,8 +329,86 @@
             Advance 1 s</button
           ><button (click)="locationDemo()">Location test</button>
         </div>
+        <details class="phone-settings">
+          <summary>Phone environment</summary>
+          <label
+            >HTTP requests<select [(ngModel)]="phoneNetworkMode">
+              <option value="disabled">Disabled</option>
+              <option value="fixtures">Test responses</option>
+              <option value="cors">Browser network (CORS)</option>
+            </select></label
+          >
+          <p class="help">
+            Applies when the script starts. Browser requests need the server's CORS permission. Test
+            responses match a URL, method and optional body at a specified virtual delay.
+          </p>
+          @if (phoneNetworkMode === 'fixtures') {
+            <label
+              >Responses (JSON array)<textarea
+                [(ngModel)]="phoneFixtures"
+                rows="10"
+                spellcheck="false"
+              ></textarea>
+            </label>
+          }
+          <label
+            >Watch information override (JSON)<textarea
+              [(ngModel)]="phoneWatchOverride"
+              rows="3"
+              placeholder="Use the loaded watch model and firmware version"
+              spellcheck="false"
+            ></textarea>
+          </label>
+          <p class="help">
+            Overrides Pebble.getActiveWatchInfo(). If an imported file has no identifiable version,
+            provide platform, model, language and firmware fields here.
+          </p>
+          <div class="field-grid">
+            <label>Test watch token<input [(ngModel)]="watchToken" /></label>
+            <label>Test account token<input [(ngModel)]="accountToken" /></label>
+          </div>
+          <p class="help">
+            These values belong to the simulated phone and are not Pebble account credentials.
+          </p>
+        </details>
+        <hr />
+        <h3>App configuration</h3>
+        <button (click)="showConfiguration()" [disabled]="phoneStatus() !== 'Running'">
+          Request configuration
+        </button>
+        @if (configuration(); as view) {
+          <label>Requested URL<textarea [value]="view.url" readonly rows="3"></textarea></label>
+          @if (configurationLink(); as link) {
+            <a [href]="link" target="_blank" rel="noopener noreferrer">Open configuration page ↗</a>
+          }
+          <label
+            >Return value<textarea
+              [(ngModel)]="configurationResponse"
+              rows="3"
+              placeholder="Exact webviewclosed response string"
+            ></textarea>
+          </label>
+          <div class="actions">
+            <button (click)="closeConfiguration()">Return to app</button
+            ><button (click)="closeConfiguration(true)">Cancel configuration</button>
+          </div>
+          <p class="help">
+            Returns the entered string to webviewclosed. Embedded WebView navigation and automatic
+            return URLs are not implemented.
+          </p>
+        }
+        @if (phoneHttp().length) {
+          <details>
+            <summary>HTTP events ({{ phoneHttp().length }})</summary>
+            @for (event of phoneHttp(); track $index) {
+              <pre class="source-preview">{{ event }}</pre>
+            }
+          </details>
+        }
         <pre class="source-preview">{{
-          phoneScript() || 'Import a project with src/pkjs/index.js to load its companion script.'
+          phoneScript()
+            ? phoneScript().slice(0, 16000) + (phoneScript().length > 16000 ? '\n…' : '')
+            : 'Build and install a project to run its companion script.'
         }}</pre>
       </div>
       <div class="tool-content" [hidden]="tab() !== 'Debug'">
@@ -409,7 +493,7 @@
             rows="3"
             placeholder="01 00 …"
           ></textarea></label
-        ><button [disabled]="!watchReady() || profile() !== 'qemu_emery'" (click)="injectPacket()">
+        ><button [disabled]="!watchReady() || !isFirmware()" (click)="injectPacket()">
           Send to watch
         </button>
         @if (profile() === 'diagnostic-v1') {
