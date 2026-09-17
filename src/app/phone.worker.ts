@@ -21,18 +21,27 @@ let externalClock = false,
   clockOriginUs = 0,
   clockEpochMs = 0,
   latestClockUs = 0;
-let pendingClocks: { sequence: number; transportGeneration: number }[] = [];
+let pendingClocks: { sequence: number; transportGeneration: number; direct: boolean }[] = [];
+let clockPort: MessagePort | undefined;
+let uiTransportPending = false;
 let pendingLocations: any[] = [];
 let starting = false;
 function acknowledgeClocks() {
   if (!phone) return;
-  for (const clock of pendingClocks)
-    postMessage({
+  for (const clock of pendingClocks) {
+    const ack = {
       type: 'clock-ack',
-      ...clock,
+      sequence: clock.sequence,
+      transportGeneration: clock.transportGeneration,
       virtualUs: latestClockUs,
       phoneGeneration: generation,
-    });
+    };
+    // Outbound AppMessages must reach the watch before releasing this barrier.
+    // They and this acknowledgment use the same FIFO UI path when needed.
+    if (clock.direct && clockPort && !uiTransportPending) clockPort.postMessage(ack);
+    else postMessage(ack);
+  }
+  if (pendingClocks.length) uiTransportPending = false;
   pendingClocks = [];
 }
 function advanceWatchClock(virtualUs: number) {
@@ -44,18 +53,24 @@ const storage = new Map<string, Record<string, string>>();
 function output() {
   if (!phone) return;
   for (const event of phone.drainEvents()) {
+    if (event.type === 'outbound') uiTransportPending = true;
     postMessage({ type: 'event', phoneGeneration: generation, event });
     network?.handle(event);
   }
-  const values = phone.getStorage(),
-    serialized = JSON.stringify(values);
-  storage.set(appId, values);
-  if (serialized !== lastStorage) {
-    lastStorage = serialized;
-    postMessage({ type: 'storage', appId, storage: values });
+  const values = phone.readStorageIfChanged();
+  if (values) {
+    const serialized = JSON.stringify(values);
+    storage.set(appId, values);
+    if (serialized !== lastStorage) {
+      lastStorage = serialized;
+      postMessage({ type: 'storage', appId, storage: values });
+    }
   }
 }
 function stop() {
+  clockPort?.close();
+  clockPort = undefined;
+  uiTransportPending = false;
   starting = false;
   externalClock = false;
   pendingLocations = [];
@@ -78,7 +93,7 @@ function fail(e: unknown) {
   stop();
   postMessage({ type: 'error', message: String(e) });
 }
-self.onmessage = async ({ data }) => {
+async function handleMessage(data: any, fromClockPort = false) {
   let job = generation;
   try {
     if (data.type === 'start') {
@@ -97,6 +112,14 @@ self.onmessage = async ({ data }) => {
         clockEpochMs < 0
       )
         throw new Error('Invalid phone clock origin.');
+      if (data.clockPort && externalClock) {
+        const port: MessagePort = data.clockPort;
+        clockPort = port;
+        port.onmessage = ({ data }) => {
+          if (clockPort === port && job === generation && data.type === 'clock')
+            void handleMessage(data, true);
+        };
+      }
       if (!module) {
         moduleLoad ??= (async () => {
           const response = await fetch(data.wasmUrl);
@@ -197,6 +220,7 @@ self.onmessage = async ({ data }) => {
         pendingClocks.push({
           sequence: data.sequence,
           transportGeneration: data.transportGeneration,
+          direct: fromClockPort,
         });
       output();
       acknowledgeClocks();
@@ -277,4 +301,5 @@ self.onmessage = async ({ data }) => {
       });
     fail(e);
   }
-};
+}
+self.onmessage = ({ data }) => handleMessage(data);

@@ -2,7 +2,7 @@ import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './wa
 /// <reference lib="webworker" />
 import { PebbleTransport, encodeAppMessage, decodeAppMessage } from './pebble-transport.ts';
 import { appPackage } from './archives.ts';
-import type { MachineState } from './emulator.types.ts';
+import type { MachineStateUpdate } from './emulator.types.ts';
 import { encodeQemuPacket } from './pebble-transport.ts';
 import {
   normalizeScenario,
@@ -38,6 +38,7 @@ let transport: PebbleTransport | undefined,
   charging = false;
 const yieldTask = yieldWorker;
 const presentation = new PresentationBudget();
+let deltaFrames = false;
 let lastClock = -Infinity;
 let batchSize = 50000;
 let cpuMs = 1;
@@ -50,8 +51,27 @@ const demoOwned = new Map<string, Pick<DemoRecord, 'database' | 'key'>>();
 const uartWriter = new UartWriter();
 let scenarioName = '';
 let phoneCoupled = false;
+let clockPort: MessagePort | undefined;
+let phoneNeedsUi = false;
 let runSequence = 0;
 const phoneClock = new ClockBarrier();
+function closeClockPort() {
+  clockPort?.close();
+  clockPort = undefined;
+  phoneClock.clear();
+  phoneNeedsUi = false;
+}
+function connectClockPort(port?: MessagePort) {
+  closeClockPort();
+  clockPort = port;
+  if (!port) return;
+  const owner = generation;
+  port.onmessage = ({ data }) => {
+    if (clockPort !== port || owner !== generation || !phoneCoupled) return;
+    if (data.type === 'clock-ack' && data.transportGeneration === generation)
+      phoneClock.acknowledge(data.sequence);
+  };
+}
 let cpuPump: Promise<unknown> = Promise.resolve();
 function flushUart() {
   uartWriter.flush((bytes) => {
@@ -79,6 +99,7 @@ function applySignal(value: DeviceSignal, scheduledUs = api.spike_ticks() / 64) 
       stage,
     });
   if (signal.kind === 'location' || signal.kind === 'location-error') {
+    phoneNeedsUi = true;
     postMessage({
       type: 'phone-signal',
       generation,
@@ -112,6 +133,7 @@ function applySignal(value: DeviceSignal, scheduledUs = api.spike_ticks() / 64) 
     }
     if (signal.kind === 'connection') {
       linked = signal.connected;
+      phoneNeedsUi = true;
       postMessage({ type: 'connection', connected: linked });
     }
   });
@@ -168,14 +190,26 @@ async function tickOnce(count: number) {
   flushUart();
   const frame = api.spike_frame_counter();
   const phase = phoneCoupled ? phoneClock.begin() : undefined;
-  if (phase || performance.now() - lastClock >= 100) {
+  // If this quantum emitted time-sensitive events through the UI, its clock
+  // follows those events on the same ordered channel. Idle quanta bypass the UI.
+  const direct = !!(phase && clockPort && !phoneNeedsUi);
+  phoneNeedsUi = false;
+  const clock = { epochMs: api.spike_epoch_ms(), virtualUs: api.spike_ticks() / 64 };
+  if (direct)
+    clockPort!.postMessage({
+      type: 'clock',
+      ...clock,
+      sequence: phase!.sequence,
+      transportGeneration: generation,
+    });
+  if ((phase && !direct) || performance.now() - lastClock >= 100) {
     lastClock = performance.now();
     postMessage({
       type: 'clock',
       generation,
-      epochMs: api.spike_epoch_ms(),
-      virtualUs: api.spike_ticks() / 64,
-      ...(phase ? { sequence: phase.sequence } : {}),
+      ...clock,
+      direct,
+      ...(phase && !direct ? { sequence: phase.sequence } : {}),
     });
   }
   state(false);
@@ -234,6 +268,7 @@ function createTransport() {
           virtualSeconds: api.spike_ticks() / 64000000,
         });
         if (direction === 'watch' && packet.endpoint === 0x30) {
+          phoneNeedsUi = true;
           try {
             postMessage({
               type: 'appmessage',
@@ -286,13 +321,12 @@ function state(force = true) {
   if (fault) stop();
   const frame = api.spike_frame_counter();
   if (!presentation.due(performance.now(), frame !== lastFrame, force || !!fault)) return;
+  const framebuffer =
+    !deltaFrames || force || !!fault || frame !== lastFrame
+      ? new Uint8Array(api.memory.buffer, api.spike_frame(), api.spike_frame_len()).slice()
+      : undefined;
   lastFrame = frame;
-  const framebuffer = new Uint8Array(
-    api.memory.buffer,
-    api.spike_frame(),
-    api.spike_frame_len(),
-  ).slice();
-  const value: MachineState = {
+  const value: MachineStateUpdate = {
     registers: Array.from({ length: 16 }, (_, i) => api.spike_register(i)),
     flags: api.spike_xpsr(),
     instructions: steps,
@@ -309,6 +343,7 @@ function state(force = true) {
   postMessage(
     {
       type: 'state',
+      generation,
       state: value,
       profile,
       virtualSeconds: api.spike_ticks() / 64000000,
@@ -318,7 +353,7 @@ function state(force = true) {
       charging,
       scenario: { name: scenarioName, pending: timeline.pending },
     },
-    [framebuffer.buffer],
+    framebuffer ? [framebuffer.buffer] : [],
   );
 }
 async function batch() {
@@ -347,7 +382,7 @@ async function batch() {
 }
 function resetSession() {
   generation++;
-  phoneClock.clear();
+  closeClockPort();
   phoneCoupled = false;
   paceStart = undefined;
   cpuPump = Promise.resolve();
@@ -419,6 +454,9 @@ self.onmessage = async ({ data }) => {
     }
     if (!api) throw new Error('QEMU core is still loading.');
     switch (data.type) {
+      case 'presentation':
+        deltaFrames = !!data.deltaFrames;
+        break;
       case 'pacing':
         realtime = !!data.realtime;
         paceStart = undefined;
@@ -451,8 +489,8 @@ self.onmessage = async ({ data }) => {
         break;
       case 'phone-clock':
         if (data.generation !== generation) return;
+        connectClockPort(data.enabled ? data.port : undefined);
         phoneCoupled = !!data.enabled;
-        if (!phoneCoupled) phoneClock.clear();
         break;
       case 'phone-clock-ack':
         if (data.generation === generation) phoneClock.acknowledge(data.sequence);
@@ -515,6 +553,7 @@ self.onmessage = async ({ data }) => {
         await transport!.setBluetooth(data.connected);
         if (commandGeneration !== generation) return;
         linked = data.connected;
+        phoneNeedsUi = true;
         postMessage({ type: 'connection', connected: linked });
         break;
       case 'appmessage':
@@ -650,6 +689,7 @@ self.onmessage = async ({ data }) => {
         try {
           await transport!.setBluetooth(true);
           linked = true;
+          phoneNeedsUi = true;
           postMessage({ type: 'connection', connected: true });
           const result = await transport!.install(parts, (progress) =>
             postMessage({

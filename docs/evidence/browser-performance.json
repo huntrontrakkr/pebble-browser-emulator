@@ -1,0 +1,1373 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-17T22:08:44.654712+00:00",
+  "scope": "Manual browser runtime overhead reductions, measured on desktop Linux/WSL2. No physical-phone FPS, universal firmware fidelity or global optimum claim. No Dream-RSI calls used.",
+  "baselineSourceCommit": "0ed9e4d0a2d7f695b98f9fe1d8f729a3f9908435",
+  "sourceSha256": {
+    "src/app/app.ts": "fd803e6678b38fdc0672471be3fa1acb4ee05244cbbfbe34ff63036861afb89f",
+    "src/app/app.html": "edc429503d3b413c6ce8bbd9e8d044ab6dc87edf6fef2f472a8c3c49155791c1",
+    "src/app/display.ts": "642101cb21e1ca7e8868c9d0da6939d8d1c3ffc8152f4266da73ddf207a8a883",
+    "src/app/emulator.types.ts": "d90fb0297016624ffe6e912a0fa8516c40fce186c30e418ef44e55d72b5d54a4",
+    "src/app/virtual-phone.ts": "973927706b3caf9b7c11623a0ab6a4a588a84ae82c5f763c0ffd0323b2cc6e7c",
+    "src/app/phone.worker.ts": "3f40fbe39678f696217429214fcc8abe103cc4513ac5f1c9360344fd317699f2",
+    "src/app/qemu.worker.ts": "33c2c57b54a922afae6218eeda0f95f5bb7274269fab070b925e56871daf95ae",
+    "src/app/buffered-history.ts": "6d7121f95211e91682ae3110a64cbd812d2de614f47cae4529c78745d3d82760",
+    "scripts/optimization/benchmark-phone-output.mjs": "61047d262f66b5a3d8a2dc664769879a987f060fa25edb08d5f2df1c6d775352",
+    "scripts/optimization/benchmark-preview.mjs": "621bc8885e77281396c935493a53f4a5be1d1b44c9159b4c5fd8617ffdc7d106",
+    "tests/direct-clock.test.mjs": "452b58b2f8abfc5314bfd41300d9d66e7d196961ba1a0afbaa48a4eddbe236aa",
+    "tests/manual-performance.test.mjs": "f7f9a7373c4255763d542ef577b75b71a1dff0d2e4a217f2caab414fe80bf5ee",
+    "tests/coupled-clock.integration.test.mjs": "ea2d2354755038a6c41274a72d8c7698234cccb26e7af3b8da5839f3620364fe",
+    "tests/frontend-lifecycle.test.mjs": "0de735fe567f87fbf90251945fe635a853abef84c173caf90cbfd5aef54e8d1a"
+  },
+  "host": {
+    "cpu": "Intel Core i9-12900KF",
+    "os": "Linux 6.6.87.2-microsoft-standard-WSL2 x86_64",
+    "rustc": "1.98.1 (48a229cea 2026-09-01)",
+    "node": "v24.21.0",
+    "python": "3.12.3"
+  },
+  "core": {
+    "baselineWasmSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+    "candidateWasmSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+    "byteIdentical": true,
+    "phoneQuantumUs": 10000,
+    "changedFramePresentationLimitHz": 30,
+    "idleMetadataLimitHz": 4
+  },
+  "staticBundles": {
+    "baseline": [
+      {
+        "path": "main-C5YCWYOW.js",
+        "sha256": "c2cecf0524facaf11ce97f1d33f6e50ac366c99d8fbc26ab902eeb3210142cf8"
+      }
+    ],
+    "candidate": [
+      {
+        "path": "main-P3ZPUEH7.js",
+        "sha256": "15d671f8ab0dd389c634066127daac944d852ab4ce5550e6eafd16a20e8bd7ae"
+      }
+    ]
+  },
+  "browserPreviewMedians": {
+    "idleUi": {
+      "baseline": {
+        "wallMs": 5000.799999982119,
+        "virtualSeconds": 4.998642578125,
+        "frameBytes": 866400,
+        "draws": 19,
+        "imageAllocations": 19,
+        "clockMessageCrossings": 2004
+      },
+      "candidate": {
+        "wallMs": 5001.4000000059605,
+        "virtualSeconds": 5.01474496875,
+        "frameBytes": 0,
+        "draws": 0,
+        "imageAllocations": 0,
+        "clockMessageCrossings": 47
+      }
+    },
+    "busyUi": {
+      "baseline": {
+        "wallMs": 5000.5,
+        "virtualSeconds": 4.789976625,
+        "frameBytes": 410400,
+        "draws": 9,
+        "imageAllocations": 9,
+        "clockMessageCrossings": 1916
+      },
+      "candidate": {
+        "wallMs": 5001.200000017881,
+        "virtualSeconds": 5.004469359375,
+        "frameBytes": 0,
+        "draws": 0,
+        "imageAllocations": 0,
+        "clockMessageCrossings": 47
+      }
+    }
+  },
+  "browserPreviewRaw": {
+    "measuredAt": "2026-09-17T22:02:05.326Z",
+    "browser": "153.0.8010.12",
+    "scope": "Chromium on desktop Linux, mobile viewport. Three alternating paired runs of unchanged Clock plus default demo inputs on qemu_emery 4.37.0. Five-second samples; busy UI blocks 750 ms each second. Not a physical-phone measurement.",
+    "results": [
+      {
+        "side": "baseline",
+        "round": 0,
+        "idleUi": {
+          "wallMs": 5000.799999982119,
+          "virtualSeconds": 4.998642578125,
+          "received": {
+            "clock": 506,
+            "clock-ack": 506,
+            "state": 20,
+            "signal": 10,
+            "protocol": 1,
+            "serial": 1
+          },
+          "sent": {
+            "clock": 506,
+            "phone-clock-ack": 506
+          },
+          "frameBytes": 912000,
+          "draws": 20,
+          "imageAllocations": 20
+        },
+        "busyUi": {
+          "wallMs": 5000.5,
+          "virtualSeconds": 4.72857715625,
+          "received": {
+            "clock": 473,
+            "clock-ack": 473,
+            "state": 7,
+            "signal": 10
+          },
+          "sent": {
+            "clock": 473,
+            "phone-clock-ack": 473
+          },
+          "frameBytes": 319200,
+          "draws": 7,
+          "imageAllocations": 7
+        }
+      },
+      {
+        "side": "candidate",
+        "round": 0,
+        "idleUi": {
+          "wallMs": 5001.4000000059605,
+          "virtualSeconds": 5.066665,
+          "received": {
+            "clock": 48,
+            "state": 20,
+            "signal": 10
+          },
+          "sent": {},
+          "frameBytes": 0,
+          "draws": 0,
+          "imageAllocations": 0
+        },
+        "busyUi": {
+          "wallMs": 5001.200000017881,
+          "virtualSeconds": 5.004469359375,
+          "received": {
+            "clock": 47,
+            "signal": 10,
+            "state": 19
+          },
+          "sent": {},
+          "frameBytes": 0,
+          "draws": 0,
+          "imageAllocations": 0
+        }
+      },
+      {
+        "side": "candidate",
+        "round": 1,
+        "idleUi": {
+          "wallMs": 5003.700000017881,
+          "virtualSeconds": 4.93561478125,
+          "received": {
+            "signal": 10,
+            "clock": 46,
+            "state": 19
+          },
+          "sent": {},
+          "frameBytes": 0,
+          "draws": 0,
+          "imageAllocations": 0
+        },
+        "busyUi": {
+          "wallMs": 5001.5,
+          "virtualSeconds": 5.02920896875,
+          "received": {
+            "state": 20,
+            "clock": 47,
+            "signal": 10
+          },
+          "sent": {},
+          "frameBytes": 0,
+          "draws": 0,
+          "imageAllocations": 0
+        }
+      },
+      {
+        "side": "baseline",
+        "round": 1,
+        "idleUi": {
+          "wallMs": 5000.9000000059605,
+          "virtualSeconds": 5.00335478125,
+          "received": {
+            "clock": 501,
+            "clock-ack": 501,
+            "signal": 10,
+            "state": 19
+          },
+          "sent": {
+            "clock": 501,
+            "phone-clock-ack": 501
+          },
+          "frameBytes": 866400,
+          "draws": 19,
+          "imageAllocations": 19
+        },
+        "busyUi": {
+          "wallMs": 5000.4000000059605,
+          "virtualSeconds": 4.8007588125,
+          "received": {
+            "clock": 481,
+            "clock-ack": 481,
+            "state": 9,
+            "signal": 10
+          },
+          "sent": {
+            "clock": 481,
+            "phone-clock-ack": 481
+          },
+          "frameBytes": 410400,
+          "draws": 9,
+          "imageAllocations": 9
+        }
+      },
+      {
+        "side": "baseline",
+        "round": 2,
+        "idleUi": {
+          "wallMs": 5000.799999982119,
+          "virtualSeconds": 4.997728484375,
+          "received": {
+            "clock": 500,
+            "clock-ack": 500,
+            "state": 19,
+            "signal": 10
+          },
+          "sent": {
+            "clock": 500,
+            "phone-clock-ack": 500
+          },
+          "frameBytes": 866400,
+          "draws": 19,
+          "imageAllocations": 19
+        },
+        "busyUi": {
+          "wallMs": 5000.700000017881,
+          "virtualSeconds": 4.789976625,
+          "received": {
+            "clock": 479,
+            "state": 10,
+            "clock-ack": 479,
+            "signal": 10
+          },
+          "sent": {
+            "clock": 479,
+            "phone-clock-ack": 479
+          },
+          "frameBytes": 456000,
+          "draws": 10,
+          "imageAllocations": 10
+        }
+      },
+      {
+        "side": "candidate",
+        "round": 2,
+        "idleUi": {
+          "wallMs": 5001.4000000059605,
+          "virtualSeconds": 5.01474496875,
+          "received": {
+            "state": 20,
+            "clock": 47,
+            "signal": 10
+          },
+          "sent": {},
+          "frameBytes": 0,
+          "draws": 0,
+          "imageAllocations": 0
+        },
+        "busyUi": {
+          "wallMs": 5000.4000000059605,
+          "virtualSeconds": 4.9695826875,
+          "received": {
+            "clock": 47,
+            "state": 20,
+            "signal": 10,
+            "serial": 1,
+            "protocol": 1
+          },
+          "sent": {},
+          "frameBytes": 45600,
+          "draws": 1,
+          "imageAllocations": 0
+        }
+      }
+    ]
+  },
+  "phoneOutputRaw": {
+    "measuredAt": "2026-09-17T21:59:36.869Z",
+    "node": "v24.21.0",
+    "scope": "QuickJS phone clock plus output/storage polling, five alternating pairs after warm-up. Not whole-emulator FPS.",
+    "samples": [
+      {
+        "payloadBytes": 0,
+        "quanta": 1000,
+        "virtualSeconds": 10,
+        "outputEqual": true,
+        "speedup": 2.6378401542297842,
+        "baseline": [
+          {
+            "elapsedMs": 14.095572000000004,
+            "snapshots": 1001,
+            "serializedBytes": 13716
+          },
+          {
+            "elapsedMs": 14.763623000000024,
+            "snapshots": 1001,
+            "serializedBytes": 13716
+          },
+          {
+            "elapsedMs": 12.588037000000014,
+            "snapshots": 1001,
+            "serializedBytes": 13716
+          },
+          {
+            "elapsedMs": 11.771665000000013,
+            "snapshots": 1001,
+            "serializedBytes": 13716
+          },
+          {
+            "elapsedMs": 11.042493000000007,
+            "snapshots": 1001,
+            "serializedBytes": 13716
+          }
+        ],
+        "candidate": [
+          {
+            "elapsedMs": 5.475027000000011,
+            "snapshots": 11,
+            "serializedBytes": 153
+          },
+          {
+            "elapsedMs": 4.911177000000009,
+            "snapshots": 11,
+            "serializedBytes": 153
+          },
+          {
+            "elapsedMs": 4.772100000000023,
+            "snapshots": 11,
+            "serializedBytes": 153
+          },
+          {
+            "elapsedMs": 4.4094670000000065,
+            "snapshots": 11,
+            "serializedBytes": 153
+          },
+          {
+            "elapsedMs": 3.817719000000011,
+            "snapshots": 11,
+            "serializedBytes": 153
+          }
+        ]
+      },
+      {
+        "payloadBytes": 1024,
+        "quanta": 1000,
+        "virtualSeconds": 10,
+        "outputEqual": true,
+        "speedup": 3.3911134460218704,
+        "baseline": [
+          {
+            "elapsedMs": 17.597819000000015,
+            "snapshots": 1001,
+            "serializedBytes": 1048650
+          },
+          {
+            "elapsedMs": 16.98804899999999,
+            "snapshots": 1001,
+            "serializedBytes": 1048650
+          },
+          {
+            "elapsedMs": 16.711735999999974,
+            "snapshots": 1001,
+            "serializedBytes": 1048650
+          },
+          {
+            "elapsedMs": 16.155238999999995,
+            "snapshots": 1001,
+            "serializedBytes": 1048650
+          },
+          {
+            "elapsedMs": 15.283570999999995,
+            "snapshots": 1001,
+            "serializedBytes": 1048650
+          }
+        ],
+        "candidate": [
+          {
+            "elapsedMs": 4.812457999999992,
+            "snapshots": 11,
+            "serializedBytes": 11526
+          },
+          {
+            "elapsedMs": 4.92809699999998,
+            "snapshots": 11,
+            "serializedBytes": 11526
+          },
+          {
+            "elapsedMs": 4.767374999999959,
+            "snapshots": 11,
+            "serializedBytes": 11526
+          },
+          {
+            "elapsedMs": 5.170280999999989,
+            "snapshots": 11,
+            "serializedBytes": 11526
+          },
+          {
+            "elapsedMs": 5.067781999999966,
+            "snapshots": 11,
+            "serializedBytes": 11526
+          }
+        ]
+      },
+      {
+        "payloadBytes": 65536,
+        "quanta": 1000,
+        "virtualSeconds": 10,
+        "outputEqual": true,
+        "speedup": 6.048952072291411,
+        "baseline": [
+          {
+            "elapsedMs": 351.1268389999999,
+            "snapshots": 1001,
+            "serializedBytes": 65625162
+          },
+          {
+            "elapsedMs": 348.12821899999994,
+            "snapshots": 1001,
+            "serializedBytes": 65625162
+          },
+          {
+            "elapsedMs": 343.418778,
+            "snapshots": 1001,
+            "serializedBytes": 65625162
+          },
+          {
+            "elapsedMs": 345.0091870000001,
+            "snapshots": 1001,
+            "serializedBytes": 65625162
+          },
+          {
+            "elapsedMs": 350.9574399999997,
+            "snapshots": 1001,
+            "serializedBytes": 65625162
+          }
+        ],
+        "candidate": [
+          {
+            "elapsedMs": 57.62031200000001,
+            "snapshots": 11,
+            "serializedBytes": 721158
+          },
+          {
+            "elapsedMs": 58.698969000000034,
+            "snapshots": 11,
+            "serializedBytes": 721158
+          },
+          {
+            "elapsedMs": 54.67136400000004,
+            "snapshots": 11,
+            "serializedBytes": 721158
+          },
+          {
+            "elapsedMs": 57.55182300000024,
+            "snapshots": 11,
+            "serializedBytes": 721158
+          },
+          {
+            "elapsedMs": 54.68304500000022,
+            "snapshots": 11,
+            "serializedBytes": 721158
+          }
+        ]
+      }
+    ]
+  },
+  "rejectedCoreExperiment": {
+    "retained": false,
+    "description": "Skip unused IRQ state reads and disabled-timer arithmetic. Mixed profile results; aggregate gain within timing noise. Source changes reverted.",
+    "measurements": {
+      "schemaVersion": 1,
+      "runtime": "v24.21.0",
+      "measuredAt": "2026-09-17T21:50:59.706Z",
+      "baselineSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+      "candidateSha256": "4fb3f742a653e250b8dd847d4fb213f352ecf90aa13b68e83f6be1553a12be87",
+      "valid": true,
+      "score": 1.002795623940142,
+      "results": [
+        {
+          "profile": "qemu_flint",
+          "microSha256": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+          "flashSha256": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+          "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112",
+          "medianSpeedup": 1.0239450124455347,
+          "minimumPairedSpeedup": 1.008604794088541,
+          "phases": {
+            "boot": 1.0488574587915924,
+            "buttons": 1.0117478956880745
+          },
+          "samples": [
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 442.20834799999966,
+                  "buttons": 155.30801100000008
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 439.8351149999994,
+                  "buttons": 147.77044500000102
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 438.4448140000004,
+                  "buttons": 156.68390700000145
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 408.61641400000053,
+                  "buttons": 152.85222899999917
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 411.15976700000056,
+                  "buttons": 150.7390290000003
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 408.11629699999776,
+                  "buttons": 148.98872500000107
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 431.44183300000077,
+                  "buttons": 147.59806500000013
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 410.5010779999993,
+                  "buttons": 154.99793899999895
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 426.0923609999991,
+                  "buttons": 150.3573320000005
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 406.244297000002,
+                  "buttons": 150.43668000000343
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 40763392,
+                "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+              }
+            }
+          ]
+        },
+        {
+          "profile": "qemu_emery",
+          "microSha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+          "flashSha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+          "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438",
+          "medianSpeedup": 0.9860710596021964,
+          "minimumPairedSpeedup": 0.955937319022073,
+          "phases": {
+            "boot": 0.9858875890685885,
+            "buttons": 0.9843818728831721
+          },
+          "samples": [
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 402.86014100000284,
+                  "buttons": 160.240977999998
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 411.75301500000023,
+                  "buttons": 156.31219899999996
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 416.4235919999992,
+                  "buttons": 160.2998800000023
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 422.38445499999943,
+                  "buttons": 163.98113599999851
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 417.4512160000013,
+                  "buttons": 160.07174499999746
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 423.0694440000025,
+                  "buttons": 162.6114310000048
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 423.62066199999936,
+                  "buttons": 157.2118219999993
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 447.35432700000456,
+                  "buttons": 160.25087099999837
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 406.89379199999894,
+                  "buttons": 157.4101339999961
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 400.559091000001,
+                  "buttons": 156.3089670000045
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+              }
+            }
+          ]
+        },
+        {
+          "profile": "qemu_gabbro",
+          "microSha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+          "flashSha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+          "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a",
+          "medianSpeedup": 0.9987399968479531,
+          "minimumPairedSpeedup": 0.988286839723553,
+          "phases": {
+            "boot": 0.9915135131455695,
+            "buttons": 1.0057314443138592
+          },
+          "samples": [
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 404.9926860000014,
+                  "buttons": 158.0125349999944
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 403.7041189999982,
+                  "buttons": 157.11205599999448
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 403.3689340000237,
+                  "buttons": 161.46071700000175
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 407.61658299999544,
+                  "buttons": 157.9256530000057
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 400.9342720000095,
+                  "buttons": 161.21082700000989
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 402.57935200000065,
+                  "buttons": 159.66441300000224
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 417.79124899999806,
+                  "buttons": 159.76333699999668
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 421.36717600001066,
+                  "buttons": 161.04584600000453
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              }
+            },
+            {
+              "baseline": {
+                "phases": {
+                  "boot": 401.2706380000018,
+                  "buttons": 160.7320390000059
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              },
+              "candidate": {
+                "phases": {
+                  "boot": 408.2187199999862,
+                  "buttons": 160.44480400000248
+                },
+                "schedulerSteps": 10000000,
+                "memoryBytes": 42336256,
+                "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "acceptance": {
+    "build": {
+      "passed": true,
+      "components": [
+        "Rust/Wasm release",
+        "Kotlin/Wasm companion",
+        "Angular production static site",
+        "TypeScript noEmit"
+      ]
+    },
+    "rust": {
+      "passed": 84,
+      "failed": 0,
+      "command": "cargo test --workspace --locked"
+    },
+    "npm": {
+      "passed": 344,
+      "failed": 0,
+      "skipped": 9,
+      "command": "npm test",
+      "skipReason": "Opt-in integration suites require external test assets; relevant firmware gates were also executed explicitly below."
+    },
+    "sharedClock": {
+      "directPassed": true,
+      "relayedPassed": true,
+      "script": "tests/coupled-clock.integration.test.mjs",
+      "firmware": "qemu_emery 4.37.0",
+      "pbw": "Locally built examples/sensor-test",
+      "checks": [
+        "missing ACK holds next quantum",
+        "actual timer-driven AppMessage receives firmware ACK",
+        "pause stops phone timers"
+      ]
+    },
+    "sensorFrames": [
+      {
+        "profile": "qemu_flint",
+        "passed": true,
+        "reference": "docs/evidence/sensor-service-gate.json",
+        "checkpointBytes": 24192,
+        "checkpointSha256": "0002863e7895717d7a21d40eb8451b940a7971407f843480e3dbc1316a847467",
+        "exactNativeReferenceMatch": true,
+        "postScenarioFrameSha256": "0b067ae8e0618285281d8dedd6733941ee953b2984794715d333f262a151b7a6"
+      },
+      {
+        "profile": "qemu_emery",
+        "passed": true,
+        "reference": "docs/evidence/sensor-service-gate.json",
+        "checkpointBytes": 45600,
+        "checkpointSha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+        "exactNativeReferenceMatch": true,
+        "postScenarioFrameSha256": "a26b2a5fce399a3984e19c005862f6f5f9371f830c41313cf122df2a999322d0"
+      },
+      {
+        "profile": "qemu_gabbro",
+        "passed": true,
+        "reference": "docs/evidence/sensor-service-gate.json",
+        "checkpointBytes": 67600,
+        "checkpointSha256": "82fb3e7274c90c9a27460d2eb60875ce8c35f8a5ba225bfc878896e8f41be48a",
+        "exactNativeReferenceMatch": true,
+        "postScenarioFrameSha256": "d6ec2cfe3d9e90e48af2c8a7c736b4771ca44771a85fb36871edcb63ccf39d64"
+      }
+    ],
+    "phoneSettings": {
+      "date": "2026-09-17T22:04:33.067Z",
+      "scope": "Desktop Linux browser engines at mobile viewport. Actual source-ported companion, Clock HTML and PKJS, unchanged 4.37.0 firmware. Not physical-phone performance or full Android app emulation.",
+      "upstream": {
+        "repository": "https://github.com/coredevices/mobileapp",
+        "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+        "license": "GPL-3.0-only",
+        "files": {
+          "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+          "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+        }
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 456,
+          "beforeFrame": "2bcdbdf3d0a76ab5f94726ce2001e12d98da979a59c9df610e10bb098ec55637",
+          "afterFrame": "67cf53963f4741a7819f44bc137a7cffb995316e1f04eaf2ef85f8ef4a1bc599",
+          "beforeBlackFraction": 0.031864035087719296,
+          "afterBlackFraction": 0.9578289473684211,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_flint",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 430,
+          "beforeFrame": "41dbd5cc01e33c21bf7864c8830a9114a8d4f381922709429e5ff22b921a1690",
+          "afterFrame": "76dab7f5809c3413057bdeb6dd9ebe905a04fbaa79c99a622408f23406b3001b",
+          "beforeBlackFraction": 0.07981977513227513,
+          "afterBlackFraction": 0.9201802248677249,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_gabbro",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 475,
+          "beforeFrame": "f15912a268a76aeb6daab5413cd6bdbdcfaf379c395a8bfa632b95a53d7e7536",
+          "afterFrame": "26a0a359dfde01734fb6b85d5b47bb8662bcb5d3f091205e4508ff8d4d461d3d",
+          "beforeBlackFraction": 0.20875739644970415,
+          "afterBlackFraction": 0.9714349112426035,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "firefox",
+          "browser": "155.0",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 414,
+          "beforeFrame": "43903c0d896fc43933b89c7a099c82a1dd43aab0709f68a8446c33d9a3e35047",
+          "afterFrame": "3cd6b6915d2b476dce304f77dedfb877b73b5576d988fc6738d6894b7dfd44a2",
+          "beforeBlackFraction": 0.042346491228070174,
+          "afterBlackFraction": 0.9576535087719298,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "webkit",
+          "browser": "26.6",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 776,
+          "beforeFrame": "b6ab2bfe0803dcd5164a31f21011009541fc1f4526e4ecb3fe2d63859b5cf70d",
+          "afterFrame": "eacf0a93b54397e2232a8a494d09f5d924dfedaa62a41382b5a272be27cc35e1",
+          "beforeBlackFraction": 0.03164473684210526,
+          "afterBlackFraction": 0.9578508771929825,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        }
+      ]
+    },
+    "storeWatchface": {
+      "testedAt": "2026-09-17T22:03:14.877Z",
+      "base": "http://127.0.0.1:4201/",
+      "storeListing": "https://apps.repebble.com/justthetime_50bdea7ee3ff48308157c046",
+      "storeVersion": "1.2",
+      "packageVersionLabel": "1.1",
+      "results": [
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 200,
+          "height": 228,
+          "beforeFrameSha256": "729ed1b1dff9ca23696f74905fdf00527ade61a6842407e9567cf1d3593b17cb",
+          "afterFrameSha256": "ea247adcf6e8935e7543e5b85cf2619059123527bbade886bc2e0381ff1c03fa",
+          "changedPixels": 43734,
+          "beforeWhiteFraction": 0.013574561403508772,
+          "afterWhiteFraction": 0.9683552631578948,
+          "appMessage": {
+            "10000": 16777215,
+            "10001": 16777215,
+            "10002": 16733525,
+            "10003": 16777215,
+            "10004": 5635925,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_flint",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 144,
+          "height": 168,
+          "beforeFrameSha256": "29b7e20d475bc37eb9be4a68b0e098356d27f8137ddb6416119184c5f876a651",
+          "afterFrameSha256": "5fc524cf9b0a5d61cc8a2493a06be1cd741b284ea7e16bdbf433910ef076f1c4",
+          "changedPixels": 24192,
+          "beforeWhiteFraction": 0.06274801587301587,
+          "afterWhiteFraction": 0.9372519841269841,
+          "appMessage": {
+            "10000": 16777215,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_gabbro",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 260,
+          "height": 260,
+          "beforeFrameSha256": "8da5918de9e007400b73b7fcc45275c161626d869c72e4afc97216bb85eddabb",
+          "afterFrameSha256": "312f4af1a7f773791173a713ffcf07714b27af81168621fdd8ee605b58084ad8",
+          "changedPixels": 50895,
+          "beforeWhiteFraction": 0.01618343195266272,
+          "afterWhiteFraction": 0.7651479289940828,
+          "appMessage": {
+            "10000": 16777215,
+            "10001": 16777215,
+            "10002": 16733525,
+            "10003": 16777215,
+            "10004": 5635925,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        }
+      ]
+    },
+    "preview": {
+      "date": "2026-09-17T22:06:02.125Z",
+      "scope": "Linux browser engines with a mobile viewport, not measurements on a physical phone. Bundled default firmware, example install without file import, cancellation, hash link, PBW download, cached firmware reuse, screen pacing and pause.",
+      "results": [
+        {
+          "browser": "chromium",
+          "version": "153.0.8010.12",
+          "viewport": "390x844",
+          "firstBootAndInstallMs": 11349,
+          "cachedBootAndInstallMs": 10855,
+          "measurementSeconds": 10,
+          "virtualSeconds": 9.874624640625,
+          "stateMessages": 40,
+          "clockMessages": 94,
+          "mainThreadLongTasks": [],
+          "passed": true
+        },
+        {
+          "browser": "firefox",
+          "version": "155.0",
+          "viewport": "390x844",
+          "firstBootAndInstallMs": 11432,
+          "cachedBootAndInstallMs": 11455,
+          "measurementSeconds": 10,
+          "virtualSeconds": 9.846783749999998,
+          "stateMessages": 39,
+          "clockMessages": 95,
+          "mainThreadLongTasks": [],
+          "passed": true
+        },
+        {
+          "browser": "webkit",
+          "version": "26.6",
+          "viewport": "390x844",
+          "firstBootAndInstallMs": 9387,
+          "cachedBootAndInstallMs": 9374,
+          "measurementSeconds": 10,
+          "virtualSeconds": 9.863398234375,
+          "stateMessages": 41,
+          "clockMessages": 95,
+          "mainThreadLongTasks": [],
+          "passed": true
+        }
+      ]
+    },
+    "demo": {
+      "passed": true,
+      "skipped3D": true,
+      "results": [
+        {
+          "engine": "chromium",
+          "profile": "qemu_emery",
+          "launchMs": 11538,
+          "applied": {
+            "type": "demo-applied",
+            "generation": 1,
+            "revision": 2,
+            "popup": false,
+            "notifications": 2,
+            "calendar": 2,
+            "heartRate": true
+          },
+          "buttons": [
+            {
+              "x": 17,
+              "y": 169.53125,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 136.703125,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 227,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 317.28125,
+              "width": 48,
+              "height": 48
+            }
+          ],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "profile": "qemu_flint",
+          "launchMs": 9457,
+          "applied": {
+            "type": "demo-applied",
+            "generation": 1,
+            "revision": 2,
+            "popup": false,
+            "notifications": 2,
+            "calendar": 2,
+            "heartRate": false
+          },
+          "buttons": [
+            {
+              "x": 17,
+              "y": 155.1875,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 141.1875,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 228,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 314.796875,
+              "width": 48,
+              "height": 48
+            }
+          ],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "profile": "qemu_gabbro",
+          "launchMs": 11972,
+          "applied": {
+            "type": "demo-applied",
+            "generation": 1,
+            "revision": 2,
+            "popup": false,
+            "notifications": 2,
+            "calendar": 2,
+            "heartRate": false
+          },
+          "buttons": [
+            {
+              "x": 17,
+              "y": 227,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 162.1875,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 227,
+              "width": 48,
+              "height": 48
+            },
+            {
+              "x": 325,
+              "y": 291.796875,
+              "width": 48,
+              "height": 48
+            }
+          ],
+          "errors": []
+        }
+      ]
+    },
+    "browserTimingNote": "Acceptance suites ran concurrently and their launch/settings timings are not used as performance claims. Dedicated benchmark runs were sequential.",
+    "threeDimensionalCadReloaded": false
+  }
+}

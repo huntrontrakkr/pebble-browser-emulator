@@ -6,6 +6,7 @@ import {
   type MachineProfile,
 } from './watch-profiles.ts';
 import { AppMessageRouter } from './app-message-router.ts';
+import { BufferedHistory } from './buffered-history.ts';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -210,6 +211,18 @@ export class App implements AfterViewInit, OnDestroy {
   private cleanupInspector = () => {};
   private worker?: Worker;
   private index = 0;
+  private screenImage?: ImageData;
+  private traceUpdates = new BufferedHistory<{ index: number; kind: string; text: string }>(
+    200,
+    (items) => this.trace.update((rows) => [...rows, ...items].slice(-200)),
+  );
+  private packetUpdates = new BufferedHistory<{
+    id: number;
+    direction: string;
+    endpoint: number;
+    bytes: Uint8Array;
+    time: number;
+  }>(300, (items) => this.packets.update((rows) => [...rows, ...items].slice(-300)));
   private saved?: { bytes: Uint8Array; name: string };
   private inputRevision = 0;
   private loadRevision = 0;
@@ -284,6 +297,8 @@ export class App implements AfterViewInit, OnDestroy {
   }
   ngOnDestroy() {
     this.destroyed = true;
+    this.traceUpdates.dispose();
+    this.packetUpdates.dispose();
     this.clearConfiguration();
     this.cleanupInspector();
     this.worker?.terminate();
@@ -295,6 +310,8 @@ export class App implements AfterViewInit, OnDestroy {
     window.removeEventListener('blur', this.releaseButtons);
   }
   showTools(tab?: string) {
+    this.traceUpdates.flush();
+    this.packetUpdates.flush();
     this.toolsOpened.set(true);
     this.workbench.set(true);
     if (tab) this.tab.set(tab);
@@ -427,12 +444,19 @@ export class App implements AfterViewInit, OnDestroy {
     if (this.ready()) (this.isFirmware() ? this.qemuWorker : this.worker)?.postMessage(command);
   }
   log(kind: string, text: string) {
-    this.trace.update((t) =>
-      [
-        ...t,
-        { index: ++this.index, kind, text: text.length > 6000 ? text.slice(0, 6000) + ' …' : text },
-      ].slice(-200),
-    );
+    this.traceUpdates.append({
+      index: ++this.index,
+      kind,
+      text: text.length > 6000 ? text.slice(0, 6000) + ' …' : text,
+    });
+  }
+  clearTrace() {
+    this.traceUpdates.dispose();
+    this.trace.set([]);
+  }
+  clearPackets() {
+    this.packetUpdates.dispose();
+    this.packets.set([]);
   }
   diagnostic() {
     if (this.installing()) {
@@ -556,6 +580,7 @@ export class App implements AfterViewInit, OnDestroy {
     }
   }
   exportTrace() {
+    this.traceUpdates.flush();
     this.download(
       'pebble-trace.json',
       new TextEncoder().encode(
@@ -600,21 +625,23 @@ export class App implements AfterViewInit, OnDestroy {
     if (!this.screen) return;
     const context = this.screen.nativeElement.getContext('2d');
     if (!context) return;
-    const rgba = renderPixels(bytes, {
-      mode: this.displayMode(),
-      ambient: this.ambient / 100,
-      backlight: this.backlight / 100,
-    });
     const { width, height } = this.display();
     if (bytes.length !== width * height) return;
+    if (this.screenImage?.width !== width || this.screenImage.height !== height)
+      this.screenImage = context.createImageData(width, height);
+    const rgba = renderPixels(
+      bytes,
+      {
+        mode: this.displayMode(),
+        ambient: this.ambient / 100,
+        backlight: this.backlight / 100,
+      },
+      this.screenImage.data,
+    );
     const canvas = this.screen.nativeElement;
     if (canvas.width !== width) canvas.width = width;
     if (canvas.height !== height) canvas.height = height;
-    context.putImageData(
-      new ImageData(rgba as Uint8ClampedArray<ArrayBuffer>, width, height),
-      0,
-      0,
-    );
+    context.putImageData(this.screenImage, 0, 0);
     if (this.hasModel() && this.displayMode() === 'model') this.model?.pixels(rgba);
   }
   redraw() {
@@ -720,7 +747,10 @@ export class App implements AfterViewInit, OnDestroy {
             }
             this.handleQemuEvent(data);
             if (data.type === 'state' && this.isFirmware()) {
-              this.state.set(data.state);
+              if (data.generation !== this.watchGeneration) return;
+              const pixels = data.state.framebuffer ?? this.state()?.framebuffer;
+              if (!pixels) throw new Error('Watch state arrived before its initial frame.');
+              this.state.set({ ...data.state, framebuffer: pixels });
               this.running.set(data.state.running);
               this.loaded.set(data.state.loaded);
               this.firmwareName.set(data.state.programName);
@@ -731,7 +761,7 @@ export class App implements AfterViewInit, OnDestroy {
               this.charging = data.charging;
               this.scenarioPending.set(data.scenario?.pending ?? 0);
               if (data.state.fault) this.error.set(data.state.fault);
-              this.draw(data.state.framebuffer);
+              if (data.state.framebuffer) this.draw(data.state.framebuffer);
             }
             if (data.type === 'serial') {
               if (data.port === 2) this.log('UART', data.text);
@@ -756,6 +786,7 @@ export class App implements AfterViewInit, OnDestroy {
       }
       await this.qemuReady;
       if (revision !== this.loadRevision || this.destroyed) return;
+      this.qemuWorker.postMessage({ type: 'presentation', deltaFrames: true });
       this.firmwareToSave =
         !autoRun && data.profile ? { ...data, profile: data.profile } : undefined;
       this.qemuWorker.postMessage({ type: 'pacing', realtime: autoRun });
@@ -805,14 +836,14 @@ export class App implements AfterViewInit, OnDestroy {
       this.healthStatus.set('Firmware accepted the health preferences.');
     if (data.type === 'clock' && data.generation === this.watchGeneration) {
       this.watchEpochMs = data.epochMs;
-      if (this.phoneAccepting)
+      if (!data.direct && this.phoneAccepting)
         this.phoneWorker?.postMessage({
           type: 'clock',
           virtualUs: data.virtualUs,
           sequence: data.sequence,
           transportGeneration: data.generation,
         });
-      else if (data.sequence !== undefined)
+      else if (!data.direct && data.sequence !== undefined)
         this.qemuWorker?.postMessage({
           type: 'phone-clock-ack',
           generation: data.generation,
@@ -916,18 +947,13 @@ export class App implements AfterViewInit, OnDestroy {
         );
     }
     if (data.type === 'protocol') {
-      this.packets.update((rows) =>
-        [
-          ...rows,
-          {
-            id: ++this.packetIndex,
-            direction: data.direction,
-            endpoint: data.endpoint,
-            bytes: data.bytes,
-            time: data.virtualSeconds,
-          },
-        ].slice(-300),
-      );
+      this.packetUpdates.append({
+        id: ++this.packetIndex,
+        direction: data.direction,
+        endpoint: data.endpoint,
+        bytes: data.bytes,
+        time: data.virtualSeconds,
+      });
     }
     if (data.type === 'appmessage') {
       if (data.generation !== this.watchGeneration) return;
@@ -1026,6 +1052,7 @@ export class App implements AfterViewInit, OnDestroy {
     );
   }
   exportPackets() {
+    this.packetUpdates.flush();
     this.download(
       'pebble-packets.json',
       new TextEncoder().encode(
@@ -1221,39 +1248,48 @@ export class App implements AfterViewInit, OnDestroy {
     try {
       storage = JSON.parse(stored ?? '{}');
     } catch {}
-    this.phoneWorker.postMessage({
-      type: 'start',
-      wasmUrl: new URL('wasm/quickjs.wasm', document.baseURI).href,
-      source: this.phoneScript(),
-      name: this.phoneScriptName(),
-      appId: this.phoneAppId,
-      messageKeys: this.phoneKeys,
-      appInfo: this.phoneAppInfo,
-      watchInfo,
-      accountToken: this.accountToken,
-      watchToken: this.watchToken,
-      network: { mode: this.phoneNetworkMode, fixtures },
-      storage,
-      coordinates: {
-        latitude: this.latitude,
-        longitude: this.longitude,
-        accuracy: this.accuracy,
-        altitude: this.altitude,
-        heading: this.locationHeading,
-        speed: this.speed,
+    const clockChannel = this.isFirmware() && this.qemuWorker ? new MessageChannel() : undefined;
+    this.phoneWorker.postMessage(
+      {
+        type: 'start',
+        clockPort: clockChannel?.port1,
+        wasmUrl: new URL('wasm/quickjs.wasm', document.baseURI).href,
+        source: this.phoneScript(),
+        name: this.phoneScriptName(),
+        appId: this.phoneAppId,
+        messageKeys: this.phoneKeys,
+        appInfo: this.phoneAppInfo,
+        watchInfo,
+        accountToken: this.accountToken,
+        watchToken: this.watchToken,
+        network: { mode: this.phoneNetworkMode, fixtures },
+        storage,
+        coordinates: {
+          latitude: this.latitude,
+          longitude: this.longitude,
+          accuracy: this.accuracy,
+          altitude: this.altitude,
+          heading: this.locationHeading,
+          speed: this.speed,
+        },
+        connected: this.linked(),
+        clock: this.isFirmware() ? 'watch' : 'wall',
+        nowMs: this.isFirmware() ? Math.floor(this.watchEpochMs) : Date.now(),
+        virtualUs: Math.round(this.virtualSeconds() * 1e6),
+        randomSeed: 1,
       },
-      connected: this.linked(),
-      clock: this.isFirmware() ? 'watch' : 'wall',
-      nowMs: this.isFirmware() ? Math.floor(this.watchEpochMs) : Date.now(),
-      virtualUs: Math.round(this.virtualSeconds() * 1e6),
-      randomSeed: 1,
-    });
+      clockChannel ? [clockChannel.port1] : [],
+    );
     if (this.isFirmware())
-      this.qemuWorker?.postMessage({
-        type: 'phone-clock',
-        generation: this.watchGeneration,
-        enabled: true,
-      });
+      this.qemuWorker?.postMessage(
+        {
+          type: 'phone-clock',
+          generation: this.watchGeneration,
+          enabled: true,
+          port: clockChannel?.port2,
+        },
+        clockChannel ? [clockChannel.port2] : [],
+      );
   }
   stopPhone() {
     this.clearConfiguration();

@@ -9,8 +9,14 @@ let paletteKey = '';
 const palette = new Uint8ClampedArray(256 * 4);
 const words = new Uint32Array(palette.buffer);
 /** ARGB2222 conversion; the optical preview is explicitly uncalibrated, never changes guest pixels. */
-export function renderPixels(source: Uint8Array, options: DisplayOptions): Uint8ClampedArray {
-  const rgba = new Uint8ClampedArray(source.length * 4);
+export function renderPixels(
+  source: Uint8Array,
+  options: DisplayOptions,
+  destination?: Uint8ClampedArray,
+): Uint8ClampedArray {
+  const rgba = destination ?? new Uint8ClampedArray(source.length * 4);
+  if (rgba.length !== source.length * 4 || rgba.byteOffset % 4 !== 0)
+    throw new Error('Pixel destination must have matching size and word alignment.');
   const reflective = options.mode !== 'pixels';
   const light = clamp(options.ambient),
     back = clamp(options.backlight);
@@ -31,7 +37,7 @@ export function renderPixels(source: Uint8Array, options: DisplayOptions): Uint8
       palette[p * 4 + 3] = 255;
     }
   }
-  const output = new Uint32Array(rgba.buffer);
+  const output = new Uint32Array(rgba.buffer, rgba.byteOffset, source.length);
   for (let i = 0; i < source.length; i++) output[i] = words[source[i]];
   return rgba;
 }

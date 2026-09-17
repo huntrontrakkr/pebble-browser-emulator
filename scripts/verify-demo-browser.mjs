@@ -35,7 +35,7 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium').split(',')) {
             if (data.type === 'signal') q.samples++;
             if (data.type === 'state') {
               q.battery = data.state.battery;
-              q.frame = data.state.framebuffer;
+              if (data.state.framebuffer) q.frame = data.state.framebuffer;
             }
           });
         }

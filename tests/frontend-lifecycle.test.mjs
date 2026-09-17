@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import vm from 'node:vm';
+import { MessageChannel } from 'node:worker_threads';
+import { BufferedHistory } from '../src/app/buffered-history.ts';
 import { FIRMWARE_PROFILES, profileDisplay, isFirmwareProfile } from '../src/app/watch-profiles.ts';
 import {
   defaultDemoSettings,
@@ -85,6 +87,8 @@ function makeApp() {
     exports,
     signal,
     AppMessageRouter,
+    BufferedHistory,
+    MessageChannel,
     FIRMWARE_PROFILES,
     defaultDemoSettings,
     normalizeDemoSettings,
@@ -181,6 +185,29 @@ test('phone clock barriers keep acknowledgments without scheduling UI clock redr
   assert.equal(app.virtualSeconds(), 42);
   assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'phone-clock-ack').length, 100);
   assert.equal(app.watchEpochMs, 1000);
+  app.handleQemuEvent({
+    type: 'clock',
+    generation: 1,
+    direct: true,
+    virtualUs: 1010000,
+    epochMs: 1010,
+  });
+  assert.equal(app.watchEpochMs, 1010);
+  assert.equal(
+    app.qemuWorker.messages.filter((m) => m.type === 'phone-clock-ack').length,
+    100,
+    'Direct-clock telemetry must not release a barrier through the UI',
+  );
+  app.phoneAccepting = true;
+  app.phoneWorker = new Port();
+  app.handleQemuEvent({
+    type: 'clock',
+    generation: 1,
+    direct: true,
+    virtualUs: 1020000,
+    epochMs: 1020,
+  });
+  assert.equal(app.phoneWorker.messages.length, 0, 'Telemetry must not advance the phone twice');
 });
 
 test('an ACK for the previous phone instance cannot acknowledge the replacement phone', () => {

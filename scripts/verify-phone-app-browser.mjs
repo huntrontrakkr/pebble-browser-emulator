@@ -60,7 +60,8 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').
           this.addEventListener('message', ({ data }) => {
             if (['appmessage', 'event', 'error', 'installed'].includes(data.type))
               window.phoneQa.events.push(data);
-            if (data.type === 'state') window.phoneQa.frame = data.state.framebuffer;
+            if (data.type === 'state' && data.state.framebuffer)
+              window.phoneQa.frame = data.state.framebuffer;
           });
         }
         postMessage(data, ...args) {

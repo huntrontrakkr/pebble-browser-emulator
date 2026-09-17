@@ -75,6 +75,15 @@ connected as local development tooling with frozen tests and firmware; its first
 attempts yielded no retained memory change. [Method, results and reproduction](OPTIMIZATION.md)
 and [raw evidence](evidence/optimization.json).
 
+Routine phone/watch clock synchronization now travels directly between Workers, with an
+ordered UI fallback for packets and timed inputs. Storage snapshots occur after mutations;
+unchanged frames omit pixel transfers, rendering reuses its pixel buffer, and diagnostic
+observers publish in batches. Three paired Chromium runs measured **97.7% fewer main-thread
+clock-message crossings** and no periodic redraws of an unchanged Clock screen. The isolated
+phone clock/output loop improved 2.6–6.0× depending on stored payload. The core Wasm remains
+byte-identical to the previous version; this is not a whole-emulator or physical-phone FPS
+claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/browser-performance.json).
+
 | Capability                 | Verified scope                                                                                                                                                                                                                                           |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                  |

@@ -58,6 +58,8 @@ export class VirtualPhone {
   private control!: QuickJSHandle;
   private events: VirtualPhoneEvent[] = [];
   private outputBytes = 0;
+  private storageRevision = 0;
+  private storageReadRevision = -1;
   private deadline = Infinity;
   private started = false;
   private dead = false;
@@ -197,6 +199,15 @@ export class VirtualPhone {
   getStorage(): Record<string, string> {
     return JSON.parse(String(this.perform('storage'))) as Record<string, string>;
   }
+  /** Initial snapshot and subsequent mutations, including writes beyond the log quota. */
+  readStorageIfChanged(): Record<string, string> | undefined {
+    this.assertAlive();
+    if (this.storageReadRevision === this.storageRevision) return;
+    const revision = this.storageRevision;
+    const values = this.getStorage();
+    this.storageReadRevision = revision;
+    return values;
+  }
   drainEvents(): VirtualPhoneEvent[] {
     const result = this.events;
     this.events = [];
@@ -293,6 +304,8 @@ export class VirtualPhone {
   private record(serialized: string): boolean {
     const size = utf8.encode(serialized).length;
     const parsed = JSON.parse(serialized) as VirtualPhoneEvent;
+    // Persistence must remain correct even when diagnostic output is full.
+    if (parsed.type === 'storage') this.storageRevision++;
     const eventLimit =
       parsed.type === 'configuration'
         ? this.limits.configurationBytes + 256

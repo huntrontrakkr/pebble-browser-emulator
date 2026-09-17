@@ -12,6 +12,10 @@ export interface MachineState {
   buttons: number;
   battery: number;
 }
+/** QEMU can omit unchanged pixels after the consumer opts into delta delivery. */
+export type MachineStateUpdate = Omit<MachineState, 'framebuffer'> & {
+  framebuffer?: Uint8Array;
+};
 export type EmulatorCommand =
   | { type: 'diagnostic' | 'run' | 'pause' | 'step' | 'reset' | 'snapshot' }
   | { type: 'init'; wasmUrl: string }

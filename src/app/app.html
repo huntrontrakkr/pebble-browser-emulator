@@ -603,7 +603,7 @@
           <div class="section-heading">
             <h2>Packets</h2>
             <div class="actions">
-              <button (click)="packets.set([])">Clear</button
+              <button (click)="clearPackets()">Clear</button
               ><button (click)="exportPackets()" [disabled]="!packets().length">Export</button>
             </div>
           </div>
@@ -659,7 +659,7 @@
           Session log <span>{{ trace().length }}</span>
         </h2>
         <div class="actions">
-          <button (click)="trace.set([])">Clear</button
+          <button (click)="clearTrace()">Clear</button
           ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
         </div>
       </div>

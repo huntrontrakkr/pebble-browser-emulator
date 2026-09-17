@@ -82,6 +82,13 @@ delivery, controller application and phone forwarding. App consumption needs sep
 With a companion running, the watch advances at most 10 ms of virtual time before awaiting
 a sequence/generation-matched phone acknowledgment. QuickJS advances timers and emits pending
 AppMessages before acknowledging that phase. This includes asynchronous QuickJS startup.
+Routine clock phases use a transferred MessagePort directly between the watch and phone
+Workers. If the watch emits an AppMessage, connection change or timed phone input, that
+phase follows the event through the existing FIFO UI relay. A phone phase that emits an
+outbound AppMessage also returns its acknowledgment through that relay. This keeps packet
+enqueueing ahead of the next quantum. Direct-clock UI telemetry is limited to roughly
+10 Hz and never advances the phone again. Port identity and session generation reject
+acknowledgments from replaced connections.
 Pausing stops both clocks; reset stops the phone and clears the old phase. Explicit RTC changes
 also stop the phone so the next start has a consistent epoch. Network fixtures can use virtual
 deadlines; real browser HTTP completion remains nondeterministic.
@@ -94,6 +101,19 @@ It never draws a substitute watchface. Raw pixels map
 2-bit channels to 0/85/170/255. The reflective mode is explicitly uncalibrated. Three.js uses
 official pinned STL geometry and a live framebuffer texture; materials and illumination
 remain approximations. Display settings never mutate guest memory.
+
+The UI opts into frame updates that omit pixels when the completed-frame counter has not
+changed. Metadata remains available at the existing presentation cadence; forced snapshots,
+pauses, steps, session initialization and faults include the full frame. Other consumers
+retain full-frame delivery unless they opt in. The UI keeps the most recent canonical
+pixels and reuses an ImageData allocation until display dimensions change. Presentation
+limits remain 30 Hz for changed frames and 4 Hz for idle metadata; guest display execution
+is independent of these limits.
+
+Phone storage snapshots are read on initialization and after mutations. Mutation tracking
+occurs before diagnostic output quotas, so filling the log cannot prevent persistence.
+Log and packet history observers publish in 50 ms batches, retaining their existing ordered
+200/300-record tails. Export flushes pending records; Clear and teardown discard them.
 
 Source snapshots and the trimmed SDK subset persist in IndexedDB. Compiler assets use the
 Cache API after integrity verification. Phone storage is isolated per app in the current

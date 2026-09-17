@@ -1,16 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Worker } from 'node:worker_threads';
+import { Worker, MessageChannel } from 'node:worker_threads';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { FirmwareHarness } from './firmware-harness.mjs';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const direct = !!process.env.PEBBLE_DIRECT_CLOCK;
 test(
-  'actual firmware and QuickJS exchange a timer-driven AppMessage under the shared clock',
+  `actual firmware and QuickJS exchange a timer-driven AppMessage under the ${direct ? 'direct' : 'relayed'} shared clock`,
   { skip: !process.env.PEBBLE_REAL_WORKER, timeout: 120000 },
   async () => {
     const h = new FirmwareHarness();
     let phone;
+    let probe;
     try {
       await h.boot('qemu_emery', process.env.PEBBLE_FIRMWARE_DIR);
       const installed = await h.install(process.env.PEBBLE_PBW);
@@ -20,17 +22,38 @@ test(
       await h.wait((m) => m.type === 'state' && !m.state.running);
       let origin = h.states.at(-1).virtualSeconds * 1e6;
       // Verify that a missing phase acknowledgement stops further guest execution.
-      h.send({ type: 'phone-clock', generation, enabled: true });
+      probe = direct ? new MessageChannel() : undefined;
+      const probeClocks = [];
+      probe?.port1.on('message', (m) => probeClocks.push(m));
+      h.send(
+        { type: 'phone-clock', generation, enabled: true, port: probe?.port2 },
+        probe ? [probe.port2] : [],
+      );
       h.messages = [];
       h.send({ type: 'run' });
-      const boundary = await h.wait((m) => m.type === 'clock' && m.sequence !== undefined);
+      let boundary;
+      if (probe) {
+        const end = Date.now() + 15000;
+        while (!probeClocks.length && Date.now() < end) await sleep(5);
+        assert.equal(probeClocks.length, 1, 'Direct worker must publish a clock boundary');
+        boundary = probeClocks[0];
+      } else boundary = await h.wait((m) => m.type === 'clock' && m.sequence !== undefined);
       await sleep(50);
-      assert.equal(h.messages.filter((m) => m.type === 'clock').length, 1);
+      assert.equal(
+        probe ? probeClocks.length : h.messages.filter((m) => m.type === 'clock').length,
+        1,
+      );
       assert.ok(boundary.virtualUs - origin <= 10000.1);
       h.messages = [];
       h.send({ type: 'pause' });
       await h.wait((m) => m.type === 'state' && !m.state.running);
-      h.send({ type: 'phone-clock-ack', generation, sequence: boundary.sequence });
+      if (probe)
+        probe.port1.postMessage({
+          type: 'clock-ack',
+          transportGeneration: generation,
+          sequence: boundary.sequence,
+        });
+      else h.send({ type: 'phone-clock-ack', generation, sequence: boundary.sequence });
       origin = boundary.virtualUs;
       phone = new Worker(new URL('./node-worker-bootstrap.mjs', import.meta.url), {
         workerData: { source: resolve('src/app/phone.worker.ts') },
@@ -87,23 +110,34 @@ test(
         throw new Error('Coupled phone timeout: ' + JSON.stringify(output.slice(-10)));
       };
       await wait((m) => m.type === 'harness-ready');
-      phone.postMessage({
-        type: 'start',
-        appId: installed.uuid,
-        name: 'clock.js',
-        wasmUrl: pathToFileURL(resolve('public/wasm/quickjs.wasm')).href,
-        clock: 'watch',
-        nowMs: Math.floor(boundary.epochMs),
-        virtualUs: Math.floor(origin),
-        connected: true,
-        randomSeed: 1,
-        source: `setTimeout(()=>Pebble.sendAppMessage({0:'Shared clock'},()=>console.log('ACK'),()=>console.log('NACK')),50);setInterval(()=>console.log('TIMER'),20);`,
-      });
+      const channel = direct ? new MessageChannel() : undefined;
+      phone.postMessage(
+        {
+          type: 'start',
+          appId: installed.uuid,
+          name: 'clock.js',
+          wasmUrl: pathToFileURL(resolve('public/wasm/quickjs.wasm')).href,
+          clock: 'watch',
+          clockPort: channel?.port1,
+          nowMs: Math.floor(boundary.epochMs),
+          virtualUs: Math.floor(origin),
+          connected: true,
+          randomSeed: 1,
+          source: `setTimeout(()=>Pebble.sendAppMessage({0:'Shared clock'},()=>console.log('ACK'),()=>console.log('NACK')),50);setInterval(()=>console.log('TIMER'),20);`,
+        },
+        channel ? [channel.port1] : [],
+      );
+      if (channel)
+        h.send({ type: 'phone-clock', generation, enabled: true, port: channel.port2 }, [
+          channel.port2,
+        ]);
       await wait((m) => m.type === 'status' && m.status === 'Running');
       h.send({ type: 'run' });
       await wait((m) => m.type === 'event' && m.event.text === 'ACK');
-      assert.ok(phases.length > 5);
-      for (let i = 1; i < phases.length; i++) assert.ok(phases[i] - phases[i - 1] <= 10000.1);
+      if (!direct) {
+        assert.ok(phases.length > 5);
+        for (let i = 1; i < phases.length; i++) assert.ok(phases[i] - phases[i - 1] <= 10000.1);
+      }
       h.messages = [];
       h.send({ type: 'pause' });
       await h.wait((m) => m.type === 'state' && !m.state.running);
@@ -112,6 +146,7 @@ test(
       await sleep(100);
       assert.equal(output.filter((m) => m.event?.text === 'TIMER').length, timers);
     } finally {
+      probe?.port1.close();
       await phone?.terminate();
       await h.close();
     }

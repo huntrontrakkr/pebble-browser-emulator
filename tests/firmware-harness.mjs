@@ -35,8 +35,8 @@ export class FirmwareHarness {
       for (const fn of this.listeners) fn({});
     });
   }
-  send(value) {
-    this.worker.postMessage(value);
+  send(value, transfer = []) {
+    this.worker.postMessage(value, transfer);
   }
   wait(predicate, timeout = 120000) {
     const existing = this.messages.find(predicate);
