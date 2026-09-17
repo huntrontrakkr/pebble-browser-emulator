@@ -5,6 +5,11 @@ Exact transitive versions are recorded in `gradle.lockfile` and
 pins and verifies Gradle 9.6.1. Maven Central and Google's Maven repository supply the
 unmodified Kotlin artifacts; npm supplies the locked build dependencies.
 
+`gradle/verification-metadata.xml` also pins transitive BOM metadata needed when resolving
+from an empty Gradle cache. The coroutines and serialization 1.11.0 BOM entries were
+checked against Maven Central's published SHA-256 files on 2026-09-17. Dependency
+verification remains enabled in both local builds and CI.
+
 Runtime source projects:
 
 | Component | Version | Source | License |

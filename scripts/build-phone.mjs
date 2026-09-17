@@ -41,7 +41,8 @@ const build = spawnSync(
 );
 if (build.error || build.status !== 0)
   throw new Error(
-    'Phone build failed. Install JDK 17+ and set JAVA_HOME. ' + (build.error?.message ?? ''),
+    'Phone build failed. ' +
+      (build.error?.message ?? `Gradle exited with status ${build.status}; see the output above.`),
   );
 await collect(root);
 await rm(output, { recursive: true, force: true });
