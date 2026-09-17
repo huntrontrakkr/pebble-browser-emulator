@@ -20,6 +20,10 @@ Configurable imported PBWs use the same flow when their metadata declares `confi
 and includes a companion script. Developer tools can also request configuration explicitly.
 Apps without a configuration page do not get a preview settings button.
 
+The original **JustTheTime** store PBW, with its bundled **Clay 1.0.8**, also passes
+configuration save, real firmware acknowledgment and frame changes on all three current
+profiles. [Store test, download and reproduction](STORE_WATCHFACE_TEST.md).
+
 ## Reused upstream code
 
 The GPL-3.0-only source is pinned at

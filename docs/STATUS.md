@@ -33,6 +33,14 @@ bounded settings port: native accounts, library/store, database, BLE and libpebb
 are not ported. External pages must honor `return_to`; universal custom-scheme interception
 is not possible. [Scope, source, limits and evidence](COMPANION_PORT.md).
 
+The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three
+current profiles in Chromium at a mobile viewport: its bundled Clay 1.0.8 form saves a
+background change, actual firmware acknowledges it, the framebuffer changes, saved settings
+reopen, and native Back cancels without another AppMessage. No watchface-specific runtime
+changes or mocked responses are used. This is one real store fixture, not a universal
+compatibility or physical-phone performance claim. [Reproduce and try it](STORE_WATCHFACE_TEST.md)
+and [acceptance record](evidence/store-watchface-browser.json).
+
 The first workspace now offers **Try example**, **Open watchface .pbw**, and GitHub project
 previews. It starts no Workers until needed. Clock is an actual precompiled native watchface;
 its installation uses the same firmware protocol as developer builds. Official 4.37.0
