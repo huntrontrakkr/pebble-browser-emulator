@@ -4,8 +4,6 @@ import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const base = process.env.PEBBLE_BROWSER_URL ?? 'http://127.0.0.1:4201/';
-const firmware = process.env.PEBBLE_FIRMWARE_DIR;
-if (!firmware) throw new Error('Set PEBBLE_FIRMWARE_DIR to the unchanged Emery 4.37.0 image pair.');
 const out = resolve(process.env.PEBBLE_TRACE_DIR ?? 'tmp/preview-browser');
 await mkdir(out, { recursive: true });
 const results = [];
@@ -65,6 +63,11 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       'Idle preview should start no emulation/build Workers',
     );
     assert.equal(
+      requests.some((url) => url.includes('/firmware/')),
+      false,
+      'Idle page must not download firmware',
+    );
+    assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       true,
     );
@@ -74,12 +77,6 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
     await page.getByLabel('Preview watch setup').waitFor({ state: 'detached' });
     assert.equal(await page.getByLabel('Preview watch setup').count(), 0);
     await page.getByRole('button', { name: 'Try example', exact: true }).click();
-    await page
-      .getByLabel('Choose both firmware files')
-      .setInputFiles([
-        resolve(firmware, 'qemu_emery_v4.37.0_micro_flash.bin'),
-        resolve(firmware, 'qemu_emery_v4.37.0_spi_flash.bin'),
-      ]);
     const began = Date.now();
     await page
       .getByText('Ready. Use the buttons below the watch to interact.', { exact: true })
@@ -88,6 +85,11 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       window.previewMeasure.installed.includes('c61ace0a-d61a-47ce-9d04-f46a78849ec6'),
     );
     const firstBootAndInstallMs = Date.now() - began;
+    assert.equal(
+      await page.getByLabel('Preview watch setup').count(),
+      0,
+      'Default firmware should launch without a file picker',
+    );
     console.log(name, 'first launch', firstBootAndInstallMs + ' ms');
     await page.waitForFunction(() => {
       const canvas = document.querySelector('canvas[aria-label="Live watch framebuffer"]');
@@ -113,6 +115,10 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       await readFile(resolve(out, name + '.pbw')),
       await readFile('public/examples/clock-emery.pbw'),
     );
+    const firmwareRequests = requests.filter(
+      (url) => url.includes('/firmware/') && url.endsWith('.gz'),
+    ).length;
+    assert.ok(firmwareRequests >= 2, 'The first launch must use the actual bundled images');
     const reload = Date.now();
     await page.reload();
     await page
@@ -123,6 +129,11 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       await page.getByLabel('Preview watch setup').count(),
       0,
       'Shared link should use the cached firmware',
+    );
+    assert.equal(
+      requests.filter((url) => url.includes('/firmware/') && url.endsWith('.gz')).length,
+      firmwareRequests,
+      'Saved firmware must take priority on reload',
     );
     await page.evaluate(() => {
       const m = window.previewMeasure;
@@ -183,7 +194,7 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       {
         date: new Date().toISOString(),
         scope:
-          'Linux browser engines with a mobile viewport, not measurements on a physical phone. Local firmware import, example install, cancellation, hash link, PBW download, cached reload, screen pacing and pause.',
+          'Linux browser engines with a mobile viewport, not measurements on a physical phone. Bundled default firmware, example install without file import, cancellation, hash link, PBW download, cached firmware reuse, screen pacing and pause.',
         results,
       },
       null,

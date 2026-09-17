@@ -11,9 +11,13 @@ See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including
 
 The first workspace now offers **Try example**, **Open watchface .pbw**, and GitHub project
 previews. It starts no Workers until needed. Clock is an actual precompiled native watchface;
-its installation uses the same firmware protocol as developer builds. A one-time local
-firmware setup is still required, with per-profile persistence, board/version checks and
-official 4.37.0 checksums. Saved firmware boots automatically on example and project links.
+its installation uses the same firmware protocol as developer builds. Official 4.37.0
+emulator images now load automatically from the static site on first use, with exact-size
+and published SHA-256 checks. A saved/imported pair overrides this default. Original
+firmware bytes remain unchanged; Time 2's compressed pair downloads about 1.52 MB.
+The bundled loader, cancel/restart and cache reuse pass Chromium, Firefox and Linux WebKit.
+An actual 4.36.0 import overrides the 4.37.0 default and survives reload; a failed download
+can be retried. [Default firmware browser evidence](evidence/default-firmware-browser.json).
 Prepared projects use a checksummed `pebble-preview.json`; source-only projects retain the
 existing SDK and compiler acceptance limits. [Link contract and setup](PREVIEWS.md).
 
@@ -144,7 +148,9 @@ it requires the deterministic PBW hash recorded in `evidence/firmware-acceptance
 5. Measure actual watches and complete browser interaction/optical comparisons. No battery
    chemistry, RF or screen-material accuracy is inferred from a successful app or boot test.
 
-Official firmware/SDK binaries are local imports, not redistributed. The catalog currently
+The three default 4.37.0 emulator pairs are bundled with source, component and license
+records; see [firmware provenance](evidence/default-firmware-provenance.json). Other
+firmware and SDK binaries remain local imports. The catalog currently
 browses Core Devices PebbleOS releases; it is not a complete historical firmware archive.
 Release downloads without browser CORS support use download-and-open, with available
 catalog SHA-256 checks verified locally. No proxy or server compiler is substituted.

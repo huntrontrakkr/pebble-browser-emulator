@@ -1,0 +1,114 @@
+{
+  "date": "2026-09-17",
+  "release": "https://github.com/coredevices/PebbleOS/releases/tag/v4.37.0",
+  "sourceCommit": "9399f564fb5035057a9174025d2c6c625e942285",
+  "artifactVerification": "Unmodified official release assets. SHA-256 matches GitHub release digests before gzip encoding and after browser decoding. No local firmware rebuild claimed.",
+  "scope": "Only v4.37.0 qemu_emery, qemu_flint, qemu_gabbro; physical watch firmware and other releases excluded.",
+  "upstreamBuildWorkflow": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/.github/workflows/build-qemu.yml",
+  "configurationMethod": "Kconfiglib 14.1.0: for each board, BOARD=<profile>, BOARD_REVISION=\"\", Kconfig(\"Kconfig\"), load_config(\"boards/<profile>/defconfig\").",
+  "configuration": {
+    "qemu_emery": {
+      "SOC_QEMU": "y",
+      "HAL_NORDIC": "n",
+      "HAL_SIFLI": "n",
+      "NRF_FUEL_GAUGE": "n",
+      "CST816_FW": "n",
+      "GH3X2X_ALGO": "n",
+      "BT_FW_NIMBLE": "n",
+      "BT_FW_QEMU": "y",
+      "MODDABLE_XS": "y",
+      "LIBC_PICOLIBC": "y",
+      "SPEEX": "y",
+      "MBEDTLS": "n"
+    },
+    "qemu_flint": {
+      "SOC_QEMU": "y",
+      "HAL_NORDIC": "n",
+      "HAL_SIFLI": "n",
+      "NRF_FUEL_GAUGE": "n",
+      "CST816_FW": "n",
+      "GH3X2X_ALGO": "n",
+      "BT_FW_NIMBLE": "n",
+      "BT_FW_QEMU": "y",
+      "MODDABLE_XS": "n",
+      "LIBC_PICOLIBC": "y",
+      "SPEEX": "y",
+      "MBEDTLS": "n"
+    },
+    "qemu_gabbro": {
+      "SOC_QEMU": "y",
+      "HAL_NORDIC": "n",
+      "HAL_SIFLI": "n",
+      "NRF_FUEL_GAUGE": "n",
+      "CST816_FW": "n",
+      "GH3X2X_ALGO": "n",
+      "BT_FW_NIMBLE": "n",
+      "BT_FW_QEMU": "y",
+      "MODDABLE_XS": "y",
+      "LIBC_PICOLIBC": "y",
+      "SPEEX": "y",
+      "MBEDTLS": "n"
+    }
+  },
+  "nonfreeGuards": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/third_party/nonfree/CMakeLists.txt",
+  "librarySelection": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/third_party/CMakeLists.txt",
+  "moddableRuntime": "LGPL-3.0-or-later runtime in Emery/Gabbro. License texts, copyright notices, pinned corresponding source and rebuild instructions accompany the unchanged firmware. Flint disables this runtime.",
+  "notice": "../../public/firmware/v4.37.0/NOTICE.md",
+  "manifest": "../../public/firmware/v4.37.0/manifest.json",
+  "profiles": {
+    "qemu_emery": {
+      "micro": {
+        "path": "qemu_emery_v4.37.0_micro_flash.bin.gz",
+        "bytes": 1698816,
+        "sha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+        "gzipBytes": 968633,
+        "gzipSha256": "1fbff9c24eb65fd573917b4362769899026eb2516b1bdc8d8ae27b14fd428194",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_emery_v4.37.0_micro_flash.bin"
+      },
+      "spi": {
+        "path": "qemu_emery_v4.37.0_spi_flash.bin.gz",
+        "bytes": 33554432,
+        "sha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+        "gzipBytes": 549348,
+        "gzipSha256": "6f345198b2faecd79de08da9bc64fc64e44a0f5b4695312783a721d52d3b6534",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_emery_v4.37.0_spi_flash.bin"
+      }
+    },
+    "qemu_flint": {
+      "micro": {
+        "path": "qemu_flint_v4.37.0_micro_flash.bin.gz",
+        "bytes": 864768,
+        "sha256": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+        "gzipBytes": 565986,
+        "gzipSha256": "556f9638559e91899040507348505ef2c79691e63b6aa4ed1e7135785eb898af",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_flint_v4.37.0_micro_flash.bin"
+      },
+      "spi": {
+        "path": "qemu_flint_v4.37.0_spi_flash.bin.gz",
+        "bytes": 33554432,
+        "sha256": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+        "gzipBytes": 548519,
+        "gzipSha256": "e641e0e9fb3f700c9c844f410ec2ff46d9c9505b8e8d384960772f010cf8a027",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_flint_v4.37.0_spi_flash.bin"
+      }
+    },
+    "qemu_gabbro": {
+      "micro": {
+        "path": "qemu_gabbro_v4.37.0_micro_flash.bin.gz",
+        "bytes": 1682944,
+        "sha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+        "gzipBytes": 958705,
+        "gzipSha256": "7903a5105d3420d6fd53078e67cce20aeb59dbe06701e6cf83461291d4513ae7",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_gabbro_v4.37.0_micro_flash.bin"
+      },
+      "spi": {
+        "path": "qemu_gabbro_v4.37.0_spi_flash.bin.gz",
+        "bytes": 33554432,
+        "sha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+        "gzipBytes": 560475,
+        "gzipSha256": "403a11d1c0db16219a1726ebb5c027a9e8ed99c6bd98cdcf64a272a8203eee52",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_gabbro_v4.37.0_spi_flash.bin"
+      }
+    }
+  }
+}

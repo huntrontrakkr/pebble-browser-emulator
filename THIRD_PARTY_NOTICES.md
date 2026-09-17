@@ -54,8 +54,13 @@ MIT-licensed libpebble2, copyright 2015 Pebble Technology, commit
 23e2eb92cfc084e6f9e8c718711ac994ef606d18. SDK CRC/packaging references also retain their
 Google/Apache attribution in the relevant source files.
 
-No Pebble firmware is distributed here. Some production images contain separately licensed
-vendor components; the open PebbleOS top-level license does not settle all component terms.
+`public/firmware/v4.37.0` distributes unchanged official Core Devices `qemu_emery`,
+`qemu_flint` and `qemu_gabbro` emulator images, gzip-compressed for transport. See the
+[component notices and corresponding source](public/firmware/v4.37.0/NOTICE.md) and
+[provenance review](docs/evidence/default-firmware-provenance.json). These exact QEMU
+configurations exclude the hardware-specific nonfree components; the included runtime,
+libraries, fonts and artwork retain the licenses in the packaged notice inventory.
+This is not a blanket redistribution determination for physical firmware or other releases.
 Official QEMU and Unicorn are separate local verification oracles only, never linked into
 or used as a backend for this application.
 
@@ -73,7 +78,7 @@ its license is included in the generated JavaScript notices.
 
 Imported npm packages remain user-selected build inputs and retain their own licenses.
 The fast compiler does not execute package scripts. The optional Linux/Wasm build runs user
-commands in an isolated VM. Package source/firmware/SDK files are not redistributed here.
+commands in an isolated VM. Imported package sources and SDK files are not redistributed here.
 
 ## Linux build sandbox and sensor reference
 

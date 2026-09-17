@@ -22,6 +22,7 @@ import {
   previewFirmwareFiles,
   savedFirmware,
   saveFirmware,
+  bundledFirmware,
   type PreviewFirmware,
 } from './preview-firmware.ts';
 
@@ -105,8 +106,9 @@ export interface PreviewLaunch {
     }
     @if (setup()) {
       <section class="firmware-setup" aria-label="Preview watch setup">
-        <h2>Set up this watch once</h2>
-        <p>The browser needs two firmware files. They stay on this device for future previews.</p>
+        <h2>Open firmware manually</h2>
+        <p>The default firmware could not be loaded. You can retry or open these files.</p>
+        <button (click)="retryFirmware()" [disabled]="busy()">Retry default firmware</button>
         <ol>
           <li>
             <span>Download both official firmware files.</span>
@@ -126,10 +128,7 @@ export interface PreviewLaunch {
             /></label>
           </li>
         </ol>
-        <p class="help">
-          GitHub does not allow this site to download these files automatically. After this step,
-          the selected watchface starts automatically.
-        </p>
+        <p class="help">Choose both files together. The selected watchface starts automatically.</p>
         <button (click)="tools.emit('Firmware')">Use different firmware</button>
       </section>
     }
@@ -169,6 +168,12 @@ export interface PreviewLaunch {
       <p class="help preview-note">
         Prepared GitHub previews open directly. Source-only projects open in Developer tools for a
         local build.
+      </p>
+      <p class="help preview-note">
+        Default firmware is included. Change it in Developer tools.
+        <a href="firmware/v4.37.0/NOTICE.md" target="_blank" rel="noopener"
+          >Firmware licenses and source</a
+        >
       </p>
     }
   `,
@@ -344,15 +349,32 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
     }
   }
   private async prepareWatch(generation: number) {
-    const firmware =
+    let firmware =
       this.watchLoaded && this.currentProfile === this.profile()
         ? undefined
         : await savedFirmware(this.profile()).catch(() => undefined);
     if (generation !== this.generation) return;
     if (!firmware && (!this.watchLoaded || this.currentProfile !== this.profile())) {
-      this.status.set('Watchface ready. Complete watch setup to start it.');
-      this.setup.set(true);
-      return;
+      this.status.set('Loading default firmware…');
+      try {
+        firmware = await bundledFirmware(this.profile(), this.controller!.signal);
+      } catch (error) {
+        if (generation === this.generation && !this.controller!.signal.aborted) {
+          this.status.set('Watchface ready. Retry the firmware download or open it manually.');
+          this.setup.set(true);
+        }
+        throw error;
+      }
+      if (generation !== this.generation) return;
+      // Persist this known, checksummed default before handing it to the Worker.
+      // Canceling during the ensuing boot can then reuse the accepted download.
+      await saveFirmware(firmware).catch(() => {
+        if (generation === this.generation)
+          this.copyStatus.set(
+            'Storage is unavailable. Default firmware will download again next visit.',
+          );
+      });
+      if (generation !== this.generation) return;
     }
     this.status.set('');
     this.setup.set(false);
@@ -361,6 +383,9 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
       package: this.package()!,
       ...(firmware ? { firmware } : {}),
     });
+  }
+  async retryFirmware() {
+    if (this.package()) await this.builtPackage(this.package()!);
   }
   async setupFiles(event: Event) {
     const control = event.target as HTMLInputElement,
@@ -415,11 +440,9 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
     this.linkVisible.set(true);
     try {
       await navigator.clipboard.writeText(this.shareUrl());
-      this.copyStatus.set('Link copied. New visitors need to set up firmware once.');
+      this.copyStatus.set('Link copied. Default firmware loads automatically.');
     } catch {
-      this.copyStatus.set(
-        'Select and copy the link below. New visitors need to set up firmware once.',
-      );
+      this.copyStatus.set('Select and copy the link below. Default firmware loads automatically.');
     }
   }
   savePackage() {

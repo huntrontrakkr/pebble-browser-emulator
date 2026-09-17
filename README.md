@@ -13,9 +13,9 @@ interchangeable. See the [product matrix](docs/PRODUCT_MATRIX.md) and [verified 
 ## Try a watchface
 
 [Open the preview](https://pebble-browser-emulator.whunt003.chatgpt.site/#/example/clock).
-Choose **Try example** or **Open watchface .pbw**. The first visit guides you through opening
-two official firmware files; they stay on the device. The watch boots and installs the app
-automatically. Future preview links reuse the saved firmware. No compiler is needed for the
+Choose **Try example** or **Open watchface .pbw**. Default official emulator firmware loads
+automatically, including on the first visit. Future previews reuse the saved firmware;
+Developer tools can override it. No compiler is needed for the
 included Clock example or a prepared PBW.
 
 Public GitHub projects can supply a checksummed `pebble-preview.json` for a direct preview,
@@ -51,7 +51,8 @@ For the full development workflow, open **Developer tools**:
 
 Existing platform-matching PBWs can be opened without compiling. GitHub release and SDK downloads lack
 suitable CORS headers, so those files are opened locally. Source files, the required SDK
-subset, and compiler downloads stay on the device. Firmware is not included or uploaded.
+subset, and compiler downloads stay on the device. The three default emulator image pairs
+are included as static assets; imported firmware is never uploaded.
 
 Display modes are exact monochrome/64-color pixels, an **uncalibrated** reflective preview, and a
 rotatable model using official Time 2 CAD fetched from its pinned upstream revision. The 3D model is currently available for Time 2 only. Light
@@ -121,5 +122,6 @@ require a server process. Hosting configuration is in `.openai/hosting.json`.
 ## License
 
 Original source: Apache-2.0. Dependencies retain their own licenses; see
-[third-party notices](THIRD_PARTY_NOTICES.md). No firmware or SDK archive is
-committed. This is an independent project.
+[third-party notices](THIRD_PARTY_NOTICES.md) and the
+[bundled emulator firmware notice](public/firmware/v4.37.0/NOTICE.md). SDK archives and
+physical-watch firmware are not committed. This is an independent project.

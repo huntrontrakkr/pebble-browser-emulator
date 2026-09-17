@@ -1,0 +1,279 @@
+{
+  "version": "v4.37.0",
+  "repository": "https://github.com/coredevices/PebbleOS",
+  "commit": "9399f564fb5035057a9174025d2c6c625e942285",
+  "release": "https://github.com/coredevices/PebbleOS/releases/tag/v4.37.0",
+  "profiles": {
+    "qemu_emery": {
+      "micro": {
+        "path": "qemu_emery_v4.37.0_micro_flash.bin.gz",
+        "bytes": 1698816,
+        "sha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+        "gzipBytes": 968633,
+        "gzipSha256": "1fbff9c24eb65fd573917b4362769899026eb2516b1bdc8d8ae27b14fd428194",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_emery_v4.37.0_micro_flash.bin"
+      },
+      "spi": {
+        "path": "qemu_emery_v4.37.0_spi_flash.bin.gz",
+        "bytes": 33554432,
+        "sha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+        "gzipBytes": 549348,
+        "gzipSha256": "6f345198b2faecd79de08da9bc64fc64e44a0f5b4695312783a721d52d3b6534",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_emery_v4.37.0_spi_flash.bin"
+      }
+    },
+    "qemu_flint": {
+      "micro": {
+        "path": "qemu_flint_v4.37.0_micro_flash.bin.gz",
+        "bytes": 864768,
+        "sha256": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+        "gzipBytes": 565986,
+        "gzipSha256": "556f9638559e91899040507348505ef2c79691e63b6aa4ed1e7135785eb898af",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_flint_v4.37.0_micro_flash.bin"
+      },
+      "spi": {
+        "path": "qemu_flint_v4.37.0_spi_flash.bin.gz",
+        "bytes": 33554432,
+        "sha256": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+        "gzipBytes": 548519,
+        "gzipSha256": "e641e0e9fb3f700c9c844f410ec2ff46d9c9505b8e8d384960772f010cf8a027",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_flint_v4.37.0_spi_flash.bin"
+      }
+    },
+    "qemu_gabbro": {
+      "micro": {
+        "path": "qemu_gabbro_v4.37.0_micro_flash.bin.gz",
+        "bytes": 1682944,
+        "sha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+        "gzipBytes": 958705,
+        "gzipSha256": "7903a5105d3420d6fd53078e67cce20aeb59dbe06701e6cf83461291d4513ae7",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_gabbro_v4.37.0_micro_flash.bin"
+      },
+      "spi": {
+        "path": "qemu_gabbro_v4.37.0_spi_flash.bin.gz",
+        "bytes": 33554432,
+        "sha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+        "gzipBytes": 560475,
+        "gzipSha256": "403a11d1c0db16219a1726ebb5c027a9e8ed99c6bd98cdcf64a272a8203eee52",
+        "source": "https://github.com/coredevices/PebbleOS/releases/download/v4.37.0/qemu_gabbro_v4.37.0_spi_flash.bin"
+      }
+    }
+  },
+  "licenses": [
+    {
+      "path": "licenses/pebbleos/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/images/Pebble_25x25_Paint_brush.LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/images/Pebble_25x25_Paint_brush.LICENSE",
+      "sha256": "eb113ac5006542496193a0641f8e90dcaf392e5025540ba45c2ee042af3ae51d"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/lang/ar_SA/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/lang/ar_SA/LICENSE",
+      "sha256": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/lang/en_TW/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/lang/en_TW/LICENSE",
+      "sha256": "67421c2fbaecc65c26aca567fd8edea5ef38790b84d58659b262b6fe636a14e6"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/lang/he_IL/LICENSE.Heebo.txt",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/lang/he_IL/LICENSE.Heebo.txt",
+      "sha256": "ddc9838c846e30cd5ba1e56e04d8d1cf6ec71c3691f179fbb347b23e480749f7"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/lang/zh_CN/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/lang/zh_CN/LICENSE",
+      "sha256": "67421c2fbaecc65c26aca567fd8edea5ef38790b84d58659b262b6fe636a14e6"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/pbf/EMOJI.LICENSE.txt",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/pbf/EMOJI.LICENSE.txt",
+      "sha256": "30e64719a0e4c8de009d398065e2a7c70950f2841f9e33ad6a6ed18633d7e845"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/pbf/EMOJI.NOTO.OFL.txt",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/pbf/EMOJI.NOTO.OFL.txt",
+      "sha256": "500bb1ccf43df7bbb522112f9133a52b16e1c35e809632f5d8609b179152de5b"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/ttf/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/ttf/LICENSE",
+      "sha256": "d8522249f19057f3a333c4c8f67488044d4e7d0558995dadd801007fea204213"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/ttf/LICENSE.DroidSerif.txt",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/ttf/LICENSE.DroidSerif.txt",
+      "sha256": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
+    },
+    {
+      "path": "licenses/pebbleos/resources/normal/base/ttf/LICENSE.Roboto.txt",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/normal/base/ttf/LICENSE.Roboto.txt",
+      "sha256": "7d96701533d059cfd4191a85ecfd159e262527abd737eae6d9fb533844c70410"
+    },
+    {
+      "path": "licenses/pebbleos/resources/prf/base/ttf/LICENSE.sazanami-mincho",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/prf/base/ttf/LICENSE.sazanami-mincho",
+      "sha256": "86fbc28a39b01c4c0368e60b5234508353e860aeb10786057bf8ceb9b280afda"
+    },
+    {
+      "path": "licenses/pebbleos/resources/prf/base/ttf/LICENSE_J.sazanami-mincho",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/resources/prf/base/ttf/LICENSE_J.sazanami-mincho",
+      "sha256": "9223208c5c02381199a391de55aa08b7e6f91a0c4077e65bc92d76347061016c"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/applib/graphics/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/applib/graphics/LICENSE",
+      "sha256": "5903dc334ad2be5500f2419919b05c85d2bc37ef080bcf730113215706cec583"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/applib/pbl_std/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/applib/pbl_std/LICENSE",
+      "sha256": "d8860b76886740e1dc26371c0fab86ebb6a30717679bd17db418822ed310859e"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/applib/vendor/tinflate/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/applib/vendor/tinflate/LICENSE",
+      "sha256": "84b4dca6c6d0498866968375bacdc6f64e16f4fba08daccbce0f36f205c73746"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/applib/vendor/uPNG/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/applib/vendor/uPNG/LICENSE",
+      "sha256": "58995b8aea106dc7a36cd5fea5b5ee6a86258cec4629a6f7f77f2057779cf03e"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/services/i18n/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/services/i18n/LICENSE",
+      "sha256": "3fab3681dada4a3b5fe33f7be67959b25518178919bbbcb63166e2f681a0027a"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/util/time/LICENSE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/util/time/LICENSE",
+      "sha256": "b918445b2e27e769420c803fb7b74c04b608a896b843b6d5e456430b86760b76"
+    },
+    {
+      "path": "licenses/cmsis/LICENSE.txt",
+      "source": "https://github.com/ARM-software/CMSIS_5/blob/55b19837f5703e418ca37894d5745b1dc05e4c91/LICENSE.txt",
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    {
+      "path": "licenses/nanopb/LICENSE.txt",
+      "source": "https://github.com/nanopb/nanopb/blob/cad3c18ef15a663e30e3e43e3a752b66378adec1/LICENSE.txt",
+      "sha256": "e2f2fc8fe3faa7dcb09dbe995db48c6ec5c1f72705db915101e4a83fed44f66d"
+    },
+    {
+      "path": "licenses/tinymt/LICENSE.txt",
+      "source": "https://github.com/MersenneTwister-Lab/TinyMT/blob/fabd14128db25498d6d3baf9cd25e15983bc12fd/LICENSE.txt",
+      "sha256": "1f1a07592b8d80d07268e1bcfbee73b5ddbfcdc2b238730d0c1941a8a4db4bfd"
+    },
+    {
+      "path": "licenses/qrcode/c/qrcodegen.c.NOTICE",
+      "source": "https://github.com/nayuki/QR-Code-generator/blob/2c9044de6b049ca25cb3cd1649ed7e27aa055138/c/qrcodegen.c",
+      "sha256": "c39b75d7b6946495a7820dd014b998c994282f609eedac4684edb2eb82e6afc8"
+    },
+    {
+      "path": "licenses/speex/COPYING",
+      "source": "https://github.com/xiph/speex/blob/05895229896dc942d453446eba6f9f5ddcf95422/COPYING",
+      "sha256": "2654a4264b2bfe298dedc508748d140111840c315cc8eb646a3a68c13fa75b01"
+    },
+    {
+      "path": "licenses/picolibc/COPYING.picolibc",
+      "source": "https://github.com/picolibc/picolibc/blob/2cb62b35aaf461e730860cb7ecc31c51b9848d78/COPYING.picolibc",
+      "sha256": "c349b14186db97edc5b19a92b36ab3a8fbf01d65217e7414b9f63433add2988d"
+    },
+    {
+      "path": "licenses/iconography/LICENSE",
+      "source": "https://github.com/pebble-dev/iconography/blob/99e2660ccd8c0c98e596612bb1c21700e28156b3/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "licenses/moddable/licenses/NOTICE",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/licenses/NOTICE",
+      "sha256": "8dd77d1c4a7164938b7bc6c25ba6d52e994a5a652525d1db3c2cd7902c386cd4"
+    },
+    {
+      "path": "licenses/moddable/licenses/OFL.txt",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/licenses/OFL.txt",
+      "sha256": "ca122f3bda0154f692817450168cb650a7fc59ef96c93582acd2e7a744d464d3"
+    },
+    {
+      "path": "licenses/moddable/licenses/gpl-3.0.txt",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/licenses/gpl-3.0.txt",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "licenses/moddable/licenses/lgpl-3.0.txt",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/licenses/lgpl-3.0.txt",
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "path": "licenses/moddable/licenses/readme.md",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/licenses/readme.md",
+      "sha256": "c00ca503085bd6c55002d6acb92f8234d1d18466a94fbeab24e2a96bbf05138a"
+    },
+    {
+      "path": "licenses/moddable/modules/base/time/pebble/modTime.c.NOTICE",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/modules/base/time/pebble/modTime.c",
+      "sha256": "bdb45bd39ff7be69e1430f3b08792a3a01c18d7ac87bc473a442a4def9e1cc98"
+    },
+    {
+      "path": "licenses/moddable/xs/sources/xsAll.c.NOTICE",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/xs/sources/xsAll.c",
+      "sha256": "98a8ce6295f49038d4f3774299fea3801fa8b7fd8906a788028402a1f971f84f"
+    },
+    {
+      "path": "licenses/moddable/xs/sources/xsdtoa.c.NOTICE",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/xs/sources/xsdtoa.c",
+      "sha256": "d36e6c7f127c50fe0aea2a58535d6ec3a074bfcfafc07ad55b10e528873da61c"
+    },
+    {
+      "path": "licenses/moddable/xs/tools/fdlibm/e_acos.c.NOTICE",
+      "source": "https://github.com/coredevices/moddable/blob/ae34f417e6c5ae31bba6160e68b30d24338254c6/xs/tools/fdlibm/e_acos.c",
+      "sha256": "747a56d557d42e50d778491495e305467f3fcd22ed8488563a782fdcf6f7901c"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/services/activity/kraepelin/kraepelin_algorithm.c.NOTICE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/services/activity/kraepelin/kraepelin_algorithm.c",
+      "sha256": "1494f5d239ba84860b195a7e734044c6779903b61435f3cf0b85f81620305e81"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/applib/pbl_std/timelocal.c.NOTICE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/applib/pbl_std/timelocal.c",
+      "sha256": "1fdf0249b4ad860ceffab979af8d21474bc363eab93e0ae784f98e301e4773b7"
+    },
+    {
+      "path": "licenses/pebbleos/src/fw/applib/pbl_std/timelocal.h.NOTICE",
+      "source": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/applib/pbl_std/timelocal.h",
+      "sha256": "96e70c3ffd4e885ef65d5c63a14f1aa19b9b53aecc63aa5ab1e9aa076e302917"
+    },
+    {
+      "path": "licenses/gcc/COPYING.RUNTIME",
+      "source": "https://github.com/gcc-mirror/gcc/blob/releases/gcc-14.2.0/COPYING.RUNTIME",
+      "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+    },
+    {
+      "path": "licenses/speex/libspeex/kiss_fft.c.NOTICE",
+      "source": "https://github.com/xiph/speex/blob/05895229896dc942d453446eba6f9f5ddcf95422/libspeex/kiss_fft.c",
+      "sha256": "263a5395d9ee0150c35e5197ba0c69809759aa8b1d44521c2f4e260890a7ed55"
+    },
+    {
+      "path": "licenses/speex/libspeex/kiss_fftr.c.NOTICE",
+      "source": "https://github.com/xiph/speex/blob/05895229896dc942d453446eba6f9f5ddcf95422/libspeex/kiss_fftr.c",
+      "sha256": "d8b984b89291f83346771dc7cba564f4cb9d05a5012381b158b7071c278f0351"
+    },
+    {
+      "path": "licenses/speex/libspeex/smallft.c.NOTICE",
+      "source": "https://github.com/xiph/speex/blob/05895229896dc942d453446eba6f9f5ddcf95422/libspeex/smallft.c",
+      "sha256": "1ddf7fd333e3c9bfbc5a844c8d6a2acb004ce731a595bf942ff7aa6e6c97a820"
+    },
+    {
+      "path": "licenses/speex/libspeex/vorbis_psy.c.NOTICE",
+      "source": "https://github.com/xiph/speex/blob/05895229896dc942d453446eba6f9f5ddcf95422/libspeex/vorbis_psy.c",
+      "sha256": "de94b66839838569013d849d80ca0f584fbc87333cfe6873183c63768cbd36e6"
+    }
+  ]
+}

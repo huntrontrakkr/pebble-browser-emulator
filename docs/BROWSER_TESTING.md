@@ -46,13 +46,12 @@ This gate does not establish a complete SDK/Waf build. The default output is `tm
 
 # Preview workflow
 
-The separate mobile-layout gate covers first-run firmware setup, cancellation, actual Clock
+The separate mobile-layout gate covers automatic first-run default firmware, cancellation, actual Clock
 PBW installation, package download, share links, firmware persistence across reload and
 virtual-clock pacing. It uses desktop Linux engines with a 390×844 viewport; this is not an
 actual iOS/Android device performance claim.
 
 ```sh
-PEBBLE_FIRMWARE_DIR=/path/to/official/emery/images \
 PEBBLE_BROWSER_URL=http://127.0.0.1:4201/ \
 PEBBLE_TRACE_DIR=/tmp/preview-evidence \
 node scripts/verify-preview-browser.mjs
@@ -61,3 +60,6 @@ node scripts/verify-preview-browser.mjs
 `PEBBLE_BROWSERS` selects comma-separated `chromium,firefox,webkit`; the existing optional
 `PEBBLE_WEBKIT_EXECUTABLE` override also applies. Serve a completed static build and do not
 rebuild it while this workflow runs. The page stays entirely local for the included example.
+
+No firmware fixture or file picker is needed: this gate uses the shipped, checksummed
+images and verifies that reload reuses IndexedDB without fetching those assets again.

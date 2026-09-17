@@ -6,12 +6,17 @@ for source builds, firmware changes, inputs, the virtual phone, packets and fram
 
 ## Firmware setup
 
-Each browser needs a matching pair of emulator firmware files once per watch model.
-The preview provides direct links to the official 4.37.0 micro and SPI files and one
-file picker for both. It checks their board, matching version, sizes and published
-SHA-256 digests. The files are stored locally in IndexedDB (Blobs, with a typed-array
-fallback for WebKit environments that cannot persist Blobs). The selected app
-then boots and installs automatically. A subsequent preview link uses that saved pair.
+Preview automatically loads the bundled official 4.37.0 emulator firmware on first
+use. No firmware file picker is required. The selected model's two images download
+from the same static site, expand with a bounded streaming gzip decoder, and must
+match their exact sizes and official SHA-256 digests before boot. Time 2 downloads
+about 1.52 MB compressed; its original 32 MiB SPI image is unchanged after expansion.
+No firmware download or Worker starts on the idle page.
+
+After checksum verification, the images are stored locally in IndexedDB (Blobs, with a typed-array
+fallback for WebKit). A saved firmware pair takes precedence over the bundled default.
+If a download fails, **Retry default firmware** and manual file import remain available.
+Cancellation stops the stream and prevents an abandoned preview from launching.
 
 Firmware loaded through Developer tools becomes the saved default for its profile.
 Choose another version there to override it. These are original firmware images, not
@@ -19,12 +24,13 @@ full running-machine snapshots: the guest still boots on each page load. Reset k
 the current session's flash; a new preview session starts from the saved image pair.
 Clearing saved files or browser site data removes the stored firmware too.
 
-There is **no firmware bundled with the website**. GitHub release-asset and official
-SDK archive downloads lack browser CORS permission, including the API's redirect to
-release assets. There is no proxy. The overall PebbleOS license does not resolve every
-vendor component's redistribution terms. Consequently a link is automatic **after
-local setup**, not a zero-setup preview for a new visitor. Storage denial is reported;
-the imported files can still run for that session.
+The bundled emulator images have a pinned source/component review, original release
+hashes, licenses and corresponding-source links in
+[their notice](../public/firmware/v4.37.0/NOTICE.md). The QEMU configurations exclude
+the physical-device vendor blobs. This does not establish redistribution rights for
+all firmware. GitHub release-asset and SDK downloads still lack browser CORS permission;
+other versions and the SDK use manual import. There is no proxy. Storage denial is
+reported and does not prevent the current session from running.
 
 ## Shareable URLs
 
@@ -79,7 +85,7 @@ This repository's root manifest is a complete working example. Its public previe
 When there is no preview manifest or explicit PBW path, the project is imported into
 Developer tools. A saved SDK starts the existing browser build automatically. Otherwise
 the panel asks for SDK 4.33.1 and resumes after it is opened. Successful builds return
-to Preview for firmware setup and installation. The same compiler limits apply: custom
+to Preview for automatic firmware loading and installation. The same compiler limits apply: custom
 fonts, arbitrary SDK/Waf environments and unsupported dependencies still need the
 separate compatibility work described in [STATUS](STATUS.md). A URL does not make an
 unsupported project buildable. Network imports and builds are cancellable.

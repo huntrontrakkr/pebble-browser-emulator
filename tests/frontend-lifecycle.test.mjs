@@ -73,6 +73,7 @@ class Port {
 }
 function makeApp() {
   const values = new Map(),
+    savedFirmwares = [],
     exports = {};
   const context = vm.createContext({
     exports,
@@ -81,6 +82,9 @@ function makeApp() {
     FIRMWARE_PROFILES,
     profileDisplay,
     isFirmwareProfile,
+    saveFirmware: async (firmware) => {
+      savedFirmwares.push(firmware);
+    },
     Worker: Port,
     URL,
     TextEncoder,
@@ -93,6 +97,7 @@ function makeApp() {
   });
   vm.runInContext(js, context, { filename: sourcePath });
   const app = new exports.App();
+  app.savedFirmwares = savedFirmwares;
   app.qemuWorker = new Port();
   app.worker = new Port();
   app.profile.set('qemu_emery');
@@ -103,6 +108,28 @@ function makeApp() {
   app.phoneScript.set('console.log("example")');
   return app;
 }
+
+test('manual firmware is remembered only after acceptance; cached previews do not rewrite it', async () => {
+  const app = makeApp();
+  app.qemuReady = Promise.resolve();
+  const firmware = {
+    profile: 'qemu_emery',
+    name: 'official-default',
+    micro: new Uint8Array([1]),
+    flash: new Uint8Array([2]),
+  };
+  await app.loadFirmware(firmware);
+  assert.equal(app.savedFirmwares.length, 0, 'Unaccepted firmware must not replace the saved pair');
+  app.handleQemuEvent({ type: 'firmware-loaded', profile: firmware.profile, name: firmware.name });
+  assert.equal(app.savedFirmwares.length, 1);
+  await app.loadFirmware(firmware, true);
+  app.handleQemuEvent({ type: 'firmware-loaded', profile: firmware.profile, name: firmware.name });
+  assert.equal(
+    app.savedFirmwares.length,
+    1,
+    'Cached images should not incur another large IndexedDB write',
+  );
+});
 
 test('switching to the diagnostic profile cannot leave an installation running invisibly', () => {
   const app = makeApp();

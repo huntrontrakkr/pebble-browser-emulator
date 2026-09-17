@@ -31,6 +31,73 @@ const DIGESTS: Record<FirmwareProfile, [string, string]> = {
     '0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed',
   ],
 };
+const MICRO_BYTES: Record<FirmwareProfile, number> = {
+  qemu_emery: 1698816,
+  qemu_flint: 864768,
+  qemu_gabbro: 1682944,
+};
+
+/** Same-origin, unchanged upstream images. Only the transport is compressed. */
+export async function bundledFirmware(
+  profile: FirmwareProfile,
+  signal: AbortSignal,
+  base = document.baseURI,
+  request: typeof fetch = fetch,
+): Promise<PreviewFirmware> {
+  signal.throwIfAborted();
+  const images: Uint8Array[] = [];
+  // Sequential expansion bounds temporary memory on phones.
+  for (const [index, role] of ['micro', 'spi'].entries()) {
+    const response = await request(
+      new URL(
+        `firmware/${DEFAULT_FIRMWARE}/${profile}_${DEFAULT_FIRMWARE}_${role}_flash.bin.gz`,
+        base,
+      ),
+      { signal, credentials: 'same-origin' },
+    );
+    if (!response.ok || !response.body)
+      throw new Error(
+        'Default firmware could not be downloaded. Retry or open firmware files below.',
+      );
+    if (typeof DecompressionStream === 'undefined')
+      throw new Error(
+        'This browser needs firmware files opened manually. Use the downloads below.',
+      );
+    const bytes = new Uint8Array(index === 0 ? MICRO_BYTES[profile] : 32 * 1048576);
+    const reader = response.body.pipeThrough(new DecompressionStream('gzip')).getReader();
+    const abort = () => {
+      void reader.cancel(signal.reason).catch(() => {});
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    let offset = 0;
+    try {
+      signal.throwIfAborted();
+      for (;;) {
+        const { value, done } = await reader.read();
+        signal.throwIfAborted();
+        if (done) break;
+        if (offset + value.byteLength > bytes.length)
+          throw new Error('Default firmware exceeds its expected size.');
+        bytes.set(value, offset);
+        offset += value.byteLength;
+      }
+      if (offset !== bytes.length) throw new Error('Default firmware download is incomplete.');
+      const digest = Array.from(
+        new Uint8Array(await crypto.subtle.digest('SHA-256', bytes.buffer)),
+        (b) => b.toString(16).padStart(2, '0'),
+      ).join('');
+      if (digest !== DIGESTS[profile][index])
+        throw new Error('Default firmware checksum does not match the official release.');
+      signal.throwIfAborted();
+      images.push(bytes);
+    } finally {
+      signal.removeEventListener('abort', abort);
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+  }
+  return { profile, name: `${profile}_${DEFAULT_FIRMWARE}`, micro: images[0], flash: images[1] };
+}
 export function firmwareDownload(profile: FirmwareProfile, role: 'micro' | 'spi'): string {
   return `https://github.com/coredevices/PebbleOS/releases/download/${DEFAULT_FIRMWARE}/${profile}_${DEFAULT_FIRMWARE}_${role}_flash.bin`;
 }

@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-17T13:06:49.679Z",
+  "preview": {
+    "date": "2026-09-17T13:06:49.679Z",
+    "scope": "Linux browser engines with a mobile viewport, not measurements on a physical phone. Bundled default firmware, example install without file import, cancellation, hash link, PBW download, cached firmware reuse, screen pacing and pause.",
+    "results": [
+      {
+        "browser": "chromium",
+        "version": "153.0.8010.12",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 10839,
+        "cachedBootAndInstallMs": 10870,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.899999999999999,
+        "stateMessages": 39,
+        "clockMessages": 91,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "firefox",
+        "version": "155.0",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 11970,
+        "cachedBootAndInstallMs": 11470,
+        "measurementSeconds": 10,
+        "virtualSeconds": 10.027577812499999,
+        "stateMessages": 40,
+        "clockMessages": 92,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "webkit",
+        "version": "26.6",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 9880,
+        "cachedBootAndInstallMs": 9891,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.9918850625,
+        "stateMessages": 41,
+        "clockMessages": 97,
+        "mainThreadLongTasks": [],
+        "passed": true
+      }
+    ]
+  },
+  "fallbackAndOverride": {
+    "date": "2026-09-17T13:06:32.598Z",
+    "browser": "153.0.8010.12",
+    "scope": "One deliberate HTTP 503 tests manual fallback and retry; retry uses the real unmodified bundled images. Actual 4.36.0 local import overrides the bundled 4.37.0 default and is reused by preview after reload.",
+    "accepted": {
+      "type": "firmware-loaded",
+      "profile": "qemu_emery",
+      "name": "qemu_emery_v4.36.0_micro_flash.bin"
+    },
+    "passed": true
+  }
+}
