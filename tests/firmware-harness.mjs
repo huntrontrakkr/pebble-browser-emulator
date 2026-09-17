@@ -76,7 +76,8 @@ export class FirmwareHarness {
     await this.wait((m) => m.type === 'harness-ready');
     this.send({
       type: 'init',
-      wasmUrl: pathToFileURL(resolve('public/wasm/qemu-emery.wasm')).href,
+      wasmUrl: pathToFileURL(resolve(process.env.PEBBLE_WASM ?? 'public/wasm/qemu-emery.wasm'))
+        .href,
     });
     await this.wait((m) => m.type === 'ready');
     this.send({

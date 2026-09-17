@@ -65,6 +65,16 @@ An actual public GitHub preview also passes both routes: downloading its commit-
 prepared package, and importing Clock source, opening the real SDK, compiling with the
 browser Wasm compiler and automatically installing. [GitHub workflow record](evidence/github-preview-workflow.json).
 
+The interrupt-delivery loop now visits asserted lines in the same order without scanning all
+32 lines per step. Paired Node tests measured **19% higher core throughput** across the three
+current profiles; actual Chromium, Firefox and WebKit Workers also improved. Every deterministic
+trace matched the original core, Wasm linear memory was unchanged, and the native sensor frames,
+phone settings, shared-clock and original store-watchface gates passed. This is desktop core
+throughput, not a measured Pixel 9 or UI FPS improvement. The external Dream-RSI harness is
+connected as local development tooling with frozen tests and firmware; its first six discovery
+attempts yielded no retained memory change. [Method, results and reproduction](OPTIMIZATION.md)
+and [raw evidence](evidence/optimization.json).
+
 | Capability                 | Verified scope                                                                                                                                                                                                                                           |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                  |

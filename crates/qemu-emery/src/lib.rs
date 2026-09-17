@@ -53,6 +53,7 @@ impl PebbleBus {
             observed_pending_system: 0,
         }
     }
+    // Memory access experiment boundary: begin.
     fn read_byte(&mut self, a: u32) -> u8 {
         let v = self
             .code
@@ -154,6 +155,7 @@ impl CoreBus for PebbleBus {
             self.write_byte(a.wrapping_add(i as u32), *b)
         }
     }
+    // Memory access experiment boundary: end.
     fn set_active_pc(&mut self, p: u32, _: u8) {
         self.active_pc = p
     }
@@ -358,10 +360,12 @@ pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64
     let active = cpu.ppb.nvic_iabr[0].load(std::sync::atomic::Ordering::Relaxed);
     let pending = cpu.ppb.nvic_ispr[0].load(std::sync::atomic::Ordering::Relaxed);
     let signal = mask & (!bus.devices.irq_levels | !active & !pending);
-    for irq in 0..32 {
-        if signal & (1 << irq) != 0 {
-            bus.atomics.assert_irq(0, irq)
-        }
+    // Visit only asserted lines, preserving the original low-to-high order.
+    let mut remaining = signal;
+    while remaining != 0 {
+        let irq = remaining.trailing_zeros();
+        bus.atomics.assert_irq(0, irq);
+        remaining &= remaining - 1;
     }
     bus.devices.irq_levels = mask;
     observe_pending_events(cpu, bus);

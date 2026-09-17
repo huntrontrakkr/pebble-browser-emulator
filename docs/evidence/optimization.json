@@ -1,0 +1,1704 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local desktop core throughput and regression acceptance. No Pixel measurement, UI FPS gain, universal fidelity proof, or global optimum is claimed.",
+  "baselineSourceCommit": "c9506757e6975dda91c89e501fd5e7e88523be6b",
+  "retainedChange": {
+    "file": "crates/qemu-emery/src/lib.rs",
+    "sourceSha256": "ea903a71b8b6171c97d1de4e1841c5fae23e77c92bd68294d7ea860b5874ea47",
+    "description": "Process asserted IRQ bits in ascending order instead of scanning all 32 lines each step.",
+    "origin": "Manual code review during the memory experiment, not a generated memory candidate or a claimed benefit from scheduler evolution.",
+    "baselineWasmSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+    "candidateWasmSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+    "firmwareAndCpuInstructionEngineUnchanged": true,
+    "virtualClockAndPresentationLimitUnchanged": true
+  },
+  "host": {
+    "cpu": "Intel Core i9-12900KF",
+    "os": "Linux 6.6.87.2-microsoft-standard-WSL2 x86_64",
+    "rustc": "1.98.1 (48a229cea 2026-09-01)",
+    "node": "v24.21.0",
+    "python": "3.12.3"
+  },
+  "workload": {
+    "source": "scripts/optimization/core-workload.mjs",
+    "sourceSha256": "78cd2473f78a23636af40363c69efb932aca359a7c6565daecc604cbf661df3c",
+    "schedulerStepsPerRun": 10000000,
+    "checkpointsPerRun": 40,
+    "stepsPerCheckpoint": 250000,
+    "epochSeconds": 1789660000,
+    "timed": "spike_run_until only; upload, compilation, checkpoint creation and hashing excluded",
+    "stepMeaning": "Scheduler iterations, including sleep; not calibrated hardware cycles or necessarily executed instructions",
+    "nodeSampling": "One warm-up pair then three alternating measured pairs per profile",
+    "browserSampling": "One warm-up then three samples per side/profile; side order reversed between profiles",
+    "traceFields": [
+      "ticks",
+      "r0-r15",
+      "xpsr",
+      "cfsr",
+      "hfsr",
+      "frame counter",
+      "all canonical frame pixels",
+      "all UART TX bytes at each checkpoint"
+    ]
+  },
+  "noiseControl": {
+    "schemaVersion": 1,
+    "runtime": "v24.21.0",
+    "measuredAt": "2026-09-17T20:58:08.925Z",
+    "baselineSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+    "candidateSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+    "valid": true,
+    "score": 1.007338776838622,
+    "results": [
+      {
+        "profile": "qemu_flint",
+        "microSha256": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+        "flashSha256": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+        "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112",
+        "medianSpeedup": 1.0005627918708597,
+        "minimumPairedSpeedup": 0.9922683757455405,
+        "phases": {
+          "boot": 0.9988340466340878,
+          "buttons": 1.0077568780411843
+        },
+        "samples": [
+          {
+            "baseline": {
+              "phases": {
+                "boot": 490.76504600000044,
+                "buttons": 205.8788600000007
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 491.9578859999997,
+                "buttons": 204.29417500000136
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 508.07734400000027,
+                "buttons": 202.2253669999982
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 508.67042999999876,
+                "buttons": 207.16686600000003
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            }
+          }
+        ]
+      },
+      {
+        "profile": "qemu_emery",
+        "microSha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+        "flashSha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+        "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438",
+        "medianSpeedup": 1.0046951876648655,
+        "minimumPairedSpeedup": 1.0027724469361885,
+        "phases": {
+          "boot": 1.0092925311798306,
+          "buttons": 0.9972041769492728
+        },
+        "samples": [
+          {
+            "baseline": {
+              "phases": {
+                "boot": 509.5364070000005,
+                "buttons": 214.27805600000102
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 504.8451180000002,
+                "buttons": 216.9681559999999
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 509.1672230000004,
+                "buttons": 217.586530999999
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 505.16088500000023,
+                "buttons": 218.1965699999946
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            }
+          }
+        ]
+      },
+      {
+        "profile": "qemu_gabbro",
+        "microSha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+        "flashSha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+        "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a",
+        "medianSpeedup": 1.0168291449829105,
+        "minimumPairedSpeedup": 1.0149477822211774,
+        "phases": {
+          "boot": 1.0194088790549531,
+          "buttons": 1.0116497548766412
+        },
+        "samples": [
+          {
+            "baseline": {
+              "phases": {
+                "boot": 510.91978599999857,
+                "buttons": 219.39419500000076
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 502.6904429999977,
+                "buttons": 216.86773899999935
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 489.80955899999753,
+                "buttons": 220.3195749999977
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 480.48390500000096,
+                "buttons": 217.89215700000204
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "nodePerformance": {
+    "schemaVersion": 1,
+    "runtime": "v24.21.0",
+    "measuredAt": "2026-09-17T21:15:19.631Z",
+    "baselineSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+    "candidateSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+    "valid": true,
+    "score": 1.1908871327685349,
+    "results": [
+      {
+        "profile": "qemu_flint",
+        "microSha256": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+        "flashSha256": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+        "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112",
+        "medianSpeedup": 1.1916069632455775,
+        "minimumPairedSpeedup": 1.1566714729750085,
+        "phases": {
+          "boot": 1.1410440484842759,
+          "buttons": 1.3294066108537401
+        },
+        "samples": [
+          {
+            "baseline": {
+              "phases": {
+                "boot": 513.6972089999999,
+                "buttons": 207.22028500000056
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 449.12177000000065,
+                "buttons": 155.8742699999998
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 513.782307,
+                "buttons": 206.5267259999996
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 450.2738590000017,
+                "buttons": 153.1356490000012
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 492.23182200000247,
+                "buttons": 204.8013340000016
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 447.833622000001,
+                "buttons": 154.7861989999974
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 40763392,
+              "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+            }
+          }
+        ]
+      },
+      {
+        "profile": "qemu_emery",
+        "microSha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+        "flashSha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+        "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438",
+        "medianSpeedup": 1.1876876277657265,
+        "minimumPairedSpeedup": 1.1778193869805953,
+        "phases": {
+          "boot": 1.134131224201383,
+          "buttons": 1.3229918988816378
+        },
+        "samples": [
+          {
+            "baseline": {
+              "phases": {
+                "boot": 507.4759519999998,
+                "buttons": 215.9930320000003
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 443.35778499999924,
+                "buttons": 163.2610390000009
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 505.8656800000026,
+                "buttons": 215.38221799999883
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 448.3271569999997,
+                "buttons": 164.03150000000096
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 504.34540400000697,
+                "buttons": 215.05788000000211
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 444.6975740000016,
+                "buttons": 161.02001299999756
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+            }
+          }
+        ]
+      },
+      {
+        "profile": "qemu_gabbro",
+        "microSha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+        "flashSha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+        "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a",
+        "medianSpeedup": 1.1933739232848686,
+        "minimumPairedSpeedup": 1.1853818290312625,
+        "phases": {
+          "boot": 1.1578584529512725,
+          "buttons": 1.3133203220353327
+        },
+        "samples": [
+          {
+            "baseline": {
+              "phases": {
+                "boot": 505.1530750000002,
+                "buttons": 218.1146690000005
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 445.61987200000294,
+                "buttons": 164.53605099999913
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 506.2735290000019,
+                "buttons": 217.71285799999714
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 424.1487030000062,
+                "buttons": 165.77285400000073
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            }
+          },
+          {
+            "baseline": {
+              "phases": {
+                "boot": 515.2062040000019,
+                "buttons": 214.9752570000055
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            },
+            "candidate": {
+              "phases": {
+                "boot": 444.9647560000012,
+                "buttons": 166.89833800000633
+              },
+              "schedulerSteps": 10000000,
+              "memoryBytes": 42336256,
+              "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "browserPerformance": {
+    "measuredAt": "2026-09-17T21:18:47.700Z",
+    "scope": "Actual Linux browser Workers; core-only throughput, not UI FPS or physical-phone measurement",
+    "baselineSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+    "candidateSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+    "results": [
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "profile": "qemu_flint",
+        "speedup": 1.219385994968921,
+        "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112",
+        "candidate": [
+          {
+            "phases": {
+              "boot": 430.40000000596046,
+              "buttons": 149.4000000655651
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 418.90000000596046,
+              "buttons": 150.5999999642372
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 432.80000004172325,
+              "buttons": 150.9999998807907
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          }
+        ],
+        "baseline": [
+          {
+            "phases": {
+              "boot": 486.59999990463257,
+              "buttons": 204.50000002980232
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 499.39999997615814,
+              "buttons": 207.59999999403954
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 502.39999997615814,
+              "buttons": 205.2000000178814
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          }
+        ]
+      },
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "profile": "qemu_emery",
+        "speedup": 1.2125794809987065,
+        "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438",
+        "baseline": [
+          {
+            "phases": {
+              "boot": 497.2999999821186,
+              "buttons": 209.89999997615814
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 492.69999998807907,
+              "buttons": 212.0999999642372
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 495.7999999523163,
+              "buttons": 209.80000001192093
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          }
+        ],
+        "candidate": [
+          {
+            "phases": {
+              "boot": 422.5999999642372,
+              "buttons": 159.30000001192093
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 397.9000000357628,
+              "buttons": 162.89999997615814
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 427.7999999821186,
+              "buttons": 163.4000000357628
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          }
+        ]
+      },
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "profile": "qemu_gabbro",
+        "speedup": 1.2548748923990813,
+        "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a",
+        "candidate": [
+          {
+            "phases": {
+              "boot": 417.3999999165535,
+              "buttons": 162.0999999344349
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 424.00000005960464,
+              "buttons": 165.00000002980232
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 414.40000009536743,
+              "buttons": 154.2999999821186
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          }
+        ],
+        "baseline": [
+          {
+            "phases": {
+              "boot": 502.0000000298023,
+              "buttons": 225.6000000834465
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 499.7999999523163,
+              "buttons": 227.40000000596046
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 492.5999998450279,
+              "buttons": 227.60000002384186
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          }
+        ]
+      },
+      {
+        "engine": "firefox",
+        "browserVersion": "155.0",
+        "profile": "qemu_flint",
+        "speedup": 1.1146496815286624,
+        "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112",
+        "candidate": [
+          {
+            "phases": {
+              "boot": 466,
+              "buttons": 162
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 463,
+              "buttons": 168
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 436,
+              "buttons": 164
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          }
+        ],
+        "baseline": [
+          {
+            "phases": {
+              "boot": 500,
+              "buttons": 200
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 529,
+              "buttons": 206
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 495,
+              "buttons": 201
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          }
+        ]
+      },
+      {
+        "engine": "firefox",
+        "browserVersion": "155.0",
+        "profile": "qemu_emery",
+        "speedup": 1.1822580645161291,
+        "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438",
+        "baseline": [
+          {
+            "phases": {
+              "boot": 519,
+              "buttons": 221
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 521,
+              "buttons": 211
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 519,
+              "buttons": 214
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          }
+        ],
+        "candidate": [
+          {
+            "phases": {
+              "boot": 440,
+              "buttons": 174
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 454,
+              "buttons": 170
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 447,
+              "buttons": 173
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          }
+        ]
+      },
+      {
+        "engine": "firefox",
+        "browserVersion": "155.0",
+        "profile": "qemu_gabbro",
+        "speedup": 1.1907051282051282,
+        "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a",
+        "candidate": [
+          {
+            "phases": {
+              "boot": 453,
+              "buttons": 175
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 453,
+              "buttons": 171
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 430,
+              "buttons": 168
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          }
+        ],
+        "baseline": [
+          {
+            "phases": {
+              "boot": 517,
+              "buttons": 226
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 489,
+              "buttons": 206
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 533,
+              "buttons": 221
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          }
+        ]
+      },
+      {
+        "engine": "webkit",
+        "browserVersion": "26.6",
+        "profile": "qemu_flint",
+        "speedup": 1.3258655804480652,
+        "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112",
+        "candidate": [
+          {
+            "phases": {
+              "boot": 360,
+              "buttons": 131
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 362,
+              "buttons": 126
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 370,
+              "buttons": 131
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          }
+        ],
+        "baseline": [
+          {
+            "phases": {
+              "boot": 479,
+              "buttons": 176
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 479,
+              "buttons": 172
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          },
+          {
+            "phases": {
+              "boot": 477,
+              "buttons": 173
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 40763392,
+            "traceSha256": "d189d05e1100089a8f2dd85de6aab7b7d11af39c560c5ae1b7cbfd28a3515112"
+          }
+        ]
+      },
+      {
+        "engine": "webkit",
+        "browserVersion": "26.6",
+        "profile": "qemu_emery",
+        "speedup": 1.2037037037037037,
+        "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438",
+        "baseline": [
+          {
+            "phases": {
+              "boot": 469,
+              "buttons": 180
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 468,
+              "buttons": 184
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 473,
+              "buttons": 177
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          }
+        ],
+        "candidate": [
+          {
+            "phases": {
+              "boot": 395,
+              "buttons": 136
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 394,
+              "buttons": 147
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          },
+          {
+            "phases": {
+              "boot": 397,
+              "buttons": 143
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "72877a628ff727da86b01d8cdf96499603a67469f26564768ae1dc33418bc438"
+          }
+        ]
+      },
+      {
+        "engine": "webkit",
+        "browserVersion": "26.6",
+        "profile": "qemu_gabbro",
+        "speedup": 1.1585820895522387,
+        "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a",
+        "candidate": [
+          {
+            "phases": {
+              "boot": 358,
+              "buttons": 145
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 389,
+              "buttons": 147
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 396,
+              "buttons": 144
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          }
+        ],
+        "baseline": [
+          {
+            "phases": {
+              "boot": 472,
+              "buttons": 182
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 430,
+              "buttons": 175
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          },
+          {
+            "phases": {
+              "boot": 445,
+              "buttons": 176
+            },
+            "schedulerSteps": 10000000,
+            "memoryBytes": 42336256,
+            "traceSha256": "82b4923134fbf441227326e49d20d14ecfc2d6306912d783f84ec3f373c3190a"
+          }
+        ]
+      }
+    ]
+  },
+  "research": {
+    "harnessThreadId": "01a0aaad-0c87-78a0-91cf-70b11eab79f0",
+    "localRun": "tmp/optimization/memory-search/run",
+    "manifestSha256": "80db8ec617d317fa45d9676402b359b3290de524c08c55485b803bb5b81f45e8",
+    "frozenEvaluatorSha256": "90662de746ea544ee71f212a3efd2b9c150738a2d636718907bb831527c91288",
+    "harnessSourceHashes": {
+      "dream_rsi/mcp.py": "c1ec9f6b86a0722dc537f49b4454f2c2758cb2cd3eea4d663f7db960593afea1",
+      "dream_rsi/grid_development.py": "b3f30fba4f6f1f3f8448ea30986475371aafdd832b4ad7d4f8ca30c593e869b4",
+      "dream_rsi/profiles.py": "13814ed49410c0db77bdb881ec398ef18c19c6f09938bcd9c505fa3e31c8d459",
+      "dream_rsi/comparison.py": "191ff0002104546968d961bd061f1500078006114693b8102235d3c428b89a34",
+      "dream_rsi/grid_process.py": "691e258d9a3b74beb0478b22dab472025c58a63c13f8cf022d7e443627abccce",
+      "dream_rsi/pareto.py": "f198410f0b64c50fe15e68b5ecc6dc767a9b2b6f6ab1408fe68635a78546dd1c",
+      "dream_rsi/grid.py": "3e410dd807bb405b4d0e17f5a31a66f103bc4f38185758816938b8365f5d6ec6",
+      "dream_rsi/grid_worker.py": "2dba8dc852f1a5859145c37c38551b479dc3d9f7d4f78b070024a3ef1e2a948d",
+      "dream_rsi/policies.py": "613afa83c7b971aedc43c0ffd4c5b75bb18e62441b33b34d71290df289daadbf",
+      "dream_rsi/core.py": "9f538515013e0cef34b6c4a3114c6efa6033c78c176c9efb652cb7ced125df94",
+      "dream_rsi/evolution.py": "f4eef320674044a755c6edda8eac0ff0e3e0206299eb24e06c2dbc5fb2717b24",
+      "dream_rsi/grid_run.py": "829211e10ae6bc8665504befc4314e6024f7df01619666ca33c45dc2082b0b3a",
+      "dream_rsi/command_model.py": "8fdce6a4121e398f1f268641d12bf85b24feb7243d697364d03b604846b0c649",
+      "dream_rsi/fidelity.py": "1cec56591fa9a1c6ea1f56a85838cd0e50c2f5ec418eed5a72e24b1eb1c8723a",
+      "dream_rsi/paper_math.py": "68344540332c11651845a8bd1845255d6a6cd0a2653db21420f7be6242c860c6",
+      "dream_rsi/runner.py": "480ea8a1fa7acfc08df045c5b6d4a86fde7970c5ea61eaf3f26825260c4c72b9",
+      "dream_rsi/model.py": "adeea9651ed4c77f8f5f9aff3ae306bb4760907de7f8c7960f0399afac92e282",
+      "dream_rsi/__main__.py": "b89f0c0f7d146164ecfdc29ecac6ed1110c189cc81002f61055e4cc549891dbc",
+      "dream_rsi/analysis.py": "9066fed97c9ca5dcf002f4ab120394f5cdfcddec6375ba4079d2b603d3fc052e",
+      "dream_rsi/processes.py": "1d8f991d24b1e43e5ffdf2dff4cd60a2a04b40030bdf49b8d452bac9cbc01220",
+      "dream_rsi/__init__.py": "0002fb21447e39f53d811fba3c9a55c1d7cd2a9a51c464cf1cdc342652795a03",
+      "dream_rsi/agent.py": "bbfb41374fab4f16d143ac79ddfdc599e9ab4ce58d1dcc4a38cf94296fbc799e",
+      "dream_rsi/jobs.py": "2e53164a3ceab29062f623dd7cd8232810c974d1ec6b5170683b76b206db83e0",
+      "dream_rsi/policy_worker.py": "93ed31a341626e57fab100e0a3a2b30803177b7a69f75ad492e9978e2a02f8d3",
+      "dream_rsi/templates/appendix_policy.py": "8f6ab547de28b54c2a942702173a1f790518185b838a97fd9c71793e8ff74d53",
+      "dream_rsi/templates/appendix_parallel_floor.py": "f0e5b098464d60ae86e090e471c847137058b3046fcc74dbc76a67ad30604ce6"
+    },
+    "firmwareHashes": {
+      "qemu_gabbro_v4.37.0_micro_flash.bin": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+      "qemu_gabbro_v4.37.0_spi_flash.bin": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+      "qemu_emery_v4.37.0_micro_flash.bin": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+      "qemu_emery_v4.37.0_spi_flash.bin": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+      "qemu_flint_v4.37.0_spi_flash.bin": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+      "qemu_flint_v4.37.0_micro_flash.bin": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee"
+    },
+    "status": "complete",
+    "limits": {
+      "discovery_attempts": 6,
+      "policy_generations": 1
+    },
+    "modelUsage": {
+      "discovery": {
+        "calls": 6,
+        "failed_calls": 2,
+        "usage": {
+          "input_tokens": 66253,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 24442,
+          "reasoning_output_tokens": 16597
+        },
+        "elapsed_seconds": 822.2005210380303
+      },
+      "policy": {
+        "calls": 1,
+        "failed_calls": 0,
+        "usage": {
+          "input_tokens": 7593,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 8785,
+          "reasoning_output_tokens": 7958
+        },
+        "elapsed_seconds": 163.42104825898423
+      }
+    },
+    "nodes": [
+      {
+        "cycle": 1,
+        "id": "root",
+        "parent": null,
+        "status": "ok",
+        "score": 1.0096576268181747,
+        "elapsedSeconds": 29.440882216003956,
+        "snapshotSourceSha256": "3c747f0379325d63cd88a75009a73ae07c44f8206ae9a349a30585e3b3c9883e",
+        "wasmSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+        "profiles": [
+          {
+            "profile": "qemu_flint",
+            "medianSpeedup": 0.9967060203971319,
+            "minimumPairedSpeedup": 0.992510794759101,
+            "phases": {
+              "boot": 0.9968600980431918,
+              "buttons": 0.99632473515249
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "medianSpeedup": 1.0200841312963314,
+            "minimumPairedSpeedup": 1.0081872962162306,
+            "phases": {
+              "boot": 1.016313783830941,
+              "buttons": 1.0137208864610712
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "medianSpeedup": 1.012323497403026,
+            "minimumPairedSpeedup": 0.9775270171008641,
+            "phases": {
+              "boot": 1.0058445708984538,
+              "buttons": 1.003840533971541
+            }
+          }
+        ],
+        "decision": "Original memory fragment; same-binary timing noise."
+      },
+      {
+        "cycle": 1,
+        "id": "n000001",
+        "parent": "root",
+        "status": "invalid",
+        "score": 0.0,
+        "elapsedSeconds": 98.7720359399973,
+        "snapshotSourceSha256": "f5422887726fd5c75ce4848df207d80f1a3783342f4dcbff0a340a5f52c29989",
+        "wasmSha256": null,
+        "profiles": null,
+        "decision": "Rejected: candidate allowed writes to the read-only code vector; scalar memory oracle failed."
+      },
+      {
+        "cycle": 1,
+        "id": "n000002",
+        "parent": "n000001",
+        "status": "invalid",
+        "score": 0.0,
+        "elapsedSeconds": 71.8376404849987,
+        "snapshotSourceSha256": "6af77fdcc1195c74664e7f15f51727746b3c45483c2c8b0b3eb22c5d1476d60e",
+        "wasmSha256": null,
+        "profiles": null,
+        "decision": "Rejected at compilation: initial adapter expected a fragment but generator supplied complete impl containers."
+      },
+      {
+        "cycle": 1,
+        "id": "n000003",
+        "parent": "n000002",
+        "status": "invalid",
+        "score": 0.0,
+        "elapsedSeconds": 151.1664406049822,
+        "snapshotSourceSha256": "3c0879f85427fc5c5413172af33ff58d6f8ca316eab231de2d80c34df1c418f4",
+        "wasmSha256": null,
+        "profiles": null,
+        "decision": "Rejected at compilation for the same container mismatch."
+      },
+      {
+        "cycle": 2,
+        "id": "root",
+        "parent": null,
+        "status": "ok",
+        "score": 1.0074420027180253,
+        "elapsedSeconds": 21.48344848002307,
+        "snapshotSourceSha256": "3c747f0379325d63cd88a75009a73ae07c44f8206ae9a349a30585e3b3c9883e",
+        "wasmSha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+        "profiles": [
+          {
+            "profile": "qemu_flint",
+            "medianSpeedup": 1.0172390513843272,
+            "minimumPairedSpeedup": 0.9730336806560196,
+            "phases": {
+              "boot": 1.0130358799360077,
+              "buttons": 1.0067391613437864
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "medianSpeedup": 1.0058751411803464,
+            "minimumPairedSpeedup": 0.9551324746088248,
+            "phases": {
+              "boot": 1.003822462462789,
+              "buttons": 1.0089014849295719
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "medianSpeedup": 0.9992934978872458,
+            "minimumPairedSpeedup": 0.9874839095220099,
+            "phases": {
+              "boot": 1.0016238429740358,
+              "buttons": 0.9938832957879209
+            }
+          }
+        ],
+        "decision": "Original memory fragment; same-binary timing noise."
+      },
+      {
+        "cycle": 2,
+        "id": "n000001",
+        "parent": "root",
+        "status": "ok",
+        "score": 1.0093175992255905,
+        "elapsedSeconds": 163.75989249002305,
+        "snapshotSourceSha256": "8b5aa8d0de81ec8897d3296d07f2923d22ed040f70d9f3c95ec83965782f73ee",
+        "wasmSha256": "dc23ddcf40679cde8bdebe7ab2827237f6461fb94b602aee1067bfc664dfd812",
+        "profiles": [
+          {
+            "profile": "qemu_flint",
+            "medianSpeedup": 1.0046572179446331,
+            "minimumPairedSpeedup": 0.9841814179810491,
+            "phases": {
+              "boot": 1.0047732402423715,
+              "buttons": 1.0085909487357074
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "medianSpeedup": 1.0040964766676386,
+            "minimumPairedSpeedup": 0.9611952309944182,
+            "phases": {
+              "boot": 1.0049884940664546,
+              "buttons": 0.9973401717589362
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "medianSpeedup": 1.019272216005647,
+            "minimumPairedSpeedup": 0.9900770922943706,
+            "phases": {
+              "boot": 1.0199217046873743,
+              "buttons": 0.9902402673017054
+            }
+          }
+        ],
+        "decision": "Passed fixed gates, but 1.009x is within baseline noise; not retained."
+      },
+      {
+        "cycle": 2,
+        "id": "n000002",
+        "parent": "n000001",
+        "status": "error",
+        "score": null,
+        "elapsedSeconds": 180.17645474799792,
+        "snapshotSourceSha256": "8b5aa8d0de81ec8897d3296d07f2923d22ed040f70d9f3c95ec83965782f73ee",
+        "wasmSha256": null,
+        "profiles": null,
+        "decision": "Generation exceeded 180 seconds; no evaluated candidate."
+      },
+      {
+        "cycle": 2,
+        "id": "n000003",
+        "parent": "n000002",
+        "status": "error",
+        "score": null,
+        "elapsedSeconds": 180.15049641299993,
+        "snapshotSourceSha256": "8b5aa8d0de81ec8897d3296d07f2923d22ed040f70d9f3c95ec83965782f73ee",
+        "wasmSha256": null,
+        "profiles": null,
+        "decision": "Generation exceeded 180 seconds; no evaluated candidate."
+      }
+    ],
+    "schedulerRevision": {
+      "promoted": true,
+      "sourceSha256": "d9edd063a54746279749e95dadc2839a3a274f4968d89a439d6e9adb2f5c5ca7",
+      "scope": "Selected on reused discovery history; no matched-control causal performance claim."
+    },
+    "generatedMemoryCandidatesRetained": 0,
+    "integrationFixAfterFrozenRun": "Accept complete impl containers, retain helper methods with stable boundaries, preserve useful error context. Original run files were not rewritten.",
+    "updatedBridgeSmoke": {
+      "score": 1.001519808481679,
+      "diagnostics": {
+        "valid": true,
+        "candidate_sha256": "08e0a59ec7f634045bebe7f53f38389aecf52a0d26b8e2a73cefb39402945fef",
+        "wasm_sha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+        "core_speedup": 1.001519808481679,
+        "profiles": [
+          {
+            "profile": "qemu_flint",
+            "medianSpeedup": 1.001259404231213,
+            "minimumPairedSpeedup": 0.9498867581390998,
+            "phases": {
+              "boot": 0.9967328741664321,
+              "buttons": 1.0145016535411704
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "medianSpeedup": 0.986721130389633,
+            "minimumPairedSpeedup": 0.9451636293117395,
+            "phases": {
+              "boot": 0.9865080230646097,
+              "buttons": 1.006695548765088
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "medianSpeedup": 1.016804813157353,
+            "minimumPairedSpeedup": 0.9946304392415918,
+            "phases": {
+              "boot": 1.0189669161225812,
+              "buttons": 0.9954454430126102
+            }
+          }
+        ],
+        "all_fidelity_traces_equal": true,
+        "rust_tests_passed": true
+      }
+    }
+  },
+  "acceptance": {
+    "rust": {
+      "command": "cargo test --workspace --locked",
+      "passed": 84,
+      "logSha256": "da70983733eb4a8bb881f79c9713ae4a4bee7d257087826fb01dc235ad4993da"
+    },
+    "wasmAndJavascript": {
+      "command": "npm test",
+      "passed": 340,
+      "failed": 0,
+      "skipped": 9,
+      "logSha256": "4cdf4346c42cc9ac0ba427a26c7af419155f19d4612c750539bf9559273cebfb"
+    },
+    "bridgeUnitTests": {
+      "command": "python3 -m unittest discover -s scripts/optimization -p 'test_*.py'",
+      "passed": 2
+    },
+    "build": {
+      "command": "npm run build",
+      "passed": true,
+      "components": ["Rust/Wasm", "Kotlin/Wasm companion", "Angular static frontend"]
+    },
+    "sensors": {
+      "command": "node --test tests/sensors.integration.test.mjs",
+      "profilesPassed": ["qemu_flint", "qemu_emery", "qemu_gabbro"],
+      "nativeReference": "docs/evidence/sensor-service-gate.json",
+      "frameComparisons": [
+        {
+          "profile": "qemu_flint",
+          "checkpointArtifact": "qemu_flint-sensor-checkpoint.bin",
+          "bytes": 24192,
+          "sha256": "0002863e7895717d7a21d40eb8451b940a7971407f843480e3dbc1316a847467",
+          "nativeEqual": true,
+          "afterScenarioSha256": "0b067ae8e0618285281d8dedd6733941ee953b2984794715d333f262a151b7a6",
+          "afterScenarioMatchesPreviousWasm": true
+        },
+        {
+          "profile": "qemu_emery",
+          "checkpointArtifact": "qemu_emery-sensor-checkpoint.bin",
+          "bytes": 45600,
+          "sha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+          "nativeEqual": true,
+          "afterScenarioSha256": "a26b2a5fce399a3984e19c005862f6f5f9371f830c41313cf122df2a999322d0",
+          "afterScenarioMatchesPreviousWasm": true
+        },
+        {
+          "profile": "qemu_gabbro",
+          "checkpointArtifact": "qemu_gabbro-sensor-checkpoint.bin",
+          "bytes": 67600,
+          "sha256": "82fb3e7274c90c9a27460d2eb60875ce8c35f8a5ba225bfc878896e8f41be48a",
+          "nativeEqual": true,
+          "afterScenarioSha256": "d6ec2cfe3d9e90e48af2c8a7c736b4771ca44771a85fb36871edcb63ccf39d64",
+          "afterScenarioMatchesPreviousWasm": true
+        }
+      ],
+      "checkpointMeaning": "Before the later acceleration scenario; compared with actual saved native bytes and pinned hashes."
+    },
+    "sharedClock": {
+      "command": "node --test tests/coupled-clock.integration.test.mjs",
+      "passed": true,
+      "pbw": "examples/sensor-test, emery build",
+      "pbwSha256": "7d189f590efd23a75f155a81646b10dc8057f968f44123df0991ca00e0961e9a",
+      "checks": [
+        "actual QuickJS timer sends AppMessage",
+        "actual watch firmware ACK",
+        "missing clock ACK stops execution",
+        "pause stops both clocks"
+      ],
+      "logSha256": "6ac8f0bf54f0d6e43e5d0cda239ce8d86747b15f90beb5f8f9915dd6c7f68725"
+    },
+    "initialSharedClockFixture": {
+      "pbwSha256": "106d9c2495ec04a9b0b3b22737481ef29cde5af040714fd263144ca07e40362d",
+      "baselineAndCandidate": "Both timed out waiting for app launch endpoint 0x34 using an old local Browser Demo package. No pass or regression inferred from this fixture. Gate completed with the verified sensor-test app.",
+      "baselineLogSha256": "20a14e458937ba157b4cd707e63828ef6c25f7b6d1a515c0f516eff2efd5f2ee",
+      "candidateLogSha256": "8844fb709320f27399ceecce64e766d93e42e72163f5f172938db16281107260"
+    },
+    "phoneSettings": {
+      "date": "2026-09-17T21:25:23.115Z",
+      "scope": "Desktop Linux browser engines at mobile viewport. Actual source-ported companion, Clock HTML and PKJS, unchanged 4.37.0 firmware. Not physical-phone performance or full Android app emulation.",
+      "upstream": {
+        "repository": "https://github.com/coredevices/mobileapp",
+        "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+        "license": "GPL-3.0-only",
+        "files": {
+          "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+          "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+        }
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 459,
+          "beforeFrame": "5a4fc31707884d52e41b4591d41ecbb11944c29e4892e459a6d2d4ec1f707e92",
+          "afterFrame": "cfac8690c38a232093ff9d7837f95f04144b6fab9134045a4ba38c7da5b1036c",
+          "beforeBlackFraction": 0.03307017543859649,
+          "afterBlackFraction": 0.9537719298245614,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_flint",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 455,
+          "beforeFrame": "e63ee1552da8fdaaa3d6c90db4b6081aeefbae0da9c001c583612c0010f26068",
+          "afterFrame": "8a8ca494b44beb1e2ff5c4c1791a0444d4c168d5acb2d611d867cbec9e031176",
+          "beforeBlackFraction": 0.30266203703703703,
+          "afterBlackFraction": 0.9128637566137566,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_gabbro",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 425,
+          "beforeFrame": "ca383fbe9b108c47b5fe4ba660fc842c6538ba5201b6326638deb97702fe453f",
+          "afterFrame": "38cfc62b4bc548655f80f8bedd1942eae8f7d6130c671d3ea78a64465e9674b3",
+          "beforeBlackFraction": 0.23874260355029586,
+          "afterBlackFraction": 0.9689497041420119,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "firefox",
+          "browser": "155.0",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 401,
+          "beforeFrame": "4003558c20562761e0b06777dd7f00712d46f4367d32758440e4b76c5a10c271",
+          "afterFrame": "863a0e6ab017f68350268e6191a16ae1b956bde334de6aaf1b9876c3b08a8d92",
+          "beforeBlackFraction": 0.03225877192982456,
+          "afterBlackFraction": 0.953969298245614,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "webkit",
+          "browser": "26.6",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 774,
+          "beforeFrame": "d7331edbc99e0c09710abb02743d0889dba80d91aa59e9ae4a58b56b0a8c1a1f",
+          "afterFrame": "5eb9572bfe927ce25efe2afef91b3300ef4aaaa10ee5fe8124b4ab14a1df0c7b",
+          "beforeBlackFraction": 0.046864035087719295,
+          "afterBlackFraction": 0.9531359649122807,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        }
+      ]
+    },
+    "originalStoreWatchface": {
+      "testedAt": "2026-09-17T21:27:05.603Z",
+      "base": "http://127.0.0.1:4201/",
+      "storeListing": "https://apps.repebble.com/justthetime_50bdea7ee3ff48308157c046",
+      "storeVersion": "1.2",
+      "packageVersionLabel": "1.1",
+      "results": [
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 200,
+          "height": 228,
+          "beforeFrameSha256": "a586515524735ad9117fa1877c1e91a953eda968b0041bd603b46d1554d68556",
+          "afterFrameSha256": "aebc9755b37417fd6f9872afdfc9fc02e7c5f16fa8445fdab08d85c67e270e8c",
+          "changedPixels": 43761,
+          "beforeWhiteFraction": 0.013267543859649122,
+          "afterWhiteFraction": 0.9686184210526316,
+          "appMessage": {
+            "10000": 16777215,
+            "10001": 16777215,
+            "10002": 16733525,
+            "10003": 16777215,
+            "10004": 5635925,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_flint",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 144,
+          "height": 168,
+          "beforeFrameSha256": "c00444fcece5e63afeb8010e06e00feecd6ee1fde24cc861310058108c3415c4",
+          "afterFrameSha256": "9d96f1c2c07cdf5582b9f8c4a5cbd7d3fc9b443e35cb75e35ef79185a35c1f57",
+          "changedPixels": 24192,
+          "beforeWhiteFraction": 0.062417328042328045,
+          "afterWhiteFraction": 0.937582671957672,
+          "appMessage": {
+            "10000": 16777215,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_gabbro",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 260,
+          "height": 260,
+          "beforeFrameSha256": "b83582bdab480c0e807b60b856d921b07cb34e224e5ef872c93c6305414608bd",
+          "afterFrameSha256": "f1067ccd6ec06fe0fa4e6e350c21e989475a78ddff11bbac80a541e5a7f999c8",
+          "changedPixels": 50909,
+          "beforeWhiteFraction": 0.015872781065088756,
+          "afterWhiteFraction": 0.7650739644970415,
+          "appMessage": {
+            "10000": 16777215,
+            "10001": 16777215,
+            "10002": 16733525,
+            "10003": 16777215,
+            "10004": 5635925,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        }
+      ]
+    }
+  }
+}
