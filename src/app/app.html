@@ -1,17 +1,16 @@
 <header class="topbar">
-  <a class="identity" href="./">Pebble Browser Emulator</a>
+  <a class="identity" href="./"
+    ><img src="favicon.svg" width="30" height="30" alt="" /><span
+      >Pebble<span class="identity-detail">Browser emulator</span></span
+    ></a
+  >
   <div class="header-actions">
     <button class="settings-trigger" (click)="settingsOpen.set(true)" aria-haspopup="dialog">
-      Settings
+      Simulated inputs
     </button>
-    <span class="connection"
+    <span class="connection" [hidden]="!workbench()"
       ><i [class.connected]="ready()"></i>{{ ready() ? 'Core ready' : 'Ready to load' }}</span
-    ><label class="theme-control"
-      >Theme<select [ngModel]="theme()" (ngModelChange)="setTheme($event)">
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select></label
-    ><a
+    ><app-preferences [theme]="theme()" [profile]="profile()" (themeChanged)="setTheme($event)" /><a
       href="https://github.com/huntrontrakkr/pebble-browser-emulator"
       target="_blank"
       rel="noopener"
@@ -32,7 +31,7 @@
       Developer tools
     </button>
   </nav>
-  <div class="machine-bar" [hidden]="!loaded() && !workbench()">
+  <div class="machine-bar" [hidden]="!workbench()">
     <div>
       <span class="label">Machine</span><strong>{{ machineName() }}</strong
       ><span class="tag">{{
@@ -74,6 +73,17 @@
       />
     </section>
     <section class="display-panel panel" aria-label="Watch display">
+      <div class="watch-session" [hidden]="workbench()">
+        <div>
+          <span class="label">{{
+            isFirmware() || !loaded() ? modelSpec().name : 'Diagnostic board'
+          }}</span>
+          <h1>{{ activeAppName() }}</h1>
+        </div>
+        <span class="session-state">{{
+          previewBusy() ? 'Loading' : running() ? 'Running' : loaded() ? 'Paused' : 'Ready'
+        }}</span>
+      </div>
       @if (!workbench() && previewBusy()) {
         <p class="watch-progress" role="status">{{ previewStatus() }}</p>
       }
@@ -183,12 +193,11 @@
         }
       </div>
       <div class="watch-context">
-        <span>{{ isFirmware() || !loaded() ? modelSpec().name : 'Diagnostic board' }}</span>
+        <span>{{ linked() ? 'Phone connected' : 'Phone disconnected' }}</span>
         <span class="watch-context-battery" [attr.aria-label]="'Battery ' + battery() + '%'"
           >{{ loaded() ? battery() + '%' : '—' }}
           <span class="help">{{ charging ? 'charging' : 'battery' }}</span></span
         >
-        <button class="text-button" (click)="settingsOpen.set(true)">Demo settings</button>
       </div>
       @if (appConfigurable()) {
         <button
@@ -196,7 +205,7 @@
           (click)="showConfiguration()"
           [disabled]="phoneStatus() !== 'Running' || configurationPending() || !!configuration()"
         >
-          {{ configurationPending() ? 'Opening app settings…' : 'App settings' }}
+          {{ configurationPending() ? 'Opening configuration…' : 'App configuration' }}
         </button>
       }
       @if (configurationNotice()) {
@@ -231,7 +240,7 @@
           }
         </div>
       }
-      <div class="display-caption">
+      <div class="display-caption" [hidden]="!workbench() && displayMode() === 'pixels'">
         <span>{{ display().width }} × {{ display().height }} · {{ display().colors }} colors</span
         ><span>{{
           displayMode() === 'pixels' ? 'Raw framebuffer' : 'Uncalibrated optical preview'
@@ -284,8 +293,8 @@
           [height]="display().height"
         />
       }
-      <p class="watch-key-help">
-        Use the buttons beside the screen. Keyboard: ← Back · ↑ Up · → Select · ↓ Down.
+      <p class="watch-key-help" [hidden]="!workbench()">
+        Keyboard: ← Back · ↑ Up · → Select · ↓ Down
       </p>
     </section>
     @defer (when toolsOpened()) {
@@ -697,8 +706,6 @@
       [ready]="watchReady() && isFirmware()"
       [heartRateAvailable]="profile() === 'qemu_emery'"
       [status]="demoStatus()"
-      [theme]="theme()"
-      (themeChanged)="setTheme($event)"
       (closed)="settingsOpen.set(false)"
       (saved)="saveDemo($event)"
       (notification)="notifyDemo($event)"

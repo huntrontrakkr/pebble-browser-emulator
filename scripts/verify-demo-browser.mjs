@@ -100,7 +100,7 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium').split(',')) {
         ),
         0,
       );
-      await page.getByRole('button', { name: 'Settings', exact: true }).click();
+      await page.getByRole('button', { name: 'Simulated inputs', exact: true }).click();
       await page.getByRole('dialog').waitFor();
       assert.equal(
         await page.getByLabel('Demo battery percent', { exact: true }).inputValue(),
@@ -178,7 +178,7 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium').split(',')) {
         await snap('model');
         assert.equal(await page.locator('.watch-control:not(.control-hidden)').count(), 4);
       }
-      await page.getByRole('button', { name: 'Settings', exact: true }).click();
+      await page.getByRole('button', { name: 'Simulated inputs', exact: true }).click();
       await page.getByLabel('Enable demo data', { exact: true }).uncheck();
       await page.getByRole('button', { name: 'Save & apply', exact: true }).click();
       await page.waitForFunction(() =>

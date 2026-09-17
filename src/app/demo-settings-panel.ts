@@ -24,8 +24,6 @@ export class DemoSettingsPanel implements OnInit, AfterViewInit {
   @Input() ready = false;
   @Input() heartRateAvailable = false;
   @Input() status = '';
-  @Input() theme = 'light';
-  @Output() themeChanged = new EventEmitter<string>();
   @Output() closed = new EventEmitter<void>();
   @Output() saved = new EventEmitter<DemoSettings>();
   @Output() notification = new EventEmitter<{ settings: DemoSettings; id: number }>();

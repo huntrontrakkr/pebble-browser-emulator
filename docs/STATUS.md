@@ -11,7 +11,7 @@ See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including
 
 Preview defaults now set battery to **69%**, seed two fictional notifications and two
 calendar entries, and supply configurable synthetic motion, health, phone location and
-Time 2 raw heart rate. The Settings drawer persists local preferences. Firmware BlobDB
+Time 2 raw heart rate. The Simulated inputs dialog persists local preferences. Firmware BlobDB
 acknowledgments confirm sample insertion, notification status updates and owned-record
 cleanup on all three current profiles. Watchface installation waits for this setup.
 The controls sit beside the screen and follow the watch in 3D; all three current products
@@ -24,8 +24,31 @@ visible notification pixel below the status clock. [Root cause and scope](NOTIFI
 
 ## Preview and phone usability
 
+The preview now groups the screen, physical watch controls, connection/battery state and
+App configuration in one surface. The example, PBW picker and GitHub disclosure share one
+opening panel. Mobile configuration uses a native full-screen dialog; desktop keeps it
+beside the watch. Theme, installation, offline downloads and explicit updates are in
+Preferences. The last opened PBW is saved locally for reopening. Firmware execution and
+the source-ported companion protocols are unchanged by this presentation work.
+
+The production build includes a PWA manifest, safe-area icons and a checksummed service-worker
+inventory. Offline downloads are selected per watch and include the actual default firmware,
+Clock example and companion settings module. Updates wait for approval while a tab is open,
+preserve selected offline watches, and reject activation while another watch tab is open.
+The service-worker behavior has tests for cancellation, corrupt assets, quota errors and
+failed updates. The complete CI artifact now builds the companion as well as the Rust core.
+See [installation, offline scope and verification](PWA.md). Offline compilation and physical
+mobile installation/performance remain separate release gates.
+The production PWA gate passes Chromium with network-offline emulation and WebKit with
+the static server disconnected. Preview and companion regression checks pass Chromium,
+Firefox and WebKit; the original store watchface, synthetic inputs and 3D controls pass
+on all three current profiles. The unchanged QEMU Wasm hash, 350 passing unit tests
+(9 optional fixture tests skipped), browser scope and results are recorded in
+[UI/PWA evidence](evidence/ui-pwa.json). [Desktop](evidence/preview-desktop.png) and
+[mobile](evidence/preview-mobile.png) captures show the revised layout.
+
 The first actual companion source port now runs the upstream settings Scaffold/header and
-unchanged Kotlin URL interceptor in a separately loaded Kotlin/Wasm module. **App settings**
+unchanged Kotlin URL interceptor in a separately loaded Kotlin/Wasm module. **App configuration**
 opens beside the watch; Clock includes a real configurable HTML page and native settings
 receiver. Save/Cancel/Back, actual firmware ACKs and frame changes, persistence/reload,
 sandbox isolation and the actual Clay form have dedicated browser gates. This remains a

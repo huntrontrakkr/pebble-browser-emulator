@@ -18,11 +18,17 @@ automatically, including on the first visit. Future previews reuse the saved fir
 Developer tools can override it. No compiler is needed for the
 included Clock example or a prepared PBW.
 
-For a configurable watchface, select **App settings** beside the watch. Clock includes
+For a configurable watchface, select **App configuration** beside the watch. Clock includes
 dark background, date and battery settings. Its page runs alongside the watch and saves
 through PebbleKit JS and actual firmware AppMessage acknowledgments. The companion's
 settings screen and navigation handler are source-ported from the real Pebble app to
 Kotlin/Wasm. [Port scope and source](phone-app/README.md).
+
+**Simulated inputs** controls battery, sensors and sample phone data. **Preferences** contains
+theme, installation and offline downloads. Phone configuration opens beside the watch on
+desktop and as a full-screen dialog on mobile. The production build is installable and can
+save a selected watch plus its example for offline use; it also remembers the last opened PBW.
+Updates wait for an explicit restart while the app is open. [Offline use and limits](docs/PWA.md).
 
 Public GitHub projects can supply a checksummed `pebble-preview.json` for a direct preview,
 or open in Developer tools for a source build. **Copy preview link** shares the selected

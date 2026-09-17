@@ -1,8 +1,8 @@
 <dialog #dialog class="settings-dialog" aria-labelledby="settings-title" (close)="closed.emit()">
   <header class="settings-header">
     <div>
-      <h2 id="settings-title">Demo settings</h2>
-      <p>Sample data for this browser</p>
+      <h2 id="settings-title">Simulated inputs</h2>
+      <p>Battery, sensors, notifications and calendar</p>
     </div>
     <button class="icon-button" (click)="close()" aria-label="Close settings">×</button>
   </header>
@@ -194,19 +194,6 @@
         }
       </section>
     </fieldset>
-    <section class="settings-section">
-      <h3>Appearance</h3>
-      <label
-        >Theme<select
-          aria-label="Settings theme"
-          [ngModel]="theme"
-          (ngModelChange)="themeChanged.emit($event)"
-        >
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select></label
-      >
-    </section>
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }

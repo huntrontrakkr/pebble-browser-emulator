@@ -7,7 +7,7 @@
     "build": "npm run build:wasm && npm run build:phone && npm run build:web",
     "watch": "ng build --watch --configuration development",
     "dev": "ng serve --host 0.0.0.0",
-    "build:web": "ng build && node scripts/publish-notices.mjs",
+    "build:web": "ng build && node scripts/publish-notices.mjs && node scripts/build-pwa.mjs",
     "build:wasm": "node scripts/build-wasm.mjs && node scripts/collect-notices.mjs",
     "build:phone": "node scripts/build-phone.mjs",
     "test": "node --test tests/*.test.mjs",

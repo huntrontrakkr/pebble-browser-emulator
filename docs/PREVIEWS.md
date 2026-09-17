@@ -1,7 +1,8 @@
 # Watchface previews and links
 
 The default workspace is **Preview**. Choose a watch, then **Try example**, **Open
-watchface .pbw**, or enter a public GitHub repository. Developer tools remain available
+watchface .pbw**, or expand **Open from GitHub** and enter a public repository.
+Developer tools remain available
 for source builds, firmware changes, inputs, the virtual phone, packets and frame checks.
 
 ## Firmware setup

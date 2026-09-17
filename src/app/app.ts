@@ -7,6 +7,7 @@ import {
 } from './watch-profiles.ts';
 import { AppMessageRouter } from './app-message-router.ts';
 import { BufferedHistory } from './buffered-history.ts';
+import { PreferencesPanel } from './preferences-panel.ts';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -49,6 +50,7 @@ import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.ty
     PreviewPanel,
     PhoneAppPanel,
     DemoSettingsPanel,
+    PreferencesPanel,
   ],
   templateUrl: './app.html',
 })
@@ -60,6 +62,7 @@ export class App implements AfterViewInit, OnDestroy {
   toolsOpened = signal(false);
   previewBusy = signal(false);
   previewStatus = signal('');
+  activeAppName = signal('Watch preview');
   previewSource = signal<SourceSnapshot | null>(null);
   private pendingPreview?: PreviewLaunch['package'];
   private firmwareToSave?: PreviewFirmware;
@@ -928,6 +931,9 @@ export class App implements AfterViewInit, OnDestroy {
       this.installStatus.set(data.message);
     }
     if (data.type === 'installed') {
+      this.activeAppName.set(
+        String(data.appinfo.shortName ?? data.appinfo.displayName ?? data.name),
+      );
       this.installStatus.set('Installed and launched: ' + data.uuid);
       this.log('INSTALL', this.installStatus());
       this.setScript({

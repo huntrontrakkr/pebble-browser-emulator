@@ -7,7 +7,7 @@ This is not an Android APK, a complete companion application, or a phone OS emul
 ## Try it
 
 1. Open Preview and choose **Try example**.
-2. Select **App settings** beside the watch.
+2. Select **App configuration** beside the watch.
 3. Set **Dark background**, **Show date** or **Show battery**, then **Save**.
 
 Clock's own HTML page runs in the companion panel. The upstream Kotlin interceptor decodes

@@ -8,8 +8,9 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { readLocal, writeLocal } from './local-store.ts';
 import { parseRepository, readLimited, type SourceSnapshot } from './projects.ts';
-import { FIRMWARE_PROFILES, type FirmwareProfile } from './watch-profiles.ts';
+import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './watch-profiles.ts';
 import {
   parsePreviewLink,
   previewLink,
@@ -31,18 +32,25 @@ export interface PreviewLaunch {
   package: PreviewPackage;
   firmware?: PreviewFirmware;
 }
+interface SavedWatchface {
+  profile: FirmwareProfile;
+  name: string;
+  bytes: Blob | Uint8Array;
+}
 
 @Component({
   selector: 'preview-panel',
   imports: [FormsModule],
   template: `
-    <div class="section-heading"><h1>Watchface preview</h1></div>
+    <div class="section-heading">
+      <h2>{{ title() ? 'Watchface' : 'Open watchface' }}</h2>
+    </div>
     <details
       class="preview-chooser"
       [open]="expanded()"
       (toggle)="expanded.set($any($event.target).open)"
     >
-      <summary>{{ title() ? 'Choose another watchface' : 'Choose a watchface or app' }}</summary>
+      <summary [hidden]="!title()">Choose another watchface</summary>
       <label
         >Watch<select
           [ngModel]="profile()"
@@ -66,35 +74,42 @@ export interface PreviewLaunch {
             [disabled]="busy() || sessionBusy"
         /></label>
       </div>
-      <p class="help">The Clock example is ready to run. No compiler needed.</p>
-      <form (ngSubmit)="github()" class="repository-launch">
-        <label
-          >GitHub project<input
-            [(ngModel)]="repo"
-            name="repo"
-            placeholder="github.com/owner/repository"
-            autocomplete="off"
-            spellcheck="false"
-        /></label>
-        <details>
-          <summary>Branch, folder or package</summary>
-          <label
-            >Branch or commit<input [(ngModel)]="ref" name="ref" placeholder="Default branch"
-          /></label>
-          <label
-            >Project folder<input [(ngModel)]="root" name="root" placeholder="Repository root"
-          /></label>
-          <label
-            >PBW path (optional)<input
-              [(ngModel)]="pbw"
-              name="pbw"
-              placeholder="preview/watchface.pbw"
-          /></label>
-        </details>
-        <button type="submit" [disabled]="!repo.trim() || busy() || sessionBusy">
-          Open project
+      @if (recent(); as saved) {
+        <button class="recent-watchface" (click)="openRecent()" [disabled]="busy() || sessionBusy">
+          <span>Open saved watchface</span><strong>{{ saved.name }}</strong>
         </button>
-      </form>
+      }
+      <details class="repository-disclosure">
+        <summary>Open from GitHub</summary>
+        <form (ngSubmit)="github()" class="repository-launch">
+          <label
+            >GitHub project<input
+              [(ngModel)]="repo"
+              name="repo"
+              placeholder="github.com/owner/repository"
+              autocomplete="off"
+              spellcheck="false"
+          /></label>
+          <details>
+            <summary>Branch, folder or package</summary>
+            <label
+              >Branch or commit<input [(ngModel)]="ref" name="ref" placeholder="Default branch"
+            /></label>
+            <label
+              >Project folder<input [(ngModel)]="root" name="root" placeholder="Repository root"
+            /></label>
+            <label
+              >PBW path (optional)<input
+                [(ngModel)]="pbw"
+                name="pbw"
+                placeholder="preview/watchface.pbw"
+            /></label>
+          </details>
+          <button type="submit" [disabled]="!repo.trim() || busy() || sessionBusy">
+            Open project
+          </button>
+        </form>
+      </details>
     </details>
     @if (title()) {
       <div class="preview-selection">
@@ -133,7 +148,11 @@ export interface PreviewLaunch {
       </section>
     }
     @if (status() || sessionStatus) {
-      <p class="preview-progress" role="status">
+      <p
+        class="preview-progress"
+        [class.sr-only]="watchLoaded && !busy() && !sessionBusy && !failure() && !setup()"
+        role="status"
+      >
         {{ busy() || setup() || failure() ? status() : sessionStatus || status() }}
       </p>
     }
@@ -159,22 +178,13 @@ export interface PreviewLaunch {
               (focus)="$any($event.target).select()"
           /></label>
         }
-        @if (copyStatus()) {
-          <p class="help" role="status">{{ copyStatus() }}</p>
-        }
       </div>
     }
+    @if (copyStatus()) {
+      <p class="help" role="status">{{ copyStatus() }}</p>
+    }
     @if (expanded()) {
-      <p class="help preview-note">
-        Prepared GitHub previews open directly. Source-only projects open in Developer tools for a
-        local build.
-      </p>
-      <p class="help preview-note">
-        Default firmware is included. Change it in Developer tools.
-        <a href="firmware/v4.37.0/NOTICE.md" target="_blank" rel="noopener"
-          >Firmware licenses and source</a
-        >
-      </p>
+      <p class="help preview-note">The example includes everything needed to start.</p>
     }
   `,
 })
@@ -203,6 +213,30 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   linkVisible = signal(false);
   copyStatus = signal('');
   expanded = signal(true);
+  recent = signal<SavedWatchface | null>(null);
+  async openRecent() {
+    const saved = this.recent();
+    if (!saved || this.busy() || this.sessionBusy) return;
+    const generation = this.begin();
+    this.profile.set(saved.profile);
+    this.title.set(saved.name);
+    this.target.set(null);
+    this.package.set(null);
+    history.replaceState(null, '', new URL('.', document.baseURI));
+    try {
+      const bytes =
+        saved.bytes instanceof Blob
+          ? new Uint8Array(await saved.bytes.arrayBuffer())
+          : saved.bytes.slice();
+      if (generation !== this.generation) return;
+      this.package.set({ name: saved.name, bytes });
+      await this.prepareWatch(generation);
+    } catch (error) {
+      if (generation === this.generation) this.failure.set(String(error));
+    } finally {
+      if (generation === this.generation) this.busy.set(false);
+    }
+  }
   collapseOnPhone() {
     if (matchMedia('(max-width: 780px)').matches) this.expanded.set(false);
   }
@@ -217,6 +251,20 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
     }
   };
   ngAfterViewInit() {
+    const generation = this.generation;
+    void readLocal<SavedWatchface>('preview:recent')
+      .then((saved) => {
+        if (
+          generation === this.generation &&
+          saved &&
+          isFirmwareProfile(saved.profile) &&
+          typeof saved.name === 'string' &&
+          ((saved.bytes instanceof Blob && saved.bytes.size <= 8 * 1048576) ||
+            (saved.bytes instanceof Uint8Array && saved.bytes.byteLength <= 8 * 1048576))
+        )
+          this.recent.set(saved);
+      })
+      .catch(() => {});
     addEventListener('hashchange', this.route);
     queueMicrotask(this.route);
   }
@@ -378,6 +426,25 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
     }
     this.status.set('');
     this.setup.set(false);
+    const file = this.package()!;
+    const saved = {
+      profile: this.profile(),
+      name: file.name,
+      // PBWs are bounded to 8 MiB. Typed arrays also work in WebKit environments
+      // where IndexedDB rejects Blobs; keep a copy independent of Worker transfers.
+      bytes: file.bytes.slice(),
+    };
+    await writeLocal('preview:recent', saved)
+      .then(() => {
+        if (generation === this.generation) this.recent.set(saved);
+      })
+      .catch(() => {
+        if (generation === this.generation)
+          this.copyStatus.set(
+            'This watchface could not be saved on this device. Keep its PBW file to reopen it.',
+          );
+      });
+    if (generation !== this.generation) return;
     this.launch.emit({
       profile: this.profile(),
       package: this.package()!,

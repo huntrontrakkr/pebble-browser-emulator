@@ -1,0 +1,520 @@
+{
+  "recordedAt": "2026-09-17T23:15:13.910Z",
+  "scope": "Production static build on local Linux browser engines. Mobile viewport checks are not physical-device performance or OS installation tests. WebKit uses server socket failure because WPE protocol offline mode also fails on a minimal service-worker-only page. No deployment performed.",
+  "qemuWasmSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+  "sourceSha256": {
+    "src/app/app.html": "e74d4ea04e10fd8cccef9b416bd497889f7ec24c2f5d70e989b585907ff51649",
+    "src/app/preview-panel.ts": "31bfb81bd9d70d7f56997dae96a3807f7298c1bae5739e54f128b69b3a997b86",
+    "src/app/phone-app-panel.ts": "3800c9e8f2704a62a06477fdf6e429a20322d5b18bc5cdf1965a5ab3c2d5e500",
+    "src/app/preferences-panel.ts": "39e82d611ae110be88148bf9b5abfec6f5b7672d31a186f9cbf4df7e3c420d9a",
+    "src/styles.css": "ef26069739ea2ed5b93cde51a52d65edc11b26fc4f523504d01b9fa17a2e4fe9",
+    "src/service-worker.js": "9583b745e413466ef64f567b9ebe7e1998cf78f14612d488e46d1bd016730c7c"
+  },
+  "unitTests": {
+    "passed": 350,
+    "skipped": 9,
+    "failed": 0
+  },
+  "pwa": {
+    "recordedAt": "2026-09-17T23:14:36.695Z",
+    "results": [
+      {
+        "engine": "chromium",
+        "browser": "153.0.8010.12",
+        "passed": true,
+        "downloadSize": "Ready offline · 16.3 MB",
+        "offlineMode": "browser network offline",
+        "installability": {
+          "installabilityErrors": []
+        },
+        "errors": [],
+        "assertions": [
+          "subdirectory scope",
+          "mobile controls in viewport",
+          "44px watch buttons",
+          "native mobile configuration dialog",
+          "desktop side panel",
+          "offline firmware boot",
+          "offline companion settings",
+          "saved PBW reopen",
+          "explicit update",
+          "other tab guard",
+          "offline choice survives update"
+        ]
+      },
+      {
+        "engine": "webkit",
+        "browser": "26.6",
+        "passed": true,
+        "downloadSize": "Ready offline · 16.3 MB",
+        "offlineMode": "server sockets disabled",
+        "errors": [],
+        "assertions": [
+          "subdirectory scope",
+          "mobile controls in viewport",
+          "44px watch buttons",
+          "native mobile configuration dialog",
+          "desktop side panel",
+          "offline firmware boot",
+          "offline companion settings",
+          "saved PBW reopen",
+          "explicit update",
+          "other tab guard",
+          "offline choice survives update"
+        ]
+      }
+    ]
+  },
+  "preview": {
+    "date": "2026-09-17T22:59:43.839Z",
+    "scope": "Linux browser engines with a mobile viewport, not measurements on a physical phone. Bundled default firmware, example install without file import, cancellation, hash link, PBW download, cached firmware reuse, screen pacing and pause.",
+    "results": [
+      {
+        "browser": "chromium",
+        "version": "153.0.8010.12",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 10333,
+        "cachedBootAndInstallMs": 10369,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.981054578125,
+        "stateMessages": 44,
+        "clockMessages": 95,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "firefox",
+        "version": "155.0",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 11432,
+        "cachedBootAndInstallMs": 11471,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.97137684375,
+        "stateMessages": 41,
+        "clockMessages": 95,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "webkit",
+        "version": "26.6",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 9393,
+        "cachedBootAndInstallMs": 9369,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.9459845625,
+        "stateMessages": 40,
+        "clockMessages": 96,
+        "mainThreadLongTasks": [],
+        "passed": true
+      }
+    ]
+  },
+  "phone": {
+    "date": "2026-09-17T23:02:02.915Z",
+    "scope": "Desktop Linux browser engines at mobile viewport. Actual source-ported companion, Clock HTML and PKJS, unchanged 4.37.0 firmware. Not physical-phone performance or full Android app emulation.",
+    "upstream": {
+      "repository": "https://github.com/coredevices/mobileapp",
+      "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+      "license": "GPL-3.0-only",
+      "files": {
+        "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+        "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+      }
+    },
+    "results": [
+      {
+        "engine": "chromium",
+        "browser": "153.0.8010.12",
+        "profile": "qemu_emery",
+        "passed": true,
+        "viewport": "390x844",
+        "settingsLoadMs": 508,
+        "beforeFrame": "da7e647ead943c99c83fc029a30226d8852285d66dad6ac09d5de0d86200cbd4",
+        "afterFrame": "16d1f97ccc34c27965d92a6ea5a997f44d9f47a7d6a704fefdc0ff0d3525822c",
+        "beforeBlackFraction": 0.0387719298245614,
+        "afterBlackFraction": 0.9612280701754385,
+        "appMessage": {
+          "0": 1,
+          "1": 1,
+          "2": 1
+        },
+        "assertions": [
+          "lazy loading",
+          "native header at device scale",
+          "sandbox isolation",
+          "forged sender rejected",
+          "decoded return",
+          "real firmware ACK",
+          "frame changes",
+          "cancel",
+          "native Back",
+          "persistent reopen/reload"
+        ]
+      },
+      {
+        "engine": "chromium",
+        "browser": "153.0.8010.12",
+        "profile": "qemu_flint",
+        "passed": true,
+        "viewport": "390x844",
+        "settingsLoadMs": 442,
+        "beforeFrame": "7fafa72ef045cb9aee441d5a6c8c4a5e282e798ca471c037ccf776a56084b241",
+        "afterFrame": "4f2d4cabb84f2b980cb24f67bded359e69758a75a0167a0909f042e71ac530df",
+        "beforeBlackFraction": 0.07308201058201058,
+        "afterBlackFraction": 0.9269179894179894,
+        "appMessage": {
+          "0": 1,
+          "1": 1,
+          "2": 1
+        },
+        "assertions": [
+          "lazy loading",
+          "native header at device scale",
+          "sandbox isolation",
+          "forged sender rejected",
+          "decoded return",
+          "real firmware ACK",
+          "frame changes",
+          "cancel",
+          "native Back",
+          "persistent reopen/reload"
+        ]
+      },
+      {
+        "engine": "chromium",
+        "browser": "153.0.8010.12",
+        "profile": "qemu_gabbro",
+        "passed": true,
+        "viewport": "390x844",
+        "settingsLoadMs": 473,
+        "beforeFrame": "f383240191598400c881501c84b5da9f30c98b1b7929b7818843d93f04ad329e",
+        "afterFrame": "590381398eccf3fcbd5fd6c0778918dc710b199b1f0c30f335393c0328cae131",
+        "beforeBlackFraction": 0.20940828402366865,
+        "afterBlackFraction": 0.9738461538461538,
+        "appMessage": {
+          "0": 1,
+          "1": 1,
+          "2": 1
+        },
+        "assertions": [
+          "lazy loading",
+          "native header at device scale",
+          "sandbox isolation",
+          "forged sender rejected",
+          "decoded return",
+          "real firmware ACK",
+          "frame changes",
+          "cancel",
+          "native Back",
+          "persistent reopen/reload"
+        ]
+      },
+      {
+        "engine": "firefox",
+        "browser": "155.0",
+        "profile": "qemu_emery",
+        "passed": true,
+        "viewport": "390x844",
+        "settingsLoadMs": 537,
+        "beforeFrame": "083a1c975838a535daded679ba318936a17eda99f2ab2b1b351c78ffcfc3f3f1",
+        "afterFrame": "56d99a55eb772da3284a6d6ddbde29ce146a037cda589dfae430f6b74ca30ddf",
+        "beforeBlackFraction": 0.03418859649122807,
+        "afterBlackFraction": 0.9658114035087719,
+        "appMessage": {
+          "0": 1,
+          "1": 1,
+          "2": 1
+        },
+        "assertions": [
+          "lazy loading",
+          "native header at device scale",
+          "sandbox isolation",
+          "forged sender rejected",
+          "decoded return",
+          "real firmware ACK",
+          "frame changes",
+          "cancel",
+          "native Back",
+          "persistent reopen/reload"
+        ]
+      },
+      {
+        "engine": "webkit",
+        "browser": "26.6",
+        "profile": "qemu_emery",
+        "passed": true,
+        "viewport": "390x844",
+        "settingsLoadMs": 769,
+        "beforeFrame": "107fc18980665a37aec761ecbb057dc3079f480cd65f4b682e0b938c8c42adcf",
+        "afterFrame": "56d99a55eb772da3284a6d6ddbde29ce146a037cda589dfae430f6b74ca30ddf",
+        "beforeBlackFraction": 0.03418859649122807,
+        "afterBlackFraction": 0.9658114035087719,
+        "appMessage": {
+          "0": 1,
+          "1": 1,
+          "2": 1
+        },
+        "assertions": [
+          "lazy loading",
+          "native header at device scale",
+          "sandbox isolation",
+          "forged sender rejected",
+          "decoded return",
+          "real firmware ACK",
+          "frame changes",
+          "cancel",
+          "native Back",
+          "persistent reopen/reload"
+        ]
+      }
+    ]
+  },
+  "demo": [
+    {
+      "engine": "chromium",
+      "profile": "qemu_emery",
+      "launchMs": 11063,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": true
+      },
+      "buttons": [
+        {
+          "x": 36.5,
+          "y": 206.609375,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 178.5625,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 255.6875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 332.796875,
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "profile": "qemu_flint",
+      "launchMs": 9498,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 36.5,
+          "y": 193.5,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 181.546875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 255.6875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 329.8125,
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "profile": "qemu_gabbro",
+      "launchMs": 12513,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 36.5,
+          "y": 255.6875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 200.328125,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 255.6875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 311.03125,
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "store": {
+    "testedAt": "2026-09-17T23:03:41.368Z",
+    "base": "http://127.0.0.1:4202/",
+    "storeListing": "https://apps.repebble.com/justthetime_50bdea7ee3ff48308157c046",
+    "storeVersion": "1.2",
+    "packageVersionLabel": "1.1",
+    "results": [
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "profile": "qemu_emery",
+        "passed": true,
+        "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+        "firmware": "4.37.0",
+        "width": 200,
+        "height": 228,
+        "beforeFrameSha256": "4898bd642cfd4705bba58a4622972b436dfc243e3bded53a5bcd8a9cb093d99c",
+        "afterFrameSha256": "ae04ac3876417dbb291b8d4231f53c8877a4c9260a16be5da4569f4aec13943b",
+        "changedPixels": 43775,
+        "beforeWhiteFraction": 0.013026315789473684,
+        "afterWhiteFraction": 0.96875,
+        "appMessage": {
+          "10000": 16777215,
+          "10001": 16777215,
+          "10002": 16733525,
+          "10003": 16777215,
+          "10004": 5635925,
+          "10005": 7,
+          "10006": 6,
+          "10007": 13,
+          "10008": 4,
+          "10009": 2,
+          "10010": 2,
+          "10011": 4,
+          "10012": 3,
+          "10013": 1,
+          "10014": 1,
+          "10015": 1,
+          "10016": 0
+        },
+        "firmwareAck": true,
+        "reopenedSavedSettings": true,
+        "nativeBackCancelled": true,
+        "externalRequests": [],
+        "errors": []
+      },
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "profile": "qemu_flint",
+        "passed": true,
+        "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+        "firmware": "4.37.0",
+        "width": 144,
+        "height": 168,
+        "beforeFrameSha256": "1c9d5601cdd3df2178a4b75ddf66f633443275b93f555b3d2a5f9f7f37fb3d6a",
+        "afterFrameSha256": "9d9fe3203f749b157938539b19013fd48919d16a4abe8da4a7d26888b3c059b5",
+        "changedPixels": 24192,
+        "beforeWhiteFraction": 0.06121858465608466,
+        "afterWhiteFraction": 0.9387814153439153,
+        "appMessage": {
+          "10000": 16777215,
+          "10005": 7,
+          "10006": 6,
+          "10007": 13,
+          "10008": 4,
+          "10009": 2,
+          "10010": 2,
+          "10011": 4,
+          "10012": 3,
+          "10013": 1,
+          "10014": 1,
+          "10015": 1,
+          "10016": 0
+        },
+        "firmwareAck": true,
+        "reopenedSavedSettings": true,
+        "nativeBackCancelled": true,
+        "externalRequests": [],
+        "errors": []
+      },
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "profile": "qemu_gabbro",
+        "passed": true,
+        "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+        "firmware": "4.37.0",
+        "width": 260,
+        "height": 260,
+        "beforeFrameSha256": "1f131bd2385b647a156c1b241e90c222381ecfb422f914989227c66870639142",
+        "afterFrameSha256": "312f4af1a7f773791173a713ffcf07714b27af81168621fdd8ee605b58084ad8",
+        "changedPixels": 50940,
+        "beforeWhiteFraction": 0.015488165680473372,
+        "afterWhiteFraction": 0.7651479289940828,
+        "appMessage": {
+          "10000": 16777215,
+          "10001": 16777215,
+          "10002": 16733525,
+          "10003": 16777215,
+          "10004": 5635925,
+          "10005": 7,
+          "10006": 6,
+          "10007": 13,
+          "10008": 4,
+          "10009": 2,
+          "10010": 2,
+          "10011": 4,
+          "10012": 3,
+          "10013": 1,
+          "10014": 1,
+          "10015": 1,
+          "10016": 0
+        },
+        "firmwareAck": true,
+        "reopenedSavedSettings": true,
+        "nativeBackCancelled": true,
+        "externalRequests": [],
+        "errors": []
+      }
+    ]
+  }
+}

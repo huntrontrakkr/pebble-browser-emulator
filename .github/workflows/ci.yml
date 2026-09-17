@@ -13,6 +13,10 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
@@ -22,8 +26,19 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --locked
       - run: npm run build:wasm
+      - run: npm run build:phone
       - run: npm test
       - run: npm run build:web
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/verify-pwa-browser.mjs
+        env:
+          PEBBLE_BROWSERS: chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pwa-browser-evidence
+          path: tmp/pwa-browser/
+          if-no-files-found: ignore
       - run: python -m pip install unicorn==2.1.4
       - run: python scripts/verify-reference.py
       - uses: actions/upload-artifact@v4

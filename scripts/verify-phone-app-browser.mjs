@@ -23,7 +23,7 @@ const frameState = async (page) =>
 const settingsFrame = (page) =>
   page.frameLocator('iframe[title="Pebble app settings"]').frameLocator('#configuration-page');
 async function openSettings(page) {
-  await page.getByRole('button', { name: 'App settings', exact: true }).click();
+  await page.getByRole('button', { name: 'App configuration', exact: true }).click();
   await settingsFrame(page).getByRole('button', { name: 'Save', exact: true }).waitFor();
   // Compose renders its canvas on demand and clips to the visible browser viewport.
   await page.getByRole('button', { name: 'Close app settings' }).scrollIntoViewIfNeeded();

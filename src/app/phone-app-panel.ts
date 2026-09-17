@@ -29,26 +29,47 @@ export interface PhoneConfigurationResult {
 @Component({
   selector: 'phone-app-panel',
   template: `
-    <div class="heading">
-      <div>
-        <span class="label">Pebble app</span><strong>{{ request.title }}</strong>
-      </div>
-      <button #closeButton (click)="close(null)" aria-label="Close app settings">Close</button>
-    </div>
-    @if (notice()) {
-      <p role="status">{{ notice() }}</p>
-    }
-    <iframe #frame [src]="src" title="Pebble app settings" referrerpolicy="no-referrer"></iframe>
-    <small
-      ><a href="phone-app/README.md" target="_blank" rel="noopener"
-        >Compatibility and source</a
-      ></small
+    <dialog
+      #surface
+      class="phone-surface"
+      aria-label="App configuration"
+      (cancel)="$event.preventDefault(); close(null)"
     >
+      <div class="heading">
+        <div>
+          <span class="label">App configuration</span><strong>{{ request.title }}</strong>
+        </div>
+        <button #closeButton (click)="close(null)" aria-label="Close app settings">
+          Back to watch
+        </button>
+      </div>
+      @if (notice()) {
+        <p role="status">{{ notice() }}</p>
+      }
+      <iframe #frame [src]="src" title="Pebble app settings" referrerpolicy="no-referrer"></iframe>
+      <small
+        ><a href="phone-app/README.md" target="_blank" rel="noopener"
+          >Compatibility and source</a
+        ></small
+      >
+    </dialog>
   `,
   styles: `
     :host {
       display: block;
       min-width: 0;
+    }
+    .phone-surface {
+      position: static;
+      width: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      color: var(--text);
+      background: transparent;
+      overflow: visible;
     }
     .heading {
       display: flex;
@@ -64,10 +85,9 @@ export interface PhoneConfigurationResult {
     iframe {
       display: block;
       width: 100%;
-      height: 580px;
-      max-height: 78dvh;
-      border: 1px solid var(--border, #ddd);
-      border-radius: 10px;
+      height: min(640px, 72dvh);
+      border: 1px solid var(--line);
+      border-radius: 12px;
       background: white;
     }
     p {
@@ -77,10 +97,36 @@ export interface PhoneConfigurationResult {
     small {
       display: block;
       margin-top: 10px;
-      font-size: 12px;
+      font-size: 14px;
     }
     a {
       color: inherit;
+    }
+    @media (max-width: 780px) {
+      .phone-surface[open] {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom));
+        background: var(--panel);
+        overflow: auto;
+      }
+      iframe {
+        height: calc(100dvh - 142px);
+        min-height: 260px;
+        flex: 1;
+        border-radius: 8px;
+      }
+      .heading {
+        min-height: 48px;
+        margin-bottom: 12px;
+      }
+      small {
+        margin-block: 10px 0;
+      }
     }
   `,
 })
@@ -89,6 +135,14 @@ export class PhoneAppPanel implements OnInit, AfterViewInit, OnDestroy {
   @Output() returned = new EventEmitter<PhoneConfigurationResult>();
   @ViewChild('frame') frame?: ElementRef<HTMLIFrameElement>;
   @ViewChild('closeButton') closeButton?: ElementRef<HTMLButtonElement>;
+  @ViewChild('surface') surface!: ElementRef<HTMLDialogElement>;
+  private mobile = matchMedia('(max-width: 780px)');
+  private present = () => {
+    const dialog = this.surface.nativeElement;
+    dialog.close();
+    if (this.mobile.matches) dialog.showModal();
+    else dialog.show();
+  };
   private host = inject(ElementRef<HTMLElement>);
   private previousFocus = document.activeElement;
   private sanitizer = inject(DomSanitizer);
@@ -145,13 +199,18 @@ export class PhoneAppPanel implements OnInit, AfterViewInit, OnDestroy {
     this.returned.emit({ request: this.request, response });
   }
   ngAfterViewInit() {
+    this.present();
+    this.mobile.addEventListener('change', this.present);
     this.closeButton?.nativeElement.focus({ preventScroll: true });
-    this.host.nativeElement.scrollIntoView({ block: 'start', inline: 'nearest' });
+    if (!this.mobile.matches)
+      this.host.nativeElement.scrollIntoView({ block: 'start', inline: 'nearest' });
   }
   ngOnDestroy() {
     this.finished = true;
     clearTimeout(this.timeout);
     removeEventListener('message', this.onMessage);
+    this.mobile.removeEventListener('change', this.present);
+    this.surface?.nativeElement.close();
     if (this.previousFocus instanceof HTMLElement && this.previousFocus.isConnected) {
       const previous = this.previousFocus;
       requestAnimationFrame(() => {

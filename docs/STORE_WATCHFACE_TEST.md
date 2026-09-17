@@ -12,7 +12,7 @@ emulator changes are used.
 2. Open [the emulator](https://pebble-browser-emulator.whunt003.chatgpt.site).
 3. Choose Pebble Time 2, Pebble 2 Duo, or Pebble Round 2, then **Open watchface .pbw**.
 4. Select the downloaded file. Default firmware loads automatically.
-5. Select **App settings**, change **Background**, and press **Save Settings**.
+5. Select **App configuration**, change **Background**, and press **Save Settings**.
 
 The package contains native `emery`, `flint`, and `gabbro` binaries, so each current
 profile can use its own build. The watchface's own Clay HTML is shown inside the
