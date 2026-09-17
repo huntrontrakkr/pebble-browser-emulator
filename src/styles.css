@@ -1225,10 +1225,409 @@ h1 {
     scroll-behavior: auto !important;
   }
 }
-.watch-progress { margin: 0; padding: 12px 18px; font-size: .875rem; background: var(--selected); border-bottom: 1px solid var(--line); }
+.watch-progress {
+  margin: 0;
+  padding: 12px 18px;
+  font-size: 0.875rem;
+  background: var(--selected);
+  border-bottom: 1px solid var(--line);
+}
 @media (max-width: 780px) {
-  .preview-workspace:not(.preview-active) .display-panel { display: none; }
-  .preview-workspace.preview-active .display-panel { order: -1; }
-  .preview-mode .display-stage { height: 350px; }
-  .preview-mode .pixel-screen { max-width: min(280px, calc(100% - 40px)); }
+  .preview-workspace:not(.preview-active) .display-panel {
+    display: none;
+  }
+  .preview-workspace.preview-active .display-panel {
+    order: -1;
+  }
+  .preview-mode .display-stage {
+    height: 350px;
+  }
+  .preview-mode .pixel-screen {
+    max-width: min(280px, calc(100% - 40px));
+  }
+}
+
+/* The screen and its four physical controls stay together at every viewport size. */
+.watch-layout {
+  --control-size: 48px;
+  position: relative;
+  flex: 0 1 auto;
+  width: min(var(--screen-width), 360px, calc(100% - 132px));
+  margin: 36px 66px;
+}
+.watch-layout .pixel-screen {
+  width: 100%;
+  max-width: none;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 10px var(--panel),
+    0 0 0 11px var(--line),
+    0 14px 32px #00000016;
+}
+.watch-layout.round-watch .pixel-screen {
+  border-radius: 50%;
+}
+.watch-layout.duo-watch .pixel-screen {
+  border-radius: 1px;
+}
+.watch-control {
+  position: absolute;
+  transform: translateY(-50%);
+  width: var(--control-size);
+  height: var(--control-size);
+  min-height: 48px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2px 3px #00000008;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  color: var(--text);
+  z-index: 2;
+}
+.watch-control.left-control {
+  left: -64px;
+}
+.watch-control.right-control {
+  right: -64px;
+}
+.watch-control-icon {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 400;
+}
+.watch-control[aria-label='Select'] .watch-control-icon {
+  font-size: 12px;
+}
+.watch-control-label {
+  position: absolute;
+  top: calc(100% + 4px);
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.watch-control.pressed {
+  background: var(--accent);
+  color: var(--panel);
+  border-color: var(--accent);
+  box-shadow: inset 0 2px 4px #0003;
+}
+.watch-control:focus-visible,
+.display-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.watch-layout.model-controls {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.model-controls .watch-control {
+  transform: translate(-50%, -50%);
+  right: auto;
+  pointer-events: auto;
+  opacity: 0.94;
+  border-radius: 50%;
+}
+.model-controls .control-hidden {
+  visibility: hidden;
+}
+.watch-context {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8125rem;
+}
+.watch-context > span:first-child {
+  font-weight: 600;
+}
+.watch-context-battery {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.text-button {
+  padding: 5px 0;
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  box-shadow: none;
+}
+.watch-key-help {
+  margin: 0;
+  padding: 0 18px 18px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.settings-trigger {
+  font-weight: 500;
+  min-height: 36px;
+}
+.settings-dialog {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: min(510px, 100vw);
+  max-width: 100vw;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: -12px 0 48px #0002;
+}
+.settings-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.settings-dialog::backdrop {
+  background: #11182766;
+}
+.settings-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.settings-header p {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.icon-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 24px;
+  border: 0;
+  background: transparent;
+}
+.settings-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 24px;
+}
+.settings-fields {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.settings-fields:disabled {
+  opacity: 0.55;
+}
+.settings-dialog label {
+  font-size: 0.8125rem;
+}
+.settings-dialog .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+.settings-dialog input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.settings-section {
+  border-top: 1px solid var(--line);
+  padding: 20px 0 8px;
+  margin-top: 20px;
+}
+.settings-section h3 {
+  margin: 0 0 14px;
+}
+.settings-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.settings-section-heading h3 {
+  margin: 0;
+}
+.settings-section-heading button {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+}
+.settings-section .help {
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+.settings-section details {
+  margin-top: 18px;
+}
+.settings-section summary {
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.battery-setting {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.battery-setting > input {
+  flex: 1;
+  min-width: 80px;
+}
+.battery-number {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 100px;
+}
+.battery-number input {
+  margin: 0;
+}
+.sample-item {
+  margin: 18px 0 10px;
+  padding: 10px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+.sample-item legend {
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 0 6px;
+}
+.sample-item label {
+  margin-top: 12px;
+}
+.sample-item .actions {
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.sample-item textarea {
+  resize: vertical;
+}
+.settings-footer {
+  flex: 0 0 auto;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--panel-alt);
+}
+.settings-footer .actions {
+  justify-content: space-between;
+}
+.settings-footer p {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.settings-footer > .help {
+  margin: 10px 0 0;
+}
+@media (max-width: 780px) {
+  .header-actions .connection {
+    display: none;
+  }
+  .theme-control {
+    display: none;
+  }
+  .preview-mode .watch-layout .pixel-screen {
+    max-width: none;
+  }
+  .watch-layout {
+    width: min(var(--screen-width), 250px, calc(100% - 116px));
+    margin-inline: 58px;
+  }
+  .watch-control.left-control {
+    left: -58px;
+  }
+  .watch-control.right-control {
+    right: -58px;
+  }
+  .watch-context {
+    gap: 10px;
+    padding: 12px;
+    font-size: 0.75rem;
+  }
+  .watch-context .help {
+    display: none;
+  }
+  .watch-key-help {
+    font-size: 0.6875rem;
+    padding-inline: 12px;
+  }
+  .settings-content,
+  .settings-header {
+    padding: 18px;
+  }
+  .settings-footer {
+    padding: 12px 18px;
+  }
+}
+.settings-footer {
+  display: block;
+  color: var(--text);
+}
+.pixel-view .watch-layout:not(.round-watch) .pixel-screen {
+  border-radius: 0;
+}
+.model-controls .watch-control {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  opacity: 1;
+}
+.model-controls .watch-control-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 5px #0002;
+}
+.model-controls .watch-control[aria-label='Select'] .watch-control-icon {
+  font-size: 8px;
+}
+.model-controls .watch-control-label {
+  display: none;
+}
+.model-controls .watch-control.pressed .watch-control-icon {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.display-stage.model-view {
+  overflow: hidden;
+}
+/* Developer zoom is literal; preview scales to fit the available touch layout. */
+main:not(.preview-mode) .watch-layout:not(.model-controls) {
+  width: var(--screen-width);
+  max-width: none;
+  flex: 0 0 auto;
 }

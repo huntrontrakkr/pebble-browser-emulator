@@ -164,6 +164,33 @@ export class PebbleTransport {
         `BlobDB ${database} rejected the entry: status ${response[2] ?? 'malformed'}.`,
       );
   }
+  /** Remove one owned record, never clear a user's entire notification/calendar DB. */
+  async deleteBlob(database: number, key: Uint8Array): Promise<void> {
+    uint(database, 255, 'BlobDB database');
+    uint(key.length, 255, 'BlobDB key length');
+    if (!key.length) throw new Error('Empty BlobDB key.');
+    const token = (this.token = (this.token + 1) & 0xffff);
+    const payload = new Uint8Array(5 + key.length);
+    payload[0] = 4;
+    view(payload).setUint16(1, token, true);
+    payload[3] = database;
+    payload[4] = key.length;
+    payload.set(key, 5);
+    const mark = this.sequence;
+    await this.send(0xb1db, payload);
+    const response = (
+      await this.waitPacket(
+        0xb1db,
+        (p) => p.length >= 2 && view(p).getUint16(0, true) === token,
+        mark,
+      )
+    ).payload;
+    // Key-does-not-exist (6) is the firmware's explicit, idempotent deletion result.
+    if (response.length !== 3 || ![1, 6].includes(response[2]!))
+      throw new Error(
+        `BlobDB ${database} rejected deletion: status ${response[2] ?? 'malformed'}.`,
+      );
+  }
   /** Validate end-of-stream; a live UART normally stays open until reset. */
   finish(): void {
     if (this.serial.length || this.spp.length) throw new Error('Truncated QEMU or Pebble packet.');

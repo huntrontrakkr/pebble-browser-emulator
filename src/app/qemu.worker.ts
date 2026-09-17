@@ -16,6 +16,8 @@ import { healthPreferences } from './watch-preferences.ts';
 import { ClockBarrier } from './clock-barrier.ts';
 import { signalRoute } from './board-registry.ts';
 import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
+import { DemoSignalStream, normalizeDemoSettings } from './demo-settings.ts';
+import { demoRecords, type DemoRecord } from './demo-timeline.ts';
 let api: any,
   running = false,
   loaded = false,
@@ -42,6 +44,9 @@ let cpuMs = 1;
 let realtime = false;
 let paceStart: { wall: number; virtual: number } | undefined;
 const timeline = new SignalTimeline();
+const demoStream = new DemoSignalStream();
+let demoApplying = false;
+const demoOwned = new Map<string, Pick<DemoRecord, 'database' | 'key'>>();
 const uartWriter = new UartWriter();
 let scenarioName = '';
 let phoneCoupled = false;
@@ -133,10 +138,16 @@ async function tickOnce(count: number) {
         ? 1280000
         : Number.MAX_SAFE_INTEGER - api.spike_ticks());
   while (remaining > 0) {
+    for (const event of demoStream.takeDue(api.spike_ticks() / 64))
+      applySignal(event.signal, event.atUs);
     for (const event of timeline.takeDue(api.spike_ticks() / 64))
       applySignal(event.signal, event.atUs);
     flushUart();
-    const deadline = Math.min(quantumEnd, Math.round(timeline.nextUs * 64));
+    const deadline = Math.min(
+      quantumEnd,
+      Math.round(timeline.nextUs * 64),
+      Math.round(demoStream.nextUs * 64),
+    );
     // Service pending UART envelopes promptly without interleaving their bytes.
     const done = api.spike_run_until(
       Math.min(remaining, uartWriter.pending ? 1000 : remaining),
@@ -148,9 +159,11 @@ async function tickOnce(count: number) {
     remaining -= done;
     serial();
     if (api.spike_ticks() >= quantumEnd) break;
-    if (!done && timeline.nextUs > api.spike_ticks() / 64) break;
+    if (!done && Math.min(timeline.nextUs, demoStream.nextUs) > api.spike_ticks() / 64) break;
   }
   for (const event of timeline.takeDue(api.spike_ticks() / 64))
+    applySignal(event.signal, event.atUs);
+  for (const event of demoStream.takeDue(api.spike_ticks() / 64))
     applySignal(event.signal, event.atUs);
   flushUart();
   const frame = api.spike_frame_counter();
@@ -309,7 +322,7 @@ function state(force = true) {
   );
 }
 async function batch() {
-  if (!running || installing) return;
+  if (!running || installing || demoApplying) return;
   const owner = generation;
   const loop = runSequence;
   try {
@@ -339,6 +352,8 @@ function resetSession() {
   paceStart = undefined;
   cpuPump = Promise.resolve();
   timeline.clear();
+  demoStream.stop();
+  demoApplying = false;
   uartWriter.clear();
   scenarioName = '';
   postMessage({ type: 'session', generation });
@@ -409,6 +424,7 @@ self.onmessage = async ({ data }) => {
         paceStart = undefined;
         break;
       case 'firmware':
+        demoOwned.clear();
         boot({ micro: data.micro, flash: data.flash, profile: data.profile }, data.name);
         break;
       case 'run':
@@ -463,6 +479,8 @@ self.onmessage = async ({ data }) => {
         if (!firmwareReady) throw new Error('Wait for firmware boot before loading a scenario.');
         const scenario = normalizeScenario(data.scenario);
         for (const event of scenario.events) validateDeviceSignal(event.signal);
+        demoStream.stop();
+        postMessage({ type: 'demo-stopped', generation });
         timeline.load(scenario, Math.round(api.spike_ticks() / 64));
         scenarioName = scenario.name;
         for (const event of timeline.takeDue(api.spike_ticks() / 64))
@@ -512,10 +530,116 @@ self.onmessage = async ({ data }) => {
         if (!firmwareReady) throw new Error('Firmware is not ready.');
         await transport!.send(data.endpoint, data.bytes);
         break;
+      case 'demo-settings':
+      case 'demo-notification': {
+        if (data.generation !== generation) return;
+        if (!firmwareReady)
+          throw new Error('Wait for firmware boot before applying demo settings.');
+        if (installing || demoApplying)
+          throw new Error('Wait for the current watch operation to finish.');
+        const settings = normalizeDemoSettings(data.settings);
+        const popup = data.type === 'demo-notification';
+        if (
+          popup &&
+          (!settings.enabled || !settings.notifications.some((n) => n.enabled && n.id === data.id))
+        )
+          throw new Error('Enable a sample notification first.');
+        const records = demoRecords(settings, api.spike_epoch_ms(), popup ? data.id : undefined);
+        const current = generation,
+          port = transport!;
+        const check = () => {
+          if (current !== generation) throw new Error('Demo setup canceled.');
+        };
+        const resume = running;
+        stop();
+        running = resume;
+        demoApplying = true;
+        postMessage({ type: 'demo-status', busy: true, generation, revision: data.revision });
+        try {
+          if (!popup) {
+            demoStream.stop();
+            timeline.clear();
+            scenarioName = '';
+            if (settings.enabled) {
+              applySignal({
+                kind: 'battery',
+                percent: settings.battery,
+                charging: settings.charging,
+              });
+              for (const pref of healthPreferences(
+                settings.health,
+                settings.pulse && profile === 'qemu_emery',
+              )) {
+                await port.insertBlob(7, pref.key, pref.value);
+                check();
+              }
+              if (settings.health)
+                settings.metrics.forEach((value, metric) =>
+                  applySignal({
+                    kind: 'health',
+                    metric: metric as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+                    value,
+                  }),
+                );
+              if (settings.location)
+                applySignal({
+                  kind: 'location',
+                  latitude: settings.latitude,
+                  longitude: settings.longitude,
+                  accuracy: settings.accuracy,
+                });
+            }
+          }
+          const id = (r: Pick<DemoRecord, 'database' | 'key'>) =>
+            `${r.database}:${Array.from(r.key).join(',')}`;
+          const toRemove = new Map(popup ? [] : demoOwned);
+          for (const r of records) toRemove.set(id(r), r);
+          for (const [key, r] of toRemove) {
+            await port.deleteBlob(r.database, r.key);
+            check();
+            demoOwned.delete(key);
+          }
+          for (const r of records) {
+            // Track before awaiting: a canceled transfer may already have reached the watch.
+            demoOwned.set(id(r), { database: r.database, key: r.key });
+            await port.insertBlob(r.database, r.key, r.value);
+            check();
+            if (r.dismissed) {
+              await port.insertBlob(r.database, r.key, r.dismissed);
+              check();
+            }
+          }
+          if (!popup)
+            demoStream.start(
+              settings,
+              Math.round(api.spike_ticks() / 64),
+              profile === 'qemu_emery',
+            );
+          postMessage({
+            type: 'demo-applied',
+            generation,
+            revision: data.revision,
+            popup,
+            notifications: records.filter((r) => r.database === 4).length,
+            calendar: records.filter((r) => r.database === 1).length,
+            heartRate: settings.enabled && settings.pulse && profile === 'qemu_emery',
+          });
+        } finally {
+          if (current === generation) {
+            demoApplying = false;
+            postMessage({ type: 'demo-status', busy: false, generation, revision: data.revision });
+            paceStart = undefined;
+            state();
+            if (running) void batch();
+          }
+        }
+        break;
+      }
       case 'install': {
         if (!firmwareReady)
           throw new Error('Run the firmware until boot completes before installing an app.');
         if (installing) throw new Error('An installation is already running.');
+        if (demoApplying) throw new Error('Wait for demo settings to finish before installing.');
         const parts = appPackage(data.bytes, FIRMWARE_PROFILES[profile].platform);
         stop();
         installing = true;

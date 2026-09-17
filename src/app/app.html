@@ -1,6 +1,9 @@
 <header class="topbar">
   <a class="identity" href="./">Pebble Browser Emulator</a>
   <div class="header-actions">
+    <button class="settings-trigger" (click)="settingsOpen.set(true)" aria-haspopup="dialog">
+      Settings
+    </button>
     <span class="connection"
       ><i [class.connected]="ready()"></i>{{ ready() ? 'Core ready' : 'Ready to load' }}</span
     ><label class="theme-control"
@@ -102,26 +105,82 @@
           </select></label
         >
       </div>
-      <div class="display-stage" [class.model-view]="displayMode() === 'model'">
+      <div
+        class="display-stage"
+        [class.model-view]="displayMode() === 'model'"
+        [class.pixel-view]="displayMode() === 'pixels'"
+        tabindex="0"
+        aria-label="Watch controls. Arrow keys: left for Back, right for Select, up and down."
+        (keydown)="watchKey($event, true)"
+        (keyup)="watchKey($event, false)"
+        (focusout)="releaseKeys()"
+      >
         <div #modelHost class="model-host" [hidden]="displayMode() !== 'model'"></div>
         <div
-          class="pixel-screen"
-          [hidden]="displayMode() === 'model'"
-          [style.width.px]="display().width * zoom"
-          [class.round-screen]="display().round"
-          [style.height.px]="display().height * zoom"
-          [style.aspect-ratio]="display().width + ' / ' + display().height"
+          class="watch-layout"
+          [class.round-watch]="display().round"
+          [class.duo-watch]="profile() === 'qemu_flint'"
+          [class.model-controls]="displayMode() === 'model'"
+          [style.--screen-width.px]="display().width * zoom"
         >
-          <canvas #screen width="200" height="228" aria-label="Live watch framebuffer"></canvas>
-          @if (!loaded()) {
-            <div class="empty-display">
-              {{ workbench() ? 'No firmware loaded' : 'Choose a watchface to start' }}
-            </div>
+          <div
+            class="pixel-screen"
+            [hidden]="displayMode() === 'model'"
+            [class.round-screen]="display().round"
+            [style.aspect-ratio]="display().width + ' / ' + display().height"
+          >
+            <canvas #screen width="200" height="228" aria-label="Live watch framebuffer"></canvas>
+            @if (!loaded()) {
+              <div class="empty-display">
+                {{ workbench() ? 'No firmware loaded' : 'Choose a watchface to start' }}
+              </div>
+            }
+          </div>
+          @for (item of buttonList; track item.mask) {
+            <button
+              class="watch-control"
+              [class.left-control]="item.side === 'left'"
+              [class.right-control]="item.side === 'right'"
+              [style.top]="
+                displayMode() === 'model'
+                  ? buttonPosition(item.mask)?.y + 'px'
+                  : buttonTop(item.mask) + '%'
+              "
+              [style.left]="displayMode() === 'model' ? buttonPosition(item.mask)?.x + 'px' : null"
+              [class.control-hidden]="
+                displayMode() === 'model' && !buttonPosition(item.mask)?.visible
+              "
+              [disabled]="!loaded() || demoBusy()"
+              [class.pressed]="isPressed(item.mask)"
+              [attr.aria-label]="item.name"
+              [attr.aria-keyshortcuts]="item.key"
+              [title]="item.name + ' · ' + item.key"
+              [attr.aria-pressed]="isPressed(item.mask)"
+              (pointerdown)="pointerButton($event, item.mask, true)"
+              (pointerup)="pointerButton($event, item.mask, false)"
+              (lostpointercapture)="pointerButton($event, item.mask, false)"
+              (pointercancel)="pointerButton($event, item.mask, false)"
+              (keydown.enter)="keyButton($event, item.mask, true)"
+              (keyup.enter)="keyButton($event, item.mask, false)"
+              (keydown.space)="keyButton($event, item.mask, true)"
+              (keyup.space)="keyButton($event, item.mask, false)"
+            >
+              <span class="watch-control-icon" aria-hidden="true">{{ item.icon }}</span
+              ><span class="watch-control-label">{{ item.name }}</span>
+            </button>
           }
         </div>
         @if (displayMode() === 'model' && modelStatus()) {
           <div class="model-status" role="status">{{ modelStatus() }}</div>
         }
+      </div>
+      <div class="watch-context">
+        <span>{{ isFirmware() || !loaded() ? modelSpec().name : 'Diagnostic board' }}</span>
+        <span class="watch-context-battery" [attr.aria-label]="'Battery ' + battery() + '%'"
+          >{{ loaded() ? battery() + '%' : '—' }}
+          <span class="help">{{ charging ? 'charging' : 'battery' }}</span></span
+        >
+        <button class="text-button" (click)="settingsOpen.set(true)">Demo settings</button>
       </div>
       @if (displayMode() !== 'pixels') {
         <div class="display-options">
@@ -145,7 +204,7 @@
           @if (displayMode() === 'model') {
             <label
               >Case<select [(ngModel)]="finish" (ngModelChange)="redraw()">
-                <option value="silver">Silver</option>
+                <option value="silver">{{ modelSpec().plastic ? 'White' : 'Silver' }}</option>
                 <option value="black">Black</option>
               </select></label
             ><button (click)="resetModel()">Reset view</button>
@@ -161,11 +220,8 @@
       @if (displayMode() === 'model') {
         <p class="model-credit">
           Drag to rotate · Scroll to zoom ·
-          <a
-            href="https://github.com/coredevices/hardware/tree/cb50db8e68c053e7dd595188313dd54aba693bc9/watch/Pebble%20Time%202%20%28obelix%29"
-            target="_blank"
-            rel="noopener"
-            >Official Time 2 geometry</a
+          <a [href]="modelSource()" target="_blank" rel="noopener"
+            >Official {{ modelSpec().name }} geometry</a
           >
         </p>
       }
@@ -208,26 +264,9 @@
           [height]="display().height"
         />
       }
-      <div class="watch-buttons" aria-label="Watch buttons">
-        @for (item of buttonList; track item.mask) {
-          <button
-            [disabled]="!loaded()"
-            [class.pressed]="isPressed(item.mask)"
-            [attr.aria-pressed]="isPressed(item.mask)"
-            (pointerdown)="handleButton(item.mask, true)"
-            (pointerup)="handleButton(item.mask, false)"
-            (pointerleave)="handleButton(item.mask, false)"
-            (pointercancel)="handleButton(item.mask, false)"
-            (keydown.enter)="handleButton(item.mask, true)"
-            (keyup.enter)="handleButton(item.mask, false)"
-            (keydown.space)="handleButton(item.mask, true); $event.preventDefault()"
-            (keyup.space)="handleButton(item.mask, false)"
-            (blur)="handleButton(item.mask, false)"
-          >
-            {{ item.name }}
-          </button>
-        }
-      </div>
+      <p class="watch-key-help">
+        Use the buttons beside the screen. Keyboard: ← Back · ↑ Up · → Select · ↓ Down.
+      </p>
     </section>
     @defer (when toolsOpened()) {
       <section class="tools-panel panel" [hidden]="!workbench()">
@@ -629,3 +668,22 @@
     >
   </footer>
 </main>
+
+@defer (when settingsOpen()) {
+  @if (settingsOpen()) {
+    <demo-settings-panel
+      [settings]="demoSettings()"
+      [busy]="demoBusy() || installing()"
+      [ready]="watchReady() && isFirmware()"
+      [heartRateAvailable]="profile() === 'qemu_emery'"
+      [roundWatch]="profile() === 'qemu_gabbro'"
+      [status]="demoStatus()"
+      [theme]="theme()"
+      (themeChanged)="setTheme($event)"
+      (closed)="settingsOpen.set(false)"
+      (saved)="saveDemo($event)"
+      (notification)="notifyDemo($event)"
+      (signalSent)="sendSignal($event)"
+    />
+  }
+}

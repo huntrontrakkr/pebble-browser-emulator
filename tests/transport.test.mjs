@@ -143,3 +143,26 @@ test('response wait observes sequence marks and virtual timeout/disposal', async
   t.dispose();
   await assert.rejects(t.waitPacket(3), /disposed/);
 });
+
+test('owned BlobDB deletion uses command 4 and requires real success or missing-key status', async () => {
+  for (const status of [1, 6, 7, 2]) {
+    let wire;
+    const t = new PebbleTransport({
+      ...dummyHost,
+      writeUart: async (b) => {
+        wire = b;
+        const payload = b.subarray(10, b.length - 2);
+        t.feedUart(
+          encodeQemuPacket(
+            1,
+            encodePebblePacket(0xb1db, Uint8Array.of(payload[1], payload[2], status)),
+          ),
+        );
+      },
+    });
+    const pending = t.deleteBlob(4, parseUuid(uuid));
+    if ([1, 6].includes(status)) await pending;
+    else await assert.rejects(pending, /rejected deletion/);
+    assert.equal(hex(wire), 'feed000100190015b1db040100041000112233445566778899aabbccddeeffbeef');
+  }
+});

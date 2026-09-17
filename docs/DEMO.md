@@ -1,0 +1,117 @@
+# Demo data and watch controls
+
+Preview starts with a 69% battery, two sample messages and two sample calendar events.
+These are inputs to the unchanged firmware, not HTML painted over its framebuffer.
+**Settings** opens a keyboard-accessible modal drawer. Settings persist locally in this
+browser. Manual firmware/developer workflows do not automatically apply demo defaults;
+Save & apply can explicitly apply them to an already booted watch.
+
+## Signals
+
+- Battery percentage and charging state use QEMU's real battery control channel.
+- Time 2 receives a synthetic raw heart-rate reading every virtual second: a configurable
+  base BPM and sinusoidal variation with a 20-second period. Duo and Round 2 do not expose
+  this input and receive no fabricated HR responses. This is not a raw optical PPG waveform
+  or a validated simulation of the watch's physiological algorithms.
+- Motion can be off, stationary, walking or running. The moving presets send deterministic
+  accelerometer values at 10 Hz in watch time. A wrist-tap button sends the actual tap input.
+- Seven health totals are independently configurable. Real preference/BlobDB exchanges
+  enable activity tracking before sending totals. Motion does not calculate these values.
+- A configurable GPS location reaches the virtual phone script's location API. It does not
+  create a GPS device inside a watch. Existing developer tools retain error, compass,
+  touch, button, clock, connection and custom scenario controls. In particular, a compass
+  packet does not implement the firmware's missing compass service.
+
+The signal generator uses virtual deadlines, bounded state and no wall-time intervals or
+large precomputed queue. Pause freezes it. Loading a developer scenario stops the demo
+stream so two sources cannot race to set the same sensor. Reapplying demo settings replaces
+the current scenario. Disabling demo data stops the stream and removes only its owned
+messages/events; last-applied readings and health preferences remain until explicitly changed.
+
+## Notifications and calendar
+
+An original TypeScript encoder writes Pebble's serialized timeline records through BlobDB:
+notifications database 4, calendar pins database 1, real endpoint `0xb1db`. Every insert,
+status update and deletion waits for the firmware's token-matched acknowledgment. Unknown
+or unsuccessful replies are errors. Deletion accepts only Success (1) and the explicit
+Key-does-not-exist (6) response.
+
+Default notifications are inserted and then marked dismissed through the notification
+status-update protocol. They remain in the Notifications app without covering the watchface.
+**Send now** uses the shown title/body and produces a live firmware alert. Calendar events
+use the standard calendar data-source UUID and layout. From a watchface, Down opens the
+future timeline. Start offsets are measured from the watch's current clock at application
+time. Fixed per-slot UUIDs allow editing/removal without duplicates or clearing unrelated
+watch data. Each list allows eight items; text, coordinates, totals and timing are validated
+on both sides of the Worker boundary.
+
+Demo setup completes before the pending watchface installation starts. Session generations
+and request revisions prevent an old setup acknowledgment from launching a canceled preview.
+
+Wire references (read as protocol documentation; no upstream runtime code is copied):
+
+- [PebbleOS 4.37.0 timeline item header](https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/include/pbl/services/timeline/item.h)
+- [Attribute IDs](https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/include/pbl/services/timeline/attribute.h)
+- [Notification insert/update behavior](https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/src/fw/services/blob_db/notif_db.c)
+- [BlobDB commands and statuses](https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/include/pbl/services/blob_db/endpoint_private.h)
+- [Official calendar feed](https://github.com/coredevices/PebbleOS/blob/6262d5fc1f7257c36e27682843e01268810fc62e/tools/libs/pbl-cli/pbl/feeds/calendar.py)
+
+The independent `tests/fixtures/demo-timeline.json` vectors use Python `struct` with the
+firmware's 46-byte `<16s16sIHBBBBHBB` header and `<BH` attribute headers. They cover UTF-8,
+archive status, calendar parent IDs, lengths and little-endian time/duration fields.
+
+### Round 2 live-alert limitation
+
+With the bundled 4.37.0 Gabbro firmware, a live alert can remain in its introduction
+animation instead of revealing the message. The same payload reproduces this behavior
+in the independent native `qemu-pebble` emulator at 3- and 10-second checkpoints. This
+observation does not establish its root cause or the behavior of other firmware versions.
+Settings flags the limitation beside the notification controls. Default archived messages
+remain readable: Select opens the watch's app menu; choose Notifications.
+[Observed reference frames and archive view](evidence/demo-notification-reference.json).
+
+`PEBBLE_FIRMWARE_DIR=... PEBBLE_APP_PBW=public/examples/clock-gabbro.pbw
+PEBBLE_PROFILE=qemu_gabbro PEBBLE_QEMU=... node scripts/capture-notification-reference.mjs`
+records unchanged native firmware behavior. These captures are not synchronized equality
+assertions; the existing frozen sensor-frame comparisons retain their separate scope.
+
+## Controls and models
+
+Back sits on the left; Up, Select and Down sit on the right. Their arrangement changes with
+the watch profile. Each control has a 44px or larger target, a text/accessible name, pointer
+capture, pressed state and keyboard support. Arrow keys work while the watch area has focus.
+Window blur/visibility changes release held buttons. The default pixel view preserves all
+rectangular framebuffer pixels, and the round screen clips its actual round display.
+
+All three current products have their own official CAD geometry, loaded only when 3D watch
+is selected. Controls are projected from case-space anchors and move when the watch rotates;
+they hide on the back. WebGL stops while hidden, uses an on-demand render loop and caps its
+pixel ratio at 1.5. Materials, optical response, screen placement and enlarged button targets
+are visual approximations, not evidence of physical hardware or color calibration.
+
+CAD is fetched directly from Core Devices' pinned hardware repository revision
+`cb50db8e68c053e7dd595188313dd54aba693bc9` and checked against these SHA-256 values. The STL
+files are not redistributed by this app. The upstream README permits use for researching,
+learning, coding and hacking on its devices; the app links directly to each original file.
+
+| Product | Official file | SHA-256 |
+| --- | --- | --- |
+| Time 2 | `watch/Pebble Time 2 (obelix)/2026-04-08 Pebble Time 2 - 3D CAD Solid Model.STL` | `fb7c75e955e26de21611c81f73eb72bfe24a89df8b0b5064c730c88cecfa6311` |
+| 2 Duo | `watch/Pebble 2 Duo (asterix)/20250918 Pebble 2 Duo - Solid model.STL` | `fa9b42bf877c0012eb3d4dd05425ae1e89f5af8d72e876446a62f3b1f23edb5a` |
+| Round 2 | `watch/Pebble Round 2 (getafix)/Pebble Round 2 - External 3D CAD - 20mm.stl` | `df4be31aeb930c3ee3d2abd7ef06cc4c6e7bcbd79331e636e0ec081244b6a3d6` |
+
+## Reproduction
+
+`npm test` includes strict settings validation, deterministic virtual-time signals, independent
+wire vectors, real App lifecycle routing, and BlobDB acknowledgment/error behavior.
+
+`node scripts/verify-demo-firmware.mjs FIRMWARE_DIRECTORY [qemu_emery]` boots the shipped Wasm
+core with actual 4.37.0 images, applies defaults, installs Clock, sends a live alert, removes
+the samples, and records the actual firmware acknowledgment bytes. Without a profile argument
+it runs all three profiles; the directory must contain each matching micro/SPI image pair.
+
+`node scripts/verify-demo-browser.mjs` runs the mobile-size Chromium workflow on all three
+profiles, including rendered firmware screens, settings, live alerts, pointer capture, 3D
+models and demo removal. `PEBBLE_BROWSERS`, `PEBBLE_PROFILES`, `PEBBLE_SKIP_3D`,
+`PEBBLE_BROWSER_URL` and `PEBBLE_TRACE_DIR` select a browser subset, targets and output path.
+This is desktop-browser testing at a phone viewport, not a measured physical-phone benchmark.

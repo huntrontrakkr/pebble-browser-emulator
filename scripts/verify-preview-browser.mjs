@@ -79,7 +79,7 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
     await page.getByRole('button', { name: 'Try example', exact: true }).click();
     const began = Date.now();
     await page
-      .getByText('Ready. Use the buttons below the watch to interact.', { exact: true })
+      .getByText('Ready. Use the watch buttons to interact.', { exact: true })
       .waitFor();
     await page.waitForFunction(() =>
       window.previewMeasure.installed.includes('c61ace0a-d61a-47ce-9d04-f46a78849ec6'),
@@ -122,7 +122,7 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
     const reload = Date.now();
     await page.reload();
     await page
-      .getByText('Ready. Use the buttons below the watch to interact.', { exact: true })
+      .getByText('Ready. Use the watch buttons to interact.', { exact: true })
       .waitFor();
     const cachedBootAndInstallMs = Date.now() - reload;
     assert.equal(

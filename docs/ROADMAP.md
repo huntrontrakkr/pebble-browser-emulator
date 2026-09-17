@@ -98,7 +98,7 @@ not evidence that usage/redistribution terms are satisfied.
 ## 5. Release, speed, and physical connections
 
 Implemented: clean utility interface, light/dark themes, exact pixels, adjustable reflective
-approximation, and rotatable official Time 2 CAD with the live screen.
+approximation, and rotatable official Time 2, 2 Duo and Round 2 CAD with the live screen. Configurable demo inputs and real notification/calendar records are described in [DEMO.md](DEMO.md).
 
 - [x] Public static release of the first useful firmware/app workflow.
 - [x] Preview workspace, prepared Clock PBWs, cached default firmware, and commit-pinned GitHub preview links.

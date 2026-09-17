@@ -7,6 +7,20 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Demo settings and watch controls
+
+Preview defaults now set battery to **69%**, seed two fictional notifications and two
+calendar entries, and supply configurable synthetic motion, health, phone location and
+Time 2 raw heart rate. The Settings drawer persists local preferences. Firmware BlobDB
+acknowledgments confirm sample insertion, notification status updates and owned-record
+cleanup on all three current profiles. Watchface installation waits for this setup.
+The controls sit beside the screen and follow the watch in 3D; all three current products
+have their own official, checksummed CAD model. [Behavior, protocol and limits](DEMO.md).
+[Browser, firmware and cache acceptance records](evidence/demo-workflow.json).
+The bundled Round 2 firmware can remain in its live-alert introduction; the same symptom
+was observed in native QEMU. Stored notifications are readable through its Notifications
+app. This remains a documented compatibility limit, not a verified complete alert workflow.
+
 ## Preview and phone usability
 
 The first workspace now offers **Try example**, **Open watchface .pbw**, and GitHub project
@@ -50,7 +64,7 @@ browser Wasm compiler and automatically installing. [GitHub workflow record](evi
 | Firmware identity          | Exact release tags from public GitHub sources; checksummed, board-specific bundle imports. A file being accepted does not imply firmware compatibility.                                                                                                  |
 | Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                              |
 | Display                    | 144×168 monochrome, 200×228 color, 260×260 round color; committed guest frames; exact color conversion. Reflective optics remain an approximation.                                                                                                       |
-| 3D model                   | Official current Time 2 geometry with live screen. Other cases are not substituted or represented as verified models.                                                                                                                                    |
+| 3D model                   | Official current Time 2, 2 Duo and Round 2 CAD geometry with live screens. Materials, screen placement and optical response remain approximate.                                                                                                                                    |
 | State                      | Watch restart preserves modified SPI flash and RTC. Phone timers follow watch time with acknowledged 10 ms quanta; timed input scenarios replay from a supplied initial state. Full firmware/phone snapshots and complete session replay remain pending. |
 
 ## New acceptance gates

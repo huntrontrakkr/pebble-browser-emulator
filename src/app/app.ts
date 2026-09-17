@@ -13,6 +13,15 @@ import { FirmwarePanel } from './firmware-panel.ts';
 import { ProjectPanel } from './project-panel.ts';
 import { PreviewPanel, type PreviewLaunch } from './preview-panel.ts';
 import { saveFirmware, type PreviewFirmware } from './preview-firmware.ts';
+import { DemoSettingsPanel } from './demo-settings-panel.ts';
+import {
+  defaultDemoSettings,
+  readDemoSettings,
+  normalizeDemoSettings,
+  DEMO_STORAGE_KEY,
+  type DemoSettings,
+} from './demo-settings.ts';
+import { watchModelSpec, modelSource } from './watch-model-specs.ts';
 import type { SourceSnapshot } from './projects.ts';
 import { SensorPanel, type SignalObservation } from './sensor-panel.ts';
 import { FramePanel } from './frame-panel.ts';
@@ -32,6 +41,7 @@ import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.ty
     SensorPanel,
     FramePanel,
     PreviewPanel,
+    DemoSettingsPanel,
   ],
   templateUrl: './app.html',
 })
@@ -48,8 +58,24 @@ export class App implements AfterViewInit, OnDestroy {
   private firmwareToSave?: PreviewFirmware;
   private autoRunFirmware = false;
   private sourcePreview = false;
+  settingsOpen = signal(false);
+  demoSettings = signal(defaultDemoSettings());
+  demoBusy = signal(false);
+  demoStatus = signal('');
+  private previewSession = false;
+  private demoPrepared = false;
+  private demoRevision = 0;
+  private demoStorageNotice = '';
+  private releaseButtons = () => {
+    this.pointerButtons.clear();
+    this.keyButtons.clear();
+    if (this.buttons) this.handleButton(15, false);
+  };
+  private pointerButtons = new Map<number, number>();
+  private keyButtons = new Map<string, number>();
   private resumeVisible = false;
   private visibility = () => {
+    if (document.hidden) this.releaseButtons();
     this.model?.setActive(!document.hidden && this.displayMode() === 'model');
     if (document.hidden && !this.workbench() && this.running() && !this.installing()) {
       this.resumeVisible = true;
@@ -86,8 +112,18 @@ export class App implements AfterViewInit, OnDestroy {
       : this.appPlatform();
   }
   hasModel() {
-    return this.profile() === 'qemu_emery' || this.profile() === 'diagnostic-v1';
+    return !!watchModelSpec(this.profile());
   }
+  modelSpec() {
+    return watchModelSpec(this.profile());
+  }
+  modelSource() {
+    return modelSource(this.modelSpec());
+  }
+  buttonTop(mask: number) {
+    return this.modelSpec().buttons.find((b) => b.mask === mask)?.top ?? 50;
+  }
+  modelButtons = signal<{ mask: number; x: number; y: number; visible: boolean }[]>([]);
   displayMode = signal<DisplayMode>('pixels');
   theme = signal('light');
   ambient = 80;
@@ -98,6 +134,8 @@ export class App implements AfterViewInit, OnDestroy {
   private model?: WatchModel;
   private modelAbort?: AbortController;
   private modelLoading = false;
+  private modelProfile?: MachineProfile;
+  private modelRevision = 0;
   private destroyed = false;
   @ViewChild('modelHost') modelHost!: ElementRef<HTMLElement>;
   private phoneWorker?: Worker;
@@ -148,10 +186,10 @@ export class App implements AfterViewInit, OnDestroy {
   private packetIndex = 0;
   epochValue = new Date().toISOString().slice(0, 16);
   readonly buttonList = [
-    { name: 'Back', mask: 1 },
-    { name: 'Up', mask: 2 },
-    { name: 'Select', mask: 4 },
-    { name: 'Down', mask: 8 },
+    { name: 'Back', mask: 1, icon: '‹', side: 'left', key: 'ArrowLeft' },
+    { name: 'Up', mask: 2, icon: '⌃', side: 'right', key: 'ArrowUp' },
+    { name: 'Select', mask: 4, icon: '●', side: 'right', key: 'ArrowRight' },
+    { name: 'Down', mask: 8, icon: '⌄', side: 'right', key: 'ArrowDown' },
   ];
   battery = signal(100);
   buttons = 0;
@@ -167,6 +205,7 @@ export class App implements AfterViewInit, OnDestroy {
   private loadRevision = 0;
   protected hex = (n: number) => '0x' + (n >>> 0).toString(16).padStart(8, '0');
   ngAfterViewInit() {
+    this.demoSettings.set(readDemoSettings());
     try {
       this.setTheme(localStorage.getItem('pebble.theme') ?? 'light');
     } catch {}
@@ -175,6 +214,7 @@ export class App implements AfterViewInit, OnDestroy {
       () => this.state(),
     );
     document.addEventListener('visibilitychange', this.visibility);
+    window.addEventListener('blur', this.releaseButtons);
   }
   private startDiagnosticCore() {
     if (this.worker) return;
@@ -241,6 +281,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.modelAbort?.abort();
     this.model?.dispose();
     document.removeEventListener('visibilitychange', this.visibility);
+    window.removeEventListener('blur', this.releaseButtons);
   }
   showTools(tab?: string) {
     this.toolsOpened.set(true);
@@ -257,6 +298,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.previewSource.set(null);
   }
   async startPreview(data: PreviewLaunch) {
+    this.previewSession = true;
     this.sourcePreview = false;
     this.workbench.set(false);
     this.error.set('');
@@ -267,7 +309,7 @@ export class App implements AfterViewInit, OnDestroy {
       await this.loadFirmware(data.firmware, true);
     } else if (this.profile() === data.profile && this.loaded()) {
       this.qemuWorker?.postMessage({ type: 'pacing', realtime: true });
-      if (this.watchReady()) this.installPreview();
+      if (this.watchReady()) this.preparePreview();
       else {
         this.previewStatus.set('Starting firmware…');
         this.run();
@@ -277,6 +319,61 @@ export class App implements AfterViewInit, OnDestroy {
       this.previewBusy.set(false);
       this.error.set('Set up matching firmware before starting this preview.');
     }
+  }
+  private preparePreview() {
+    if (this.previewSession && !this.demoPrepared && this.demoSettings().enabled) {
+      if (!this.demoBusy()) {
+        this.previewStatus.set('Preparing demo data…');
+        this.applyDemo(this.demoSettings());
+      }
+    } else this.installPreview();
+  }
+  saveDemo(value: DemoSettings) {
+    try {
+      const settings = normalizeDemoSettings(value);
+      this.demoSettings.set(settings);
+      this.demoPrepared = false;
+      let saved = true;
+      try {
+        localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(settings));
+      } catch {
+        saved = false;
+      }
+      this.demoStorageNotice = saved
+        ? ''
+        : ' Browser storage is unavailable; settings last for this session.';
+      this.demoStatus.set(
+        saved
+          ? 'Settings saved in this browser.'
+          : 'Settings retained for this session; browser storage is unavailable.',
+      );
+      if (this.isFirmware() && this.watchReady()) this.applyDemo(settings);
+    } catch (e) {
+      this.demoStatus.set(String(e));
+    }
+  }
+  private applyDemo(settings: DemoSettings, notificationId?: number) {
+    if (!this.watchReady() || this.demoBusy() || this.installing()) return;
+    this.demoBusy.set(true);
+    this.demoStatus.set(
+      notificationId === undefined ? 'Applying sample data to the watch…' : 'Sending notification…',
+    );
+    if (settings.enabled && settings.location && notificationId === undefined) {
+      this.latitude = settings.latitude;
+      this.longitude = settings.longitude;
+      this.accuracy = settings.accuracy;
+      this.altitude = this.locationHeading = this.speed = null;
+    }
+    this.qemuWorker?.postMessage({
+      type: notificationId === undefined ? 'demo-settings' : 'demo-notification',
+      settings,
+      id: notificationId,
+      generation: this.watchGeneration,
+      revision: ++this.demoRevision,
+    });
+  }
+  notifyDemo(value: { settings: DemoSettings; id: number }) {
+    this.applyDemo(value.settings, value.id);
   }
   private installPreview() {
     const pkg = this.pendingPreview;
@@ -288,10 +385,12 @@ export class App implements AfterViewInit, OnDestroy {
   }
   cancelPreview() {
     this.beginPreview();
-    const cancelInstall = this.installing() || (this.previewBusy() && !this.pendingPreview);
+    const cancelInstall =
+      this.installing() || this.demoBusy() || (this.previewBusy() && !this.pendingPreview);
     this.pendingPreview = undefined;
     this.firmwareToSave = undefined;
     this.autoRunFirmware = false;
+    this.demoRevision++;
     this.loadRevision++;
     this.previewBusy.set(false);
     this.previewStatus.set('Preview canceled.');
@@ -378,13 +477,60 @@ export class App implements AfterViewInit, OnDestroy {
     return (this.buttons & mask) !== 0;
   }
   handleButton(mask: number, pressed: boolean) {
-    this.buttons = pressed ? this.buttons | mask : this.buttons & ~mask;
+    const next = pressed ? this.buttons | mask : this.buttons & ~mask;
+    if (next === this.buttons) return;
+    this.buttons = next;
     this.send({
       type: 'inputs',
       buttons: this.buttons,
       battery: this.battery(),
       inputRevision: ++this.inputRevision,
     });
+  }
+  pointerButton(event: PointerEvent, mask: number, down: boolean) {
+    if (down && event.button !== 0) return;
+    event.preventDefault();
+    const element = event.currentTarget as HTMLElement;
+    if (down) {
+      element.focus({ preventScroll: true });
+      element.setPointerCapture(event.pointerId);
+      this.pointerButtons.set(event.pointerId, mask);
+    } else {
+      this.pointerButtons.delete(event.pointerId);
+      if (element.hasPointerCapture(event.pointerId))
+        element.releasePointerCapture(event.pointerId);
+    }
+    this.handleButton(
+      mask,
+      down || [...this.pointerButtons.values(), ...this.keyButtons.values()].includes(mask),
+    );
+  }
+  keyButton(value: Event, mask: number, down: boolean) {
+    const event = value as KeyboardEvent;
+    if (typeof event.key !== 'string') return;
+    event.preventDefault();
+    if (event.repeat || !this.loaded() || this.demoBusy()) return;
+    if (down) this.keyButtons.set(event.key, mask);
+    else this.keyButtons.delete(event.key);
+    this.handleButton(
+      mask,
+      [...this.pointerButtons.values(), ...this.keyButtons.values()].includes(mask),
+    );
+  }
+  releaseKeys() {
+    const masks = new Set(this.keyButtons.values());
+    this.keyButtons.clear();
+    for (const mask of masks)
+      this.handleButton(mask, [...this.pointerButtons.values()].includes(mask));
+  }
+  watchKey(event: KeyboardEvent, down: boolean) {
+    const mask = this.buttonList.find((b) => b.key === event.key)?.mask;
+    if (!mask || !this.loaded() || this.settingsOpen()) return;
+    this.keyButton(event, mask, down);
+  }
+  buttonPosition(mask: number) {
+    if (this.displayMode() === 'model') return this.modelButtons().find((b) => b.mask === mask);
+    return undefined;
   }
   restore() {
     if (this.saved) {
@@ -477,23 +623,42 @@ export class App implements AfterViewInit, OnDestroy {
     this.displayMode.set(mode);
     this.model?.setActive(mode === 'model' && !document.hidden);
     this.redraw();
-    if (mode !== 'model' || this.model || this.modelLoading) return;
+    if (mode !== 'model') return;
+    if (this.modelProfile !== this.profile()) {
+      this.modelAbort?.abort();
+      this.model?.dispose();
+      this.model = undefined;
+      this.modelLoading = false;
+      this.modelProfile = this.profile();
+      this.modelRevision++;
+      this.modelButtons.set([]);
+    }
+    if (this.model || this.modelLoading) return;
     this.modelLoading = true;
+    const revision = ++this.modelRevision;
+    let model: WatchModel | undefined;
     this.modelStatus.set('Loading official CAD model…');
     this.modelAbort = new AbortController();
     try {
       const { WatchModel } = await import('./watch-model.ts');
-      if (this.destroyed) return;
-      this.model = new WatchModel(this.modelHost.nativeElement);
-      await this.model.load(this.modelAbort.signal);
+      if (this.destroyed || revision !== this.modelRevision) return;
+      model = new WatchModel(this.modelHost.nativeElement, this.modelSpec(), (positions) => {
+        if (revision === this.modelRevision) this.modelButtons.set(positions);
+      });
+      this.model = model;
+      model.setActive(this.displayMode() === 'model' && !document.hidden);
+      await model.load(this.modelAbort.signal);
+      if (this.destroyed || revision !== this.modelRevision) return;
       this.modelStatus.set('');
       this.redraw();
     } catch (e) {
-      this.model?.dispose();
-      this.model = undefined;
-      this.modelStatus.set(String(e));
+      model?.dispose();
+      if (revision === this.modelRevision) {
+        this.model = undefined;
+        this.modelStatus.set(String(e));
+      }
     } finally {
-      this.modelLoading = false;
+      if (revision === this.modelRevision) this.modelLoading = false;
     }
   }
   resetModel() {
@@ -509,6 +674,7 @@ export class App implements AfterViewInit, OnDestroy {
     autoRun = false,
   ) {
     const revision = ++this.loadRevision;
+    if (!autoRun) this.previewSession = false;
     this.autoRunFirmware = autoRun;
     this.worker?.postMessage({ type: 'pause' });
     this.error.set('');
@@ -526,6 +692,10 @@ export class App implements AfterViewInit, OnDestroy {
               return;
             }
             if (data.type === 'error') {
+              if (data.command?.startsWith('demo-') && data.generation === this.watchGeneration) {
+                this.demoBusy.set(false);
+                this.demoStatus.set('Demo setup failed: ' + data.message);
+              }
               this.firmwareToSave = undefined;
               this.error.set(data.message);
               if (data.command === 'health-settings' && data.generation === this.watchGeneration)
@@ -602,6 +772,24 @@ export class App implements AfterViewInit, OnDestroy {
     this.qemuWorker?.postMessage({ type: 'install', ...data });
   }
   handleQemuEvent(data: any) {
+    if (data.generation === this.watchGeneration && data.revision === this.demoRevision) {
+      if (data.type === 'demo-status') this.demoBusy.set(data.busy);
+      if (data.type === 'demo-applied') {
+        this.demoBusy.set(false);
+        this.demoStatus.set(
+          (data.popup
+            ? 'Notification sent to the watch.'
+            : `${data.notifications} messages and ${data.calendar} events applied. ${data.heartRate ? 'Synthetic heart rate is running.' : ''}`) +
+            this.demoStorageNotice,
+        );
+        if (!data.popup) {
+          this.demoPrepared = true;
+          this.installPreview();
+        }
+      }
+    }
+    if (data.type === 'demo-stopped' && data.generation === this.watchGeneration)
+      this.demoStatus.set('Demo signal stream stopped by the developer scenario.');
     if (data.type === 'health-settings' && data.generation === this.watchGeneration)
       this.healthStatus.set('Firmware accepted the health preferences.');
     if (data.type === 'clock' && data.generation === this.watchGeneration) {
@@ -657,7 +845,7 @@ export class App implements AfterViewInit, OnDestroy {
       this.ready.set(true);
       this.watchReady.set(false);
       this.buttons = 0;
-      if (!this.hasModel() && this.displayMode() === 'model') this.displayMode.set('pixels');
+      if (this.displayMode() === 'model') void this.setDisplay('model');
       if (this.autoRunFirmware) {
         this.autoRunFirmware = false;
         this.qemuWorker?.postMessage({ type: 'run' });
@@ -665,6 +853,13 @@ export class App implements AfterViewInit, OnDestroy {
       return;
     }
     if (data.type === 'session') {
+      this.pointerButtons.clear();
+      this.keyButtons.clear();
+      this.buttons = 0;
+      this.demoRevision++;
+      this.demoBusy.set(false);
+      this.demoPrepared = false;
+      this.watchReady.set(false);
       this.stopPhone();
       this.healthStatus.set('');
       this.sensorEvents.set([]);
@@ -679,7 +874,7 @@ export class App implements AfterViewInit, OnDestroy {
     if (data.type === 'firmware-ready') {
       this.watchReady.set(true);
       this.log('FIRMWARE', 'Boot complete. Ready for app installation.');
-      this.installPreview();
+      this.preparePreview();
       this.preview?.resumeAfterFirmware();
     }
     if (data.type === 'connection') {
@@ -702,7 +897,7 @@ export class App implements AfterViewInit, OnDestroy {
       });
       if (data.script) this.startPhone();
       this.previewBusy.set(false);
-      this.previewStatus.set('Ready. Use the buttons below the watch to interact.');
+      this.previewStatus.set('Ready. Use the watch buttons to interact.');
       this.preview?.collapseOnPhone();
       if (typeof matchMedia === 'function' && matchMedia('(max-width: 780px)').matches)
         requestAnimationFrame(() =>

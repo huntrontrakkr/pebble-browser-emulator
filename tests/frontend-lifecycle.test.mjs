@@ -5,6 +5,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import vm from 'node:vm';
 import { FIRMWARE_PROFILES, profileDisplay, isFirmwareProfile } from '../src/app/watch-profiles.ts';
+import {
+  defaultDemoSettings,
+  normalizeDemoSettings,
+  DEMO_STORAGE_KEY,
+} from '../src/app/demo-settings.ts';
+import { watchModelSpec, modelSource } from '../src/app/watch-model-specs.ts';
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
 const { default: ts } = await import(
   pathToFileURL(resolve(repo, 'node_modules/typescript/lib/typescript.js'))
@@ -80,6 +86,11 @@ function makeApp() {
     signal,
     AppMessageRouter,
     FIRMWARE_PROFILES,
+    defaultDemoSettings,
+    normalizeDemoSettings,
+    DEMO_STORAGE_KEY,
+    watchModelSpec,
+    modelSource,
     profileDisplay,
     isFirmwareProfile,
     saveFirmware: async (firmware) => {
@@ -324,4 +335,52 @@ test('phone fixtures and explicit context are valid JSON; default context uses k
   app.firmwareName.set('qemu_emery_v4.37.0_micro_flash.bin');
   assert.equal(app.defaultWatchInfo().model, 'pebble_time_2_silver_gray');
   assert.equal(app.defaultWatchInfo().firmware.major, 4);
+});
+
+test('preview defaults apply once before installation, and stale setup ACKs cannot launch a canceled preview', () => {
+  const app = makeApp();
+  app.previewSession = true;
+  app.pendingPreview = { bytes: new Uint8Array([1]), name: 'Clock.pbw' };
+  app.handleQemuEvent({ type: 'firmware-ready' });
+  app.handleQemuEvent({ type: 'firmware-ready' });
+  const command = app.qemuWorker.messages.find((m) => m.type === 'demo-settings');
+  assert.equal(command.settings.battery, 69);
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'demo-settings').length, 1);
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 0);
+  app.handleQemuEvent({
+    type: 'demo-applied',
+    generation: command.generation,
+    revision: command.revision,
+    notifications: 2,
+    calendar: 2,
+  });
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
+  app.pendingPreview = { bytes: new Uint8Array([2]), name: 'Canceled.pbw' };
+  app.cancelPreview();
+  app.handleQemuEvent({
+    type: 'demo-applied',
+    generation: command.generation,
+    revision: command.revision,
+    notifications: 2,
+    calendar: 2,
+  });
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
+});
+
+test('watch controls preserve chords, suppress key repeat, and release on focus loss', () => {
+  const app = makeApp();
+  app.loaded.set(true);
+  const key = (name, repeat = false) => ({ key: name, repeat, preventDefault() {} });
+  app.keyButton(key('ArrowUp'), 2, true);
+  app.keyButton(key('ArrowDown'), 8, true);
+  assert.equal(app.buttons, 10);
+  const count = app.qemuWorker.messages.length;
+  app.keyButton(key('ArrowUp', true), 2, true);
+  assert.equal(app.qemuWorker.messages.length, count);
+  app.pointerButtons.set(7, 2);
+  app.releaseKeys();
+  assert.equal(app.buttons, 2, 'Moving keyboard focus must not release a still-held pointer');
+  app.releaseButtons();
+  assert.equal(app.buttons, 0);
+  assert.equal(app.pointerButtons.size, 0);
 });

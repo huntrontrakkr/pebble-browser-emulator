@@ -1,0 +1,235 @@
+<dialog #dialog class="settings-dialog" aria-labelledby="settings-title" (close)="closed.emit()">
+  <header class="settings-header">
+    <div>
+      <h2 id="settings-title">Demo settings</h2>
+      <p>Sample data for this browser</p>
+    </div>
+    <button class="icon-button" (click)="close()" aria-label="Close settings">×</button>
+  </header>
+  <div class="settings-content">
+    <label class="check settings-master"
+      ><input type="checkbox" [(ngModel)]="draft.enabled" [disabled]="busy" /> Enable demo
+      data</label
+    >
+    <p class="help">Applied automatically when you open a preview. All samples are fictional.</p>
+    <fieldset [disabled]="busy || !draft.enabled" class="settings-fields">
+      <section class="settings-section">
+        <h3>Battery</h3>
+        <div class="battery-setting">
+          <input
+            aria-label="Demo battery level"
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="draft.battery"
+          />
+          <label class="battery-number"
+            ><input
+              aria-label="Demo battery percent"
+              type="number"
+              min="0"
+              max="100"
+              [(ngModel)]="draft.battery"
+            /><span>%</span></label
+          >
+        </div>
+        <label class="check"><input type="checkbox" [(ngModel)]="draft.charging" /> Charging</label>
+      </section>
+      <section class="settings-section">
+        <h3>Sensor signals</h3>
+        <label class="check"
+          ><input type="checkbox" [(ngModel)]="draft.pulse" /> Synthetic heart rate</label
+        >
+        <div class="input-grid">
+          <label
+            >Heart rate (BPM)<input type="number" min="30" max="220" [(ngModel)]="draft.bpm"
+          /></label>
+          <label
+            >Variation (± BPM)<input type="number" min="0" max="30" [(ngModel)]="draft.variation"
+          /></label>
+        </div>
+        <p class="help">
+          Sends a heart-rate reading each watch second.
+          {{
+            heartRateAvailable
+              ? 'Available on this Time 2 profile.'
+              : 'Available on Time 2; skipped on Duo and Round 2.'
+          }}
+        </p>
+        <label
+          >Motion<select aria-label="Motion" [(ngModel)]="draft.motion">
+            <option value="off">Off</option>
+            <option value="stationary">Stationary</option>
+            <option value="walking">Walking</option>
+            <option value="running">Running</option>
+          </select></label
+        >
+        <p class="help">
+          Walking and running send 10 accelerometer samples per watch second. Signals pause with the
+          watch.
+        </p>
+        <div class="actions">
+          <button
+            (click)="signalSent.emit({ kind: 'tap', axis: 2, direction: 1 })"
+            [disabled]="!ready"
+          >
+            Send wrist tap
+          </button>
+        </div>
+        <details>
+          <summary>Health totals</summary>
+          <label class="check"
+            ><input type="checkbox" [(ngModel)]="draft.health" /> Set health totals</label
+          >
+          <div class="input-grid">
+            @for (metric of metrics; track $index) {
+              <label
+                >{{ metric
+                }}<input type="number" min="0" max="2147483647" [(ngModel)]="draft.metrics[$index]"
+              /></label>
+            }
+          </div>
+          <p class="help">
+            Fixed sample totals. Motion and pulse do not calculate calories, sleep, or steps.
+          </p>
+        </details>
+        <details>
+          <summary>Phone location</summary>
+          <label class="check"
+            ><input type="checkbox" [(ngModel)]="draft.location" /> Supply a sample GPS
+            location</label
+          >
+          <div class="input-grid">
+            <label
+              >Latitude<input
+                type="number"
+                step="0.0001"
+                min="-90"
+                max="90"
+                [(ngModel)]="draft.latitude" /></label
+            ><label
+              >Longitude<input
+                type="number"
+                step="0.0001"
+                min="-180"
+                max="180"
+                [(ngModel)]="draft.longitude" /></label
+            ><label>Accuracy (m)<input type="number" min="0" [(ngModel)]="draft.accuracy" /></label>
+          </div>
+          <p class="help">
+            Delivered to a running watch app’s phone script when it requests location.
+          </p>
+        </details>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-heading">
+          <h3>Notifications</h3>
+          <button (click)="addNotification()" [disabled]="draft.notifications.length >= 8">
+            Add message
+          </button>
+        </div>
+        <p class="help">
+          Saved to the watch’s Notifications app. Use Send now to show a live alert.
+        </p>
+        @if (roundWatch) {
+          <p class="help">
+            Round 2’s bundled 4.37 firmware can remain on the alert animation. Open Notifications
+            from the watch’s app menu to read stored messages.
+          </p>
+        }
+        @for (n of draft.notifications; track n.id; let i = $index) {
+          <fieldset class="sample-item">
+            <legend>Message {{ i + 1 }}</legend>
+            <label class="check"
+              ><input type="checkbox" [(ngModel)]="n.enabled" /> Include message</label
+            >
+            <label>Title<input [(ngModel)]="n.title" maxlength="96" /></label>
+            <label
+              >Message<textarea [(ngModel)]="n.body" maxlength="512" rows="2"></textarea>
+            </label>
+            <div class="actions">
+              <button (click)="sendNotification(n.id)" [disabled]="!ready || !n.enabled">
+                Send now</button
+              ><button
+                class="text-button"
+                (click)="removeNotification(n.id)"
+                [attr.aria-label]="'Remove message ' + (i + 1)"
+              >
+                Remove
+              </button>
+            </div>
+          </fieldset>
+        }
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-heading">
+          <h3>Calendar</h3>
+          <button (click)="addEvent()" [disabled]="draft.calendar.length >= 8">Add event</button>
+        </div>
+        <p class="help">
+          Open the watch’s timeline with Down. Start times are relative to the watch clock when you
+          apply settings.
+        </p>
+        @for (e of draft.calendar; track e.id; let i = $index) {
+          <fieldset class="sample-item">
+            <legend>Event {{ i + 1 }}</legend>
+            <label class="check"
+              ><input type="checkbox" [(ngModel)]="e.enabled" /> Include event</label
+            >
+            <label>Event title<input [(ngModel)]="e.title" maxlength="96" /></label>
+            <label>Location<input [(ngModel)]="e.location" maxlength="128" /></label>
+            <div class="input-grid">
+              <label
+                >Starts in (minutes)<input
+                  type="number"
+                  min="-1440"
+                  max="10080"
+                  [(ngModel)]="e.startMinutes" /></label
+              ><label
+                >Duration (minutes)<input type="number" min="1" max="1440" [(ngModel)]="e.duration"
+              /></label>
+            </div>
+            <button
+              class="text-button"
+              (click)="removeEvent(e.id)"
+              [attr.aria-label]="'Remove event ' + (i + 1)"
+            >
+              Remove
+            </button>
+          </fieldset>
+        }
+      </section>
+    </fieldset>
+    <section class="settings-section">
+      <h3>Appearance</h3>
+      <label
+        >Theme<select
+          aria-label="Settings theme"
+          [ngModel]="theme"
+          (ngModelChange)="themeChanged.emit($event)"
+        >
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select></label
+      >
+    </section>
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </div>
+  <footer class="settings-footer">
+    @if (status) {
+      <p role="status">{{ status }}</p>
+    }
+    <div class="actions">
+      <button (click)="defaults()" [disabled]="busy">Restore defaults</button
+      ><button class="primary" (click)="save()" [disabled]="busy">
+        {{ busy ? 'Applying…' : ready ? 'Save & apply' : 'Save settings' }}
+      </button>
+    </div>
+    <p class="help">
+      Turning demo data off stops the signal stream and removes its messages and events. Existing
+      sensor readings remain until changed.
+    </p>
+  </footer>
+</dialog>

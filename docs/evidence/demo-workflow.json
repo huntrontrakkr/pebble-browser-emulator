@@ -1,0 +1,688 @@
+{
+  "date": "2026-09-17T14:35:00.367373+00:00",
+  "scope": "Unchanged bundled 4.37.0 firmware; synthetic service inputs and BlobDB acceptance, browser usability and official CAD. No claim of physical-phone performance or calibrated sensor/optical/hardware fidelity.",
+  "tests": {
+    "javascriptPassed": 333,
+    "javascriptOptionalSkipped": 9,
+    "rustPassed": 82
+  },
+  "firmware": [
+    {
+      "profile": "qemu_emery",
+      "type": "demo-applied",
+      "generation": 1,
+      "revision": 1,
+      "popup": false,
+      "notifications": 2,
+      "calendar": 2,
+      "heartRate": true,
+      "realBlobAcks": [
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          2,
+          0,
+          1
+        ],
+        [
+          3,
+          0,
+          1
+        ],
+        [
+          4,
+          0,
+          1
+        ],
+        [
+          5,
+          0,
+          1
+        ],
+        [
+          6,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          1
+        ],
+        [
+          8,
+          0,
+          1
+        ],
+        [
+          9,
+          0,
+          1
+        ],
+        [
+          10,
+          0,
+          1
+        ],
+        [
+          11,
+          0,
+          1
+        ],
+        [
+          12,
+          0,
+          1
+        ],
+        [
+          13,
+          0,
+          1
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          15,
+          0,
+          1
+        ],
+        [
+          16,
+          0,
+          1
+        ],
+        [
+          17,
+          0,
+          1
+        ],
+        [
+          18,
+          0,
+          1
+        ],
+        [
+          19,
+          0,
+          1
+        ]
+      ],
+      "signals": [
+        "battery",
+        "health",
+        "location",
+        "heart-rate",
+        "acceleration"
+      ]
+    },
+    {
+      "profile": "qemu_flint",
+      "type": "demo-applied",
+      "generation": 1,
+      "revision": 1,
+      "popup": false,
+      "notifications": 2,
+      "calendar": 2,
+      "heartRate": false,
+      "realBlobAcks": [
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          2,
+          0,
+          1
+        ],
+        [
+          3,
+          0,
+          1
+        ],
+        [
+          4,
+          0,
+          1
+        ],
+        [
+          5,
+          0,
+          1
+        ],
+        [
+          6,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          1
+        ],
+        [
+          8,
+          0,
+          1
+        ],
+        [
+          9,
+          0,
+          1
+        ],
+        [
+          10,
+          0,
+          1
+        ],
+        [
+          11,
+          0,
+          1
+        ],
+        [
+          12,
+          0,
+          1
+        ],
+        [
+          13,
+          0,
+          1
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          15,
+          0,
+          1
+        ],
+        [
+          16,
+          0,
+          1
+        ],
+        [
+          17,
+          0,
+          1
+        ],
+        [
+          18,
+          0,
+          1
+        ],
+        [
+          19,
+          0,
+          1
+        ]
+      ],
+      "signals": [
+        "battery",
+        "health",
+        "location",
+        "acceleration"
+      ]
+    },
+    {
+      "profile": "qemu_gabbro",
+      "type": "demo-applied",
+      "generation": 1,
+      "revision": 1,
+      "popup": false,
+      "notifications": 2,
+      "calendar": 2,
+      "heartRate": false,
+      "realBlobAcks": [
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          2,
+          0,
+          1
+        ],
+        [
+          3,
+          0,
+          1
+        ],
+        [
+          4,
+          0,
+          1
+        ],
+        [
+          5,
+          0,
+          1
+        ],
+        [
+          6,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          1
+        ],
+        [
+          8,
+          0,
+          1
+        ],
+        [
+          9,
+          0,
+          1
+        ],
+        [
+          10,
+          0,
+          1
+        ],
+        [
+          11,
+          0,
+          1
+        ],
+        [
+          12,
+          0,
+          1
+        ],
+        [
+          13,
+          0,
+          1
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          15,
+          0,
+          1
+        ],
+        [
+          16,
+          0,
+          1
+        ],
+        [
+          17,
+          0,
+          1
+        ],
+        [
+          18,
+          0,
+          1
+        ],
+        [
+          19,
+          0,
+          1
+        ]
+      ],
+      "signals": [
+        "battery",
+        "health",
+        "location",
+        "acceleration"
+      ]
+    }
+  ],
+  "browser": [
+    {
+      "engine": "chromium",
+      "profile": "qemu_emery",
+      "launchMs": 13894,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": true
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 169.53125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 136.703125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 317.28125,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "profile": "qemu_flint",
+      "launchMs": 11457,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 155.1875,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 141.1875,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 228,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 314.796875,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "profile": "qemu_gabbro",
+      "launchMs": 14982,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 162.1875,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 291.796875,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "profile": "qemu_emery",
+      "launchMs": 14834,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": true
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 169.5333251953125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 136.6999969482422,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 317.2833251953125,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "profile": "qemu_emery",
+      "launchMs": 12506,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": true
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 169.53125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 136.703125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 317.28125,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "rotation": [
+    {
+      "engine": "chromium",
+      "profile": "qemu_emery",
+      "launchMs": 13504,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": true
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 169.53125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 136.703125,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 317.28125,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "profile": "qemu_gabbro",
+      "launchMs": 15991,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 162.1875,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 291.796875,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "previewAndCache": {
+    "date": "2026-09-17T14:20:35.767Z",
+    "scope": "Linux browser engines with a mobile viewport, not measurements on a physical phone. Bundled default firmware, example install without file import, cancellation, hash link, PBW download, cached firmware reuse, screen pacing and pause.",
+    "results": [
+      {
+        "browser": "chromium",
+        "version": "153.0.8010.12",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 13348,
+        "cachedBootAndInstallMs": 14379,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.968442765625001,
+        "stateMessages": 41,
+        "clockMessages": 85,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "firefox",
+        "version": "155.0",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 14939,
+        "cachedBootAndInstallMs": 14975,
+        "measurementSeconds": 10,
+        "virtualSeconds": 10.008830187500001,
+        "stateMessages": 40,
+        "clockMessages": 84,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "webkit",
+        "version": "26.6",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 12392,
+        "cachedBootAndInstallMs": 12915,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.8328656875,
+        "stateMessages": 39,
+        "clockMessages": 83,
+        "mainThreadLongTasks": [],
+        "passed": true
+      }
+    ]
+  },
+  "knownLimit": "Round 2 live alert can remain in the introduction with 4.37.0; also observed in native QEMU. Stored notification list is readable."
+}

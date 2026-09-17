@@ -2,10 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { readLimited } from './projects.ts';
-export const CAD_SOURCE =
-  'https://github.com/coredevices/hardware/tree/cb50db8e68c053e7dd595188313dd54aba693bc9/watch/Pebble%20Time%202%20%28obelix%29';
-const CAD_URL =
-  'https://raw.githubusercontent.com/coredevices/hardware/cb50db8e68c053e7dd595188313dd54aba693bc9/watch/Pebble%20Time%202%20%28obelix%29/2026-04-08%20Pebble%20Time%202%20-%203D%20CAD%20Solid%20Model.STL';
+import { modelUrl, modelDisplay, type WatchModelSpec } from './watch-model-specs.ts';
 /** Official case geometry with a live framebuffer overlay. Materials are an approximation. */
 export class WatchModel {
   private renderer: THREE.WebGLRenderer;
@@ -21,25 +18,36 @@ export class WatchModel {
     metalness: 0.85,
     roughness: 0.32,
   });
-  private texture = new THREE.DataTexture(
-    new Uint8Array(200 * 228 * 4),
-    200,
-    228,
-    THREE.RGBAFormat,
-  );
-  private screenMaterial = new THREE.MeshBasicMaterial({ map: this.texture });
+  private texture: THREE.DataTexture;
+  private screenMaterial: THREE.MeshBasicMaterial;
   private screenGeometry: THREE.ShapeGeometry;
   private resize: ResizeObserver;
-  constructor(private host: HTMLElement) {
+  constructor(
+    private host: HTMLElement,
+    private spec: WatchModelSpec,
+    private onButtons: (
+      positions: { mask: number; x: number; y: number; visible: boolean }[],
+    ) => void,
+  ) {
+    const dimensions = modelDisplay(spec);
+    this.texture = new THREE.DataTexture(
+      new Uint8Array(dimensions.width * dimensions.height * 4),
+      dimensions.width,
+      dimensions.height,
+      THREE.RGBAFormat,
+    );
+    this.screenMaterial = new THREE.MeshBasicMaterial({ map: this.texture });
+    this.material.metalness = spec.plastic ? 0.05 : 0.55;
+    this.material.roughness = spec.plastic ? 0.6 : 0.32;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     host.append(this.renderer.domElement);
     this.renderer.domElement.setAttribute(
       'aria-label',
-      'Rotatable Pebble Time 2 model. Drag to rotate; scroll to zoom.',
+      `Rotatable ${spec.name} model. Drag to rotate; scroll to zoom.`,
     );
     this.renderer.domElement.tabIndex = 0;
-    this.camera.position.set(36, 22, 115);
+    this.camera.position.set(24, 14, 110);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.addEventListener('change', () => this.invalidate());
@@ -57,9 +65,9 @@ export class WatchModel {
     this.texture.colorSpace = THREE.SRGBColorSpace;
     this.texture.magFilter = THREE.NearestFilter;
     this.texture.minFilter = THREE.NearestFilter;
-    const w = 12.8,
-      h = 14.564,
-      r = 2.5,
+    const w = spec.screen.width / 2,
+      h = spec.screen.height / 2,
+      r = spec.screen.radius,
       s = new THREE.Shape();
     s.moveTo(-w + r, -h);
     s.lineTo(w - r, -h);
@@ -76,7 +84,7 @@ export class WatchModel {
     for (let i = 0; i < positions.count; i++)
       uv.setXY(i, positions.getX(i) / (w * 2) + 0.5, 0.5 - positions.getY(i) / (h * 2));
     const display = new THREE.Mesh(this.screenGeometry, this.screenMaterial);
-    display.position.z = 6.215;
+    display.position.set(spec.screen.x, spec.screen.y, spec.screen.z);
     this.scene.add(display);
     this.resize = new ResizeObserver(() => {
       const width = host.clientWidth,
@@ -104,19 +112,32 @@ export class WatchModel {
       if (this.disposed || !this.active || !this.host.clientHeight) return;
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
+      const front = this.camera.position.z > 15;
+      this.onButtons(
+        this.spec.buttons.map((b) => {
+          const p = new THREE.Vector3(...b.position).project(this.camera);
+          return {
+            mask: b.mask,
+            x: ((p.x + 1) / 2) * this.host.clientWidth,
+            y: ((1 - p.y) / 2) * this.host.clientHeight,
+            visible: front && p.z < 1 && Math.abs(p.x) < 0.95 && Math.abs(p.y) < 0.95,
+          };
+        }),
+      );
     });
   }
   async load(signal: AbortSignal) {
-    const bytes = await readLimited(await fetch(CAD_URL, { signal }), 11 * 1024 * 1024);
+    const bytes = await readLimited(await fetch(modelUrl(this.spec), { signal }), 11 * 1024 * 1024);
     const hash = Array.from(
       new Uint8Array(await crypto.subtle.digest('SHA-256', bytes.slice().buffer)),
       (v) => v.toString(16).padStart(2, '0'),
     ).join('');
-    if (hash !== 'fb7c75e955e26de21611c81f73eb72bfe24a89df8b0b5064c730c88cecfa6311')
+    if (hash !== this.spec.sha256)
       throw new Error('CAD model checksum did not match the pinned official revision.');
     if (this.disposed) return;
     this.geometry = new STLLoader().parse(bytes.slice().buffer);
-    this.geometry.translate(-127.9631424, -128.0000381, -6.2);
+    this.geometry.translate(...(this.spec.center.map((n) => -n) as [number, number, number]));
+    this.geometry.rotateX(this.spec.rotateX);
     this.geometry.computeVertexNormals();
     this.scene.add(new THREE.Mesh(this.geometry, this.material));
     this.invalidate();
@@ -131,11 +152,12 @@ export class WatchModel {
     this.invalidate();
   }
   reset() {
-    this.camera.position.set(36, 22, 115);
+    this.camera.position.set(24, 14, 110);
     this.controls.target.set(0, 0, 0);
     this.controls.update();
   }
   dispose() {
+    if (this.disposed) return;
     this.disposed = true;
     cancelAnimationFrame(this.frame);
     this.resize.disconnect();

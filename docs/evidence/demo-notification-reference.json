@@ -1,0 +1,30 @@
+{
+  "profile": "qemu_gabbro",
+  "version": "4.37.0",
+  "width": 260,
+  "height": 260,
+  "microSha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+  "flashSha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+  "pbwSha256": "282f1cc6d92f783aa86f5bafd113f8aaec8ac29ddcb7ac482eba09f04c32a3c6",
+  "frames": [
+    {
+      "elapsedHostMs": 3000,
+      "file": "demo-round-notification-native-3000.bin",
+      "sha256": "177231f2f60a2f76b6e74c28269a71ffd9560bbd5eb6ea43e76562bec327c36f",
+      "bytes": 67600
+    },
+    {
+      "elapsedHostMs": 10000,
+      "file": "demo-round-notification-native-10000.bin",
+      "sha256": "177231f2f60a2f76b6e74c28269a71ffd9560bbd5eb6ea43e76562bec327c36f",
+      "bytes": 67600
+    }
+  ],
+  "scope": "Real native firmware, unsynchronized notification observations; not a frame-equality test.",
+  "observation": "The live alert introduction remained at the 3- and 10-second checkpoints in native QEMU, as in the browser. This is an observed compatibility limit; no guest patch or inferred root-cause claim.",
+  "browserArchive": {
+    "file": "demo-round-notifications.png",
+    "sha256": "aebf5afd85b9a98adc0da5f6add63804cddea6be3f38f27a1502cbc9147d94ae",
+    "workflow": "Clock \u2192 Select \u2192 Down twice \u2192 Select; seeded message body is visible in the Notifications app."
+  }
+}
