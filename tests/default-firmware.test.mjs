@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { bundledFirmware } from '../src/app/preview-firmware.ts';
 
 const root = new URL('../public/firmware/v4.37.0/', import.meta.url);
@@ -42,6 +42,36 @@ test('every bundled board expands to its unchanged official release images throu
   }
 });
 
+test('firmware also accepts a fetch body already decompressed by HTTP, including a split gzip header', async () => {
+  for (const transport of ['http-decoded', 'gzip-split-header']) {
+    const pair = manifest.profiles.qemu_emery;
+    const firmware = await bundledFirmware(
+      'qemu_emery',
+      new AbortController().signal,
+      'https://example.test/',
+      async (url) => {
+        const name = new URL(url).pathname.split('/').pop();
+        const gzip = await readFile(new URL(name, root));
+        if (transport === 'http-decoded')
+          return new Response(gunzipSync(gzip), { headers: { 'Content-Encoding': 'gzip' } });
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(gzip.subarray(0, 1));
+              controller.enqueue(gzip.subarray(1, 2));
+              controller.enqueue(gzip.subarray(2));
+              controller.close();
+            },
+          }),
+          { headers: { 'Content-Encoding': 'gzip' } },
+        );
+      },
+    );
+    assert.equal(sha(firmware.micro), pair.micro.sha256);
+    assert.equal(sha(firmware.flash), pair.spi.sha256);
+  }
+});
+
 test('default firmware fails closed on unavailable, truncated, corrupt, or oversized content', async () => {
   const expected = manifest.profiles.qemu_flint.micro.bytes;
   for (const [response, error] of [
@@ -49,6 +79,9 @@ test('default firmware fails closed on unavailable, truncated, corrupt, or overs
     [new Response(gzipSync(Buffer.alloc(8))), /incomplete/],
     [new Response(gzipSync(Buffer.alloc(expected))), /checksum/],
     [new Response(gzipSync(Buffer.alloc(expected + 1))), /expected size/],
+    [new Response(Buffer.alloc(8)), /incomplete/],
+    [new Response(Buffer.alloc(expected)), /checksum/],
+    [new Response(Buffer.alloc(expected + 1)), /expected size/],
   ]) {
     await assert.rejects(
       bundledFirmware(
@@ -63,34 +96,44 @@ test('default firmware fails closed on unavailable, truncated, corrupt, or overs
 });
 
 test('canceling an in-flight default firmware stream stops reading and cannot return an image', async () => {
-  const controller = new AbortController();
-  let started,
-    canceled = false;
-  const reading = new Promise((resolve) => {
-    started = resolve;
-  });
-  const request = async () =>
-    new Response(
-      new ReadableStream({
-        pull() {
-          started();
-        },
-        cancel() {
-          canceled = true;
-        },
-      }),
+  for (const prefix of [
+    new Uint8Array(),
+    new Uint8Array([0x1f]),
+    gzipSync(Buffer.alloc(8)),
+    Buffer.alloc(8),
+  ]) {
+    const controller = new AbortController();
+    let started,
+      canceled = false;
+    const reading = new Promise((resolve) => {
+      started = resolve;
+    });
+    const request = async () =>
+      new Response(
+        new ReadableStream({
+          start(stream) {
+            if (prefix.length) stream.enqueue(prefix);
+          },
+          pull() {
+            started();
+          },
+          cancel() {
+            canceled = true;
+          },
+        }),
+      );
+    const pending = bundledFirmware(
+      'qemu_emery',
+      controller.signal,
+      'https://example.test/',
+      request,
     );
-  const pending = bundledFirmware(
-    'qemu_emery',
-    controller.signal,
-    'https://example.test/',
-    request,
-  );
-  await reading;
-  controller.abort();
-  await assert.rejects(pending, { name: 'AbortError' });
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.equal(canceled, true);
+    await reading;
+    controller.abort();
+    await assert.rejects(pending, { name: 'AbortError' });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(canceled, true);
+  }
 });
 
 test('the release ships every notice recorded in its provenance inventory', async () => {

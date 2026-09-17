@@ -24,7 +24,9 @@ the extraction/adaptation; the browser adapter is original code under the same G
 ## Browser limits
 
 HTML data pages (including Clay) run their own HTML/JavaScript. Literal `pebblejs://close`
-targets are translated to a local callback; dynamic anchor targets are intercepted. Arbitrary
+targets are translated to a fragment in the same opaque document, then returned by a
+session-bound message. Saving an open local form needs no network request or callback page.
+Dynamic anchor targets are also intercepted. Arbitrary
 computed assignments to the browser's protected `location` object cannot be intercepted.
 Remote HTTP(S) pages receive the official `return_to` parameter. A page must honor it;
 hard-coded remote custom-scheme navigation cannot be observed by a browser parent.

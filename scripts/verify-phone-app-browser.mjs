@@ -135,12 +135,20 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').
         fullPage: true,
       });
       assert.equal(await page.evaluate(() => window.phoneQa.commands.length), savedCommands);
+      // A bundled form must save without navigating back to a static server.
+      // The initial callback has not been cached; the old implementation fails here.
+      await page.context().setOffline(true);
       await settingsFrame(page).getByRole('button', { name: 'Save', exact: true }).click();
       await page.getByRole('button', { name: 'Close app settings' }).waitFor({ state: 'detached' });
       await page.waitForFunction(() =>
         window.phoneQa.events.some(
           (e) => e.type === 'event' && e.event.text === 'Clock settings acknowledged by watch',
         ),
+      );
+      await page.context().setOffline(false);
+      assert.deepEqual(
+        requests.filter((url) => url.includes('/phone-app/return')),
+        [],
       );
       await page.waitForFunction(() => {
         const c = document.querySelector('canvas[aria-label="Live watch framebuffer"]');
@@ -222,6 +230,7 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').
           'sandbox isolation',
           'forged sender rejected',
           'decoded return',
+          'local save with network disconnected and no callback request',
           'real firmware ACK',
           'frame changes',
           'cancel',

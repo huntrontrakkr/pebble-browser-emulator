@@ -59,19 +59,52 @@ export async function bundledFirmware(
       throw new Error(
         'Default firmware could not be downloaded. Retry or open firmware files below.',
       );
-    if (typeof DecompressionStream === 'undefined')
-      throw new Error(
-        'This browser needs firmware files opened manually. Use the downloads below.',
-      );
     const bytes = new Uint8Array(index === 0 ? MICRO_BYTES[profile] : 32 * 1048576);
-    const reader = response.body.pipeThrough(new DecompressionStream('gzip')).getReader();
+    const source = response.body.getReader();
+    let reader: ReadableStreamDefaultReader<Uint8Array<ArrayBuffer>> | undefined;
     const abort = () => {
-      void reader.cancel(signal.reason).catch(() => {});
+      void (reader ?? source).cancel(signal.reason).catch(() => {});
     };
     signal.addEventListener('abort', abort, { once: true });
     let offset = 0;
     try {
       signal.throwIfAborted();
+      // Some static servers send .gz files as Content-Encoding: gzip, which fetch
+      // already decodes. Inspect the body, also allowing HTTP compression around
+      // a gzip file. Keep streaming and verify the exact official image below.
+      const prefix: Uint8Array<ArrayBuffer>[] = [];
+      let signature = 0,
+        seen = 0;
+      while (seen < 2) {
+        const { value, done } = await source.read();
+        signal.throwIfAborted();
+        if (done) break;
+        prefix.push(value);
+        for (const byte of value.subarray(0, 2 - seen)) {
+          signature = (signature << 8) | byte;
+          seen++;
+        }
+      }
+      const body = new ReadableStream<Uint8Array<ArrayBuffer>>({
+        start(controller) {
+          for (const chunk of prefix) controller.enqueue(chunk);
+        },
+        async pull(controller) {
+          const { value, done } = await source.read();
+          if (done) controller.close();
+          else controller.enqueue(value);
+        },
+        cancel(reason) {
+          return source.cancel(reason);
+        },
+      });
+      if (signature === 0x1f8b) {
+        if (typeof DecompressionStream === 'undefined')
+          throw new Error(
+            'This browser needs firmware files opened manually. Use the downloads below.',
+          );
+        reader = body.pipeThrough(new DecompressionStream('gzip')).getReader();
+      } else reader = body.getReader();
       for (;;) {
         const { value, done } = await reader.read();
         signal.throwIfAborted();
@@ -92,8 +125,9 @@ export async function bundledFirmware(
       images.push(bytes);
     } finally {
       signal.removeEventListener('abort', abort);
-      await reader.cancel().catch(() => {});
-      reader.releaseLock();
+      await (reader ?? source).cancel().catch(() => {});
+      reader?.releaseLock();
+      source.releaseLock();
     }
   }
   return { profile, name: `${profile}_${DEFAULT_FIRMWARE}`, micro: images[0], flash: images[1] };

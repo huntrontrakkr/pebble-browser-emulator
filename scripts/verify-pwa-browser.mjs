@@ -71,6 +71,11 @@ try {
     const page = await context.newPage();
     page.setDefaultTimeout(120000);
     const errors = [];
+    const configurationReturns = [];
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.includes('/phone-app/return'))
+        configurationReturns.push(request.url());
+    });
     page.on('pageerror', (error) => errors.push(String(error)));
     const shot = (name) =>
       page.screenshot({ path: resolve(out, `${engine}-${name}.png`), fullPage: true });
@@ -156,6 +161,7 @@ try {
       await page
         .getByRole('button', { name: 'Close app settings', exact: true })
         .waitFor({ state: 'detached' });
+      assert.deepEqual(configurationReturns, [], 'Local settings must not request a callback page');
       await preferences();
       await page.getByLabel('Theme', { exact: true }).selectOption('dark');
       await done();

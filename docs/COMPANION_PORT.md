@@ -51,7 +51,9 @@ CSS pixels; tests cover a device pixel ratio of 2. No watch framebuffer is synth
 ## Browser adapter boundaries
 
 - Local HTML data pages run their own code, including Clay 1.0.4. Literal close targets are
-  translated to the static callback; dynamic anchor targets can be intercepted. The HTML
+  translated to a fragment in the same opaque document and returned by a session-bound
+  message. Save/Cancel needs no callback download; an open local form can return while the
+  network is disconnected. Dynamic anchor targets can also be intercepted. The HTML
   doctype is retained. Local WebView storage is bounded to 1 MiB and scoped by app ID.
 - Remote HTTP(S) pages receive the official `return_to` parameter. They must support it.
   Arbitrary computed `location` assignments/custom schemes cannot be intercepted universally.

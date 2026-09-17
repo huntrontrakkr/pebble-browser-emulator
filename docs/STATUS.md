@@ -24,6 +24,16 @@ visible notification pixel below the status clock. [Root cause and scope](NOTIFI
 
 ## Preview and phone usability
 
+Local HTML/Clay settings now return within their sandboxed document, removing an HTTP
+callback that could strand Save on a browser error page if the connection dropped. The
+compiled companion, PKJS and firmware acknowledgment path remain intact. The Clock save
+gate disconnects networking before Save and checks the actual ACK and changed framebuffer
+on Chromium, Firefox and WebKit. JustTheTime's original Clay form passes on all three
+current watch profiles in Chromium. A separate fresh-development startup failure is also
+fixed: the firmware loader handles Fetch's automatic HTTP gzip decoding while preserving
+exact-size and official SHA-256 checks. [Investigation and scope](CONFIGURATION_SAVE.md),
+[352 unit passes and browser evidence](evidence/configuration-save.json).
+
 The preview now groups the screen, physical watch controls, connection/battery state and
 App configuration in one surface. The example, PBW picker and GitHub disclosure share one
 opening panel. Mobile configuration uses a native full-screen dialog; desktop keeps it
@@ -119,12 +129,12 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
 | Installation               | Actual BlobDB/AppFetch/PutBytes transfers, CRC commits, native app-running events, main binary/resources/background worker.                                                                                                                              |
 | Background workers         | Compiled/packaged worker matches SDK metadata; firmware starts it and emits its expected log.                                                                                                                                                            |
 | Virtual phone              | Isolated QuickJS, geolocation, time/timers, app storage, actual AppMessage ACK/NACK, watch context, XHR/fetch test responses or browser CORS.                                                                                                            |
-| Configuration              | Source-ported upstream Kotlin/Compose settings, sandboxed HTML/Clay pages, automatic correlated returns, app-scoped persistence. Remote pages require `return_to` and browser embedding support; explicit new-tab fallback. |
+| Configuration              | Source-ported upstream Kotlin/Compose settings, sandboxed HTML/Clay pages, automatic correlated returns, app-scoped persistence. Remote pages require `return_to` and browser embedding support; explicit new-tab fallback.                              |
 | Inputs and inspection      | Accelerometer, tap, touch, health metrics/raw heart rate, health preferences, compass channel, seeded scenarios/CSV; battery/buttons/time/link; phone location/errors; actual haptic output events and protocol inspection.                              |
 | Firmware identity          | Exact release tags from public GitHub sources; checksummed, board-specific bundle imports. A file being accepted does not imply firmware compatibility.                                                                                                  |
 | Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                              |
 | Display                    | 144×168 monochrome, 200×228 color, 260×260 round color; committed guest frames; exact color conversion. Reflective optics remain an approximation.                                                                                                       |
-| 3D model                   | Official current Time 2, 2 Duo and Round 2 CAD geometry with live screens. Materials, screen placement and optical response remain approximate.                                                                                                                                    |
+| 3D model                   | Official current Time 2, 2 Duo and Round 2 CAD geometry with live screens. Materials, screen placement and optical response remain approximate.                                                                                                          |
 | State                      | Watch restart preserves modified SPI flash and RTC. Phone timers follow watch time with acknowledged 10 ms quanta; timed input scenarios replay from a supplied initial state. Full firmware/phone snapshots and complete session replay remain pending. |
 
 ## New acceptance gates

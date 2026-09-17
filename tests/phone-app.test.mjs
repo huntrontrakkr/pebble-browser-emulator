@@ -43,9 +43,46 @@ test('data configuration preserves HTML and close suffixes, including base64 and
       value: '</script><script>bad()',
     });
     assert.equal(result.external, false);
-    assert.ok(result.html.includes('https://example.test/return?session=x&tail=#%2525%20雪'));
+    assert.ok(result.html.includes('about:srcdoc#pebblejs://close#%2525%20雪'));
+    assert.ok(!result.html.includes('https://example.test/return'));
     assert.ok(!result.html.includes('value":"</script>'));
   }
+});
+test('local close fragments return unchanged without network access or decoding twice', () => {
+  const page = configurationPage('data:text/html,Settings', 'https://preview.test/return', 'nonce');
+  const handlers = {},
+    messages = [],
+    window = {};
+  const location = { href: 'about:srcdoc' };
+  vm.runInNewContext(page.html.match(/<script>([\s\S]*?)<\/script>/)[1], {
+    window,
+    location,
+    parent: { postMessage: (data) => messages.push(data) },
+    addEventListener: (name, handler) => {
+      handlers[name] = handler;
+    },
+  });
+  for (const suffix of [
+    '#%7B%22value%22%3A%22%2525%20%2B%20%E9%9B%AA%22%7D',
+    '/?hello%20world',
+    '/hello%2Bworld',
+    '',
+    '#%zz',
+  ]) {
+    location.href = 'about:srcdoc#pebblejs://close' + suffix;
+    handlers.hashchange();
+    assert.deepEqual(JSON.parse(JSON.stringify(messages.at(-1))), {
+      kind: 'pebble-config-navigation',
+      session: 'nonce',
+      url: 'pebblejs://close' + suffix,
+    });
+  }
+  const count = messages.length;
+  for (const url of ['about:srcdoc#section', 'https://preview.test/#pebblejs://close#forged']) {
+    location.href = url;
+    handlers.hashchange();
+  }
+  assert.equal(messages.length, count);
 });
 test('remote page uses official return_to without replacing its existing parameters or fragment', () => {
   const result = configurationPage(

@@ -22,6 +22,10 @@ The one saved PBW replaces the previous one; this is not a watchface library. Fi
 app settings use their existing local stores. Running CPU state is not saved; reopening
 starts the watch from the stored firmware image.
 
+Saving an already open local HTML/Clay form also works if the connection drops without
+an offline download. Its return stays inside the sandboxed page and requires no server
+callback. Opening the companion module for the first time still requires network or cache.
+
 GitHub imports, external configuration pages, live phone network requests and upstream 3D
 CAD downloads still require a connection. The compiler/SDK and Linux build images have
 separate import and cache requirements and are not included in this offline package.

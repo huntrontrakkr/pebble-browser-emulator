@@ -24,9 +24,10 @@ export function configurationPage(input, callback, session, storage = {}) {
     html = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   } else html = decodeURIComponent(payload);
   bounded(html);
-  // Native WebViews intercept this scheme before navigation. An opaque browser frame cannot;
-  // translate literal close targets to our callback, preserving the entire suffix verbatim.
-  html = html.replace(/pebblejs:(?:\\?\/){2}close/g, callback);
+  // Keep local returns in the current opaque document. Navigating to a server callback
+  // can fail offline or under browser network restrictions, even for a bundled form.
+  // An absolute about:srcdoc fragment avoids inheriting the host's HTTP base URL.
+  html = html.replace(/pebblejs:(?:\\?\/){2}close/g, 'about:srcdoc#pebblejs://close');
   const seed = JSON.stringify({ session, storage }).replaceAll('<', '\\u003c');
   const bootstrap = `<script>(${embeddedBridge.toString()})(${seed})<\/script>`;
   // Preserve standards mode; putting a script before the doctype switches pages to quirks mode.
@@ -41,6 +42,11 @@ export function configurationPage(input, callback, session, storage = {}) {
 }
 function embeddedBridge({ session, storage }) {
   const send = (kind, extra) => parent.postMessage({ kind, session, ...extra }, '*');
+  addEventListener('hashchange', () => {
+    const prefix = 'about:srcdoc#';
+    if (location.href.startsWith(prefix + 'pebblejs://close'))
+      send('pebble-config-navigation', { url: location.href.slice(prefix.length) });
+  });
   const data = Object.assign(Object.create(null), storage);
   const persist = () => send('pebble-config-storage', { storage: { ...data } });
   const api = {

@@ -1,0 +1,407 @@
+{
+  "testedAt": "2026-09-17T23:50:06.345Z",
+  "scope": "Desktop Linux browser engines. Reproduced interrupted local configuration return; the reporting user's exact error and browser were not available. No physical phone or universal configuration compatibility claim.",
+  "before": {
+    "adapterCommit": "eaa6beb239418582c8d45a5b2139e6dc9c8d48b2",
+    "method": "Loaded the previous configuration-page.mjs adapter in the development preview, opened Clock settings, disconnected networking, then saved dark background.",
+    "callbackPath": "/phone-app/return.html",
+    "error": "net::ERR_INTERNET_DISCONNECTED",
+    "browserErrorPage": true,
+    "configurationResultDelivered": false,
+    "settingsAppMessageSent": false,
+    "pageErrors": []
+  },
+  "after": {
+    "qemuWasmSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+    "upstreamKotlinNavigationChanged": false,
+    "unitTests": {
+      "passed": 352,
+      "skipped": 9,
+      "failed": 0
+    },
+    "typescript": "passed",
+    "productionBuild": "passed",
+    "clock": {
+      "date": "2026-09-17T23:48:15.935Z",
+      "scope": "Desktop Linux browser engines at mobile viewport. Actual source-ported companion, Clock HTML and PKJS, unchanged 4.37.0 firmware. Not physical-phone performance or full Android app emulation.",
+      "upstream": {
+        "repository": "https://github.com/coredevices/mobileapp",
+        "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+        "license": "GPL-3.0-only",
+        "files": {
+          "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+          "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+        }
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 511,
+          "beforeFrame": "508d0d971d3732bd2416079655a1ee7fd10d67323ea4d34924bd8940c0c16b20",
+          "afterFrame": "78d32310045632ade97a58d5b1e1aabf4eeaf814581528273ba2eb2423e3982e",
+          "beforeBlackFraction": 0.0306140350877193,
+          "afterBlackFraction": 0.9620833333333333,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "local save with network disconnected and no callback request",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_flint",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 525,
+          "beforeFrame": "a04879d3f775f6cad689aecb50e89e69163bbc4a3cb4b02e99f1d36394d089b8",
+          "afterFrame": "d22c6d071a00828322ca75d09be15d0c00a2bd7449110d8a3bbbc8f06d91e974",
+          "beforeBlackFraction": 0.07146990740740741,
+          "afterBlackFraction": 0.9285300925925926,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "local save with network disconnected and no callback request",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_gabbro",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 518,
+          "beforeFrame": "2d7dc93b66f0fc05df1c79ffd819fa9aef5665d253a26a0df30053e51d4f92df",
+          "afterFrame": "6c10e24f3b9c2ceaf87ebc17427fd5ab082020ae58f014877ae7c6da99b6141a",
+          "beforeBlackFraction": 0.2311242603550296,
+          "afterBlackFraction": 0.9765680473372781,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "local save with network disconnected and no callback request",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "firefox",
+          "browser": "155.0",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 471,
+          "beforeFrame": "a6127c0dcab00389b566dc9c2fbf5e153a950d9d68e1faea264f3bb9e22eac4d",
+          "afterFrame": "01beba2c8361eecd5956050f5d23b1841e36dae3a542e88a395f97fd733b5010",
+          "beforeBlackFraction": 0.034736842105263156,
+          "afterBlackFraction": 0.9652631578947368,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "local save with network disconnected and no callback request",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        },
+        {
+          "engine": "webkit",
+          "browser": "26.6",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 545,
+          "beforeFrame": "8d396063bb6940e4475a2a74b7b70983e4c2a5d27e9354e396a2e8c74bca38d8",
+          "afterFrame": "72ca8e13ace350c5f9d8a1442079c9e122af06eaca3d13da1d57943e024f47d2",
+          "beforeBlackFraction": 0.038004385964912284,
+          "afterBlackFraction": 0.9619956140350877,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "local save with network disconnected and no callback request",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        }
+      ]
+    },
+    "originalStoreWatchface": {
+      "testedAt": "2026-09-17T23:46:56.326Z",
+      "base": "http://localhost:4202/",
+      "storeListing": "https://apps.repebble.com/justthetime_50bdea7ee3ff48308157c046",
+      "storeVersion": "1.2",
+      "packageVersionLabel": "1.1",
+      "results": [
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 200,
+          "height": 228,
+          "beforeFrameSha256": "b7b5981b5d192698a777ccab34e16f13be33fc9808e8caf23f5fee754bd59de3",
+          "afterFrameSha256": "2d02a4d1b092a13ef877e3203270122e520641c33bc5012faae08a09099abbc7",
+          "changedPixels": 43858,
+          "beforeWhiteFraction": 0.01331140350877193,
+          "afterWhiteFraction": 0.970701754385965,
+          "appMessage": {
+            "10000": 16777215,
+            "10001": 16777215,
+            "10002": 16733525,
+            "10003": 16777215,
+            "10004": 5635925,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_flint",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 144,
+          "height": 168,
+          "beforeFrameSha256": "aac313dbcccb7df9ccc2eb8097ee45865b255515f783c67ed89e585d2ed909ff",
+          "afterFrameSha256": "48a4db342d25f45fb9549039cd77a11f5a62e3fb62150a07415c79d3e7be5eb9",
+          "changedPixels": 24192,
+          "beforeWhiteFraction": 0.057787698412698416,
+          "afterWhiteFraction": 0.9422123015873016,
+          "appMessage": {
+            "10000": 16777215,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        },
+        {
+          "engine": "chromium",
+          "browserVersion": "153.0.8010.12",
+          "profile": "qemu_gabbro",
+          "passed": true,
+          "packageSha256": "d0b5d7888ca05b48b629c2d315802184a0e737e57ea20c0067de95ca2e2263b4",
+          "firmware": "4.37.0",
+          "width": 260,
+          "height": 260,
+          "beforeFrameSha256": "ee0308dee095f3c26653adc9b926c73ce015cf21828b7a6e3992a250799af6c9",
+          "afterFrameSha256": "81d87178ee55cf3c797a107d76d7485e8279335c87a422af830c2576a0dc7c1b",
+          "changedPixels": 51010,
+          "beforeWhiteFraction": 0.01584319526627219,
+          "afterWhiteFraction": 0.7664644970414202,
+          "appMessage": {
+            "10000": 16777215,
+            "10001": 16777215,
+            "10002": 16733525,
+            "10003": 16777215,
+            "10004": 5635925,
+            "10005": 7,
+            "10006": 6,
+            "10007": 13,
+            "10008": 4,
+            "10009": 2,
+            "10010": 2,
+            "10011": 4,
+            "10012": 3,
+            "10013": 1,
+            "10014": 1,
+            "10015": 1,
+            "10016": 0
+          },
+          "firmwareAck": true,
+          "reopenedSavedSettings": true,
+          "nativeBackCancelled": true,
+          "externalRequests": [],
+          "errors": []
+        }
+      ]
+    },
+    "pwa": {
+      "recordedAt": "2026-09-17T23:47:42.723Z",
+      "results": [
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "passed": true,
+          "downloadSize": "Ready offline · 16.3 MB",
+          "offlineMode": "browser network offline",
+          "installability": {
+            "installabilityErrors": []
+          },
+          "errors": [],
+          "assertions": [
+            "subdirectory scope",
+            "mobile controls in viewport",
+            "44px watch buttons",
+            "native mobile configuration dialog",
+            "desktop side panel",
+            "offline firmware boot",
+            "offline companion settings",
+            "saved PBW reopen",
+            "explicit update",
+            "other tab guard",
+            "offline choice survives update"
+          ]
+        },
+        {
+          "engine": "webkit",
+          "browser": "26.6",
+          "passed": true,
+          "downloadSize": "Ready offline · 16.3 MB",
+          "offlineMode": "server sockets disabled",
+          "errors": [],
+          "assertions": [
+            "subdirectory scope",
+            "mobile controls in viewport",
+            "44px watch buttons",
+            "native mobile configuration dialog",
+            "desktop side panel",
+            "offline firmware boot",
+            "offline companion settings",
+            "saved PBW reopen",
+            "explicit update",
+            "other tab guard",
+            "offline choice survives update"
+          ]
+        }
+      ]
+    },
+    "development": {
+      "date": "2026-09-17T23:45:25.626Z",
+      "scope": "Desktop Linux browser engines at mobile viewport. Actual source-ported companion, Clock HTML and PKJS, unchanged 4.37.0 firmware. Not physical-phone performance or full Android app emulation.",
+      "upstream": {
+        "repository": "https://github.com/coredevices/mobileapp",
+        "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+        "license": "GPL-3.0-only",
+        "files": {
+          "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+          "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+        }
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "browser": "153.0.8010.12",
+          "profile": "qemu_emery",
+          "passed": true,
+          "viewport": "390x844",
+          "settingsLoadMs": 473,
+          "beforeFrame": "e854b42b6502d8a772fdc6b3d47eb29b91462282f8a0443695c6fb0e834d116a",
+          "afterFrame": "db771397494ef4f1a84f2849e5137a22c392f019890eed22a8aefd56e4ce6746",
+          "beforeBlackFraction": 0.037192982456140354,
+          "afterBlackFraction": 0.9628070175438597,
+          "appMessage": {
+            "0": 1,
+            "1": 1,
+            "2": 1
+          },
+          "assertions": [
+            "lazy loading",
+            "native header at device scale",
+            "sandbox isolation",
+            "forged sender rejected",
+            "decoded return",
+            "local save with network disconnected and no callback request",
+            "real firmware ACK",
+            "frame changes",
+            "cancel",
+            "native Back",
+            "persistent reopen/reload"
+          ]
+        }
+      ]
+    }
+  }
+}
