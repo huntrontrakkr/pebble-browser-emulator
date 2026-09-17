@@ -24,6 +24,15 @@ visible notification pixel below the status clock. [Root cause and scope](NOTIFI
 
 ## Preview and phone usability
 
+The first actual companion source port now runs the upstream settings Scaffold/header and
+unchanged Kotlin URL interceptor in a separately loaded Kotlin/Wasm module. **App settings**
+opens beside the watch; Clock includes a real configurable HTML page and native settings
+receiver. Save/Cancel/Back, actual firmware ACKs and frame changes, persistence/reload,
+sandbox isolation and the actual Clay form have dedicated browser gates. This remains a
+bounded settings port: native accounts, library/store, database, BLE and libpebble3 services
+are not ported. External pages must honor `return_to`; universal custom-scheme interception
+is not possible. [Scope, source, limits and evidence](COMPANION_PORT.md).
+
 The first workspace now offers **Try example**, **Open watchface .pbw**, and GitHub project
 previews. It starts no Workers until needed. Clock is an actual precompiled native watchface;
 its installation uses the same firmware protocol as developer builds. Official 4.37.0
@@ -60,7 +69,7 @@ browser Wasm compiler and automatically installing. [GitHub workflow record](evi
 | Installation               | Actual BlobDB/AppFetch/PutBytes transfers, CRC commits, native app-running events, main binary/resources/background worker.                                                                                                                              |
 | Background workers         | Compiled/packaged worker matches SDK metadata; firmware starts it and emits its expected log.                                                                                                                                                            |
 | Virtual phone              | Isolated QuickJS, geolocation, time/timers, app storage, actual AppMessage ACK/NACK, watch context, XHR/fetch test responses or browser CORS.                                                                                                            |
-| Configuration              | showConfiguration/openURL/webviewclosed events with correlated manual return. Embedded WebView/automatic return navigation is pending.                                                                                                                   |
+| Configuration              | Source-ported upstream Kotlin/Compose settings, sandboxed HTML/Clay pages, automatic correlated returns, app-scoped persistence. Remote pages require `return_to` and browser embedding support; explicit new-tab fallback. |
 | Inputs and inspection      | Accelerometer, tap, touch, health metrics/raw heart rate, health preferences, compass channel, seeded scenarios/CSV; battery/buttons/time/link; phone location/errors; actual haptic output events and protocol inspection.                              |
 | Firmware identity          | Exact release tags from public GitHub sources; checksummed, board-specific bundle imports. A file being accepted does not imply firmware compatibility.                                                                                                  |
 | Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                              |
@@ -112,7 +121,8 @@ browser Wasm compiler and automatically installing. [GitHub workflow record](evi
 - Actual QuickJS tests cover network fixtures, XHR/fetch events, body limits, cancellation,
   configuration, storage and ownership of outstanding AppMessages. Worker tests cover
   replacement/reset races. The published Clay 1.0.4 JS artifact bundles and executes through
-  configuration request, manual returned settings, storage and an outbound AppMessage.
+  configuration request, returned settings, storage and an outbound AppMessage. The new browser
+  contract gate also renders the actual Clay page and saves through the compiled Kotlin interceptor.
 - The separate diagnostic continues to match Unicorn 2.1.4 for 228,004 instructions and all
   45,600 framebuffer bytes.
 
@@ -158,7 +168,7 @@ it requires the deterministic PBW hash recorded in `evidence/firmware-acceptance
    libraries, additional SDK versions and remaining app types. Arbitrary GitHub projects are not yet universal.
 4. Complete microphone/audio, physical sensor controllers (including raw optical/gyro/light/
    temperature paths where actually present), notifications/timeline, full replay/snapshots,
-   and embedded configuration pages. Logical Bluetooth packets are supported;
+   and remaining native companion services. Logical Bluetooth packets are supported;
    physical radio behavior and universal browser-to-watch Bluetooth are not.
 5. Measure actual watches and complete browser interaction/optical comparisons. No battery
    chemistry, RF or screen-material accuracy is inferred from a successful app or boot test.

@@ -1,0 +1,160 @@
+{
+  "date": "2026-09-17T17:40:21.851Z",
+  "scope": "Desktop Linux browser engines at mobile viewport. Actual source-ported companion, Clock HTML and PKJS, unchanged 4.37.0 firmware. Not physical-phone performance or full Android app emulation.",
+  "upstream": {
+    "repository": "https://github.com/coredevices/mobileapp",
+    "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+    "license": "GPL-3.0-only",
+    "files": {
+      "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+      "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+    }
+  },
+  "results": [
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profile": "qemu_emery",
+      "passed": true,
+      "viewport": "390x844",
+      "settingsLoadMs": 445,
+      "beforeFrame": "f34392db89e32183c5fb4d43962a93afc8e191a1a2f72ebd27627de6842c4ff7",
+      "afterFrame": "665df79e8e8417e189e8d3fdb24c1b20fbe0db95e53c5a53941f983b55915ef6",
+      "beforeBlackFraction": 0.03070175438596491,
+      "afterBlackFraction": 0.9562719298245614,
+      "appMessage": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      },
+      "assertions": [
+        "lazy loading",
+        "native header at device scale",
+        "sandbox isolation",
+        "forged sender rejected",
+        "decoded return",
+        "real firmware ACK",
+        "frame changes",
+        "cancel",
+        "native Back",
+        "persistent reopen/reload"
+      ]
+    },
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profile": "qemu_flint",
+      "passed": true,
+      "viewport": "390x844",
+      "settingsLoadMs": 422,
+      "beforeFrame": "157a61963d8cede03bffe158067320d9e57b61355adfa746936512cf0d626d79",
+      "afterFrame": "60c7e08dfd3662550fc6a788aad975faca6b5c4cb10552b9aaeb38c8d7593eec",
+      "beforeBlackFraction": 0.30324074074074076,
+      "afterBlackFraction": 0.9114169973544973,
+      "appMessage": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      },
+      "assertions": [
+        "lazy loading",
+        "native header at device scale",
+        "sandbox isolation",
+        "forged sender rejected",
+        "decoded return",
+        "real firmware ACK",
+        "frame changes",
+        "cancel",
+        "native Back",
+        "persistent reopen/reload"
+      ]
+    },
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profile": "qemu_gabbro",
+      "passed": true,
+      "viewport": "390x844",
+      "settingsLoadMs": 421,
+      "beforeFrame": "1094a0fd9df8dbc56e712ba333f02f54ad27550ceb25196ca68b089814feda68",
+      "afterFrame": "9c06f4bfa803c789cddb664c8752a48c4babc8213811f58fd9d305d1730eabee",
+      "beforeBlackFraction": 0.20908284023668638,
+      "afterBlackFraction": 0.9682988165680473,
+      "appMessage": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      },
+      "assertions": [
+        "lazy loading",
+        "native header at device scale",
+        "sandbox isolation",
+        "forged sender rejected",
+        "decoded return",
+        "real firmware ACK",
+        "frame changes",
+        "cancel",
+        "native Back",
+        "persistent reopen/reload"
+      ]
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "profile": "qemu_emery",
+      "passed": true,
+      "viewport": "390x844",
+      "settingsLoadMs": 385,
+      "beforeFrame": "79f51bff135c11464565ed7207d7586398332a2f9302aa09f55e7befce841946",
+      "afterFrame": "56cde59f362507088b20602b43fae32c734ff4da02774035cc28e86278d4d379",
+      "beforeBlackFraction": 0.03385964912280702,
+      "afterBlackFraction": 0.9529605263157894,
+      "appMessage": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      },
+      "assertions": [
+        "lazy loading",
+        "native header at device scale",
+        "sandbox isolation",
+        "forged sender rejected",
+        "decoded return",
+        "real firmware ACK",
+        "frame changes",
+        "cancel",
+        "native Back",
+        "persistent reopen/reload"
+      ]
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "profile": "qemu_emery",
+      "passed": true,
+      "viewport": "390x844",
+      "settingsLoadMs": 733,
+      "beforeFrame": "0fb1efbe9df177e0dc620ebc4bc5e94e637ea8bb28719ed641077ea8943076e1",
+      "afterFrame": "26f5c9a74d7363f78de09f22bd15178deca1960bc8eb8a58be398e9e45c7c9a0",
+      "beforeBlackFraction": 0.03138157894736842,
+      "afterBlackFraction": 0.953640350877193,
+      "appMessage": {
+        "0": 1,
+        "1": 1,
+        "2": 1
+      },
+      "assertions": [
+        "lazy loading",
+        "native header at device scale",
+        "sandbox isolation",
+        "forged sender rejected",
+        "decoded return",
+        "real firmware ACK",
+        "frame changes",
+        "cancel",
+        "native Back",
+        "persistent reopen/reload"
+      ]
+    }
+  ]
+}

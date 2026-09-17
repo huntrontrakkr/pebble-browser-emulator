@@ -1,6 +1,6 @@
 # Virtual phone network and configuration contract
 
-Original implementation; no upstream implementation code is bundled. `network-bootstrap.ts` executes inside QuickJS. `phone-network.ts` validates plain JSON and provides an optional browser-side CORS fetch proxy. No browser, DOM, Node, fetch, or AbortController host object enters the app VM.
+The virtual phone runtime remains an original implementation. `network-bootstrap.ts` executes inside QuickJS. `phone-network.ts` validates plain JSON and provides an optional browser-side CORS fetch adapter. No browser, DOM, Node, fetch, or AbortController host object enters the app VM. The separate GPL-3.0-only `phone-app` module now ports the actual upstream Kotlin/Compose settings screen and navigation handler; see [companion port scope](COMPANION_PORT.md).
 
 ## Start message
 
@@ -61,7 +61,19 @@ Send `{type:'configuration'}` to dispatch `showConfiguration`. The app calls `Pe
 { type:'configurationClosed', phoneGeneration, requestId, response: string | null }
 ```
 
-Preserve the raw encoded response fragment; PKJS commonly calls `decodeURIComponent` itself. `null` means cancellation. Duplicate/stale request IDs and stale supplied generations are ignored. Legacy uncorrelated response calls remain accepted for compatibility, so the UI should always echo both identifiers. `openURL` accepts HTTP(S) or HTML data URLs, including large Clay-generated pages, and never opens or evaluates them itself. Any page rendered by the host must remain isolated from the emulator app. A cross-origin configuration page's `pebblejs://close#...` navigation is not observable by a generic browser parent; use an explicit manual return, or a page supporting the official emulator `return_to` convention and a controlled callback page.
+The runtime forwards this response string unchanged. The new companion port uses the pinned
+upstream interceptor's **single URL decode**, matching that native handler; it does not
+re-encode its result. The manual debug field still forwards the exact entered string.
+`null` means cancellation. Duplicate/stale request IDs and stale supplied generations are
+ignored. Legacy uncorrelated response calls remain accepted by the API for compatibility;
+the UI always supplies both identifiers and verifies page/app identity.
+
+`openURL` accepts HTTP(S) or HTML data URLs, including large Clay-generated pages. Preview
+renders them in the separate companion module's opaque sandbox. Local literal close targets
+are translated to a static callback; external pages must use `return_to`. Arbitrary remote
+custom-scheme navigation cannot be observed by a generic browser parent. An explicit new-tab
+button handles embedding restrictions without a proxy. PKJS storage now persists locally by
+app ID, with legacy session storage as a fallback. WebView storage is scoped separately.
 
 ## Limits and explicit gaps
 

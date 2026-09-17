@@ -1,0 +1,49 @@
+{
+  "upstream": {
+    "repository": "https://github.com/coredevices/mobileapp",
+    "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+    "license": "GPL-3.0-only",
+    "files": {
+      "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+      "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+    }
+  },
+  "artifacts": {
+    "6e23e5428398b92da386.wasm": {
+      "bytes": 8652729,
+      "sha256": "46caff5f783599bd1c5d3e5e87959d7cb5102c515aac671c9280664368e71dab"
+    },
+    "configuration-page.mjs": {
+      "bytes": 4759,
+      "sha256": "56e40cc0bbb92f3d90f3a49514f62fd4919e49512d2d7f9dc5575a0f9fd2d062"
+    },
+    "f421e6a2aabf08657c40.wasm": {
+      "bytes": 1953314,
+      "sha256": "342572e725f70f7059ab3c74c5b7bcfa76a2a2a325bff85d0dec4b358b44d6e1"
+    },
+    "host.mjs": {
+      "bytes": 5351,
+      "sha256": "190f0a0c4c822659b9e3cf43bf636f149ec539f89dc1c6c738463633428149b4"
+    },
+    "index.html": {
+      "bytes": 1377,
+      "sha256": "9d874f526c706abc21e01c792b0a20c3268ba6539a2d6d6a080dce5ae4f381f8"
+    },
+    "pebble-phone.js": {
+      "bytes": 529143,
+      "sha256": "1ee8bb04341bceb55c9363e2f238adfd6d4cf0dc69946489744de08aeb116037"
+    },
+    "return.html": {
+      "bytes": 376,
+      "sha256": "b52ab332b01469f68523468d29e321ad946b8b9ab6d528bc45c64793299a33e2"
+    },
+    "return.mjs": {
+      "bytes": 1189,
+      "sha256": "cecc63f7e56462351f6ec438b3f552a435e94db41608b15d57e2d80aab1dd6e6"
+    },
+    "source.zip": {
+      "bytes": 218355,
+      "sha256": "30bd5f36942c65e8ae75ec86ecd01a5b532047aa84e9e9def5e7a206a274bbbe"
+    }
+  }
+}

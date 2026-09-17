@@ -52,8 +52,16 @@
     [class.preview-workspace]="!workbench()"
     [class.preview-active]="loaded() || previewBusy()"
   >
-    <section class="preview-launcher panel" [hidden]="workbench()">
+    <section
+      class="preview-launcher panel"
+      [class.phone-open]="!!configuration()"
+      [hidden]="workbench()"
+    >
+      @for (view of configuration() ? [configuration()!] : []; track view) {
+        <phone-app-panel [request]="view" (returned)="returnConfiguration($event)" />
+      }
       <preview-panel
+        [hidden]="!!configuration()"
         [currentProfile]="profile()"
         [watchLoaded]="isFirmware() && loaded()"
         [sessionBusy]="previewBusy()"
@@ -182,6 +190,18 @@
         >
         <button class="text-button" (click)="settingsOpen.set(true)">Demo settings</button>
       </div>
+      @if (appConfigurable()) {
+        <button
+          class="app-settings-trigger"
+          (click)="showConfiguration()"
+          [disabled]="phoneStatus() !== 'Running' || configurationPending() || !!configuration()"
+        >
+          {{ configurationPending() ? 'Opening app settings…' : 'App settings' }}
+        </button>
+      }
+      @if (configurationNotice()) {
+        <p class="help" role="status">{{ configurationNotice() }}</p>
+      }
       @if (displayMode() !== 'pixels') {
         <div class="display-options">
           <label
@@ -517,8 +537,8 @@
               ><button (click)="closeConfiguration(true)">Cancel configuration</button>
             </div>
             <p class="help">
-              Returns the entered string to webviewclosed. Embedded WebView navigation and automatic
-              return URLs are not implemented.
+              Manual debugging return. The Pebble app settings page opens in Preview; this field
+              sends its exact string to webviewclosed without URL decoding.
             </p>
           }
           @if (phoneHttp().length) {

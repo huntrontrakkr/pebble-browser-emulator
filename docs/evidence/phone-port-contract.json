@@ -1,0 +1,87 @@
+{
+  "date": "2026-09-17T17:42:55.318Z",
+  "browser": "153.0.8010.12",
+  "records": [
+    {
+      "kind": "upstream-normalization",
+      "url": "https://cdn.rawgit.com/groyoh/minimalin/ffd0da5fb45f0722dee6e59eb4b05fa63ca82136/config/index.html",
+      "actual": "https://raw.githack.com/groyoh/minimalin/ffd0da5fb45f0722dee6e59eb4b05fa63ca82136/config/index.html"
+    },
+    {
+      "kind": "upstream-normalization",
+      "url": "https://example.com/config/index.html?foo=bar",
+      "actual": "https://example.com/config/index.html?foo=bar"
+    },
+    {
+      "kind": "upstream-return",
+      "url": "pebblejs://close#%7B%22value%22%3A%22%2525%20%2B%20%E9%9B%AA%22%7D",
+      "actual": {
+        "type": "close",
+        "response": "{\"value\":\"%25 + 雪\"}"
+      }
+    },
+    {
+      "kind": "upstream-return",
+      "url": "pebblejs://close/?hello%20world",
+      "actual": {
+        "type": "close",
+        "response": "hello world"
+      }
+    },
+    {
+      "kind": "upstream-return",
+      "url": "pebblejs://close/hello%2Bworld",
+      "actual": {
+        "type": "close",
+        "response": "hello+world"
+      }
+    },
+    {
+      "kind": "upstream-return",
+      "url": "pebblejs://close#",
+      "actual": {
+        "type": "close",
+        "response": null
+      }
+    },
+    {
+      "kind": "upstream-return",
+      "url": "pebblejs://close",
+      "actual": {
+        "type": "close",
+        "response": null
+      }
+    },
+    {
+      "kind": "upstream-return",
+      "url": "pebblejs://close/?",
+      "actual": {
+        "type": "close",
+        "response": null
+      }
+    },
+    {
+      "kind": "malformed-return",
+      "error": true
+    },
+    {
+      "kind": "actual-clay-1.0.4",
+      "returned": "{\"NAME\":{\"value\":\"Lin + 雪\"}}",
+      "outbound": {
+        "10000": "Lin + 雪"
+      },
+      "storage": "{\"NAME\":\"Lin + 雪\"}",
+      "scope": "Actual Clay HTML -> compiled upstream handler -> actual Clay PKJS -> pending AppMessage. Firmware ACK is verified separately with native Clock."
+    },
+    {
+      "kind": "remote-embedded-return_to",
+      "response": "Remote + 雪",
+      "scope": "Browser-served HTTP page fixture, including real X-Frame-Options enforcement and static callback. No production external site availability claim."
+    },
+    {
+      "kind": "remote-blocked-frame-new-tab",
+      "response": "Remote + 雪",
+      "scope": "Browser-served HTTP page fixture, including real X-Frame-Options enforcement and static callback. No production external site availability claim."
+    }
+  ]
+}

@@ -1,7 +1,11 @@
 # Clock preview
 
 A native watchface showing local watch time, date and battery level. It uses system fonts
-and minute ticks. No companion script, network request or extra assets are required.
+and minute ticks. Its companion script supplies an embedded HTML settings page for dark
+background, date and battery visibility. **App settings** opens it alongside the watch.
+Saving persists PKJS settings and sends a real AppMessage; the native face applies and
+persists those values. Cancel keeps the prior settings. No external network request or
+additional assets are required.
 Source is Apache-2.0. The included PBWs in `public/examples` are builds of this source,
 not images or recordings of a watchface. They execute through actual firmware installation.
 

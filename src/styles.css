@@ -991,6 +991,15 @@ h1 {
 .preview-launcher {
   padding: 24px;
 }
+.app-settings-trigger {
+  width: 100%;
+  margin: 12px 0;
+}
+@media (max-width: 780px) {
+  .preview-launcher.phone-open {
+    order: -2;
+  }
+}
 .workspace-modes {
   display: flex;
   gap: 24px;

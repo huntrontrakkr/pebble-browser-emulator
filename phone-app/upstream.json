@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/coredevices/mobileapp",
+  "commit": "333877b80baf77b11fad35520cf139a2b13ac75f",
+  "license": "GPL-3.0-only",
+  "files": {
+    "pebble/src/commonMain/kotlin/coredevices/pebble/ui/WatchappSettingsScreen.kt": "38c8d4507e91fd342b4bd2644dbf1a28a7aab2ea358eb2dd640b3d02e6a517fd",
+    "pebble/src/commonTest/kotlin/coredevices/pebble/ui/WatchappSettingsUrlNormalizationTest.kt": "e7cb061e01167cbc6652a4dd4e3ec7d25b66f2499b1424df37cebc54b4ee6851"
+  }
+}

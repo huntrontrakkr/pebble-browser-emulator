@@ -105,6 +105,7 @@ function makeApp() {
     clearTimeout,
     document: { baseURI: pathToFileURL(resolve(repo, 'public/')).href },
     sessionStorage: { getItem: (k) => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) },
+    localStorage: { getItem: (k) => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) },
   });
   vm.runInContext(js, context, { filename: sourcePath });
   const app = new exports.App();
@@ -383,4 +384,35 @@ test('watch controls preserve chords, suppress key repeat, and release on focus 
   app.releaseButtons();
   assert.equal(app.buttons, 0);
   assert.equal(app.pointerButtons.size, 0);
+});
+
+test('settings return belongs to its exact page, app and phone generation; replacement cancels ownership', () => {
+  const app = makeApp();
+  app.startPhone();
+  const phone = app.phoneWorker;
+  phone.emit({ type: 'status', status: 'Running', phoneGeneration: 7 });
+  phone.emit({
+    type: 'event',
+    phoneGeneration: 7,
+    event: { type: 'configuration', requestId: 1, url: 'data:text/html,settings' },
+  });
+  const first = app.configuration();
+  app.returnConfiguration({ request: { ...first }, response: 'forged' });
+  assert.equal(phone.messages.filter((m) => m.type === 'configurationClosed').length, 0);
+  phone.emit({
+    type: 'event',
+    phoneGeneration: 7,
+    event: { type: 'configuration', requestId: 2, url: 'data:text/html,new' },
+  });
+  app.returnConfiguration({ request: first, response: 'stale' });
+  assert.equal(phone.messages.filter((m) => m.type === 'configurationClosed').length, 0);
+  const current = app.configuration();
+  app.returnConfiguration({ request: current, response: '{"value":"%25"}' });
+  const result = phone.messages.find((m) => m.type === 'configurationClosed');
+  assert.equal(result.requestId, 2);
+  assert.equal(result.phoneGeneration, 7);
+  assert.equal(result.response, '{"value":"%25"}');
+  app.returnConfiguration({ request: current, response: 'duplicate' });
+  assert.equal(phone.messages.filter((m) => m.type === 'configurationClosed').length, 1);
+  app.stopPhone();
 });

@@ -1,0 +1,43 @@
+[
+  {
+    "engine": "chromium",
+    "profile": "qemu_gabbro",
+    "launchMs": 15573,
+    "applied": {
+      "type": "demo-applied",
+      "generation": 1,
+      "revision": 2,
+      "popup": false,
+      "notifications": 2,
+      "calendar": 2,
+      "heartRate": false
+    },
+    "buttons": [
+      {
+        "x": 17,
+        "y": 227,
+        "width": 48,
+        "height": 48
+      },
+      {
+        "x": 325,
+        "y": 162.1875,
+        "width": 48,
+        "height": 48
+      },
+      {
+        "x": 325,
+        "y": 227,
+        "width": 48,
+        "height": 48
+      },
+      {
+        "x": 325,
+        "y": 291.796875,
+        "width": 48,
+        "height": 48
+      }
+    ],
+    "errors": []
+  }
+]

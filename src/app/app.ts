@@ -12,6 +12,11 @@ import { FormsModule } from '@angular/forms';
 import { FirmwarePanel } from './firmware-panel.ts';
 import { ProjectPanel } from './project-panel.ts';
 import { PreviewPanel, type PreviewLaunch } from './preview-panel.ts';
+import {
+  PhoneAppPanel,
+  type PhoneConfiguration,
+  type PhoneConfigurationResult,
+} from './phone-app-panel.ts';
 import { saveFirmware, type PreviewFirmware } from './preview-firmware.ts';
 import { DemoSettingsPanel } from './demo-settings-panel.ts';
 import {
@@ -41,6 +46,7 @@ import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.ty
     SensorPanel,
     FramePanel,
     PreviewPanel,
+    PhoneAppPanel,
     DemoSettingsPanel,
   ],
   templateUrl: './app.html',
@@ -153,7 +159,11 @@ export class App implements AfterViewInit, OnDestroy {
   accountToken = '';
   watchToken = '';
   phoneHttp = signal<string[]>([]);
-  configuration = signal<{ url: string; requestId: number; generation: number } | null>(null);
+  configuration = signal<PhoneConfiguration | null>(null);
+  configurationPending = signal(false);
+  configurationNotice = signal('');
+  appConfigurable = signal(false);
+  private configurationTimeout?: ReturnType<typeof setTimeout>;
   configurationResponse = '';
   private qemuWorker?: Worker;
   private qemuReady?: Promise<void>;
@@ -274,6 +284,7 @@ export class App implements AfterViewInit, OnDestroy {
   }
   ngOnDestroy() {
     this.destroyed = true;
+    this.clearConfiguration();
     this.cleanupInspector();
     this.worker?.terminate();
     this.qemuWorker?.terminate();
@@ -1058,10 +1069,15 @@ export class App implements AfterViewInit, OnDestroy {
     this.phoneAppId = data.appId ?? data.name;
     this.phoneKeys = data.messageKeys ?? {};
     this.phoneAppInfo = data.appInfo ?? {};
+    this.appConfigurable.set(
+      Array.isArray(this.phoneAppInfo['capabilities']) &&
+        this.phoneAppInfo['capabilities'].includes('configurable'),
+    );
     this.phoneScript.set(data.source);
     this.phoneScriptName.set(data.name);
   }
   startPhone() {
+    this.clearConfiguration();
     let fixtures = [],
       watchInfo = null;
     try {
@@ -1099,6 +1115,8 @@ export class App implements AfterViewInit, OnDestroy {
       if (data.type === 'network-result')
         this.phoneHttp.update((rows) => [...rows, JSON.stringify(data)].slice(-100));
       if (data.type === 'error') {
+        this.clearConfiguration();
+        this.phoneAccepting = false;
         this.qemuWorker?.postMessage({
           type: 'phone-clock',
           generation: this.watchGeneration,
@@ -1117,12 +1135,20 @@ export class App implements AfterViewInit, OnDestroy {
       if (data.type === 'event') {
         const event = data.event;
         if (event.type === 'configuration' && this.phoneAccepting) {
+          this.clearConfiguration();
           this.configuration.set({
             url: event.url,
             requestId: event.requestId,
             generation: data.phoneGeneration,
+            appId: this.phoneAppId,
+            title: String(
+              this.phoneAppInfo['shortName'] ??
+                this.phoneAppInfo['displayName'] ??
+                this.phoneScriptName(),
+            ),
           });
           this.configurationResponse = '';
+          this.showPreview();
         }
         if (event.type === 'network-request' || event.type === 'network-cancel')
           this.phoneHttp.update((rows) => [...rows, JSON.stringify(event)].slice(-100));
@@ -1161,12 +1187,21 @@ export class App implements AfterViewInit, OnDestroy {
       }
       if (data.type === 'storage') {
         try {
-          sessionStorage.setItem('pebble.phone.' + data.appId, JSON.stringify(data.storage));
-        } catch {}
+          localStorage.setItem('pebble.phone.' + data.appId, JSON.stringify(data.storage));
+        } catch {
+          try {
+            sessionStorage.setItem('pebble.phone.' + data.appId, JSON.stringify(data.storage));
+          } catch {}
+          this.configurationNotice.set(
+            'This browser could not retain app settings between visits.',
+          );
+        }
       }
     };
     this.phoneWorker.onerror = (e) => {
       if (this.phoneWorker !== phone) return;
+      this.clearConfiguration();
+      this.phoneAccepting = false;
       this.qemuWorker?.postMessage({
         type: 'phone-clock',
         generation: this.watchGeneration,
@@ -1176,8 +1211,15 @@ export class App implements AfterViewInit, OnDestroy {
       this.log('PHONE', e.message);
     };
     let storage = {};
+    let stored: string | null = null;
     try {
-      storage = JSON.parse(sessionStorage.getItem('pebble.phone.' + this.phoneAppId) ?? '{}');
+      stored = localStorage.getItem('pebble.phone.' + this.phoneAppId);
+    } catch {}
+    try {
+      stored ??= sessionStorage.getItem('pebble.phone.' + this.phoneAppId);
+    } catch {}
+    try {
+      storage = JSON.parse(stored ?? '{}');
     } catch {}
     this.phoneWorker.postMessage({
       type: 'start',
@@ -1214,6 +1256,7 @@ export class App implements AfterViewInit, OnDestroy {
       });
   }
   stopPhone() {
+    this.clearConfiguration();
     this.qemuWorker?.postMessage({
       type: 'phone-clock',
       generation: this.watchGeneration,
@@ -1240,7 +1283,34 @@ export class App implements AfterViewInit, OnDestroy {
     };
   }
   showConfiguration() {
+    if (this.phoneStatus() !== 'Running' || this.configurationPending() || this.configuration())
+      return;
+    this.configurationNotice.set('');
+    this.configurationPending.set(true);
+    this.configurationTimeout = setTimeout(() => {
+      this.configurationPending.set(false);
+      this.configurationNotice.set('The app did not open a settings page. You can try again.');
+    }, 10000);
     this.phoneWorker?.postMessage({ type: 'configuration' });
+  }
+  private clearConfiguration() {
+    clearTimeout(this.configurationTimeout);
+    this.configurationPending.set(false);
+    this.configurationNotice.set('');
+    this.configuration.set(null);
+  }
+  returnConfiguration({ request, response }: PhoneConfigurationResult) {
+    const view = this.configuration();
+    if (
+      !view ||
+      view !== request ||
+      !this.phoneAccepting ||
+      request.generation !== this.phoneGeneration ||
+      request.appId !== this.phoneAppId
+    )
+      return;
+    this.configurationResponse = response ?? '';
+    this.closeConfiguration(response === null);
   }
   closeConfiguration(canceled = false) {
     const view = this.configuration();
@@ -1251,7 +1321,7 @@ export class App implements AfterViewInit, OnDestroy {
       phoneGeneration: view.generation,
       response: canceled ? null : this.configurationResponse,
     });
-    this.configuration.set(null);
+    this.clearConfiguration();
   }
   configurationLink() {
     const url = this.configuration()?.url ?? '';

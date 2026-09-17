@@ -3,15 +3,15 @@
   "packages": {
     "emery": {
       "path": "public/examples/clock-emery.pbw",
-      "sha256": "a8ca53c9ec0bf4410f346274111bdcced111192a80062267edf6428eca832e51"
+      "sha256": "e43dc348dfd3d117660d5e01aaf71739b3483b228626ced28fa21c4fe8a4ca6a"
     },
     "flint": {
       "path": "public/examples/clock-flint.pbw",
-      "sha256": "7a1b3e3defdbd6e501ac581c1e07b008b3e0581a24d90e5b8cfa47e27fd6ef62"
+      "sha256": "d2115d40e6961ec5aee973ff3fb9dbc07563f14348bbfb647a312e0897b88112"
     },
     "gabbro": {
       "path": "public/examples/clock-gabbro.pbw",
-      "sha256": "282f1cc6d92f783aa86f5bafd113f8aaec8ac29ddcb7ac482eba09f04c32a3c6"
+      "sha256": "7eeaeccbbf396a440c7765d44af0db41c0f39d8de781f552e47a6fa5cb7a896f"
     }
   }
 }

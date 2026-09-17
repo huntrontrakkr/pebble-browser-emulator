@@ -55,3 +55,10 @@ Thumbs.db
 
 /public/compiler/esbuild/
 /public/compiler/archive-tools.mjs
+
+# Browser port of the companion app
+/phone-app/.gradle/
+/phone-app/.kotlin/
+/phone-app/build/
+/public/phone-app/
+/.openai/phone-build.json

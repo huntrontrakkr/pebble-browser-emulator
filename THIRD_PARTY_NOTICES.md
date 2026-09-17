@@ -1,5 +1,21 @@
 # Third-party notices
 
+## Companion browser port
+
+`phone-app` contains adapted Core Devices mobileapp source pinned at
+`333877b80baf77b11fad35520cf139a2b13ac75f`, under **GPL-3.0-only**. Its original source,
+checksums, extraction patch, license and browser changes remain in that directory.
+It is compiled separately to Kotlin/Wasm/Compose and loaded on demand through a browser
+frame; it is not linked into the Rust hardware core. This module is not Apache-licensed.
+The deployed `phone-app/source.zip` contains its corresponding source and build scripts;
+`phone-app/LICENSE`, `phone-app/DEPENDENCIES.md`, `phone-app/licenses/` and `build.json`
+provide redistribution notices, dependency sources and artifact hashes.
+
+Runtime dependencies include Kotlin, Compose, Ktor and kotlinx libraries (Apache-2.0),
+Skiko (Apache-2.0), Skia and its native dependencies (individual permissive licenses),
+and js-joda (BSD-3-Clause). The module's dependency lockfiles record exact versions.
+No Android APK, Android system image, account service or proprietary phone binary is bundled.
+
 Original project source is Apache-2.0; see LICENSE. Dependencies retain their own licenses.
 
 ## Preview example
@@ -7,7 +23,8 @@ Original project source is Apache-2.0; see LICENSE. Dependencies retain their ow
 `public/examples/clock-{emery,flint,gabbro}.pbw` are compiled versions of the Apache-2.0
 source in `examples/preview-clock`, built with the pinned browser compiler and official
 SDK 4.33.1 ABI library. They contain the application's code and SDK API linkage, with no
-firmware, SDK archive, system font data or phone script. Reproduction instructions accompany
+firmware, SDK archive or system font data. The new configurable Clock package includes its
+Apache-2.0 PKJS script and embedded settings HTML. Reproduction instructions accompany
 the source; package hashes are recorded in the root `pebble-preview.json`.
 
 ## Rust CPU

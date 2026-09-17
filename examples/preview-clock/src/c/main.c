@@ -4,6 +4,28 @@
 static Window *window;
 static TextLayer *time_layer, *date_layer, *battery_layer;
 static char time_text[12], date_text[24], battery_text[24];
+static bool dark_mode, show_date = true, show_battery = true;
+
+static void apply_settings(void) {
+  GColor foreground = dark_mode ? GColorWhite : GColorBlack;
+  window_set_background_color(window, dark_mode ? GColorBlack : GColorWhite);
+  text_layer_set_text_color(time_layer, foreground);
+  text_layer_set_text_color(date_layer, foreground);
+  text_layer_set_text_color(battery_layer, foreground);
+  layer_set_hidden(text_layer_get_layer(date_layer), !show_date);
+  layer_set_hidden(text_layer_get_layer(battery_layer), !show_battery);
+}
+static void received(DictionaryIterator *iterator, void *context) {
+  (void)context;
+  Tuple *dark = dict_find(iterator, MESSAGE_KEY_DARK_MODE);
+  Tuple *date = dict_find(iterator, MESSAGE_KEY_SHOW_DATE);
+  Tuple *battery = dict_find(iterator, MESSAGE_KEY_SHOW_BATTERY);
+  if (dark) { dark_mode = dark->value->int32 != 0; persist_write_bool(0, dark_mode); }
+  if (date) { show_date = date->value->int32 != 0; persist_write_bool(1, show_date); }
+  if (battery) { show_battery = battery->value->int32 != 0; persist_write_bool(2, show_battery); }
+  apply_settings();
+  APP_LOG(APP_LOG_LEVEL_INFO, "Clock settings applied: %d %d %d", dark_mode, show_date, show_battery);
+}
 
 static void update_time(struct tm *now, TimeUnits changed) {
   (void)changed;
@@ -32,6 +54,7 @@ static void load(Window *unused) {
   time_layer = text(GRect(0, y - 46, b.size.w, 52), FONT_KEY_BITHAM_42_BOLD);
   date_layer = text(GRect(0, y + 9, b.size.w, 30), FONT_KEY_GOTHIC_24);
   battery_layer = text(GRect(0, y + 40, b.size.w, 24), FONT_KEY_GOTHIC_18);
+  apply_settings();
   time_t epoch = time(NULL);
   update_time(localtime(&epoch), MINUTE_UNIT);
   update_battery(battery_state_service_peek());
@@ -45,6 +68,11 @@ static void unload(Window *unused) {
   text_layer_destroy(time_layer); text_layer_destroy(date_layer); text_layer_destroy(battery_layer);
 }
 int main(void) {
+  if (persist_exists(0)) dark_mode = persist_read_bool(0);
+  if (persist_exists(1)) show_date = persist_read_bool(1);
+  if (persist_exists(2)) show_battery = persist_read_bool(2);
+  app_message_register_inbox_received(received);
+  app_message_open(128, 64);
   window = window_create();
   window_set_background_color(window, GColorWhite);
   window_set_window_handlers(window, (WindowHandlers){.load = load, .unload = unload});

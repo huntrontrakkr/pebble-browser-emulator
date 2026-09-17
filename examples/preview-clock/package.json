@@ -1,7 +1,32 @@
 {
-  "name": "pebble-preview-clock", "version": "1.0.0", "author": "Browser Emulator contributors", "license": "Apache-2.0", "private": true,
+  "name": "pebble-preview-clock",
+  "version": "1.1.0",
+  "author": "Browser Emulator contributors",
+  "license": "Apache-2.0",
+  "private": true,
   "pebble": {
-    "displayName": "Clock", "uuid": "c61ace0a-d61a-47ce-9d04-f46a78849ec6", "sdkVersion": "3", "projectType": "native",
-    "targetPlatforms": ["emery", "flint", "gabbro"], "watchapp": { "watchface": true }, "resources": { "media": [] }
+    "displayName": "Clock",
+    "uuid": "c61ace0a-d61a-47ce-9d04-f46a78849ec6",
+    "sdkVersion": "3",
+    "projectType": "native",
+    "targetPlatforms": [
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "resources": {
+      "media": []
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "messageKeys": {
+      "DARK_MODE": 0,
+      "SHOW_DATE": 1,
+      "SHOW_BATTERY": 2
+    }
   }
 }

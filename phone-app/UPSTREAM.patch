@@ -1,0 +1,280 @@
+--- upstream/WatchappSettingsScreen.kt
++++ browser/Main.kt + SettingsNavigation.kt
+@@ -1,7 +1,7 @@
++// SPDX-License-Identifier: GPL-3.0-only
++@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.ui.ExperimentalComposeUiApi::class, kotlin.js.ExperimentalWasmJsInterop::class)
+ package coredevices.pebble.ui
+ 
+-import CoreNav
+-import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.fillMaxSize
+@@ -14,30 +14,91 @@
+ import androidx.compose.material3.Scaffold
+ import androidx.compose.material3.Text
+ import androidx.compose.material3.TopAppBar
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.DisposableEffect
+-import androidx.compose.runtime.LaunchedEffect
+-import androidx.compose.runtime.collectAsState
+-import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.remember
+-import androidx.compose.runtime.rememberCoroutineScope
++import androidx.compose.runtime.*
+ import androidx.compose.ui.Modifier
+-import co.touchlab.kermit.Logger
++import androidx.compose.ui.layout.positionInWindow
++import androidx.compose.ui.layout.onGloballyPositioned
++import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.window.ComposeViewport
++import com.multiplatform.webview.request.WebRequest
++import com.multiplatform.webview.request.WebRequestInterceptResult
++import com.multiplatform.webview.web.WebViewNavigator
++
++private var title by mutableStateOf("")
++private var loaded by mutableStateOf(false)
++private var interceptor: SettingsRequestInterceptor? = null
++private fun bind(open: (String, String) -> Unit, navigate: (String) -> Unit): Unit =
++    js("window.phonePort.bind(open, navigate)")
++private fun showPage(url: String): Unit = js("window.phonePort.showPage(url)")
++private fun closePage(response: String?): Unit = js("window.phonePort.close(response)")
++private fun sizePage(x: Float, y: Float, width: Float, height: Float): Unit =
++    js("window.phonePort.resize(x, y, width, height)")
++
++fun main() {
++    ComposeViewport(viewportContainerId = "phone-screen") {
++        MaterialTheme {
++            if (loaded) WatchappSettingsScreen(title)
++        }
++    }
++    bind({ url, name ->
++        title = name
++        interceptor = SettingsRequestInterceptor(
++            onSuccess = { data -> closePage(data) },
++            onError = { closePage(null) },
++        )
++        loaded = true
++        showPage(normalizeWatchappSettingsUrl(url))
++    }, { url ->
++        try {
++            val result = interceptor?.onInterceptUrlRequest(WebRequest(url), WebViewNavigator())
++            if (result == WebRequestInterceptResult.Allow) showPage(url)
++        } catch (error: Throwable) {
++            // A malformed return is an error; never turn it into an applied setting.
++            reportError(error.message ?: "Invalid configuration return")
++        }
++    })
++}
++private fun reportError(message: String): Unit = js("window.phonePort.error(message)")
++
++// Scaffold and header ported from WatchappSettingsScreen at the pinned upstream commit.
++// The browser session replaces native navigation/DI; the app-owned WebView is a DOM overlay.
++@Composable
++fun WatchappSettingsScreen(title: String) {
++    val density = LocalDensity.current.density
++    Scaffold(
++        topBar = {
++            TopAppBar(
++                title = {
++                    Column {
++                        Text("App Settings")
++                        Text("Configuring $title", style = MaterialTheme.typography.labelMedium)
++                    }
++                },
++                navigationIcon = {
++                    IconButton(onClick = { closePage(null) }) {
++                        Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Back")
++                    }
++                }
++            )
++        }
++    ) { paddingValues ->
++        Box(Modifier.fillMaxSize().padding(paddingValues).onGloballyPositioned {
++            // The DOM WebView leaves this content box with zero height. Its unclipped position
++            // still locates the native header's lower edge; clipped bounds would collapse to zero.
++            val position = it.positionInWindow()
++            sizePage(position.x / density, position.y / density, it.size.width / density, it.size.height / density)
++        })
++    }
++}
++
++// SPDX-License-Identifier: GPL-3.0-only
++// From Core Devices mobileapp; see ../../../../upstream.json. Bodies are unchanged.
++package coredevices.pebble.ui
++
+ import com.multiplatform.webview.request.RequestInterceptor
+ import com.multiplatform.webview.request.WebRequest
+ import com.multiplatform.webview.request.WebRequestInterceptResult
+-import com.multiplatform.webview.web.LoadingState
+-import com.multiplatform.webview.web.NativeWebView
+-import com.multiplatform.webview.web.PlatformWebViewParams
+-import com.multiplatform.webview.web.WebView
+-import com.multiplatform.webview.web.WebViewFactoryParam
+ import com.multiplatform.webview.web.WebViewNavigator
+-import com.multiplatform.webview.web.rememberWebViewNavigator
+-import com.multiplatform.webview.web.rememberWebViewState
+-import coreapp.util.generated.resources.Res
+-import coreapp.util.generated.resources.back
+-import coredevices.pebble.config.ConfigPageBridge
+-import coredevices.pebble.config.ConfigPageSessions
+ import io.ktor.http.URLBuilder
+ import io.ktor.http.Url
+ import io.ktor.http.decodeURLPart
+@@ -45,147 +106,6 @@
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.delay
+ import kotlinx.coroutines.launch
+-import kotlinx.coroutines.withContext
+-import kotlinx.serialization.json.Json
+-import org.jetbrains.compose.resources.stringResource
+-import org.koin.compose.koinInject
+-import kotlin.uuid.Uuid
+-
+-private const val URL_DATA_PREFIX = "data:text/html;charset=utf-8,"
+-
+-// The settings URL can be a large data: URI (hundreds of KB of HTML) which would cause
+-// TransactionTooLargeException if passed as a navigation route argument. Store it here
+-// in memory instead, keyed by watchIdentifier.
+-internal object WatchappSettingsUrlCache {
+-    private val urls = mutableMapOf<String, String>()
+-    fun put(watchIdentifier: String, url: String) { urls[watchIdentifier] = url }
+-    fun get(watchIdentifier: String): String? = urls[watchIdentifier]
+-    fun remove(watchIdentifier: String) { urls.remove(watchIdentifier) }
+-}
+-internal expect fun webViewFactory(
+-    params: WebViewFactoryParam,
+-    uuid: Uuid,
+-    /** Null leaves the page with no `Pebble` object, which is what a plain webview should be. */
+-    bridge: ConfigPageBridge?,
+-): NativeWebView
+-
+-internal expect suspend fun restoreLocalStorage(webView: NativeWebView)
+-internal expect fun persistLocalStorage(webView: NativeWebView)
+-
+-@Composable
+-internal expect fun rememberWebViewFileChooserParams(): PlatformWebViewParams?
+-
+-private val logger = Logger.withTag("WatchappSettingsScreen")
+-
+-@Composable
+-fun WatchappSettingsScreen(
+-    coreNav: CoreNav,
+-    /** What is being configured: a watchapp, a plugin, or a pbw that ships both. */
+-    uuid: String,
+-    title: String,
+-) {
+-    val url = remember(uuid) {
+-        normalizeWatchappSettingsUrl(WatchappSettingsUrlCache.get(uuid) ?: "")
+-    }
+-    DisposableEffect(uuid) {
+-        onDispose { WatchappSettingsUrlCache.remove(uuid) }
+-    }
+-    Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+-        val sessions: ConfigPageSessions = koinInject()
+-        val session by remember(uuid, title) { sessions.sessionsFor(uuid, title) }
+-            .collectAsState(null)
+-        // Nothing left to configure — the watchapp stopped and there is no plugin behind it.
+-        LaunchedEffect(session) {
+-            if (session?.isOrphaned == true) {
+-                logger.d { "No scripts left for $uuid; closing settings" }
+-                withContext(Dispatchers.Main) { coreNav.goBack() }
+-            }
+-        }
+-        val webViewUuid = remember(uuid) { runCatching { Uuid.parse(uuid) }.getOrNull() }
+-        val fileChooserParams = rememberWebViewFileChooserParams()
+-        val state = rememberWebViewState(url) {
+-            androidWebSettings.domStorageEnabled = true
+-            iOSWebSettings.isInspectable = true
+-        }
+-        val interceptor = remember {
+-            SettingsRequestInterceptor(
+-                onSuccess = { data ->
+-                    runCatching { state.nativeWebView }.getOrNull()?.let { persistLocalStorage(it) }
+-                    session?.onPageClosed(data)
+-                    withContext(Dispatchers.Main) {
+-                        coreNav.goBack()
+-                    }
+-                },
+-                onError = {
+-                    runCatching { state.nativeWebView }.getOrNull()?.let { persistLocalStorage(it) }
+-                    withContext(Dispatchers.Main) {
+-                        coreNav.goBack()
+-                    }
+-                }
+-            )
+-        }
+-        val navigator = rememberWebViewNavigator(requestInterceptor = interceptor)
+-        val scope = rememberCoroutineScope()
+-        // One bridge for the life of the screen: it is installed when the WebView is built,
+-        // before any page has loaded, and picks up scripts as they resolve.
+-        val bridge = remember { if (sessions.enabled) ConfigPageBridge(scope) else null }
+-        DisposableEffect(session) {
+-            val open = session
+-            bridge?.scripts = open?.scripts.orEmpty()
+-            // Starting a plugin takes a moment; the page waits for its 'ready' event.
+-            val starting = scope.launch { open?.open { target -> bridge?.ready(target) } }
+-            onDispose {
+-                starting.cancel()
+-                open?.scripts?.keys?.forEach { bridge?.forget(it) }
+-                bridge?.scripts = emptyMap()
+-                scope.launch { open?.close() }
+-            }
+-        }
+-        LaunchedEffect(session) {
+-            session?.messages?.collect { (target, json) -> bridge?.push(target, json) }
+-        }
+-        LaunchedEffect(state.loadingState) {
+-            if (state.loadingState is LoadingState.Loading) {
+-                logger.d { "Page load finished, applying shims" }
+-                val nativeWebView = runCatching { state.nativeWebView }.getOrNull() ?: return@LaunchedEffect
+-                restoreLocalStorage(nativeWebView)
+-            }
+-        }
+-
+-        Scaffold(
+-            topBar = {
+-                TopAppBar(
+-                    title = {
+-                        Column {
+-                            Text("App Settings")
+-                            Text("Configuring $title", style = MaterialTheme.typography.labelMedium)
+-                        }
+-                    },
+-                    navigationIcon = {
+-                        IconButton(onClick = coreNav::goBack) {
+-                            Icon(
+-                                Icons.AutoMirrored.Default.ArrowBack,
+-                                contentDescription = stringResource(
+-                                    Res.string.back
+-                                )
+-                            )
+-                        }
+-                    }
+-                )
+-            }
+-        ) { paddingValues ->
+-            webViewUuid?.let { uuid ->
+-                WebView(
+-                    state = state,
+-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
+-                    navigator = navigator,
+-                    platformWebViewParams = fileChooserParams,
+-                    factory = { webViewFactory(it, uuid, bridge) }
+-                )
+-            }
+-        }
+-    }
+-}
+ 
+ internal fun normalizeWatchappSettingsUrl(url: String): String {
+     val parsed = runCatching { Url(url) }.getOrNull() ?: return url
+@@ -199,7 +119,7 @@
+     }.buildString()
+ }
+ 
+-private class SettingsRequestInterceptor(
++internal class SettingsRequestInterceptor(
+     private val onError: suspend () -> Unit,
+     private val onSuccess: suspend (String) -> Unit,
+ ) : RequestInterceptor {

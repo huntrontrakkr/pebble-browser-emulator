@@ -63,3 +63,22 @@ rebuild it while this workflow runs. The page stays entirely local for the inclu
 
 No firmware fixture or file picker is needed: this gate uses the shipped, checksummed
 images and verifies that reload reuses IndexedDB without fetching those assets again.
+
+## Companion source port
+
+Build with JDK 17+ available through `JAVA_HOME`. The full `npm run build` includes the
+Kotlin/Wasm companion module. Against the same completed static site:
+
+```sh
+node scripts/verify-phone-app-browser.mjs
+PEBBLE_CLAY_ARCHIVE=/path/pebble-clay-1.0.4.tgz node scripts/verify-phone-port-contract.mjs
+```
+
+The first gate covers native Clock configuration on all three profiles in Chromium, and
+Emery in Firefox/WebKit: actual watch ACKs and changed frames, cancel/native Back,
+persistence across reload, sandbox isolation and lazy module loading. The second runs
+the compiled upstream Kotlin URL behavior, an integrity-checked actual Clay HTML/PKJS
+package, and remote-page fixtures with real framing restrictions and new-tab returns.
+Use `PEBBLE_BROWSERS`/`PEBBLE_PROFILES` to narrow the firmware gate; output directories
+default to `tmp/phone-app-browser` and `tmp/phone-port-contract`.
+These tests do not establish complete mobile-app or physical-phone performance parity.

@@ -18,17 +18,24 @@ automatically, including on the first visit. Future previews reuse the saved fir
 Developer tools can override it. No compiler is needed for the
 included Clock example or a prepared PBW.
 
+For a configurable watchface, select **App settings** beside the watch. Clock includes
+dark background, date and battery settings. Its page runs alongside the watch and saves
+through PebbleKit JS and actual firmware AppMessage acknowledgments. The companion's
+settings screen and navigation handler are source-ported from the real Pebble app to
+Kotlin/Wasm. [Port scope and source](phone-app/README.md).
+
 Public GitHub projects can supply a checksummed `pebble-preview.json` for a direct preview,
 or open in Developer tools for a source build. **Copy preview link** shares the selected
 watch and exact project commit. See [preview setup, URL format and performance](docs/PREVIEWS.md).
 
 ## Run locally
 
-Install Node.js 24 and Rust using rustup, then:
+Install Node.js 24, Rust using rustup, and JDK 17+ (`JAVA_HOME`), then:
 
 ```sh
 npm ci
 npm run build:wasm
+npm run build:phone
 npm run dev
 ```
 
@@ -55,7 +62,7 @@ subset, and compiler downloads stay on the device. The three default emulator im
 are included as static assets; imported firmware is never uploaded.
 
 Display modes are exact monochrome/64-color pixels, an **uncalibrated** reflective preview, and a
-rotatable model using official Time 2 CAD fetched from its pinned upstream revision. The 3D model is currently available for Time 2 only. Light
+rotatable models using official Time 2, 2 Duo and Round 2 CAD fetched from pinned upstream revisions. Light
 and dark interface themes are available. Optical/material previews do not change guest pixels.
 
 ## Current build profile
@@ -76,9 +83,11 @@ Firmware sources accept exact public GitHub release tags and checksummed board-s
 [bundles](docs/FIRMWARE_BUNDLES.md). Stock physical firmware execution remains unfinished.
 
 The virtual phone supports XHR/fetch with deterministic test responses or optional direct
-browser CORS requests, injectable watch metadata, and configuration events with a manual
-return value. Phone timers follow the watch's virtual clock and pause with it. Location loss
-and recovery can be injected. Embedded configuration WebViews remain pending.
+browser CORS requests, injectable watch metadata, and sandboxed configuration pages.
+Local HTML/Clay pages return automatically; external pages must support Pebble's `return_to`
+convention and browser embedding rules. Phone timers follow the watch's virtual clock and
+pause with it. Location loss and recovery can be injected. The full companion app remains
+unported; native account, library/store, BLE and background services are separate work.
 See [phone scope](docs/PHONE.md).
 
 ## Verify
@@ -108,6 +117,7 @@ including all 45,600 framebuffer bytes. It does not establish complete Cortex-M3
 - `crates/qemu-emery`: original generic board adapter, scheduler, and Wasm ABI.
 - `vendor/rp2350-emu`: pinned permissive Rust Cortex-M33 dependency with documented fixes.
 - `src/app`: Angular UI, emulator/phone/archive Workers, imports, protocol, and display.
+- `phone-app`: GPL-3.0-only upstream Kotlin/Compose settings port and browser platform adapters.
 - `public/compiler`: portable compiler worker, package builder, and licensed JS loader.
 - `examples/platform-watchface`: adaptive C/PKJS demo with resources, modules, weather fixtures, location and messages.
 - `examples/watchface`: unchanged original rendering reference.
@@ -121,7 +131,9 @@ require a server process. Hosting configuration is in `.openai/hosting.json`.
 
 ## License
 
-Original source: Apache-2.0. Dependencies retain their own licenses; see
+Original emulator source: Apache-2.0. The separate `phone-app` module is **GPL-3.0-only**,
+following its upstream license, with its corresponding source distributed alongside the
+compiled module. Dependencies retain their own licenses; see
 [third-party notices](THIRD_PARTY_NOTICES.md) and the
 [bundled emulator firmware notice](public/firmware/v4.37.0/NOTICE.md). SDK archives and
 physical-watch firmware are not committed. This is an independent project.

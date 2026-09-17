@@ -2,36 +2,38 @@
   "sdkVersion": "4.33.1",
   "timestamp": 1700000000,
   "sourceHashes": {
-    "package.json": "3a77d0ba2e3df020d5c1a954418c0097b515a68de9d01202d80e3f68db30c392",
-    "src/c/main.c": "1dc51ae8f1544a21892c6eeab2a677dfb8ad5f65709cc5e6a5e7b8cb032851be"
+    "package.json": "7a07c1749a5ad7266e46f08332646f87faf1fc2bccb59fa80e828a8d7d7d7a29",
+    "README.md": "7255ef4f3abd2aec474fa00a7862b754f92d67f7b3b14027e5d5ce689f1257f0",
+    "src/c/main.c": "140489dc3fdb45a30b5a512a6a524cd0cf348c8677d06580786ece5ccb1ea195",
+    "src/pkjs/index.js": "e3cb9951f63999c497d1c450c2894d0835a7e521332c2fa9d6956dd9b9a7279a"
   },
   "results": [
     {
       "platform": "emery",
-      "pbwBytes": 6485,
-      "load": 1262,
-      "virtual": 1340,
+      "pbwBytes": 11210,
+      "load": 1804,
+      "virtual": 1884,
       "resourceNames": [],
       "workerBytes": 0,
-      "sha256": "a8ca53c9ec0bf4410f346274111bdcced111192a80062267edf6428eca832e51"
+      "sha256": "e43dc348dfd3d117660d5e01aaf71739b3483b228626ced28fa21c4fe8a4ca6a"
     },
     {
       "platform": "flint",
-      "pbwBytes": 6483,
-      "load": 1262,
-      "virtual": 1340,
+      "pbwBytes": 11210,
+      "load": 1804,
+      "virtual": 1884,
       "resourceNames": [],
       "workerBytes": 0,
-      "sha256": "7a1b3e3defdbd6e501ac581c1e07b008b3e0581a24d90e5b8cfa47e27fd6ef62"
+      "sha256": "d2115d40e6961ec5aee973ff3fb9dbc07563f14348bbfb647a312e0897b88112"
     },
     {
       "platform": "gabbro",
-      "pbwBytes": 6491,
-      "load": 1262,
-      "virtual": 1340,
+      "pbwBytes": 11216,
+      "load": 1804,
+      "virtual": 1884,
       "resourceNames": [],
       "workerBytes": 0,
-      "sha256": "282f1cc6d92f783aa86f5bafd113f8aaec8ac29ddcb7ac482eba09f04c32a3c6"
+      "sha256": "7eeaeccbbf396a440c7765d44af0db41c0f39d8de781f552e47a6fa5cb7a896f"
     }
   ]
 }
