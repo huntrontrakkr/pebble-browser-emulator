@@ -1,0 +1,215 @@
+<section class="sensor-tools" aria-label="Sensor inputs">
+  <h2>Sensors</h2>
+  <p class="help">
+    Inputs use the loaded firmware’s emulator interfaces. The event log distinguishes queued signals
+    from bytes written to the watch. App callbacks provide confirmation.
+  </p>
+  @if (error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+  <fieldset [disabled]="!ready">
+    <legend>Accelerometer</legend>
+    <div class="input-grid">
+      <label>X (mg)<input type="number" [(ngModel)]="x" min="-32768" max="32767" /></label>
+      <label>Y (mg)<input type="number" [(ngModel)]="y" min="-32768" max="32767" /></label>
+      <label>Z (mg)<input type="number" [(ngModel)]="z" min="-32768" max="32767" /></label>
+    </div>
+    <button (click)="acceleration()">Set acceleration</button>
+    <svg
+      class="sensor-plot"
+      viewBox="0 0 400 150"
+      role="img"
+      aria-label="Acceleration sent over virtual time: X red, Y green, Z blue, range minus 2000 to 2000 millig"
+    >
+      <path d="M0 75H400" stroke="var(--line)" />
+      <polyline [attr.points]="points('x')" fill="none" stroke="#cc4c4c" stroke-width="2" />
+      <polyline [attr.points]="points('y')" fill="none" stroke="#39885b" stroke-width="2" />
+      <polyline [attr.points]="points('z')" fill="none" stroke="#5487da" stroke-width="2" />
+    </svg>
+    <div class="input-grid">
+      <label
+        >Tap axis<select [(ngModel)]="axis">
+          <option [ngValue]="0">X</option>
+          <option [ngValue]="1">Y</option>
+          <option [ngValue]="2">Z</option>
+        </select></label
+      >
+      <label
+        >Direction<select [(ngModel)]="direction">
+          <option [ngValue]="1">Positive</option>
+          <option [ngValue]="-1">Negative</option>
+        </select></label
+      >
+    </div>
+    <button (click)="tap()">Send tap</button>
+  </fieldset>
+  <fieldset [disabled]="!ready">
+    <legend>Compass</legend>
+    <div class="input-grid">
+      <label
+        >Heading (° counterclockwise)<input type="number" [(ngModel)]="heading" min="0" max="360"
+      /></label>
+      <label
+        >Calibration<select [(ngModel)]="calibration">
+          <option [ngValue]="-1">Unavailable</option>
+          <option [ngValue]="0">Invalid data</option>
+          <option [ngValue]="1">Calibrating</option>
+          <option [ngValue]="2">Calibrated</option>
+        </select></label
+      >
+    </div>
+    <button (click)="compass()">Set compass</button>
+    <p class="help">
+      The verified 4.37 emulator firmware reports compass data unavailable to apps. This control
+      sends the documented input channel; it cannot enable a service omitted from firmware.
+    </p>
+  </fieldset>
+  <fieldset [disabled]="!ready">
+    <legend>Health service overrides</legend>
+    <label class="check"><input type="checkbox" [(ngModel)]="tracking" />Activity tracking</label>
+    <label class="check"
+      ><input type="checkbox" [(ngModel)]="hrTracking" [disabled]="!hrAvailable" />Heart-rate
+      tracking</label
+    >
+    <button
+      (click)="healthSettings.emit({ enabled: tracking, heartRate: hrAvailable && hrTracking })"
+    >
+      Apply health settings
+    </button>
+    @if (healthStatus) {
+      <p class="help" role="status">{{ healthStatus }}</p>
+    }
+    <div class="input-grid">
+      <label
+        >Metric<select [(ngModel)]="metric">
+          @for (label of metrics; track label; let i = $index) {
+            <option [ngValue]="i">{{ label }}</option>
+          }
+        </select></label
+      ><label
+        >Value<input type="number" [(ngModel)]="healthValue" min="0" max="2147483647"
+      /></label>
+    </div>
+    <button (click)="health()">Set health value</button>
+    <p class="help">
+      Enable activity tracking first. The preference fixture uses age 30, height 170 cm, weight 70
+      kg and unspecified gender. Firmware applies its own health processing and units.
+    </p>
+  </fieldset>
+  <fieldset [disabled]="!ready || !hrAvailable">
+    <legend>Heart-rate service override</legend>
+    <div class="input-grid">
+      <label>Heart rate (BPM)<input type="number" [(ngModel)]="bpm" min="0" max="255" /></label
+      ><label
+        >Quality<select [(ngModel)]="quality">
+          <option [ngValue]="-1">Off wrist</option>
+          <option [ngValue]="0">Worst</option>
+          <option [ngValue]="1">Poor</option>
+          <option [ngValue]="2">Acceptable</option>
+          <option [ngValue]="3">Good</option>
+          <option [ngValue]="4">Excellent</option>
+        </select></label
+      >
+    </div>
+    <button (click)="heartRate()">Set heart rate</button>
+    @if (!hrAvailable) {
+      <p class="help">The selected board has no heart-rate service.</p>
+    }
+  </fieldset>
+  <fieldset [disabled]="!ready || !touchAvailable">
+    <legend>Touch controller</legend>
+    <div class="input-grid">
+      <label>X (px)<input type="number" [(ngModel)]="touchX" min="0" /></label
+      ><label>Y (px)<input type="number" [(ngModel)]="touchY" min="0" /></label>
+    </div>
+    <div class="actions">
+      <button (click)="touch(true)">Touch / move</button
+      ><button (click)="touch(false)">Release</button>
+    </div>
+    @if (!touchAvailable) {
+      <p class="help">The selected board has no touch controller.</p>
+    }
+  </fieldset>
+  <details>
+    <summary>Firmware settings</summary>
+    <fieldset [disabled]="!ready">
+      <label class="check"
+        ><input
+          type="checkbox"
+          [(ngModel)]="twentyFourHour"
+          (change)="send({ kind: 'time-format', twentyFourHour: twentyFourHour })"
+        />24-hour time</label
+      >
+      <label class="check"
+        ><input
+          type="checkbox"
+          [(ngModel)]="peek"
+          (change)="send({ kind: 'timeline-peek', enabled: peek })"
+        />Timeline peek</label
+      >
+      <label
+        >Content size<select
+          [(ngModel)]="contentSize"
+          (change)="send({ kind: 'content-size', size: contentSize })"
+        >
+          <option [ngValue]="0">Small</option>
+          <option [ngValue]="1">Medium</option>
+          <option [ngValue]="2">Large</option>
+          <option [ngValue]="3">Extra large</option>
+        </select></label
+      >
+    </fieldset>
+  </details>
+  <h2>Scenario</h2>
+  <div class="input-grid">
+    <label
+      >Motion preset<select [(ngModel)]="preset">
+        <option value="stationary">Stationary</option>
+        <option value="walking">Walking</option>
+        <option value="running">Running</option>
+        <option value="rotate">Rotate</option>
+      </select></label
+    ><label>Duration (s)<input type="number" [(ngModel)]="seconds" min="0.1" max="3600" /></label
+    ><label>Input rate (Hz)<input type="number" [(ngModel)]="rate" min="1" max="100" /></label
+    ><label>Noise (±mg)<input type="number" [(ngModel)]="noise" min="0" max="1000" /></label
+    ><label>Random seed<input type="number" [(ngModel)]="seed" min="0" max="4294967295" /></label>
+  </div>
+  <div class="actions">
+    <button (click)="buildPreset()">Generate</button
+    ><label class="file-button"
+      >Import JSON / CSV<input type="file" accept=".json,.csv" (change)="import($event)" /></label
+    ><button (click)="download()">Export JSON</button>
+  </div>
+  <p class="help">
+    Synthetic presets are repeatable sample generators. Firmware chooses its consumption rate. CSV
+    columns: time_ms,x_mg,y_mg,z_mg.
+  </p>
+  <details>
+    <summary>Edit events</summary>
+    <label
+      >Scenario JSON<textarea [(ngModel)]="scenarioJson" rows="12" spellcheck="false"></textarea>
+    </label>
+  </details>
+  <div class="actions">
+    <button class="primary" [disabled]="!ready" (click)="play()">Schedule</button
+    ><button [disabled]="!pending" (click)="cancelScenario.emit()">Cancel future events</button
+    ><span>{{ pending }} events remaining</span>
+  </div>
+  @if (message) {
+    <p role="status" class="help">{{ message }}</p>
+  }
+  <p>
+    Vibration output: <strong>{{ vibrating ? 'On' : 'Off' }}</strong>
+  </p>
+  <details>
+    <summary>Input event log ({{ observations.length }})</summary>
+    <div class="sensor-event-log">
+      @for (row of observations.slice(-30); track $index) {
+        <div>
+          <code>{{ (row.actualUs / 1000000).toFixed(3) }} s</code> {{ row.signal.kind }} ·
+          {{ row.stage }}
+        </div>
+      }
+    </div>
+  </details>
+</section>

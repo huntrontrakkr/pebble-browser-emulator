@@ -1,0 +1,18 @@
+{
+  "name": "pebble-sensor-test",
+  "version": "1.0.0",
+  "author": "Browser Emulator contributors",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Sensor Test",
+    "uuid": "e67ab299-1a68-4bd2-a6c7-401bdd056df8",
+    "sdkVersion": "3",
+    "projectType": "native",
+    "targetPlatforms": ["flint", "emery", "gabbro"],
+    "capabilities": ["health"],
+    "watchapp": {"watchface": false},
+    "messageKeys": {"command": 0},
+    "resources": {"media": []}
+  }
+}

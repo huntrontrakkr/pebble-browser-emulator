@@ -1,6 +1,7 @@
 import { WATCH_PRODUCTS, fileProfile, type FirmwareProfile } from './watch-profiles.ts';
 import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { microFlashImage } from './firmware-image.ts';
+import { inspectFirmwareBundle } from './firmware-bundle.ts';
 import { FormsModule } from '@angular/forms';
 import {
   fetchFirmwareReleases,
@@ -38,7 +39,19 @@ import type { PackageInfo } from './archives.ts';
         and build apps for its platform in Projects.
       </p>
     }
-    <label>Release tag<input [(ngModel)]="releaseTag" placeholder="v4.37.0" /></label>
+    <label class="check"
+      ><input type="checkbox" [(ngModel)]="showLegacy" (change)="legacyChanged()" />Show older watch
+      models</label
+    >
+    <label
+      >GitHub firmware source<input
+        [(ngModel)]="repository"
+        (change)="resetCatalog()"
+        placeholder="owner/repository"
+    /></label>
+    <label
+      >Release tag<input [(ngModel)]="releaseTag" placeholder="Exact tag, including any prefix"
+    /></label>
     <button (click)="findRelease()" [disabled]="busy()">Find release</button>
     @if (releases().length) {
       <label
@@ -96,6 +109,21 @@ import type { PackageInfo } from './archives.ts';
       Load firmware
     </button>
     <hr />
+    <h3>Firmware bundle</h3>
+    <p class="help">
+      Select a versioned bundle JSON and all files it names. Board roles and every SHA-256 are
+      checked before loading. Stock board bundles remain inspection-only until their hardware
+      runtime is implemented.
+    </p>
+    <label class="file-button"
+      >Open bundle and assets<input
+        type="file"
+        multiple
+        accept=".json,.bin,.elf,.pbz"
+        (change)="openBundle($event)"
+        [disabled]="busy()"
+    /></label>
+    <hr />
     <h3>Inspect a firmware package</h3>
     <p class="help">
       Open a watch firmware PBZ to inspect its board and slot metadata. It cannot run on the QEMU
@@ -113,10 +141,24 @@ import type { PackageInfo } from './archives.ts';
   `,
 })
 export class FirmwarePanel {
-  readonly products = WATCH_PRODUCTS;
+  showLegacy = false;
+  legacyChanged() {
+    if (!this.showLegacy && !this.product().runtime) this.selectProduct('time-2');
+  }
+  get products() {
+    return WATCH_PRODUCTS.filter((p) => this.showLegacy || p.runtime);
+  }
+  repository = 'coredevices/PebbleOS';
+  private catalogRevision = 0;
+  resetCatalog() {
+    this.catalogRevision++;
+    this.releases.set([]);
+    this.selectedTag.set('');
+    this.page = 1;
+  }
   productId = signal('time-2');
   product() {
-    return this.products.find((p) => p.id === this.productId())!;
+    return WATCH_PRODUCTS.find((p) => p.id === this.productId())!;
   }
   selectProduct(id: string) {
     if (!this.products.some((p) => p.id === id)) return;
@@ -163,9 +205,11 @@ export class FirmwarePanel {
     );
   }
   async catalog() {
+    const revision = this.catalogRevision;
     this.begin();
     try {
-      const items = await fetchFirmwareReleases(this.page);
+      const items = await fetchFirmwareReleases(this.page, undefined, fetch, this.repository);
+      if (revision !== this.catalogRevision) return;
       this.releases.update((r) => [
         ...r,
         ...items.filter((item) => !r.some((existing) => existing.tag === item.tag)),
@@ -185,9 +229,11 @@ export class FirmwarePanel {
     }
   }
   async findRelease() {
+    const revision = this.catalogRevision;
     this.begin();
     try {
-      const release = await fetchFirmwareRelease(this.releaseTag);
+      const release = await fetchFirmwareRelease(this.releaseTag, this.repository);
+      if (revision !== this.catalogRevision) return;
       this.releases.update((items) => [
         release,
         ...items.filter((item) => item.tag !== release.tag),
@@ -304,6 +350,40 @@ export class FirmwarePanel {
       this.status.set(String(e));
     } finally {
       input.value = '';
+    }
+  }
+  async openBundle(event: Event) {
+    const input = event.target as HTMLInputElement,
+      files = Array.from(input.files ?? []);
+    if (!files.length) return;
+    this.begin();
+    try {
+      const manifests = files.filter((f) => f.name.endsWith('.json'));
+      if (manifests.length !== 1 || manifests[0]!.size > 65536)
+        throw new Error('Select one bundle JSON (up to 64 KiB) and its assets.');
+      if (files.reduce((n, f) => n + f.size, 0) > 160 * 1048576)
+        throw new Error('Firmware bundle exceeds 160 MiB.');
+      const assets: Record<string, Uint8Array> = Object.create(null);
+      for (const file of files) {
+        if (Object.hasOwn(assets, file.name)) throw new Error('Duplicate asset filename.');
+        assets[file.name] = new Uint8Array(await file.arrayBuffer());
+      }
+      const result = await inspectFirmwareBundle(
+        JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(assets[manifests[0]!.name])),
+        assets,
+      );
+      this.packageSummary.set(JSON.stringify(result.manifest, null, 2));
+      if (result.loadable) {
+        const product = WATCH_PRODUCTS.find((p) => p.runtime === result.loadable!.profile);
+        if (product) this.productId.set(product.id);
+        this.loadFirmware.emit(result.loadable);
+        this.status.set('Bundle checksums verified; firmware loaded.');
+      } else this.status.set(result.reason!);
+    } catch (e) {
+      this.status.set(String(e));
+    } finally {
+      input.value = '';
+      this.end();
     }
   }
 }

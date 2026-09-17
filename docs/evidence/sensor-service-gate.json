@@ -1,0 +1,86 @@
+{
+  "date": "2026-09-17",
+  "wasm_sha256": "551e913ec504e2b1e2b77c5b9b1a52c3c73ff234b6ea43040cf4afb2ea294c5d",
+  "reference": "coredevices/qemu v10.1.5-pebble17 native QEMU",
+  "firmware_source": "coredevices/PebbleOS v4.37.0 (unchanged)",
+  "test_application": "examples/sensor-test",
+  "frames": [
+    {
+      "profile": "qemu_flint",
+      "firmware": "4.37.0",
+      "pbw_sha256": "3a3f43187095ee52cf85b41ad81ca1fef8960bce1962823a1411a215f48ebec7",
+      "bytes": 24192,
+      "native_frame_sha256": "0002863e7895717d7a21d40eb8451b940a7971407f843480e3dbc1316a847467",
+      "wasm_frame_sha256": "0002863e7895717d7a21d40eb8451b940a7971407f843480e3dbc1316a847467",
+      "differing_bytes": 0,
+      "verified_app_values": {
+        "acceleration_mg": [111, -222, -999],
+        "tap_axis": 2,
+        "tap_direction": -1,
+        "compass_status": -1,
+        "steps": 1234,
+        "raw_heart_rate_bpm": 0
+      },
+      "scheduled_acceleration": [
+        {
+          "scheduled_us": 8661846,
+          "actual_us": 8661846
+        }
+      ]
+    },
+    {
+      "profile": "qemu_emery",
+      "firmware": "4.37.0",
+      "pbw_sha256": "7d189f590efd23a75f155a81646b10dc8057f968f44123df0991ca00e0961e9a",
+      "bytes": 45600,
+      "native_frame_sha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "wasm_frame_sha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "differing_bytes": 0,
+      "verified_app_values": {
+        "acceleration_mg": [111, -222, -999],
+        "tap_axis": 2,
+        "tap_direction": -1,
+        "compass_status": -1,
+        "steps": 1234,
+        "raw_heart_rate_bpm": 88,
+        "touch": [30, 40]
+      },
+      "scheduled_acceleration": [
+        {
+          "scheduled_us": 7922642,
+          "actual_us": 7922642.015625
+        }
+      ]
+    },
+    {
+      "profile": "qemu_gabbro",
+      "firmware": "4.37.0",
+      "pbw_sha256": "b67850b8fb5948785813cb0f646369c9f3b3423c7ef9ad3561d4223b78b62b14",
+      "bytes": 67600,
+      "native_frame_sha256": "82fb3e7274c90c9a27460d2eb60875ce8c35f8a5ba225bfc878896e8f41be48a",
+      "wasm_frame_sha256": "82fb3e7274c90c9a27460d2eb60875ce8c35f8a5ba225bfc878896e8f41be48a",
+      "differing_bytes": 0,
+      "verified_app_values": {
+        "acceleration_mg": [111, -222, -999],
+        "tap_axis": 2,
+        "tap_direction": -1,
+        "compass_status": -1,
+        "steps": 1234,
+        "raw_heart_rate_bpm": 0,
+        "touch": [30, 40]
+      },
+      "scheduled_acceleration": [
+        {
+          "scheduled_us": 8420740,
+          "actual_us": 8420740
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Compass reports unavailable on all three firmware builds, matching native QEMU.",
+    "Health preferences must enable tracking before health values are applied.",
+    "HeartRateRawBPM is verified; filtered heart rate retains firmware filtering.",
+    "These are functional emulator-service and display checkpoints, not analog sensor or cycle-accuracy measurements."
+  ]
+}

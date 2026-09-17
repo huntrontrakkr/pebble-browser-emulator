@@ -1,7 +1,16 @@
 import { compilerSdkFiles } from './sdk-files.ts';
+import { LinuxBuildPanel } from './linux-build-panel.ts';
 import { APP_PLATFORMS, type AppPlatform } from './watch-profiles.ts';
 import { readLocal, writeLocal, clearLocal } from './local-store.ts';
-import { Component, EventEmitter, Output, Input, OnDestroy, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  Input,
+  OnDestroy,
+  ViewChild,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   importRepository,
@@ -12,7 +21,7 @@ import {
 import type { PackageInfo } from './archives.ts';
 @Component({
   selector: 'project-panel',
-  imports: [FormsModule],
+  imports: [FormsModule, LinuxBuildPanel],
   template: `
     <div class="section-heading">
       <h2>App project</h2>
@@ -28,11 +37,20 @@ import type { PackageInfo } from './archives.ts';
     <div class="actions">
       <button class="primary" (click)="import()" [disabled]="busy()">Import repository</button
       ><button (click)="demo()" [disabled]="busy()">Load example</button
+      ><button (click)="sensorDemo()" [disabled]="busy()">Sensor test</button
       ><label class="file-button"
         >Open source ZIP<input
           type="file"
           accept=".zip"
           (change)="openZip($event)"
+          [disabled]="busy()"
+      /></label>
+      <label class="file-button"
+        >Open project folder<input
+          type="file"
+          webkitdirectory
+          multiple
+          (change)="openFolder($event)"
           [disabled]="busy()"
       /></label>
     </div>
@@ -55,7 +73,7 @@ import type { PackageInfo } from './archives.ts';
     <p class="help">
       Builds SDK 4.33.1 native C apps locally. Select the app platform matching your watch. PNG/PBI
       and raw resources, local JS modules, and locked JavaScript packages are supported. Custom
-      fonts, build scripts, and native package libraries need additional support.
+      fonts and native package libraries need the Linux compatibility build below.
     </p>
     <label
       >Build platform<select [(ngModel)]="platform" [disabled]="busy()">
@@ -87,6 +105,13 @@ import type { PackageInfo } from './archives.ts';
         <button (click)="cancel()">Cancel</button>
       }
     </div>
+    <linux-build-panel
+      [project]="project()"
+      [platform]="platform"
+      [disabled]="busy() && !linuxBusy"
+      (busyChange)="linuxState($event)"
+      (packageBuilt)="linuxPackage($event)"
+    />
     <hr />
     <h3>Existing app package</h3>
     <label class="file-button"
@@ -101,6 +126,17 @@ import type { PackageInfo } from './archives.ts';
   `,
 })
 export class ProjectPanel implements OnDestroy {
+  @ViewChild(LinuxBuildPanel) linuxPanel?: LinuxBuildPanel;
+  linuxBusy = false;
+  linuxState(value: boolean) {
+    this.linuxBusy = value;
+    this.busy.set(value);
+    if (value) this.built.set(null);
+  }
+  linuxPackage(bytes: Uint8Array) {
+    this.built.set(bytes);
+    this.status.set('Linux build produced a PBW. Install it on a matching watch.');
+  }
   @Input() platform: AppPlatform = 'emery';
   readonly platforms = Object.keys(APP_PLATFORMS) as AppPlatform[];
   @Output() packageReady = new EventEmitter<{ bytes: Uint8Array; name: string }>();
@@ -192,6 +228,12 @@ export class ProjectPanel implements OnDestroy {
     this.repo = 'huntrontrakkr/pebble-browser-emulator';
     this.ref = 'main';
     this.root = 'examples/platform-watchface';
+    await this.import();
+  }
+  async sensorDemo() {
+    this.repo = 'huntrontrakkr/pebble-browser-emulator';
+    this.ref = 'main';
+    this.root = 'examples/sensor-test';
     await this.import();
   }
   setProject(p: SourceSnapshot, persist = true) {
@@ -306,6 +348,26 @@ export class ProjectPanel implements OnDestroy {
       this.status.set('Source archive opened.');
     });
   }
+  async openFolder(event: Event) {
+    const control = event.target as HTMLInputElement,
+      entries = Array.from(control.files ?? []);
+    if (!entries.length) return;
+    const job = ++this.job;
+    this.busy.set(true);
+    try {
+      const { folderSnapshot } = await import('./projects.ts');
+      const project = await folderSnapshot(entries, () => job !== this.job);
+      if (job === this.job) {
+        this.setProject(project);
+        this.status.set('Local project folder loaded.');
+      }
+    } catch (e) {
+      if (job === this.job) this.status.set(String(e));
+    } finally {
+      if (job === this.job) this.busy.set(false);
+      control.value = '';
+    }
+  }
   openPbw(event: Event) {
     void this.fileAction(event, async (file) => {
       const job = this.job;
@@ -398,6 +460,7 @@ export class ProjectPanel implements OnDestroy {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   cancel() {
+    this.linuxPanel?.cancel();
     this.job++;
     this.controller?.abort();
     this.worker?.terminate();

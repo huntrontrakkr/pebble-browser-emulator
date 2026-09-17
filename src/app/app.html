@@ -118,7 +118,7 @@
         </div>
       }
       <div class="display-caption">
-        <span>200 × 228 · 64 colors</span
+        <span>{{ display().width }} × {{ display().height }} · {{ display().colors }} colors</span
         ><span>{{
           displayMode() === 'pixels' ? 'Raw framebuffer' : 'Uncalibrated optical preview'
         }}</span>
@@ -165,6 +165,11 @@
       @if (installStatus()) {
         <p class="install-status" role="status">{{ installStatus() }}</p>
       }
+      <frame-panel
+        [frame]="state()?.framebuffer"
+        [width]="display().width"
+        [height]="display().height"
+      />
       <div class="watch-buttons" aria-label="Watch buttons">
         @for (item of buttonList; track item.mask) {
           <button
@@ -293,6 +298,20 @@
         </div>
         <label>Accuracy (meters)<input type="number" min="0" [(ngModel)]="accuracy" /></label
         ><button (click)="applyLocation()">Apply location</button>
+        <div class="field-grid">
+          <label>Altitude (m)<input type="number" [(ngModel)]="altitude" /></label>
+          <label
+            >Heading (° clockwise)<input
+              type="number"
+              [(ngModel)]="locationHeading"
+              min="0"
+              max="360"
+          /></label>
+          <label>Speed (m/s)<input type="number" [(ngModel)]="speed" min="0" /></label>
+        </div>
+        <button (click)="locationUnavailable()" [disabled]="phoneStatus() !== 'Running'">
+          Simulate unavailable location
+        </button>
         <hr />
         <h3>Watch clock</h3>
         <label
@@ -305,6 +324,18 @@
           Virtual elapsed time: {{ virtualSeconds() | number: '1.2-2' }} s. Execution speed is not
           calibrated to physical hardware.
         </p>
+        <sensor-panel
+          [profile]="profile()"
+          [ready]="isFirmware() && watchReady()"
+          [pending]="scenarioPending()"
+          [observations]="sensorEvents()"
+          [vibrating]="vibrating()"
+          [healthStatus]="healthStatus()"
+          (healthSettings)="applyHealthSettings($event)"
+          (signalInput)="sendSignal($event)"
+          (scenarioInput)="scheduleSignals($event)"
+          (cancelScenario)="cancelSignals()"
+        />
       </div>
       <div class="tool-content" [hidden]="tab() !== 'Phone'">
         <h2>Virtual phone</h2>
@@ -325,7 +356,15 @@
         <div class="actions">
           <button (click)="startPhone()" [disabled]="!phoneScript()">Run script</button
           ><button (click)="stopPhone()" [disabled]="phoneStatus() === 'Stopped'">Stop</button
-          ><button (click)="advancePhone()" [disabled]="phoneStatus() !== 'Running'">
+          ><button
+            (click)="advancePhone()"
+            [disabled]="phoneStatus() !== 'Running' || isFirmware()"
+            [title]="
+              isFirmware()
+                ? 'Phone timers follow the watch clock'
+                : 'Advance the standalone phone clock'
+            "
+          >
             Advance 1 s</button
           ><button (click)="locationDemo()">Location test</button>
         </div>

@@ -31,6 +31,9 @@ npm run dev
 4. Select **Install on watch**. The phone transfers the executable/resources through real
    firmware protocols. A packaged companion script starts in QuickJS after installation.
 5. Use **Inputs**, **Phone**, **Debug**, and **Packets** to inspect execution and inject values.
+   **Sensor test** loads an example for acceleration, taps, health, raw heart rate and touch.
+   Generate repeatable motion, import CSV/JSON scenarios, and use **Frame comparison** under
+   the watch to capture and compare exact pixels. See [sensor controls](docs/SENSORS.md).
 
 Existing platform-matching PBWs can be opened without compiling. GitHub release and SDK downloads lack
 suitable CORS headers, so those files are opened locally. Source files, the required SDK
@@ -47,13 +50,21 @@ modern `package.json` and legacy SDK 3 `appinfo.json`; PNG/PBI/raw resources; sy
 SDK message-key allocation; background workers; and PebbleKit JS modules.
 
 JavaScript dependencies use integrity-checked npm `package-lock.json` v2/v3 archives.
-Published Pebble JS packages use their SDK `dist.zip` artifacts. Build/package scripts are
-never executed. Custom font generation, native C packages, C++/assembly, SDK 2, and custom
-Waf behavior still need support. See [compiler details](docs/BROWSER_COMPILER.md).
+Published Pebble JS packages use their SDK `dist.zip` artifacts. The fast compiler does not
+execute build/package scripts. A separate **Linux compatibility build** runs custom recipes
+in an imported container2wasm image, with local dependency files, quotas and cancellation.
+Python and actual Linux ARM GCC object generation are verified. Complete SDK/Waf PBW builds,
+custom fonts, native libraries and legacy environments still need acceptance coverage.
+See [compiler details](docs/BROWSER_COMPILER.md) and [Linux image setup](tools/linux-build/README.md).
+
+Firmware sources accept exact public GitHub release tags and checksummed board-specific
+[bundles](docs/FIRMWARE_BUNDLES.md). Stock physical firmware execution remains unfinished.
 
 The virtual phone supports XHR/fetch with deterministic test responses or optional direct
 browser CORS requests, injectable watch metadata, and configuration events with a manual
-return value. It does not yet execute embedded configuration WebViews. See [phone scope](docs/PHONE.md).
+return value. Phone timers follow the watch's virtual clock and pause with it. Location loss
+and recovery can be injected. Embedded configuration WebViews remain pending.
+See [phone scope](docs/PHONE.md).
 
 ## Verify
 
@@ -66,7 +77,7 @@ npm run check
 
 Tests exercise the actual Rust Wasm, Worker lifecycle, archive integrity, firmware image
 normalization, compiler binary formats, UART protocols, and sandboxed phone scripts. They
-are not a substitute for cross-browser visual testing. See `docs/STATUS.md` for the
+have separate [browser interaction gates](docs/BROWSER_TESTING.md). See `docs/STATUS.md` for the
 optional official-firmware integration gate and independent reference evidence.
 
 ```sh
@@ -85,6 +96,8 @@ including all 45,600 framebuffer bytes. It does not establish complete Cortex-M3
 - `public/compiler`: portable compiler worker, package builder, and licensed JS loader.
 - `examples/platform-watchface`: adaptive C/PKJS demo with resources, modules, weather fixtures, location and messages.
 - `examples/watchface`: unchanged original rendering reference.
+- `examples/sensor-test`: sensor service callback and frame comparison example.
+- `tools/linux-build`: optional local Linux/Wasm image preparation and recipe contract.
 - `docs`: [architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and evidence.
 
 `npm run build` produces portable static files in `dist/client`. The application does not

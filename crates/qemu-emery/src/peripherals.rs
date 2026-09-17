@@ -101,6 +101,23 @@ impl Devices {
         self.edges |= self.buttons ^ mask;
         self.buttons = mask
     }
+    /// Generic touch-controller register contract. Host coordinates are logical
+    /// display pixels. A position change while down or either contact edge raises IRQ.
+    pub fn set_touch(&mut self, down: bool, x: u32, y: u32) -> bool {
+        if !self.profile.touch || x >= self.profile.width as u32 || y >= self.profile.height as u32
+        {
+            return false;
+        }
+        let changed = self.touch[0] != down as u32;
+        let moved = self.touch[1] != x || self.touch[2] != y;
+        self.touch[0] = down as u32;
+        self.touch[1] = x;
+        self.touch[2] = y;
+        if changed || (down && moved) {
+            self.touch[4] |= 1;
+        }
+        true
+    }
     pub fn now(&self) -> u64 {
         self.epoch + (self.ticks - self.rtc_set_at) / 64_000_000
     }

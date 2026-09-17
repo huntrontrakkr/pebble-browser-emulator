@@ -85,3 +85,31 @@ Current verified models: Flint `pebble_2_duo_black` / `pebble_2_duo_white`; curr
 ## Validation
 
 Passed: 12 runtime tests (including SDK block-key allocation); 16 network/context/config tests; 3 actual phone Worker tests; 5 prior phone lifecycle tests; strict TypeScript check. Worker tests use a controlled fetch harness to verify cancellation and exact CORS options without external HTTP dependencies. Real browser CORS is supplied by the browser fetch implementation, not emulated by the Node harness.
+
+
+## Shared watch clock and sensor fixtures
+
+When a firmware watch is active, its virtual clock owns phone timers. The watch runs at most
+10 ms of virtual time per coupled quantum, sends its clock boundary, and waits for QuickJS
+and the host bridge to acknowledge the matching sequence. Phone AppMessages are queued before
+that acknowledgement. A late sequence from a previous firmware generation cannot release the
+new watch. Engine startup holds the first phase; location inputs received during startup are
+queued with their virtual timestamps. Pause stops both runtimes. Standalone phone tests retain
+their independent clock.
+
+Watch restart and an explicit RTC change stop the phone script; start it again to establish
+the new clock origin. Application storage remains saved. This is not a whole-session snapshot.
+Real CORS responses remain external events with nondeterministic completion times. Seeded
+`Math.random`, network fixtures and a supplied initial watch/phone state are required for
+repeatable input scenarios; full session recording/replay is still pending.
+
+Location fixtures accept altitude, altitude accuracy, clockwise heading and speed. Permission
+denied, position unavailable and timeout errors can be injected; watcher callbacks recover
+when a later coordinate is supplied. These errors do not fabricate physical GPS hardware.
+`getCurrentPosition` timeout/maximumAge/permission lifecycles are not fully modeled.
+
+Health preferences use actual BlobDB database 7 writes. The synthetic user preset is 170 cm,
+70 kg, age 30, unspecified gender. Activity tracking must be enabled before the firmware
+accepts metric overrides. Heart-rate input is a service sample; raw BPM and filtered BPM are
+different firmware outputs. Compass currently reports unavailable in the verified 4.37.0
+builds, matching the native reference.

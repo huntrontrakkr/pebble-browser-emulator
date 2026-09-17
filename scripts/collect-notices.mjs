@@ -47,3 +47,4 @@ copyFileSync('THIRD_PARTY_NOTICES.md', 'public/licenses/NOTICE.md');
 copyFileSync('LICENSE', 'public/licenses/PROJECT.txt');
 
 copyFileSync('node_modules/esbuild-wasm/LICENSE.md', 'public/licenses/ESBUILD.txt');
+copyFileSync('node_modules/@bjorn3/browser_wasi_shim/LICENSE-MIT', 'public/licenses/WASI-SHIM.txt');

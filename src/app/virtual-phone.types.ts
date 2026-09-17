@@ -33,6 +33,8 @@ export interface VirtualPhoneLimits {
 export interface VirtualPhoneOptions {
   appId: string;
   nowMs?: number;
+  /** Explicit deterministic Math.random source for repeatable scenarios. */
+  randomSeed?: number;
   coordinates?: PhoneCoordinates;
   storage?: Readonly<Record<string, string>>;
   messageKeys?: Readonly<Record<string, number>> | readonly string[];

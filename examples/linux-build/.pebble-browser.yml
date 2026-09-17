@@ -1,0 +1,10 @@
+version: 1
+backend: linux-wasi
+workdir: .
+commands:
+  - python3 generate.py
+  - arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -Os -c generated.c -o generated.o
+outputs:
+  - generated.c
+  - generated.o
+timeoutSeconds: 600

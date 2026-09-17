@@ -94,7 +94,7 @@ export async function importRepository(
   ).filter((e) => e.path.startsWith(prefix) && e.type !== 'tree');
   if (!entries.length) throw new Error('No files found in that project folder.');
   const selected = entries.filter(
-    (e) => !/(^|\/)(node_modules|\.git|build|\.github)\//.test(e.path.slice(prefix.length)),
+    (e) => !/(^|\/)(node_modules|\.git)\//.test(e.path.slice(prefix.length)),
   );
   if (selected.some((e) => e.type !== 'blob' || e.mode === '120000'))
     throw new Error(
@@ -155,6 +155,40 @@ export function safePath(path: string): boolean {
     !/^[A-Za-z]:/.test(path)
   );
 }
+/** A folder picker grants only the selected files. Keep build scripts regardless of directory. */
+export async function folderSnapshot(
+  entries: Pick<File, 'name' | 'size' | 'arrayBuffer' | 'webkitRelativePath'>[],
+  canceled: () => boolean = () => false,
+): Promise<SourceSnapshot> {
+  const top = entries[0]?.webkitRelativePath.split('/')[0];
+  if (!top) throw new Error('Select a project folder.');
+  const selected = entries.filter(
+    (e) => !/(^|\/)(node_modules|\.git)\//.test(e.webkitRelativePath.slice(top.length + 1)),
+  );
+  if (selected.length > 20000 || selected.reduce((n, e) => n + e.size, 0) > 128 * 1048576)
+    throw new Error('Folder exceeds 20,000 files or 128 MiB.');
+  const files: Record<string, Uint8Array> = Object.create(null);
+  for (const entry of selected) {
+    if (canceled()) throw new Error('Folder import canceled.');
+    const path = entry.webkitRelativePath.slice(top.length + 1);
+    if (
+      !entry.webkitRelativePath.startsWith(top + '/') ||
+      !safePath(path) ||
+      Object.hasOwn(files, path)
+    )
+      throw new Error('Invalid or duplicate folder path.');
+    if (entry.size > 32 * 1048576) throw new Error('Source file exceeds 32 MiB: ' + path);
+    files[path] = new Uint8Array(await entry.arrayBuffer());
+  }
+  return describeSnapshot({
+    version: 1,
+    owner: 'local',
+    repository: top,
+    commit: 'local',
+    root: '',
+    files,
+  });
+}
 export async function readLimited(response: Response, maximum: number): Promise<Uint8Array> {
   if (Number(response.headers.get('content-length')) > maximum)
     throw new Error('Download exceeds size limit.');
@@ -203,8 +237,8 @@ export function describeSnapshot(
     }
   } else warnings.push('No package.json or appinfo.json found.');
   if (!Object.keys(input.files).some((p) => /\.c$/.test(p)))
-    warnings.push('No C sources found; JavaScript-only watch apps need a separate build profile.');
+    warnings.push('No C sources found for the fast compiler.');
   if (input.files['wscript'])
-    warnings.push('Custom Waf behavior is not executed by the browser builder.');
+    warnings.push('Custom Waf behavior requires the Linux compatibility build.');
   return { ...input, metadata, warnings };
 }

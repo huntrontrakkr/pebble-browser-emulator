@@ -1,0 +1,338 @@
+{
+  "date": "2026-09-17",
+  "runtime": {
+    "version": 1,
+    "backend": "linux-wasi",
+    "imageHash": "ed78cdc4ab4e1334ec7396eda4db5bc058e4e42825142af06096e1fd762275e3",
+    "boundedHash": "e877e5ac73551a06ead285fa7c6f3606d9c5d86726cac372b00bb598672fa0c0",
+    "platform": "emery",
+    "recipe": {
+      "version": 1,
+      "backend": "linux-wasi",
+      "workdir": ".",
+      "commands": [
+        "python3 install.py",
+        "python3 generate.py",
+        "arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -Os -c generated.c -o generated.o",
+        "arm-none-eabi-readelf -h generated.o"
+      ],
+      "outputs": ["generated.c", "generated.o"],
+      "env": {},
+      "timeoutSeconds": 600
+    },
+    "exitCode": 0,
+    "limits": {
+      "memoryPages": 24576,
+      "filesystemBytes": 268435456,
+      "files": 20000,
+      "descriptors": 4096,
+      "outputBytes": 67108864,
+      "logBytes": 2097152
+    },
+    "sourceManifest": {
+      "sha256": "2dc0089d6456290a0624b341116365330ea0bd1d6287eb366b9d24eb3020b9d6",
+      "files": [
+        {
+          "path": "generate.py",
+          "bytes": 94,
+          "sha256": "30791eacc433fabaec6904d85c1ae1e08720779b819f9b7d9891bed48036489c"
+        },
+        {
+          "path": "install.py",
+          "bytes": 519,
+          "sha256": "fd938ece0ca5063bdbd91fff7265509591ad696bb25d761c2bfc14190fe7e958"
+        }
+      ]
+    },
+    "inputManifest": {
+      "sha256": "6b4fc95b6fa95456e76c6bde3b93cdaed0e6857af407bc920506e0b470e4d0b9",
+      "files": [
+        {
+          "path": "binutils-arm-none-eabi-2.40-r0.apk",
+          "bytes": 6216766,
+          "sha256": "2a4a402c8b6d3e32eeb3d3ba0b37ef0b458eeb31834e46dd9f2e40358f6f5d7e"
+        },
+        {
+          "path": "gcc-arm-none-eabi-12.2.0-r8.apk",
+          "bytes": 31057278,
+          "sha256": "ef6d17d723f67f5353cbd14078700fe92ec87f9aa3773188cacd9ce230ba68c4"
+        },
+        {
+          "path": "gmp-6.2.1-r3.apk",
+          "bytes": 220570,
+          "sha256": "b81925ecab46d1737c3ee8cbe18b8a89f4ec075f82dcd761ec572cd0e9609b5c"
+        },
+        {
+          "path": "isl26-0.26-r1.apk",
+          "bytes": 880488,
+          "sha256": "25847e5374469cc46dc419904c10ccd87e4f59fa879fb50ddba37651c201bfcc"
+        },
+        {
+          "path": "libgcc-12.2.1_git20220924-r10.apk",
+          "bytes": 54823,
+          "sha256": "51c4130bac12e199ad216f0395d09f8ee3086ec143daf2efb142f63bd23c5158"
+        },
+        {
+          "path": "libstdc++-12.2.1_git20220924-r10.apk",
+          "bytes": 800702,
+          "sha256": "9f358c77cf1445db06c0cc45c541438bbba01922bb2ec0a521302ec8807cf017"
+        },
+        {
+          "path": "mpc1-1.3.1-r1.apk",
+          "bytes": 51177,
+          "sha256": "34d68badb2d45d16221c5e5029133d100a9a66b3899e334a11e19e50d3925685"
+        },
+        {
+          "path": "mpfr4-4.2.0_p12-r0.apk",
+          "bytes": 314293,
+          "sha256": "f06c43c2352b35510625b4b624b85eccd8e07bb1c6d93d37681c3b1fc821f061"
+        },
+        {
+          "path": "musl-1.2.4-r3.apk",
+          "bytes": 390550,
+          "sha256": "466e1e985756113655b65f49a4c5fb0013fd4da682fbef3dac91ec44ae986f0a"
+        },
+        {
+          "path": "zlib-1.2.13-r1.apk",
+          "bytes": 54253,
+          "sha256": "5a25eef56ef21fca1749a3a298062821d5b4e465aa7815192a076adc54f8e778"
+        },
+        {
+          "path": "zstd-libs-1.5.5-r4.apk",
+          "bytes": 381835,
+          "sha256": "79c0aa9461b1cdd238f17e24cc00916c282df2b6ba060f339993b277b4258016"
+        }
+      ]
+    },
+    "outputManifest": {
+      "sha256": "15113a3121255e07251f1df4fbb18bf0657e5ef4138a354617774665d41b0a7b",
+      "files": [
+        {
+          "path": "generated.c",
+          "bytes": 35,
+          "sha256": "38932e4044bb14f00df1d46e255d211bbf5f6cf2b989c2777023e50de37c9c74"
+        },
+        {
+          "path": "generated.o",
+          "bytes": 732,
+          "sha256": "6b88711b5c7afcd48259b2a31f47e98f02f6adec68a51971778672d269d638cd"
+        }
+      ]
+    }
+  },
+  "referenceImage": {
+    "source": "https://github.com/ktock/container2wasm-demo",
+    "recipe": "src/amd64-python-wasi/image (python:3.11-alpine)",
+    "chunks": [
+      "https://ktock.github.io/container2wasm-demo/containers/amd64-python-wasi-container00.wasm",
+      "https://ktock.github.io/container2wasm-demo/containers/amd64-python-wasi-container01.wasm",
+      "https://ktock.github.io/container2wasm-demo/containers/amd64-python-wasi-container02.wasm"
+    ],
+    "bytes": 145588571,
+    "guest": "Linux 6.1.0 x86-64, Alpine 3.18.3, 128 MiB configured RAM"
+  },
+  "packages": [
+    {
+      "name": "gcc-arm-none-eabi",
+      "version": "12.2.0-r8",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/community/x86_64/gcc-arm-none-eabi-12.2.0-r8.apk",
+      "sha256": "ef6d17d723f67f5353cbd14078700fe92ec87f9aa3773188cacd9ce230ba68c4",
+      "bytes": 31057278,
+      "sourceCommit": "e5ff81385c07fed5f5a6072dcf01ac8f7279c93e",
+      "origin": "gcc-cross-embedded",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "name": "musl",
+      "version": "1.2.4-r3",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/musl-1.2.4-r3.apk",
+      "sha256": "466e1e985756113655b65f49a4c5fb0013fd4da682fbef3dac91ec44ae986f0a",
+      "bytes": 390550,
+      "sourceCommit": "17c73e0c9651fc963a977d7fd2fcd25432e43e8f",
+      "origin": "musl",
+      "license": "MIT"
+    },
+    {
+      "name": "libgcc",
+      "version": "12.2.1_git20220924-r10",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/libgcc-12.2.1_git20220924-r10.apk",
+      "sha256": "51c4130bac12e199ad216f0395d09f8ee3086ec143daf2efb142f63bd23c5158",
+      "bytes": 54823,
+      "sourceCommit": "079f8cf11099e978d12da6dd6b44d59ac706ad3e",
+      "origin": "gcc",
+      "license": "GPL-2.0-or-later AND LGPL-2.1-or-later"
+    },
+    {
+      "name": "gmp",
+      "version": "6.2.1-r3",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/gmp-6.2.1-r3.apk",
+      "sha256": "b81925ecab46d1737c3ee8cbe18b8a89f4ec075f82dcd761ec572cd0e9609b5c",
+      "bytes": 220570,
+      "sourceCommit": "84a227baf001b6e0208e3352b294e4d7a40e93de",
+      "origin": "gmp",
+      "license": "LGPL-3.0-or-later OR GPL-2.0-or-later"
+    },
+    {
+      "name": "isl26",
+      "version": "0.26-r1",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/isl26-0.26-r1.apk",
+      "sha256": "25847e5374469cc46dc419904c10ccd87e4f59fa879fb50ddba37651c201bfcc",
+      "bytes": 880488,
+      "sourceCommit": "84a227baf001b6e0208e3352b294e4d7a40e93de",
+      "origin": "isl26",
+      "license": "MIT"
+    },
+    {
+      "name": "mpc1",
+      "version": "1.3.1-r1",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/mpc1-1.3.1-r1.apk",
+      "sha256": "34d68badb2d45d16221c5e5029133d100a9a66b3899e334a11e19e50d3925685",
+      "bytes": 51177,
+      "sourceCommit": "84a227baf001b6e0208e3352b294e4d7a40e93de",
+      "origin": "mpc1",
+      "license": "LGPL-3.0-or-later"
+    },
+    {
+      "name": "mpfr4",
+      "version": "4.2.0_p12-r0",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/mpfr4-4.2.0_p12-r0.apk",
+      "sha256": "f06c43c2352b35510625b4b624b85eccd8e07bb1c6d93d37681c3b1fc821f061",
+      "bytes": 314293,
+      "sourceCommit": "8910287059187d6e83a13dd2078a2a42ea2121f4",
+      "origin": "mpfr4",
+      "license": "LGPL-3.0-or-later"
+    },
+    {
+      "name": "libstdc++",
+      "version": "12.2.1_git20220924-r10",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/libstdc++-12.2.1_git20220924-r10.apk",
+      "sha256": "9f358c77cf1445db06c0cc45c541438bbba01922bb2ec0a521302ec8807cf017",
+      "bytes": 800702,
+      "sourceCommit": "079f8cf11099e978d12da6dd6b44d59ac706ad3e",
+      "origin": "gcc",
+      "license": "GPL-2.0-or-later AND LGPL-2.1-or-later"
+    },
+    {
+      "name": "zlib",
+      "version": "1.2.13-r1",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/zlib-1.2.13-r1.apk",
+      "sha256": "5a25eef56ef21fca1749a3a298062821d5b4e465aa7815192a076adc54f8e778",
+      "bytes": 54253,
+      "sourceCommit": "84a227baf001b6e0208e3352b294e4d7a40e93de",
+      "origin": "zlib",
+      "license": "Zlib"
+    },
+    {
+      "name": "binutils-arm-none-eabi",
+      "version": "2.40-r0",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/community/x86_64/binutils-arm-none-eabi-2.40-r0.apk",
+      "sha256": "2a4a402c8b6d3e32eeb3d3ba0b37ef0b458eeb31834e46dd9f2e40358f6f5d7e",
+      "bytes": 6216766,
+      "sourceCommit": "4cd337313e0071941a81295e1364d3b0a4899821",
+      "origin": "binutils-cross-embedded",
+      "license": "GPL-2.0 GPL-3.0-or-later LGPL-2.0 BSD"
+    },
+    {
+      "name": "zstd-libs",
+      "version": "1.5.5-r4",
+      "url": "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/zstd-libs-1.5.5-r4.apk",
+      "sha256": "79c0aa9461b1cdd238f17e24cc00916c282df2b6ba060f339993b277b4258016",
+      "bytes": 381835,
+      "sourceCommit": "757fa45cd1c12837ef0c8c4db7537cdc71de45a4",
+      "origin": "zstd",
+      "license": "BSD-3-Clause GPL-2.0-or-later"
+    }
+  ],
+  "outputs": {
+    "generated.c": {
+      "source": "int generated(void) { return 42; }\n"
+    },
+    "generated.o": {
+      "bytes": 732,
+      "sha256": "6b88711b5c7afcd48259b2a31f47e98f02f6adec68a51971778672d269d638cd",
+      "format": "ELF32 little-endian ARM EABI5 relocatable"
+    }
+  },
+  "verification": "Custom Python generated C; unmodified Linux ARM GCC 12.2.0 and assembler compiled it inside the Wasm VM; the ARM object was returned through the virtual filesystem.",
+  "limitations": [
+    "Original upstream image imported locally; no image or package redistribution.",
+    "Only required compiler executables/libraries were extracted to fit this small guest.",
+    "Full SDK/Waf/PBW, custom fonts, legacy Python 2 and all repository dependencies remain separate acceptance gates.",
+    "ARM GCC gate uses Node WebAssembly; Chromium additionally verifies the actual folder/image/reload/Python/artifact/cancel browser flow. Other browser Linux build engines remain unverified."
+  ],
+  "browser": {
+    "date": "2026-09-17T05:38:55.633Z",
+    "browser": "chromium",
+    "version": "153.0.8010.12",
+    "passed": true,
+    "errors": [],
+    "externalRequests": [],
+    "artifactSha256": "d2ee72eea6fb9b6a2ce93777ac97e9f1d7183f9233923f434ff0d9f61a4aa9d5",
+    "checks": [
+      "local folder import",
+      "project YAML loaded",
+      "large Linux image persisted across reload",
+      "actual Linux Python execution",
+      "artifact and build record download",
+      "cancel through UI"
+    ],
+    "limitations": [
+      "Python generation only; complete SDK/Waf/PBW and other browser build engines remain separate gates."
+    ]
+  },
+  "browserBuildRecord": {
+    "version": 1,
+    "backend": "linux-wasi",
+    "imageHash": "ed78cdc4ab4e1334ec7396eda4db5bc058e4e42825142af06096e1fd762275e3",
+    "boundedHash": "e877e5ac73551a06ead285fa7c6f3606d9c5d86726cac372b00bb598672fa0c0",
+    "platform": "emery",
+    "recipe": {
+      "version": 1,
+      "backend": "linux-wasi",
+      "workdir": ".",
+      "commands": ["python3 generate.py"],
+      "outputs": ["generated.c"],
+      "env": {},
+      "timeoutSeconds": 180
+    },
+    "exitCode": 0,
+    "limits": {
+      "memoryPages": 24576,
+      "filesystemBytes": 268435456,
+      "files": 20000,
+      "descriptors": 4096,
+      "outputBytes": 67108864,
+      "logBytes": 2097152
+    },
+    "sourceManifest": {
+      "sha256": "548c0aa6ee3e5d98038dfc8df5db03dd2986c0dfdaf86bb199e8a71300f16f77",
+      "files": [
+        {
+          "path": ".pebble-browser.yml",
+          "bytes": 108,
+          "sha256": "61445a7181a2b236a760872053390d6267d1e69d89d542e4f78835579c002929"
+        },
+        {
+          "path": "generate.py",
+          "bytes": 91,
+          "sha256": "809b5c16d6b718845bdce54067f1e20d859b4de68aef63db5c0f55056916d6fb"
+        }
+      ]
+    },
+    "inputManifest": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "files": []
+    },
+    "outputManifest": {
+      "sha256": "32d7e9fc430228bc452456b626c950e554c75bc0b0d9f9d626cfd716febd4e3d",
+      "files": [
+        {
+          "path": "generated.c",
+          "bytes": 32,
+          "sha256": "d2ee72eea6fb9b6a2ce93777ac97e9f1d7183f9233923f434ff0d9f61a4aa9d5"
+        }
+      ]
+    }
+  },
+  "reproduction": "scripts/verify-linux-arm-build.mjs"
+}

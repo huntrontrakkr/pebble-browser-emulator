@@ -8,6 +8,10 @@ The static Angular application orchestrates independent Workers:
 - **Compiler Worker:** version-pinned Clang/LLD Wasm, isolated memory filesystem, user SDK,
   a declarative supported build profile, original SDK-compatible PBW packaging. Project
   Python/Waf and package installation scripts are never executed. Cancel terminates the Worker.
+- **Linux compatibility Worker:** imported container2wasm WASI image, private source/input/output
+  filesystems and versioned shell recipes. Native tools run inside the guest Linux VM. Memory
+  and filesystem growth are bounded; the UI enforces timeout and terminates canceled Workers.
+  No guest network device, host files, credentials or host JavaScript APIs are provided.
 - **Phone Worker:** isolated QuickJS Wasm runtime, bounded memory/stack/execution/output,
   virtual timers, local storage, injected location, HTTP fixtures/CORS requests, configuration events, and actual AppMessage acknowledgments.
 - **Archive Worker:** bounded ZIP/TAR/gzip extraction and package inspection with path,
@@ -46,12 +50,19 @@ Raw micro images use the vector table at zero. SDK ELF32 inputs are normalized f
 **physical addresses**, including data load images whose virtual addresses point into SRAM.
 Input bounds and vector tables are checked before replacing the machine.
 
+`board-registry.ts` identifies generic, nRF52840 and SiFli families independently from app
+platforms. It declares firmware roles and implemented signal routes. Versioned firmware
+bundles validate each asset's SHA-256 before loading or returning a physical-runtime limitation.
+Adding an older watch requires a new board implementation; it cannot reuse a modern board
+solely because display dimensions or SDK features agree.
+
 ## Transport
 
 Raw packets are `payload_length:u16BE | endpoint:u16BE | payload`. UART1 uses a separate
 `0xFEED | channel:u16BE | length:u16BE | payload | 0xBEEF` envelope. The host respects the
-256-byte receive FIFO and advances the guest while servicing partial writes. QEMU control
-channels deliver battery and logical Bluetooth state. This is not physical Bluetooth RF.
+256-byte receive FIFO and advances the guest while servicing partial writes. One ordered
+writer owns whole envelopes, so sensor and app-transfer bytes cannot interleave. QEMU control
+channels deliver sensor/service overrides, battery and logical Bluetooth state. This is not physical Bluetooth RF.
 
 Installation sends AppMetadata through BlobDB, handles the firmware's AppFetch request,
 transfers executable/resources/background worker with PutBytes, checks real ACK cookies and CRC commits,
@@ -60,6 +71,20 @@ AppMessage dictionaries travel through endpoint 0x30; QuickJS success callbacks 
 received firmware ACKs. Wire transaction IDs retain their owning phone instance until
 settled; session generations reject late messages across watch resets. Incoming messages
 are acknowledged after host delivery.
+
+## Shared clock and inputs
+
+CPU advancement is serialized. External deadlines bound WFI/WFE fast-forwarding; an active
+instruction completes atomically. Versioned scenarios are ordered by virtual microseconds,
+with stable ordering at equal times. Input observations distinguish queued bytes, UART
+delivery, controller application and phone forwarding. App consumption needs separate evidence.
+
+With a companion running, the watch advances at most 10 ms of virtual time before awaiting
+a sequence/generation-matched phone acknowledgment. QuickJS advances timers and emits pending
+AppMessages before acknowledging that phase. This includes asynchronous QuickJS startup.
+Pausing stops both clocks; reset stops the phone and clears the old phase. Explicit RTC changes
+also stop the phone so the next start has a consistent epoch. Network fixtures can use virtual
+deadlines; real browser HTTP completion remains nondeterministic.
 
 ## Display and state
 
@@ -77,6 +102,12 @@ reset preserves the current SPI flash and RTC time while restarting CPU, RAM, pe
 and transport. Reopening the original firmware pair restores its original flash contents.
 Diagnostic snapshots are session-local.
 Complete firmware/phone save states and deterministic replay are future gates.
+
+Frame comparison captures canonical bytes before asynchronous hashing. PBF1 files encode the
+dimensions and ARGB2222 payload; raw reference files use the current board's dimensions.
+Linux image caching uses IndexedDB Blob values because large typed-array records exceed some
+browsers' serialization limits. A build record hashes the original and memory-bounded image,
+recipe, source, imported dependencies and every returned artifact.
 
 ## Platform builds and dependencies
 

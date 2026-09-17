@@ -1,5 +1,5 @@
 import { fileProfile } from './watch-profiles.ts';
-import { githubJson } from './projects.ts';
+import { githubJson, parseRepository } from './projects.ts';
 export interface FirmwareAsset {
   id: number;
   name: string;
@@ -50,9 +50,11 @@ export async function fetchFirmwareReleases(
   page = 1,
   signal?: AbortSignal,
   request: typeof fetch = fetch,
+  repository = 'coredevices/PebbleOS',
 ): Promise<FirmwareRelease[]> {
+  const spec = parseRepository(repository);
   const data = await githubJson(
-    `/repos/coredevices/PebbleOS/releases?per_page=30&page=${page}`,
+    `/repos/${encodeURIComponent(spec.owner)}/${encodeURIComponent(spec.repository)}/releases?per_page=30&page=${page}`,
     signal,
     request,
   );
@@ -68,12 +70,20 @@ function releaseInfo(r: any): FirmwareRelease {
     assets: r.assets.map(describeAsset).filter((a: FirmwareAsset) => a.kind !== 'other'),
   };
 }
-export async function fetchFirmwareRelease(tag: string): Promise<FirmwareRelease> {
+export async function fetchFirmwareRelease(
+  tag: string,
+  repository = 'coredevices/PebbleOS',
+  request: typeof fetch = fetch,
+): Promise<FirmwareRelease> {
   tag = tag.trim();
-  if (!/^v?\d+(?:\.\d+)+(?:[-+][\w.-]+)?$/.test(tag))
-    throw new Error('Enter a release tag such as v4.37.0.');
-  if (!tag.startsWith('v')) tag = 'v' + tag;
+  if (!/^[^\s\x00-\x1f\x7f]{1,200}$/.test(tag))
+    throw new Error('Enter the exact release tag, up to 200 characters.');
+  const spec = parseRepository(repository);
   return releaseInfo(
-    await githubJson(`/repos/coredevices/PebbleOS/releases/tags/${encodeURIComponent(tag)}`),
+    await githubJson(
+      `/repos/${encodeURIComponent(spec.owner)}/${encodeURIComponent(spec.repository)}/releases/tags/${encodeURIComponent(tag)}`,
+      undefined,
+      request,
+    ),
   );
 }

@@ -3,6 +3,18 @@ import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './wa
 import { PebbleTransport, encodeAppMessage, decodeAppMessage } from './pebble-transport.ts';
 import { appPackage } from './archives.ts';
 import type { MachineState } from './emulator.types.ts';
+import { encodeQemuPacket } from './pebble-transport.ts';
+import {
+  normalizeScenario,
+  normalizeSignal,
+  SignalTimeline,
+  signalControl,
+  type DeviceSignal,
+} from './signals.ts';
+import { UartWriter } from './uart-writer.ts';
+import { healthPreferences } from './watch-preferences.ts';
+import { ClockBarrier } from './clock-barrier.ts';
+import { signalRoute } from './board-registry.ts';
 let api: any,
   running = false,
   loaded = false,
@@ -22,16 +34,125 @@ let transport: PebbleTransport | undefined,
   battery = 100,
   charging = false;
 const yieldTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
-function tick(count = 100000) {
-  const frame = api.spike_run(count);
-  steps += count;
-  serial();
-  if (frame === 0xffffffff)
-    throw new Error(`QEMU bus fault at 0x${api.spike_fault().toString(16)}`);
+const timeline = new SignalTimeline();
+const uartWriter = new UartWriter();
+let scenarioName = '';
+let phoneCoupled = false;
+let runSequence = 0;
+const phoneClock = new ClockBarrier();
+let cpuPump: Promise<unknown> = Promise.resolve();
+function flushUart() {
+  uartWriter.flush((bytes) => {
+    upload(bytes);
+    return api.spike_receive_uart(1, bytes.length);
+  });
+}
+function validateDeviceSignal(signal: DeviceSignal) {
+  signalRoute(profile, signal.kind);
+  if (signal.kind === 'touch') {
+    if (signal.x >= api.spike_frame_width() || signal.y >= api.spike_frame_height())
+      throw new Error('Touch coordinates are outside the display.');
+  }
+}
+function applySignal(value: DeviceSignal, scheduledUs = api.spike_ticks() / 64) {
+  const signal = normalizeSignal(value);
+  validateDeviceSignal(signal);
+  const report = (stage: string) =>
+    postMessage({
+      type: 'signal',
+      generation,
+      signal,
+      scheduledUs,
+      actualUs: api.spike_ticks() / 64,
+      stage,
+    });
+  if (signal.kind === 'location' || signal.kind === 'location-error') {
+    postMessage({
+      type: 'phone-signal',
+      generation,
+      signal,
+      virtualUs: api.spike_ticks() / 64,
+      epochMs: api.spike_epoch_ms(),
+    });
+    report('forwarded to phone');
+    return;
+  }
+  if (!firmwareReady) throw new Error('Wait for firmware boot before sending a signal.');
+  if (signal.kind === 'touch') {
+    if (!api.spike_touch(Number(signal.down), signal.x, signal.y))
+      throw new Error('Touch input was rejected by the board.');
+    report('applied to controller');
+    return;
+  }
+  if (signal.kind === 'buttons') {
+    buttons = signal.mask;
+    api.spike_button(buttons);
+    report('applied to GPIO');
+    return;
+  }
+  const control = signalControl(signal);
+  if (!control) throw new Error('No device route for this signal.');
+  uartWriter.enqueue(encodeQemuPacket(control.channel, control.payload), () => {
+    report('written to UART');
+    if (signal.kind === 'battery') {
+      battery = signal.percent;
+      charging = signal.charging;
+    }
+    if (signal.kind === 'connection') {
+      linked = signal.connected;
+      postMessage({ type: 'connection', connected: linked });
+    }
+  });
+  report('queued');
+  flushUart();
+}
+function tick(count = 100000): Promise<number> {
+  const owner = generation;
+  const task = cpuPump.then(() => {
+    if (owner !== generation) throw new Error('Firmware operation canceled.');
+    return tickOnce(count);
+  });
+  cpuPump = task.catch(() => {});
+  return task;
+}
+async function tickOnce(count: number) {
+  let remaining = count;
+  const quantumEnd = phoneCoupled ? api.spike_ticks() + 640000 : Number.MAX_SAFE_INTEGER;
+  while (remaining > 0) {
+    for (const event of timeline.takeDue(api.spike_ticks() / 64))
+      applySignal(event.signal, event.atUs);
+    flushUart();
+    const deadline = Math.min(quantumEnd, Math.round(timeline.nextUs * 64));
+    // Service pending UART envelopes promptly without interleaving their bytes.
+    const done = api.spike_run_until(
+      Math.min(remaining, uartWriter.pending ? 1000 : remaining),
+      deadline,
+    );
+    if (done === 0xffffffff)
+      throw new Error(`QEMU bus fault at 0x${api.spike_fault().toString(16)}`);
+    steps += done;
+    remaining -= done;
+    serial();
+    if (api.spike_ticks() >= quantumEnd) break;
+    if (!done && timeline.nextUs > api.spike_ticks() / 64) break;
+  }
+  for (const event of timeline.takeDue(api.spike_ticks() / 64))
+    applySignal(event.signal, event.atUs);
+  flushUart();
+  const frame = api.spike_frame_counter();
+  const phase = phoneCoupled ? phoneClock.begin() : undefined;
+  postMessage({
+    type: 'clock',
+    generation,
+    epochMs: api.spike_epoch_ms(),
+    virtualUs: api.spike_ticks() / 64,
+    ...(phase ? { sequence: phase.sequence } : {}),
+  });
   if (frame !== lastFrame || steps % 2000000 === 0) {
     lastFrame = frame;
     state();
   }
+  if (phase) await phase.done;
   return frame;
 }
 function createTransport() {
@@ -39,24 +160,43 @@ function createTransport() {
     {
       nowMs: () => api.spike_ticks() / 64000,
       advance: async () => {
-        tick();
+        await tick();
         await yieldTask();
       },
       writeUart: async (bytes) => {
-        let offset = 0;
         const current = generation;
-        while (offset < bytes.length) {
+        let complete = false;
+        uartWriter.enqueue(bytes, () => {
+          complete = true;
+        });
+        while (!complete) {
           if (current !== generation) throw new Error('Firmware operation canceled.');
-          upload(bytes.subarray(offset));
-          offset += api.spike_receive_uart(1, bytes.length - offset);
-          if (offset < bytes.length) {
-            tick(50000);
+          flushUart();
+          if (!complete) {
+            await tick(50000);
             await yieldTask();
           }
         }
       },
     },
     {
+      onControl: (channel, payload) => {
+        postMessage({
+          type: 'control',
+          generation,
+          channel,
+          bytes: payload,
+          virtualSeconds: api.spike_ticks() / 64000000,
+        });
+        if (channel === 7 && payload.length === 1)
+          postMessage({
+            type: 'device-output',
+            generation,
+            kind: 'vibration',
+            value: payload[0] !== 0,
+            virtualUs: api.spike_ticks() / 64,
+          });
+      },
       onPacket: (direction, packet) => {
         postMessage({
           type: 'protocol',
@@ -86,6 +226,7 @@ function upload(bytes: Uint8Array) {
   new Uint8Array(api.memory.buffer, p, bytes.length).set(bytes);
 }
 function stop() {
+  runSequence++;
   running = false;
   clearTimeout(timer);
 }
@@ -143,16 +284,20 @@ function state(force = true) {
       linked,
       installing,
       charging,
+      scenario: { name: scenarioName, pending: timeline.pending },
     },
     [framebuffer.buffer],
   );
 }
-function batch() {
+async function batch() {
   if (!running || installing) return;
+  const owner = generation;
+  const loop = runSequence;
   try {
-    tick(250000);
-    timer = setTimeout(batch, 0);
+    await tick(250000);
+    if (owner === generation && loop === runSequence && running) timer = setTimeout(batch, 0);
   } catch (e) {
+    if (owner !== generation) return;
     stop();
     postMessage({ type: 'error', message: String(e) });
     state();
@@ -160,6 +305,12 @@ function batch() {
 }
 function resetSession() {
   generation++;
+  phoneClock.clear();
+  phoneCoupled = false;
+  cpuPump = Promise.resolve();
+  timeline.clear();
+  uartWriter.clear();
+  scenarioName = '';
   postMessage({ type: 'session', generation });
   transport?.dispose();
   transport = createTransport();
@@ -239,13 +390,53 @@ self.onmessage = async ({ data }) => {
       case 'step':
         if (installing) throw new Error('Wait for installation to finish before stepping.');
         stop();
-        api.spike_run(1);
-        steps++;
-        serial();
+        await tick(1);
         state();
         break;
       case 'reset':
         restart();
+        break;
+      case 'phone-clock':
+        if (data.generation !== generation) return;
+        phoneCoupled = !!data.enabled;
+        if (!phoneCoupled) phoneClock.clear();
+        break;
+      case 'phone-clock-ack':
+        if (data.generation === generation) phoneClock.acknowledge(data.sequence);
+        break;
+      case 'signal':
+        applySignal(normalizeSignal(data.signal));
+        state();
+        break;
+      case 'health-settings':
+        if (!firmwareReady)
+          throw new Error('Wait for firmware boot before changing health settings.');
+        for (const item of healthPreferences(data.enabled, data.heartRate)) {
+          await transport!.insertBlob(7, item.key, item.value);
+          if (commandGeneration !== generation) return;
+        }
+        postMessage({
+          type: 'health-settings',
+          generation,
+          enabled: data.enabled,
+          heartRate: data.heartRate,
+        });
+        break;
+      case 'scenario': {
+        if (!firmwareReady) throw new Error('Wait for firmware boot before loading a scenario.');
+        const scenario = normalizeScenario(data.scenario);
+        for (const event of scenario.events) validateDeviceSignal(event.signal);
+        timeline.load(scenario, Math.round(api.spike_ticks() / 64));
+        scenarioName = scenario.name;
+        for (const event of timeline.takeDue(api.spike_ticks() / 64))
+          applySignal(event.signal, event.atUs);
+        state();
+        break;
+      }
+      case 'scenario-stop':
+        timeline.clear();
+        scenarioName = '';
+        state();
         break;
       case 'inputs':
         buttons = data.buttons;
@@ -337,7 +528,7 @@ self.onmessage = async ({ data }) => {
     }
   } catch (e) {
     if (commandGeneration !== generation) return;
-    postMessage({ type: 'error', message: String(e) });
+    postMessage({ type: 'error', message: String(e), command: data.type, generation });
     if (loaded) state();
   }
 };

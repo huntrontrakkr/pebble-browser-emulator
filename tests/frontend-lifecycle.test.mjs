@@ -171,7 +171,7 @@ test('stopping the phone blocks queued outbound events immediately', () => {
   assert.equal(app.qemuWorker.messages.length, before);
 });
 
-test('stale watch-generation ACK cannot settle an ID reused after reset', () => {
+test('watch reset stops its phone and stale ACKs cannot settle the replacement phone', () => {
   const app = makeApp();
   app.startPhone();
   const phone = app.phoneWorker;
@@ -185,8 +185,13 @@ test('stale watch-generation ACK cannot settle an ID reused after reset', () => 
     },
   });
   app.handleQemuEvent({ type: 'session', generation: 2 });
+  assert.ok(phone.messages.some((m) => m.type === 'stop'));
+  assert.equal(app.phoneAccepting, false);
   app.handleQemuEvent({ type: 'connection', connected: true });
-  phone.emit({
+  app.startPhone();
+  const replacement = app.phoneWorker;
+  assert.notEqual(replacement, phone);
+  replacement.emit({
     type: 'event',
     event: {
       type: 'outbound',
@@ -202,7 +207,7 @@ test('stale watch-generation ACK cannot settle an ID reused after reset', () => 
     message: { kind: 'ack', transactionId: current.transactionId },
   });
   assert.equal(
-    phone.messages.some((m) => m.type === 'ack' && m.accepted),
+    replacement.messages.some((m) => m.type === 'ack' && m.accepted),
     false,
   );
   app.handleQemuEvent({
@@ -211,7 +216,7 @@ test('stale watch-generation ACK cannot settle an ID reused after reset', () => 
     message: { kind: 'ack', transactionId: current.transactionId },
   });
   assert.equal(
-    phone.messages.some((m) => m.type === 'ack' && m.transactionId === 2 && m.accepted),
+    replacement.messages.some((m) => m.type === 'ack' && m.transactionId === 2 && m.accepted),
     true,
   );
 });

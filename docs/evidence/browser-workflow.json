@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-17T05:37:39.735Z",
+  "base": "http://127.0.0.1:4201/",
+  "sensorPbwSha256": "7d189f590efd23a75f155a81646b10dc8057f968f44123df0991ca00e0961e9a",
+  "wasmSha256": "551e913ec504e2b1e2b77c5b9b1a52c3c73ff234b6ea43040cf4afb2ea294c5d",
+  "referenceSha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+  "results": [
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "passed": true,
+      "frameSha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0",
+      "passed": true,
+      "frameSha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "passed": true,
+      "frameSha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "errors": [],
+      "externalRequests": []
+    }
+  ],
+  "scope": "Linux browser engines, Emery 4.37.0, local PBW install and sensor/frame UI. Actual Edge and macOS Safari remain separate gates."
+}

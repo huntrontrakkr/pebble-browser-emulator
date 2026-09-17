@@ -331,6 +331,15 @@ mod tests {
 
 /// Drive virtual board time even during WFI; uncalibrated cycles at nominal 64MHz.
 pub fn board_step(cpu: &mut CortexM33, bus: &mut PebbleBus) {
+    board_step_before(cpu, bus, u64::MAX);
+}
+
+/// Host events stop sleep fast-forwarding. An executing instruction is atomic;
+/// an event inside that instruction is delivered at its completion boundary.
+pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64) {
+    if bus.devices.ticks >= deadline {
+        return;
+    }
     let prev = cpu.cycles();
     cpu.ppb.update_latest_cycles(bus.devices.ticks);
     let mask = bus.devices.irq_mask();
@@ -370,6 +379,7 @@ pub fn board_step(cpu: &mut CortexM33, bus: &mut PebbleBus) {
                 elapsed = elapsed.min(deadline.saturating_sub(bus.devices.ticks).max(1))
             }
         }
+        elapsed = elapsed.min(deadline.saturating_sub(bus.devices.ticks));
     }
     bus.devices.advance(bus.devices.ticks + elapsed);
     let source = cpu.ppb.syst_csr & 4;
@@ -551,6 +561,60 @@ pub extern "C" fn spike_run(steps: u32) -> u32 {
             }
         }
         b.devices.frames as u32
+    })
+}
+/// Returns actual scheduler steps, or UINT32_MAX on fault. Does not cross an
+/// external deadline while asleep; active instructions finish atomically.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_run_until(steps: u32, deadline_ticks: f64) -> u32 {
+    if !deadline_ticks.is_finite() || !(0.0..=9_007_199_254_740_991.0).contains(&deadline_ticks) {
+        return u32::MAX;
+    }
+    MACHINE.with(|m| {
+        let mut m = m.borrow_mut();
+        let Some((c, b)) = m.as_mut() else {
+            return u32::MAX;
+        };
+        let mut done = 0;
+        while done < steps.min(1_000_000) && b.devices.ticks < deadline_ticks as u64 {
+            board_step_before(c, b, deadline_ticks as u64);
+            done += 1;
+            if b.failed.is_some() {
+                return u32::MAX;
+            }
+        }
+        done
+    })
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_frame_counter() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0, |(_, b)| b.devices.frames as u32)
+    })
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_touch(down: u32, x: u32, y: u32) -> u32 {
+    if down > 1 {
+        return 0;
+    }
+    MACHINE.with(|m| {
+        m.borrow_mut()
+            .as_mut()
+            .map_or(0, |(_, b)| b.devices.set_touch(down != 0, x, y) as u32)
+    })
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_epoch_ms() -> f64 {
+    MACHINE.with(|m| {
+        m.borrow().as_ref().map_or(0.0, |(_, b)| {
+            (b.devices.epoch * 1000) as f64
+                + (b.devices.ticks - b.devices.rtc_set_at) as f64 / 64_000.0
+        })
     })
 }
 #[unsafe(no_mangle)]

@@ -64,4 +64,22 @@ The generated dependency-archive helper bundles our existing archive validation 
 its license is included in the generated JavaScript notices.
 
 Imported npm packages remain user-selected build inputs and retain their own licenses.
-Package scripts are not executed; package source/firmware/SDK files are not redistributed by this repository.
+The fast compiler does not execute package scripts. The optional Linux/Wasm build runs user
+commands in an isolated VM. Package source/firmware/SDK files are not redistributed here.
+
+## Linux build sandbox and sensor reference
+
+`@bjorn3/browser_wasi_shim` 0.4.2 is dual MIT/Apache-2.0; its MIT license is shipped at
+`licenses/WASI-SHIM.txt`. `yaml` 2.9.1 is ISC and is included in the generated JavaScript
+license inventory. These dependencies provide the browser WASI host and recipe parser.
+The quota, clock-poll and memory-ceiling adapters are original project code.
+
+Linux build images and imported toolchains remain user-supplied. container2wasm, Bochs,
+Linux, Python and GCC are independent upstream projects with their own licenses. Local
+acceptance image/package hashes and source links are recorded in `docs/evidence/linux-build-gate.json`.
+This repository does not redistribute those images or toolchain archives. The unverified
+Docker preparation recipe does not resolve redistribution obligations for a resulting image.
+
+Sensor protocol and preference layouts were checked against Apache-2.0 PebbleOS v4.37.0.
+The native QEMU touch implementation was used as a behavioral reference only; its GPL code
+was not copied into the Rust core. Frame comparisons execute the unchanged official images.

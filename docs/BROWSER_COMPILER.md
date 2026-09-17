@@ -46,3 +46,26 @@ libraries, resource libraries and package-owned key merging still require a sepa
 The existing `examples/watchface` remains the frozen direct-builder reference. The browser
 Worker now bundles even single-file scripts, so its JavaScript wrapping can differ from that
 older reference's PBW bytes. `examples/platform-watchface` exercises the current module pipeline.
+
+## Linux compatibility backend
+
+Projects can provide `.pebble-browser.yml` and an imported container2wasm WASI image. The
+Angular workbench launches a disposable Worker with a Linux VM, isolated source/dependency
+mounts, bounded Wasm memory and files, a parent-enforced timeout, and explicit artifact
+outputs. Commands run on the guest POSIX filesystem. Cancellation terminates the Worker even
+if an untrusted program never yields. No host shell, filesystem handles, account credentials,
+network device or CORS proxy are exposed to the guest.
+
+This backend has run real Python generation and Linux ARM GCC 12.2.0 and returned an ARM
+EABI5 object. It has **not** passed a complete SDK/Waf-to-PBW workflow. Importing an arbitrary
+repository still does not establish compatibility: its SDK, fonts, compiler, native libraries,
+Python/Node versions and dependencies must be present and verified. Python 2 and legacy SDK
+images remain pending. The optional Docker image preparation recipe is unverified and does
+not include proprietary SDK blobs. See [image and recipe instructions](../tools/linux-build/README.md)
+and [the execution/provenance record](evidence/linux-build-gate.json).
+
+Local folder import accepts up to 20,000 files / 128 MiB, excluding node_modules
+and .git directories. Build and .github directories are preserved because they can contain
+required source scripts. GitHub snapshots retain their separate bounded import behavior and
+commit identity. Git submodules/LFS, POSIX source modes and custom dependency acquisition need
+further work; resolved local files are the current fallback.

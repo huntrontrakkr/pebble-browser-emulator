@@ -11,6 +11,9 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirmwarePanel } from './firmware-panel.ts';
 import { ProjectPanel } from './project-panel.ts';
+import { SensorPanel, type SignalObservation } from './sensor-panel.ts';
+import { FramePanel } from './frame-panel.ts';
+import type { DeviceSignal, SignalScenario } from './signals.ts';
 import { renderPixels, type DisplayMode } from './display.ts';
 import type { WatchModel } from './watch-model.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
@@ -18,7 +21,7 @@ import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.ty
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, DecimalPipe, FirmwarePanel, ProjectPanel],
+  imports: [FormsModule, DecimalPipe, FirmwarePanel, ProjectPanel, SensorPanel, FramePanel],
   templateUrl: './app.html',
 })
 export class App implements AfterViewInit, OnDestroy {
@@ -80,11 +83,18 @@ export class App implements AfterViewInit, OnDestroy {
   private qemuReady?: Promise<void>;
   private diagnosticReady = false;
   virtualSeconds = signal(0);
+  private watchEpochMs = Date.now();
+  sensorEvents = signal<SignalObservation[]>([]);
+  scenarioPending = signal(0);
+  vibrating = signal(false);
   phoneScript = signal('');
   phoneScriptName = signal('No script loaded');
   latitude = 37.7749;
   longitude = -122.4194;
   accuracy = 10;
+  altitude: number | null = null;
+  locationHeading: number | null = null;
+  speed: number | null = null;
   phoneStatus = signal('Stopped');
   watchReady = signal(false);
   linked = signal(false);
@@ -398,6 +408,8 @@ export class App implements AfterViewInit, OnDestroy {
             }
             if (data.type === 'error') {
               this.error.set(data.message);
+              if (data.command === 'health-settings' && data.generation === this.watchGeneration)
+                this.healthStatus.set(data.message);
               this.running.set(false);
               reject(new Error(data.message));
               return;
@@ -413,6 +425,7 @@ export class App implements AfterViewInit, OnDestroy {
               this.installing.set(data.installing);
               this.battery.set(data.state.battery);
               this.charging = data.charging;
+              this.scenarioPending.set(data.scenario?.pending ?? 0);
               if (data.state.fault) this.error.set(data.state.fault);
               this.draw(data.state.framebuffer);
             }
@@ -461,6 +474,50 @@ export class App implements AfterViewInit, OnDestroy {
     this.qemuWorker?.postMessage({ type: 'install', ...data });
   }
   handleQemuEvent(data: any) {
+    if (data.type === 'health-settings' && data.generation === this.watchGeneration)
+      this.healthStatus.set('Firmware accepted the health preferences.');
+    if (data.type === 'clock' && data.generation === this.watchGeneration) {
+      this.watchEpochMs = data.epochMs;
+      this.virtualSeconds.set(data.virtualUs / 1e6);
+      if (this.phoneAccepting)
+        this.phoneWorker?.postMessage({
+          type: 'clock',
+          virtualUs: data.virtualUs,
+          sequence: data.sequence,
+          transportGeneration: data.generation,
+        });
+      else if (data.sequence !== undefined)
+        this.qemuWorker?.postMessage({
+          type: 'phone-clock-ack',
+          generation: data.generation,
+          sequence: data.sequence,
+        });
+    }
+    if (data.type === 'signal' && data.generation === this.watchGeneration)
+      this.sensorEvents.update((rows) => [...rows, data].slice(-300));
+    if (
+      data.type === 'device-output' &&
+      data.kind === 'vibration' &&
+      data.generation === this.watchGeneration
+    )
+      this.vibrating.set(data.value);
+    if (
+      data.type === 'phone-signal' &&
+      data.generation === this.watchGeneration &&
+      this.phoneAccepting
+    ) {
+      const signal = data.signal;
+      this.phoneWorker?.postMessage(
+        signal.kind === 'location'
+          ? { type: 'location', coordinates: signal, virtualUs: data.virtualUs }
+          : {
+              type: 'location-error',
+              code: signal.code,
+              message: signal.message,
+              virtualUs: data.virtualUs,
+            },
+      );
+    }
     if (data.type === 'firmware-loaded' && isFirmwareProfile(data.profile)) {
       this.stopPhone();
       this.profile.set(data.profile);
@@ -471,6 +528,11 @@ export class App implements AfterViewInit, OnDestroy {
       return;
     }
     if (data.type === 'session') {
+      this.stopPhone();
+      this.healthStatus.set('');
+      this.sensorEvents.set([]);
+      this.scenarioPending.set(0);
+      this.vibrating.set(false);
       this.watchGeneration = data.generation;
       this.phoneMessages.beginSession(data.generation);
       this.linked.set(false);
@@ -546,6 +608,27 @@ export class App implements AfterViewInit, OnDestroy {
   }
   setConnection(value: boolean) {
     this.qemuWorker?.postMessage({ type: 'connection', connected: value });
+  }
+  sendSignal(signal: DeviceSignal) {
+    this.qemuWorker?.postMessage({ type: 'signal', signal });
+  }
+  healthStatus = signal('');
+  applyHealthSettings(values: { enabled: boolean; heartRate: boolean }) {
+    this.healthStatus.set('Waiting for firmware…');
+    this.qemuWorker?.postMessage({ type: 'health-settings', ...values });
+  }
+  scheduleSignals(scenario: SignalScenario) {
+    this.qemuWorker?.postMessage({ type: 'scenario', scenario });
+  }
+  cancelSignals() {
+    this.qemuWorker?.postMessage({ type: 'scenario-stop' });
+  }
+  locationUnavailable() {
+    this.phoneWorker?.postMessage({
+      type: 'location-error',
+      code: 2,
+      message: 'Location unavailable',
+    });
   }
   setCharge() {
     this.qemuWorker?.postMessage({
@@ -662,6 +745,12 @@ export class App implements AfterViewInit, OnDestroy {
     this.phoneStatus.set('Starting…');
     this.phoneWorker.onmessage = ({ data }) => {
       if (this.phoneWorker !== phone) return;
+      if (data.type === 'clock-ack')
+        this.qemuWorker?.postMessage({
+          type: 'phone-clock-ack',
+          generation: data.transportGeneration,
+          sequence: data.sequence,
+        });
       if (data.type === 'status') {
         this.phoneStatus.set(data.status);
         if (data.phoneGeneration !== undefined) this.phoneGeneration = data.phoneGeneration;
@@ -669,6 +758,11 @@ export class App implements AfterViewInit, OnDestroy {
       if (data.type === 'network-result')
         this.phoneHttp.update((rows) => [...rows, JSON.stringify(data)].slice(-100));
       if (data.type === 'error') {
+        this.qemuWorker?.postMessage({
+          type: 'phone-clock',
+          generation: this.watchGeneration,
+          enabled: false,
+        });
         this.phoneStatus.set('Error');
         this.log('PHONE', data.message);
       }
@@ -732,6 +826,11 @@ export class App implements AfterViewInit, OnDestroy {
     };
     this.phoneWorker.onerror = (e) => {
       if (this.phoneWorker !== phone) return;
+      this.qemuWorker?.postMessage({
+        type: 'phone-clock',
+        generation: this.watchGeneration,
+        enabled: false,
+      });
       this.phoneStatus.set('Error');
       this.log('PHONE', e.message);
     };
@@ -752,11 +851,33 @@ export class App implements AfterViewInit, OnDestroy {
       watchToken: this.watchToken,
       network: { mode: this.phoneNetworkMode, fixtures },
       storage,
-      coordinates: { latitude: this.latitude, longitude: this.longitude, accuracy: this.accuracy },
+      coordinates: {
+        latitude: this.latitude,
+        longitude: this.longitude,
+        accuracy: this.accuracy,
+        altitude: this.altitude,
+        heading: this.locationHeading,
+        speed: this.speed,
+      },
       connected: this.linked(),
+      clock: this.isFirmware() ? 'watch' : 'wall',
+      nowMs: this.isFirmware() ? Math.floor(this.watchEpochMs) : Date.now(),
+      virtualUs: Math.round(this.virtualSeconds() * 1e6),
+      randomSeed: 1,
     });
+    if (this.isFirmware())
+      this.qemuWorker?.postMessage({
+        type: 'phone-clock',
+        generation: this.watchGeneration,
+        enabled: true,
+      });
   }
   stopPhone() {
+    this.qemuWorker?.postMessage({
+      type: 'phone-clock',
+      generation: this.watchGeneration,
+      enabled: false,
+    });
     this.configuration.set(null);
     this.phoneAccepting = false;
     this.phoneWorker?.postMessage({ type: 'stop' });
@@ -827,11 +948,23 @@ export class App implements AfterViewInit, OnDestroy {
     }
     this.phoneWorker?.postMessage({
       type: 'location',
-      coordinates: { latitude: this.latitude, longitude: this.longitude, accuracy: this.accuracy },
+      coordinates: {
+        latitude: this.latitude,
+        longitude: this.longitude,
+        accuracy: this.accuracy,
+        altitude: this.altitude,
+        heading: this.locationHeading,
+        speed: this.speed,
+      },
     });
   }
   setClock() {
     const epoch = new Date(this.epochValue + 'Z').getTime() / 1000;
-    if (Number.isFinite(epoch)) this.qemuWorker?.postMessage({ type: 'epoch', epoch });
+    if (Number.isFinite(epoch)) {
+      this.stopPhone();
+      this.watchEpochMs = Math.floor(epoch * 1000);
+      this.qemuWorker?.postMessage({ type: 'epoch', epoch });
+      this.log('CLOCK', 'Watch time changed. Start the phone script to use the new clock origin.');
+    }
   }
 }

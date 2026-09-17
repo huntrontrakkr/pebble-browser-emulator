@@ -134,6 +134,36 @@ export class PebbleTransport {
     }
     this.spp = this.spp.slice(offset);
   }
+  /** BlobDB replies come from firmware; status 1 confirms the actual operation. */
+  async insertBlob(database: number, key: Uint8Array, value: Uint8Array): Promise<void> {
+    uint(database, 255, 'BlobDB database');
+    uint(key.length, 255, 'BlobDB key length');
+    if (!key.length || value.length > 65535 - key.length - 7)
+      throw new Error('Invalid BlobDB entry size.');
+    const token = (this.token = (this.token + 1) & 0xffff);
+    const payload = new Uint8Array(7 + key.length + value.length),
+      data = view(payload);
+    payload[0] = 1;
+    data.setUint16(1, token, true);
+    payload[3] = database;
+    payload[4] = key.length;
+    payload.set(key, 5);
+    data.setUint16(5 + key.length, value.length, true);
+    payload.set(value, 7 + key.length);
+    const mark = this.sequence;
+    await this.send(0xb1db, payload);
+    const response = (
+      await this.waitPacket(
+        0xb1db,
+        (p) => p.length >= 2 && view(p).getUint16(0, true) === token,
+        mark,
+      )
+    ).payload;
+    if (response.length !== 3 || response[2] !== 1)
+      throw new Error(
+        `BlobDB ${database} rejected the entry: status ${response[2] ?? 'malformed'}.`,
+      );
+  }
   /** Validate end-of-stream; a live UART normally stays open until reset. */
   finish(): void {
     if (this.serial.length || this.spp.length) throw new Error('Truncated QEMU or Pebble packet.');

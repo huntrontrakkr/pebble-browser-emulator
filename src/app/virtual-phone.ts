@@ -79,12 +79,20 @@ export class VirtualPhone {
     }
     this.nowMs = options.nowMs ?? 0;
     this.checkTime(this.nowMs);
+    if (
+      options.randomSeed !== undefined &&
+      (!Number.isInteger(options.randomSeed) ||
+        options.randomSeed < 0 ||
+        options.randomSeed > 4294967295)
+    )
+      throw new Error('Invalid random seed.');
     const coordinates = normalizeCoordinates(
       options.coordinates ?? { latitude: 0, longitude: 0, accuracy: 0 },
     );
     const config = {
       appId: options.appId,
       nowMs: this.nowMs,
+      randomSeed: options.randomSeed,
       coordinates,
       storage: options.storage ?? {},
       messageKeys: options.messageKeys ?? {},
@@ -153,6 +161,11 @@ export class VirtualPhone {
   }
   setLocation(coordinates: PhoneCoordinates): void {
     this.perform('location', JSON.stringify(normalizeCoordinates(coordinates)));
+  }
+  setLocationError(code: 1 | 2 | 3, message = 'Location unavailable'): void {
+    if (![1, 2, 3].includes(code) || typeof message !== 'string' || message.length > 1000)
+      throw new Error('Invalid geolocation error.');
+    this.perform('locationError', code, message);
   }
   injectAppMessage(payload: AppMessageDictionary): void {
     this.perform('appmessage', JSON.stringify(payload));
@@ -333,6 +346,12 @@ function normalizeCoordinates(value: PhoneCoordinates): Required<PhoneCoordinate
     if (output[key] !== null && !Number.isFinite(output[key]))
       throw new Error(`Invalid geolocation ${key}.`);
   }
+  if (
+    (output.altitudeAccuracy !== null && output.altitudeAccuracy < 0) ||
+    (output.speed !== null && output.speed < 0) ||
+    (output.heading !== null && (output.heading < 0 || output.heading >= 360))
+  )
+    throw new Error('Invalid geolocation altitude accuracy, speed, or heading.');
   return output;
 }
 
@@ -419,6 +438,10 @@ const BOOTSTRAP = String.raw`function(config) {
   VirtualDate.now = () => now; VirtualDate.parse = NativeDate.parse; VirtualDate.UTC = NativeDate.UTC;
   globalThis.Date = VirtualDate;
   globalThis.performance = Object.freeze({now: () => now - startedAt});
+  if(config.randomSeed!==undefined) {
+    let state=config.randomSeed>>>0;
+    Math.random=()=>{state=(state+0x6d2b79f5)>>>0;let n=Math.imul(state^(state>>>15),state|1);n^=n+Math.imul(n^(n>>>7),n|61);return ((n^(n>>>14))>>>0)/4294967296;};
+  }
   function schedule(callback, delay, repeat, args) {
     if (typeof callback !== 'function' && typeof callback !== 'string') throw new TypeError('Timer requires a callback.');
     if (timers.size >= limits.timers) throw new Error('Timer limit exceeded.');
@@ -440,11 +463,13 @@ const BOOTSTRAP = String.raw`function(config) {
   }
   const network = (${NETWORK_BOOTSTRAP})({emit, schedule, cancelTimer:id=>timers.delete(id), byteLength, limits, mode:config.network.mode, fixtures:config.network.fixtures});
   function locationValue() { return {coords:{...coordinates},timestamp:now}; }
+  let locationError=null;
+  function locationResult(success,error) {if(locationError){if(typeof error==='function')error({...locationError,PERMISSION_DENIED:1,POSITION_UNAVAILABLE:2,TIMEOUT:3});}else success(locationValue());}
   globalThis.navigator = Object.freeze({geolocation:Object.freeze({
-    getCurrentPosition(success,_error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.'); schedule(() => success(locationValue()),0,false,[]); },
-    watchPosition(success,_error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.');
+    getCurrentPosition(success,error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.'); schedule(() => locationResult(success,error),0,false,[]); },
+    watchPosition(success,error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.');
       if (watchers.size >= limits.timers) throw new Error('Geolocation watcher limit exceeded.');
-      const id = nextWatch++; watchers.set(id,success); schedule(() => {if(watchers.has(id))success(locationValue());},0,false,[]); return id; },
+      const id = nextWatch++; watchers.set(id,{success,error}); schedule(() => {if(watchers.has(id))locationResult(success,error);},0,false,[]); return id; },
     clearWatch(id) { watchers.delete(Number(id)); },
   })});
   function log(level,args) {
@@ -514,7 +539,8 @@ const BOOTSTRAP = String.raw`function(config) {
   return Object.freeze({
     ready() {if (!ready) {ready=true; dispatch('ready',{});}},
     timer,
-    location(json) {coordinates=parse(json); for (const [id,callback] of watchers) schedule(()=>{if(watchers.has(id))callback(locationValue());},0,false,[]);},
+    location(json) {coordinates=parse(json);locationError=null; for (const [id,callbacks] of watchers) schedule(()=>{if(watchers.has(id))locationResult(callbacks.success,callbacks.error);},0,false,[]);},
+    locationError(code,message) {locationError={code,message};for(const [id,callbacks] of watchers)schedule(()=>{if(watchers.has(id))locationResult(callbacks.success,callbacks.error);},0,false,[]);},
     appmessage(json) {const incoming=parse(json), payload=Object.create(null); for(const key of keys(incoming)) payload[reverseKeys[key] ?? key]=incoming[key]; dispatch('appmessage',{payload});},
     configuration() {dispatch('showConfiguration',{});},
     configurationClosed(response,requestId) {if(activeConfiguration===null || (requestId!==null && requestId!==activeConfiguration))return false; activeConfiguration=null;dispatch('webviewclosed',{response});return true;},

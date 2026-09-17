@@ -44,6 +44,70 @@ body {
   background: var(--bg);
   color: var(--text);
 }
+.sensor-tools fieldset {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  margin: 16px 0;
+  padding: 12px;
+  min-width: 0;
+}
+.sensor-tools legend {
+  font-weight: 600;
+  padding: 0 5px;
+}
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.sensor-plot {
+  width: 100%;
+  height: 150px;
+  background: var(--panel-alt);
+  margin: 12px 0;
+  border: 1px solid var(--line);
+}
+.sensor-tools details {
+  margin: 14px 0;
+}
+.sensor-tools summary {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.sensor-event-log {
+  max-height: 220px;
+  overflow: auto;
+  line-height: 1.8;
+}
+.frame-comparison {
+  padding: 16px;
+  border-top: 1px solid var(--line);
+}
+.frame-comparison summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.frame-difference {
+  display: block;
+  image-rendering: pixelated;
+  max-width: 100%;
+  margin: 12px 0;
+}
+.hash {
+  overflow-wrap: anywhere;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.check input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
 button,
 input,
 select,
@@ -95,7 +159,7 @@ a {
 a:hover {
   text-decoration: underline;
 }
-input:not([type='range']):not([type='file']),
+input:not([type='range']):not([type='file']):not([type='checkbox']),
 select {
   border: 1px solid var(--line);
   border-radius: 5px;

@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRepository, importRepository, readLimited } from '../src/app/projects.ts';
+import {
+  parseRepository,
+  importRepository,
+  readLimited,
+  folderSnapshot,
+} from '../src/app/projects.ts';
 import { describeAsset } from '../src/app/firmware-catalog.ts';
 import { renderPixels } from '../src/app/display.ts';
 test('repository parsing preserves explicit branch and subdirectory', () => {
@@ -23,6 +28,8 @@ test('GitHub import pins raw file requests to the resolved commit and preserves 
         tree: [
           { path: 'app/package.json', type: 'blob', mode: '100644', size: 2 },
           { path: 'app/src/c/main.c', type: 'blob', mode: '100644', size: 3 },
+          { path: 'app/build/generate.py', type: 'blob', mode: '100644', size: 3 },
+          { path: 'app/.github/build.sh', type: 'blob', mode: '100755', size: 3 },
         ],
       });
     if (String(url).endsWith('package.json')) return new Response('{}');
@@ -36,10 +43,39 @@ test('GitHub import pins raw file requests to the resolved commit and preserves 
   );
   assert.equal(snapshot.commit, sha);
   assert.deepEqual(snapshot.files['src/c/main.c'], new Uint8Array([0, 128, 255]));
+  assert.deepEqual(snapshot.files['build/generate.py'], new Uint8Array([0, 128, 255]));
+  assert.deepEqual(snapshot.files['.github/build.sh'], new Uint8Array([0, 128, 255]));
   assert(
     paths
       .filter((p) => p.includes('raw.githubusercontent'))
       .every((p) => p.includes('/' + sha + '/')),
+  );
+});
+test('local folders retain build helpers and recipes, enforce quotas before reading, and cancel', async () => {
+  const entry = (path, text = 'source') => ({
+    name: path.split('/').at(-1),
+    webkitRelativePath: 'project/' + path,
+    size: new TextEncoder().encode(text).length,
+    arrayBuffer: async () => new TextEncoder().encode(text).buffer,
+  });
+  const entries = [entry('build/generate.py'), entry('.pebble-browser.yml'), entry('.git/config')];
+  const snapshot = await folderSnapshot(entries);
+  assert.deepEqual(Object.keys(snapshot.files), ['build/generate.py', '.pebble-browser.yml']);
+  await assert.rejects(
+    folderSnapshot(entries, () => true),
+    /canceled/,
+  );
+  await assert.rejects(
+    folderSnapshot([
+      {
+        ...entry('oversized'),
+        size: 129 * 1048576,
+        arrayBuffer: () => {
+          throw new Error('Must not read oversized input');
+        },
+      },
+    ]),
+    /128 MiB/,
   );
 });
 test('stream size limits are enforced on actual downloaded bytes', async () => {
