@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-17T12:23:51.766Z",
+  "prepared": "http://127.0.0.1:4201/#/github/huntrontrakkr/pebble-browser-emulator?ref=51267795ee82fb342df73d974243622f7214c271",
+  "source": "http://127.0.0.1:4201/#/github/huntrontrakkr/pebble-browser-emulator?ref=51267795ee82fb342df73d974243622f7214c271&path=examples%2Fpreview-clock",
+  "sourceBuild": "Actual browser compiler, imported SDK 4.33.1, automatic PBW installation",
+  "errors": [],
+  "passed": true,
+  "scope": "Chromium browser with actual GitHub HTTP requests, actual Wasm compiler and official SDK; local firmware fixture. No network mocks or guest substitutions.",
+  "testedOrigin": "http://127.0.0.1:4201/"
+}

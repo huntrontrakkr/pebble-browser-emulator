@@ -25,6 +25,9 @@ changes reduce host work without establishing a physical-phone FPS claim or cali
 The new core still matches all three frozen native sensor frames exactly.
 The preview/cached-reload workflow passes Chromium, Firefox and Linux WebKit at a mobile
 viewport, including WebKit's IndexedDB fallback. [Memory, frame and browser records](evidence/preview-performance.json).
+An actual public GitHub preview also passes both routes: downloading its commit-pinned
+prepared package, and importing Clock source, opening the real SDK, compiling with the
+browser Wasm compiler and automatically installing. [GitHub workflow record](evidence/github-preview-workflow.json).
 
 | Capability                 | Verified scope                                                                                                                                                                                                                                           |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
