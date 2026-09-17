@@ -82,12 +82,12 @@ fn scalar_oracle_covers_widths_alignment_edges_wrap_and_fault_order() {
                     let address = a.wrapping_add(i);
                     let mut written = false;
                     for (index, base) in [(1, 0x10000000u32), (2, 0x20000000), (3, 0x50000000)] {
-                        if let Some(offset) = address.checked_sub(base) {
-                            if let Some(byte) = expected[index].get_mut(offset as usize) {
-                                *byte = (value >> (i * 8)) as u8;
-                                written = true;
-                                break;
-                            }
+                        if let Some(offset) = address.checked_sub(base)
+                            && let Some(byte) = expected[index].get_mut(offset as usize)
+                        {
+                            *byte = (value >> (i * 8)) as u8;
+                            written = true;
+                            break;
                         }
                     }
                     if !written {
