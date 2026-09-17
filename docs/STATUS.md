@@ -17,9 +17,10 @@ cleanup on all three current profiles. Watchface installation waits for this set
 The controls sit beside the screen and follow the watch in 3D; all three current products
 have their own official, checksummed CAD model. [Behavior, protocol and limits](DEMO.md).
 [Browser, firmware and cache acceptance records](evidence/demo-workflow.json).
-The bundled Round 2 firmware can remain in its live-alert introduction; the same symptom
-was observed in native QEMU. Stored notifications are readable through its Notifications
-app. This remains a documented compatibility limit, not a verified complete alert workflow.
+The Round 2 live-alert rendering failure is fixed: our demo encoder omitted the standard
+Dismiss action. Controlled native QEMU comparisons isolate that omission; adding the action
+restores the message without changing firmware. Chromium, Firefox and WebKit match every
+visible notification pixel below the status clock. [Root cause and scope](NOTIFICATION_RCA.md).
 
 ## Preview and phone usability
 

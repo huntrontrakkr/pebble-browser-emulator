@@ -131,12 +131,6 @@
         <p class="help">
           Saved to the watch’s Notifications app. Use Send now to show a live alert.
         </p>
-        @if (roundWatch) {
-          <p class="help">
-            Round 2’s bundled 4.37 firmware can remain on the alert animation. Open Notifications
-            from the watch’s app menu to read stored messages.
-          </p>
-        }
         @for (n of draft.notifications; track n.id; let i = $index) {
           <fieldset class="sample-item">
             <legend>Message {{ i + 1 }}</legend>

@@ -1,0 +1,359 @@
+{
+  "date": "2026-09-17T16:24:22.711532+00:00",
+  "finding": "Omitting the standard Dismiss action triggers Gabbro 4.37.0 live-alert rendering failure. Adding it restores the message; firmware bytes are unchanged.",
+  "scope": "Controlled notification-input comparison, functional rendering and dismissal. No universal firmware, physical-board, calibrated-cycle or phone-performance claim.",
+  "referenceFirmware": {
+    "profile": "qemu_gabbro",
+    "version": "4.37.0",
+    "width": 260,
+    "height": 260,
+    "microSha256": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+    "flashSha256": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed",
+    "pbwSha256": "282f1cc6d92f783aa86f5bafd113f8aaec8ac29ddcb7ac482eba09f04c32a3c6"
+  },
+  "serializerControl": "Unmodified PyPI libpebble2 0.0.31 Notifications.send_notification serializer",
+  "nativeCases": [
+    {
+      "case": "official",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f000000000000000000000000000000000c00fac6a00000100000149000401010400416c6578040400010000000315004d65657420666f7220636f6666656520617420333f02130053616d706c65206e6f74696669636174696f6e0004010107004469736d697373"
+      },
+      "payloadSha256": "bda768c4cb3e27ddb2257586c1b5ed5fe4b6380c18d696b5823a16c9fc45f185",
+      "messageVisible": true,
+      "frames": [
+        {
+          "elapsedHostMs": 100,
+          "file": "native-100.bin",
+          "sha256": "cc52438d3cc00b78c0216693f72b2c26009d65cd11b81dc53c7c0a532cf51c85",
+          "bytes": 67600
+        },
+        {
+          "elapsedHostMs": 500,
+          "file": "native-500.bin",
+          "sha256": "0b0e9eaac72b1eb362ce21516a311ff2d992a527602227432d668c685bc30568",
+          "bytes": 67600
+        },
+        {
+          "elapsedHostMs": 1000,
+          "file": "native-1000.bin",
+          "sha256": "92e32dbf73870826ee13b97adfa399abb1883bd8b8d34750e6eb4129c1c0fcc4",
+          "bytes": 67600
+        },
+        {
+          "elapsedHostMs": 3000,
+          "file": "native-3000.bin",
+          "sha256": "92e32dbf73870826ee13b97adfa399abb1883bd8b8d34750e6eb4129c1c0fcc4",
+          "bytes": 67600
+        },
+        {
+          "elapsedHostMs": 10000,
+          "file": "native-10000.bin",
+          "sha256": "92e32dbf73870826ee13b97adfa399abb1883bd8b8d34750e6eb4129c1c0fcc4",
+          "bytes": 67600
+        }
+      ]
+    },
+    {
+      "case": "no-action",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f000000000000000000000000000000000c00fac6a0000010000013c000400010400416c6578040400010000000315004d65657420666f7220636f6666656520617420333f02130053616d706c65206e6f74696669636174696f6e"
+      },
+      "payloadSha256": "30c3fdc99046560bfbd0c8f2a12aa72721cdd8b2fad1342bcee1852cb6b75ac5",
+      "messageVisible": false,
+      "frames": [
+        {
+          "elapsedHostMs": 1500,
+          "file": "native-1500.bin",
+          "sha256": "86aab7b3af4375d56ddca3270634a6d07b71910ed83064572789c9dc9c8fac15",
+          "bytes": 67600
+        }
+      ]
+    },
+    {
+      "case": "no-icon",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f000000000000000000000000000000000c00fac6a00000100000142000301010400416c65780315004d65657420666f7220636f6666656520617420333f02130053616d706c65206e6f74696669636174696f6e0004010107004469736d697373"
+      },
+      "payloadSha256": "a523b412436bca695834063278b80afd4383e7a53e190fc9b3be3877acc54c7c",
+      "messageVisible": true,
+      "frames": [
+        {
+          "elapsedHostMs": 1500,
+          "file": "native-1500.bin",
+          "sha256": "6c2e3b92a419fbe550d25c50bb5af1bab0716977a5d3b2edec45e964cf1b2cc1",
+          "bytes": 67600
+        }
+      ]
+    },
+    {
+      "case": "our-layout",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f000000000000000000000000000000000c00fac6a00000100000449000401010400416c6578040400010000000315004d65657420666f7220636f6666656520617420333f02130053616d706c65206e6f74696669636174696f6e0004010107004469736d697373"
+      },
+      "payloadSha256": "c5883d10e70162ea4a5ab28418f7739a7b08237f6e4ab8f1747d5ce2736184fe",
+      "messageVisible": true,
+      "frames": [
+        {
+          "elapsedHostMs": 1500,
+          "file": "native-1500.bin",
+          "sha256": "6c2e3b92a419fbe550d25c50bb5af1bab0716977a5d3b2edec45e964cf1b2cc1",
+          "bytes": 67600
+        }
+      ]
+    },
+    {
+      "case": "our-flags",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f000000000000000000000000000000000c00fac6a00000101000149000401010400416c6578040400010000000315004d65657420666f7220636f6666656520617420333f02130053616d706c65206e6f74696669636174696f6e0004010107004469736d697373"
+      },
+      "payloadSha256": "9e5bd60f0c48d4c1f875d5703cbf1157ebfafdcf0ba9ddffe694cacca93481f3",
+      "messageVisible": true,
+      "frames": [
+        {
+          "elapsedHostMs": 1500,
+          "file": "native-1500.bin",
+          "sha256": "6c2e3b92a419fbe550d25c50bb5af1bab0716977a5d3b2edec45e964cf1b2cc1",
+          "bytes": 67600
+        }
+      ]
+    },
+    {
+      "case": "our-parent",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f063cb75b2397e4ad09c50d538fdeffe00c00fac6a00000100000149000401010400416c6578040400010000000315004d65657420666f7220636f6666656520617420333f02130053616d706c65206e6f74696669636174696f6e0004010107004469736d697373"
+      },
+      "payloadSha256": "48c847a6c0035ef331c788240021fb1330f1fe5657016471ada023e1a0c08f50",
+      "messageVisible": true,
+      "frames": [
+        {
+          "elapsedHostMs": 1500,
+          "file": "native-1500.bin",
+          "sha256": "6c2e3b92a419fbe550d25c50bb5af1bab0716977a5d3b2edec45e964cf1b2cc1",
+          "bytes": 67600
+        }
+      ]
+    },
+    {
+      "case": "no-subtitle",
+      "notification": {
+        "database": 4,
+        "key": "2e9cb86e29a449f0bcb57822dee741f0",
+        "value": "2e9cb86e29a449f0bcb57822dee741f000000000000000000000000000000000c00fac6a00000100000133000301010400416c6578040400010000000315004d65657420666f7220636f6666656520617420333f0004010107004469736d697373"
+      },
+      "payloadSha256": "f4666ed033002175a00a08932910c926b3d20bb7f5925b6a69d8688062ed3b41",
+      "messageVisible": true,
+      "frames": [
+        {
+          "elapsedHostMs": 1500,
+          "file": "native-1500.bin",
+          "sha256": "0ad42338b0797d6386d8167776856723abf7ab2f0fae109667e6354a5425cb58",
+          "bytes": 67600
+        }
+      ]
+    }
+  ],
+  "demoActionAb": {
+    "before": "demo-notification-reference.json",
+    "after": {
+      "file": "notification-gabbro-fixed-native.bin",
+      "sha256": "4b0d26864adc705cec8d633b3586be93c27cd8ec0b32ad276bb1faf16b67755f",
+      "bytes": 67600
+    },
+    "soleInputChange": "Append Dismiss action; update action count and serialized data length"
+  },
+  "wasmComparison": {
+    "mask": "y >= 24 and (x-129.5)^2 + (y-129.5)^2 < 130^2; width = 260",
+    "comparedPixels": 50636,
+    "nativeVisibleSha256": "d08a3be9a922ec30609ae636ffb9c80b148f0535ce586cd44b46811c5b9ac600",
+    "wasmVisibleSha256": "d08a3be9a922ec30609ae636ffb9c80b148f0535ce586cd44b46811c5b9ac600",
+    "differentPixels": 0,
+    "fullFrameDifferentPixels": 42,
+    "negativeReferenceRejected": true
+  },
+  "browsers": [
+    {
+      "engine": "chromium",
+      "profile": "qemu_gabbro",
+      "launchMs": 16016,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 162.1875,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 291.796875,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "profile": "qemu_gabbro",
+      "launchMs": 16688,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 162.1999969482422,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 291.79998779296875,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "profile": "qemu_gabbro",
+      "launchMs": 15036,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 17,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 162.1875,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 227,
+          "width": 48,
+          "height": 48
+        },
+        {
+          "x": 325,
+          "y": 291.796875,
+          "width": 48,
+          "height": 48
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "otherProfiles": {
+    "chromium": ["qemu_emery", "qemu_flint"],
+    "result": "Demo workflow passed; 3D skipped because unchanged"
+  },
+  "screenshots": [
+    {
+      "file": "notification-gabbro-fixed.png",
+      "sha256": "df23e2abf4411d04f44031264d377c19bc38784a00d90c29fe0dfa90a676a6f8",
+      "observation": "Corrected live notification"
+    },
+    {
+      "file": "notification-gabbro-dismissed.png",
+      "sha256": "072a43aece05f324a925e11d015473e7e1fc3fb8e616571839d2f7fb8576c6c8",
+      "observation": "Clock after Dismiss and its first-use tutorial"
+    }
+  ],
+  "tests": {
+    "javascriptPassed": 333,
+    "javascriptOptionalSkipped": 9,
+    "javascriptFailed": 0
+  },
+  "performance": {
+    "hostCpu": "12th Gen Intel(R) Core(TM) i9-12900KF",
+    "host": "Linux Chromium, desktop computer",
+    "viewport": "412x915, device scale factor 2",
+    "profile": "qemu_gabbro",
+    "view": "pixels",
+    "sample": "Clock example, default demo inputs, fresh browser context",
+    "method": "For each six-second phase, clear captured Worker clock messages, use first/last performance.now() timestamps and virtualUs values. Live phase includes Send now. Concurrent QA was running. Not an FPS, physical-phone, thermal or calibrated-cycle benchmark.",
+    "physicalPixelMeasured": false,
+    "phases": [
+      {
+        "name": "idle",
+        "wallMs": 6009,
+        "sampleWallMs": 5905.5999999940395,
+        "virtualMs": 5917.253812499999,
+        "ratio": 1.0019733494489926,
+        "samples": 51
+      },
+      {
+        "name": "live-notification",
+        "wallMs": 6075,
+        "sampleWallMs": 5970.199999988079,
+        "virtualMs": 5875.698031250002,
+        "ratio": 0.9841710547823748,
+        "samples": 54
+      }
+    ]
+  }
+}

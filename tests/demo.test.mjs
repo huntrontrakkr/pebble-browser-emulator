@@ -62,6 +62,11 @@ test('timeline bytes match independent Python struct vectors from the firmware w
   const live = demoRecords(settings, fixtures.epochMs, 0);
   assert.equal(live.length, 1);
   assert.equal(live[0].dismissed, undefined, 'Live alert is not automatically archived');
+  // Independently produced by libpebble2 0.0.31 Notifications.send_notification().
+  const dismissAction = '0004010107004469736d697373';
+  assert.equal(live[0].value[45], 1, 'Live notifications expose the standard Dismiss action');
+  assert.equal(Buffer.from(live[0].value.slice(-13)).toString('hex'), dismissAction);
+  assert.equal(records[2].value[45], 0, 'Calendar records do not acquire notification actions');
   settings.enabled = false;
   assert.deepEqual(demoRecords(settings, fixtures.epochMs), []);
   assert.throws(() => demoKey(1, 8));

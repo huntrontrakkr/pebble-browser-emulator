@@ -676,7 +676,6 @@
       [busy]="demoBusy() || installing()"
       [ready]="watchReady() && isFirmware()"
       [heartRateAvailable]="profile() === 'qemu_emery'"
-      [roundWatch]="profile() === 'qemu_gabbro'"
       [status]="demoStatus()"
       [theme]="theme()"
       (themeChanged)="setTheme($event)"

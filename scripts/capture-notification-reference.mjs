@@ -8,8 +8,6 @@ import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { PebbleTransport } from '../src/app/pebble-transport.ts';
 import { appPackage } from '../src/app/archives.ts';
-import { signalControl } from '../src/app/signals.ts';
-import { healthPreferences } from '../src/app/watch-preferences.ts';
 import { FIRMWARE_PROFILES, APP_PLATFORMS } from '../src/app/watch-profiles.ts';
 const profile = process.env.PEBBLE_PROFILE ?? 'qemu_emery',
   version = process.env.PEBBLE_FIRMWARE_VERSION ?? '4.37.0';
@@ -133,8 +131,19 @@ try {
   await transport.setBluetooth(true);
   await transport.install(appPackage(pbw, platform));
   await sleep(1000);
-  for (const r of demoRecords(defaultDemoSettings(), Date.now(), 0))
-    await transport.insertBlob(r.database, r.key, r.value);
+  for (const r of demoRecords(defaultDemoSettings(), Date.now(), 0)) {
+    let value = r.value;
+    if (process.env.PEBBLE_OMIT_NOTIFICATION_ACTION === '1') {
+      // Controlled negative case: remove only the actions and repair the wire lengths.
+      let end = 46;
+      const view = new DataView(value.buffer, value.byteOffset, value.byteLength);
+      for (let i = 0; i < value[44]; i++) end += 3 + view.getUint16(end + 1, true);
+      value = value.slice(0, end);
+      value[45] = 0;
+      new DataView(value.buffer).setUint16(42, end - 46, true);
+    }
+    await transport.insertBlob(r.database, r.key, value);
+  }
   let elapsed = 0;
   const frames = [];
   for (const delay of [3000, 7000]) {
@@ -177,6 +186,7 @@ try {
         flashSha256: hash(await fs.readFile(flash)),
         pbwSha256: hash(pbw),
         frames,
+        notificationActions: process.env.PEBBLE_OMIT_NOTIFICATION_ACTION === '1' ? 0 : 1,
         scope:
           'Real native firmware, unsynchronized notification observations; not a frame-equality test.',
       },

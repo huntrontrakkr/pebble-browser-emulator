@@ -23,7 +23,6 @@ export class DemoSettingsPanel implements OnInit, AfterViewInit {
   @Input() busy = false;
   @Input() ready = false;
   @Input() heartRateAvailable = false;
-  @Input() roundWatch = false;
   @Input() status = '';
   @Input() theme = 'light';
   @Output() themeChanged = new EventEmitter<string>();

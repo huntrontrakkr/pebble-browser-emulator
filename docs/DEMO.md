@@ -59,21 +59,24 @@ Wire references (read as protocol documentation; no upstream runtime code is cop
 The independent `tests/fixtures/demo-timeline.json` vectors use Python `struct` with the
 firmware's 46-byte `<16s16sIHBBBBHBB` header and `<BH` attribute headers. They cover UTF-8,
 archive status, calendar parent IDs, lengths and little-endian time/duration fields.
+Notification vectors also include the standard local Dismiss action, independently checked
+against Pebble's `libpebble2` notification serializer.
 
-### Round 2 live-alert limitation
+### Round 2 live-alert correction
 
-With the bundled 4.37.0 Gabbro firmware, a live alert can remain in its introduction
-animation instead of revealing the message. The same payload reproduces this behavior
-in the independent native `qemu-pebble` emulator at 3- and 10-second checkpoints. This
-observation does not establish its root cause or the behavior of other firmware versions.
-Settings flags the limitation beside the notification controls. Default archived messages
-remain readable: Select opens the watch's app menu; choose Notifications.
-[Observed reference frames and archive view](evidence/demo-notification-reference.json).
+Our original encoder omitted the Dismiss action included by Pebble's normal notification
+sender. Actionless messages were acknowledged but triggered Gabbro 4.37.0's incomplete
+live-alert rendering. Adding that action fixes the message; no firmware is patched.
+The corrected visible message matches native QEMU in Chromium, Firefox and WebKit.
+Select opens Dismiss; selecting it dismisses the message. Fresh firmware also shows its
+one-time action tutorial, which Select closes. [Root cause, evidence and limits](NOTIFICATION_RCA.md).
 
 `PEBBLE_FIRMWARE_DIR=... PEBBLE_APP_PBW=public/examples/clock-gabbro.pbw
 PEBBLE_PROFILE=qemu_gabbro PEBBLE_QEMU=... node scripts/capture-notification-reference.mjs`
-records unchanged native firmware behavior. These captures are not synchronized equality
-assertions; the existing frozen sensor-frame comparisons retain their separate scope.
+records unchanged native firmware behavior. Set `PEBBLE_OMIT_NOTIFICATION_ACTION=1` to
+reproduce the original failure with only the action removed. Browser acceptance compares
+the corrected message to the frozen native reference, excluding the changing status clock
+and off-display corners. Existing complete sensor-frame comparisons keep their separate scope.
 
 ## Controls and models
 

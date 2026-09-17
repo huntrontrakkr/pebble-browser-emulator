@@ -684,5 +684,5 @@
       }
     ]
   },
-  "knownLimit": "Round 2 live alert can remain in the introduction with 4.37.0; also observed in native QEMU. Stored notification list is readable."
+  "knownLimit": "Historical Round 2 live-alert failure resolved: the demo sender omitted Dismiss. See notification-rca.json for controlled comparisons and corrected browser acceptance."
 }

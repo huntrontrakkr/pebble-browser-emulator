@@ -21,10 +21,11 @@
     }
   ],
   "scope": "Real native firmware, unsynchronized notification observations; not a frame-equality test.",
-  "observation": "The live alert introduction remained at the 3- and 10-second checkpoints in native QEMU, as in the browser. This is an observed compatibility limit; no guest patch or inferred root-cause claim.",
+  "observation": "Historical pre-fix capture: the live alert introduction remained at the 3- and 10-second checkpoints in native QEMU, as in the browser. The input omitted Dismiss; the original compatibility-limit interpretation is superseded by notification-rca.json.",
   "browserArchive": {
     "file": "demo-round-notifications.png",
     "sha256": "aebf5afd85b9a98adc0da5f6add63804cddea6be3f38f27a1502cbc9147d94ae",
     "workflow": "Clock \u2192 Select \u2192 Down twice \u2192 Select; seeded message body is visible in the Notifications app."
-  }
+  },
+  "resolution": "Fixed by including the standard Dismiss action; see ../NOTIFICATION_RCA.md and notification-rca.json."
 }

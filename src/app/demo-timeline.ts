@@ -34,7 +34,11 @@ function item(
     bytes.set(content, 3);
     return bytes;
   });
-  const length = attributes.reduce((n, a) => n + a.length, 0),
+  // Match Pebble's Notifications sender: a local Dismiss action is always present.
+  // Omitting it reproduces Gabbro 4.37.0's lingering live-alert transition frame.
+  const actions =
+    type === 1 ? Uint8Array.of(0, 4, 1, 1, 7, 0, ...encode.encode('Dismiss')) : new Uint8Array();
+  const length = attributes.reduce((n, a) => n + a.length, actions.length),
     result = new Uint8Array(46 + length),
     view = new DataView(result.buffer);
   result.set(key);
@@ -47,12 +51,13 @@ function item(
   result[41] = layout;
   view.setUint16(42, length, true);
   result[44] = attributes.length;
-  result[45] = 0;
+  result[45] = type === 1 ? 1 : 0;
   let offset = 46;
   for (const a of attributes) {
     result.set(a, offset);
     offset += a.length;
   }
+  result.set(actions, offset);
   return result;
 }
 export interface DemoRecord {

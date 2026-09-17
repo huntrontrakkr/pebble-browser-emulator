@@ -1,6 +1,7 @@
 // Real browser + bundled firmware acceptance; no simulated firmware responses.
 import { chromium, firefox, webkit } from 'playwright';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const out = resolve(process.env.PEBBLE_TRACE_DIR ?? 'tmp/demo-browser');
@@ -32,7 +33,10 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium').split(',')) {
               q.events.push(data);
             if (data.type === 'clock') q.virtualUs = data.virtualUs;
             if (data.type === 'signal') q.samples++;
-            if (data.type === 'state') q.battery = data.state.battery;
+            if (data.type === 'state') {
+              q.battery = data.state.battery;
+              q.frame = data.state.framebuffer;
+            }
           });
         }
         postMessage(data, ...args) {
@@ -118,6 +122,27 @@ for (const engine of (process.env.PEBBLE_BROWSERS ?? 'chromium').split(',')) {
       await page.getByRole('button', { name: 'Close settings', exact: true }).click();
       await advance(3);
       await snap('notification');
+      if (profile === 'qemu_gabbro') {
+        const reference = await readFile('docs/evidence/notification-gabbro-fixed-native.bin');
+        const frame = await page.evaluate(() => Array.from(window.demoQa.frame));
+        const hash = (bytes) =>
+          createHash('sha256')
+            .update(
+              bytes.filter(
+                (_, i) =>
+                  i >= 260 * 24 &&
+                  ((i % 260) - 129.5) ** 2 + (Math.floor(i / 260) - 129.5) ** 2 < 130 ** 2,
+              ),
+            )
+            .digest('hex');
+        // Compare the visible round display below its status clock. Off-display corners can
+        // retain pixels from the preceding app; keep every visible icon/title/body/action pixel.
+        assert.equal(
+          hash(Buffer.from(frame)),
+          hash(reference),
+          'The actual notification must match native QEMU after the introduction completes',
+        );
+      }
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       // Explicitly opt in to the lazy renderer and official CAD download.
       if (process.env.PEBBLE_SKIP_3D !== '1') {
