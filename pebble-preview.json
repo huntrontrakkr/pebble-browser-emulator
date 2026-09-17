@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "packages": {
+    "emery": {
+      "path": "public/examples/clock-emery.pbw",
+      "sha256": "a8ca53c9ec0bf4410f346274111bdcced111192a80062267edf6428eca832e51"
+    },
+    "flint": {
+      "path": "public/examples/clock-flint.pbw",
+      "sha256": "7a1b3e3defdbd6e501ac581c1e07b008b3e0581a24d90e5b8cfa47e27fd6ef62"
+    },
+    "gabbro": {
+      "path": "public/examples/clock-gabbro.pbw",
+      "sha256": "282f1cc6d92f783aa86f5bafd113f8aaec8ac29ddcb7ac482eba09f04c32a3c6"
+    }
+  }
+}

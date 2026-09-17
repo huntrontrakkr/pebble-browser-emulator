@@ -28,6 +28,14 @@ impl PebbleBus {
         Self::with_profile(code, atomics, BoardProfile::EMERY)
     }
     pub fn with_profile(code: Vec<u8>, atomics: Arc<CoreAtomics>, profile: BoardProfile) -> Self {
+        Self::with_flash(code, vec![255; 32 * 1024 * 1024], atomics, profile)
+    }
+    fn with_flash(
+        code: Vec<u8>,
+        flash: Vec<u8>,
+        atomics: Arc<CoreAtomics>,
+        profile: BoardProfile,
+    ) -> Self {
         Self {
             profile,
             atomics,
@@ -35,7 +43,7 @@ impl PebbleBus {
             ram: vec![0; profile.ram_bytes],
             frame: vec![0; 128 * 1024],
             presented_frame: vec![0; profile.frame_len()],
-            flash: vec![255; 32 * 1024 * 1024],
+            flash,
             devices: peripherals::Devices::with_profile(profile),
             active_pc: 0,
             failed: None,
@@ -237,8 +245,11 @@ pub fn boot(code: Vec<u8>) -> (CortexM33, PebbleBus) {
 /// The shared instruction engine executes the common M4/M33 instruction set.
 /// CPUID and memory differ per board; complete architecture exclusion is not yet modeled.
 pub fn boot_profile(code: Vec<u8>, profile: BoardProfile) -> (CortexM33, PebbleBus) {
+    boot_images(code, vec![255; 32 * 1024 * 1024], profile)
+}
+fn boot_images(code: Vec<u8>, flash: Vec<u8>, profile: BoardProfile) -> (CortexM33, PebbleBus) {
     let a = Arc::new(CoreAtomics::default());
-    let mut bus = PebbleBus::with_profile(code, a.clone(), profile);
+    let mut bus = PebbleBus::with_flash(code, flash, a.clone(), profile);
     let mut cpu = CortexM33::new(0, a);
     cpu.ppb.cpuid = profile.cpuid;
     cpu.regs.msp = bus.read32(0, 0);
@@ -524,7 +535,7 @@ pub extern "C" fn spike_boot_profile(profile_id: u32, code_len: u32, flash_len: 
     if !(8..=4 * 1024 * 1024).contains(&code_len) || flash_len != 32 * 1024 * 1024 {
         return 0;
     }
-    let image = UPLOAD.with(|b| std::mem::take(&mut *b.borrow_mut()));
+    let mut image = UPLOAD.with(|b| std::mem::take(&mut *b.borrow_mut()));
     if image.len() != code_len as usize + flash_len as usize {
         return 0;
     }
@@ -540,8 +551,12 @@ pub extern "C" fn spike_boot_profile(profile_id: u32, code_len: u32, flash_len: 
     }
     let mut code = supplied.to_vec();
     code.resize(4 * 1024 * 1024, 0);
-    let (mut cpu, mut bus) = boot_profile(code, profile);
-    bus.flash = image[code_len as usize..].to_vec();
+    // Retain the uploaded allocation as SPI storage. Avoid allocating and then
+    // discarding a blank 32 MiB chip and a second full copy of its contents.
+    // copy_within is overlap-safe; no guest bytes or flash behavior change.
+    image.copy_within(code_len as usize.., 0);
+    image.truncate(flash_len as usize);
+    let (mut cpu, mut bus) = boot_images(code, image, profile);
     cpu.ppb.syst_csr = 0;
     bus.failed = None;
     MACHINE.with(|m| *m.borrow_mut() = Some((cpu, bus)));

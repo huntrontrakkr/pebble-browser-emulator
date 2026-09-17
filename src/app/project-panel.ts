@@ -36,7 +36,7 @@ import type { PackageInfo } from './archives.ts';
     </div>
     <div class="actions">
       <button class="primary" (click)="import()" [disabled]="busy()">Import repository</button
-      ><button (click)="demo()" [disabled]="busy()">Load example</button
+      ><button (click)="demo()" [disabled]="busy()">Import example source</button
       ><button (click)="sensorDemo()" [disabled]="busy()">Sensor test</button
       ><label class="file-button"
         >Open source ZIP<input
@@ -126,6 +126,37 @@ import type { PackageInfo } from './archives.ts';
   `,
 })
 export class ProjectPanel implements OnDestroy {
+  private launchRevision = 0;
+  private autoPreview = false;
+  @Input() set launchSource(source: SourceSnapshot | null) {
+    if (!source) return;
+    this.cancel();
+    this.launchRevision++;
+    this.autoPreview = true;
+    this.repo = `${source.owner}/${source.repository}`;
+    this.ref = source.commit;
+    this.root = source.root;
+    this.setProject(source);
+    void this.restoreSdkForPreview();
+  }
+  private async restoreSdkForPreview() {
+    const revision = this.launchRevision;
+    if (!this.sdk) {
+      try {
+        const sdk = await readLocal<{ name: string; files: Record<string, Uint8Array> }>('sdk');
+        if (revision !== this.launchRevision) return;
+        if (sdk) {
+          this.sdk = sdk.files;
+          this.sdkName.set(sdk.name);
+        }
+      } catch {}
+    }
+    if (this.sdk) await this.build();
+    else
+      this.status.set(
+        'This shared project needs a source build. Open SDK 4.33.1 below to build and preview it automatically.',
+      );
+  }
   @ViewChild(LinuxBuildPanel) linuxPanel?: LinuxBuildPanel;
   linuxBusy = false;
   linuxState(value: boolean) {
@@ -185,7 +216,9 @@ export class ProjectPanel implements OnDestroy {
     this.storageRevision++;
     try {
       await clearLocal();
-      this.status.set('Saved project and SDK files removed from this device.');
+      this.status.set(
+        'Saved projects, SDK, build images and preview firmware removed from this device.',
+      );
     } catch (e) {
       this.status.set(String(e));
     }
@@ -200,6 +233,8 @@ export class ProjectPanel implements OnDestroy {
     return new TextDecoder().decode(bytes.subarray(0, 16000)) + (bytes.length > 16000 ? '\n…' : '');
   }
   async import() {
+    this.autoPreview = false;
+    this.launchRevision++;
     const job = ++this.job;
     this.storageRevision++;
     this.busy.set(true);
@@ -322,6 +357,7 @@ export class ProjectPanel implements OnDestroy {
         if (job === this.job)
           this.status.set('SDK ready for this session; local storage is unavailable.');
       }
+      if (job === this.job && this.autoPreview) await this.build();
     });
   }
   openZip(event: Event) {
@@ -433,6 +469,10 @@ export class ProjectPanel implements OnDestroy {
       this.status.set(
         `Build complete · ${platform} · ${result.pbw.length} bytes · ${result.metadata.relocations.length} relocations`,
       );
+      if (this.autoPreview) {
+        this.autoPreview = false;
+        this.install();
+      }
     } catch (e) {
       if (job === this.job) this.status.set(String(e));
     } finally {
@@ -460,6 +500,8 @@ export class ProjectPanel implements OnDestroy {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   cancel() {
+    this.autoPreview = false;
+    this.launchRevision++;
     this.linuxPanel?.cancel();
     this.job++;
     this.controller?.abort();

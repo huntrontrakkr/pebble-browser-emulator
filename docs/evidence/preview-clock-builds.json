@@ -1,0 +1,37 @@
+{
+  "sdkVersion": "4.33.1",
+  "timestamp": 1700000000,
+  "sourceHashes": {
+    "package.json": "3a77d0ba2e3df020d5c1a954418c0097b515a68de9d01202d80e3f68db30c392",
+    "src/c/main.c": "1dc51ae8f1544a21892c6eeab2a677dfb8ad5f65709cc5e6a5e7b8cb032851be"
+  },
+  "results": [
+    {
+      "platform": "emery",
+      "pbwBytes": 6485,
+      "load": 1262,
+      "virtual": 1340,
+      "resourceNames": [],
+      "workerBytes": 0,
+      "sha256": "a8ca53c9ec0bf4410f346274111bdcced111192a80062267edf6428eca832e51"
+    },
+    {
+      "platform": "flint",
+      "pbwBytes": 6483,
+      "load": 1262,
+      "virtual": 1340,
+      "resourceNames": [],
+      "workerBytes": 0,
+      "sha256": "7a1b3e3defdbd6e501ac581c1e07b008b3e0581a24d90e5b8cfa47e27fd6ef62"
+    },
+    {
+      "platform": "gabbro",
+      "pbwBytes": 6491,
+      "load": 1262,
+      "virtual": 1340,
+      "resourceNames": [],
+      "workerBytes": 0,
+      "sha256": "282f1cc6d92f783aa86f5bafd113f8aaec8ac29ddcb7ac482eba09f04c32a3c6"
+    }
+  ]
+}

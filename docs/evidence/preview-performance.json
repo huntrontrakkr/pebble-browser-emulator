@@ -1,0 +1,89 @@
+{
+  "date": "2026-09-17",
+  "wasm_memory": [
+    {
+      "sha256": "551e913ec504e2b1e2b77c5b9b1a52c3c73ff234b6ea43040cf4afb2ea294c5d",
+      "initialBytes": 1114112,
+      "afterUploadBytes": 36372480,
+      "afterBootBytes": 109576192,
+      "booted": 1
+    },
+    {
+      "sha256": "e56614c0dfdbeb88e6c6d51a7dcd84125d276733565dbbf5335e438e50fb27a8",
+      "initialBytes": 1114112,
+      "afterUploadBytes": 36372480,
+      "afterBootBytes": 42336256,
+      "booted": 1
+    }
+  ],
+  "scope": "Wasm linear memory immediately after loading the same unchanged Emery 4.37.0 micro/SPI pair. Not total browser RAM. No CPU instruction or guest firmware patches.",
+  "native_reference": "docs/evidence/sensor-service-gate.json",
+  "frames": [
+    {
+      "profile": "qemu_flint",
+      "bytes": 24192,
+      "wasm_sha256": "0002863e7895717d7a21d40eb8451b940a7971407f843480e3dbc1316a847467",
+      "native_sha256": "0002863e7895717d7a21d40eb8451b940a7971407f843480e3dbc1316a847467",
+      "differing_bytes": 0
+    },
+    {
+      "profile": "qemu_emery",
+      "bytes": 45600,
+      "wasm_sha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "native_sha256": "2d175204b06aaebeeeb85729b44a8156b6762e6f89c76994cc9c030fcf684ed9",
+      "differing_bytes": 0
+    },
+    {
+      "profile": "qemu_gabbro",
+      "bytes": 67600,
+      "wasm_sha256": "82fb3e7274c90c9a27460d2eb60875ce8c35f8a5ba225bfc878896e8f41be48a",
+      "native_sha256": "82fb3e7274c90c9a27460d2eb60875ce8c35f8a5ba225bfc878896e8f41be48a",
+      "differing_bytes": 0
+    }
+  ],
+  "preview_browsers": {
+    "date": "2026-09-17T12:13:49.267Z",
+    "scope": "Linux browser engines with a mobile viewport, not measurements on a physical phone. Local firmware import, example install, cancellation, hash link, PBW download, cached reload, screen pacing and pause.",
+    "results": [
+      {
+        "browser": "chromium",
+        "version": "153.0.8010.12",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 11381,
+        "cachedBootAndInstallMs": 10857,
+        "measurementSeconds": 10,
+        "virtualSeconds": 9.86,
+        "stateMessages": 39,
+        "clockMessages": 91,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "firefox",
+        "version": "155.0",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 11419,
+        "cachedBootAndInstallMs": 11482,
+        "measurementSeconds": 10,
+        "virtualSeconds": 10.700969874999998,
+        "stateMessages": 40,
+        "clockMessages": 95,
+        "mainThreadLongTasks": [],
+        "passed": true
+      },
+      {
+        "browser": "webkit",
+        "version": "26.6",
+        "viewport": "390x844",
+        "firstBootAndInstallMs": 10392,
+        "cachedBootAndInstallMs": 9881,
+        "measurementSeconds": 10,
+        "virtualSeconds": 10.019860031249998,
+        "stateMessages": 41,
+        "clockMessages": 96,
+        "mainThreadLongTasks": [],
+        "passed": true
+      }
+    ]
+  }
+}

@@ -2,6 +2,14 @@
 
 Original project source is Apache-2.0; see LICENSE. Dependencies retain their own licenses.
 
+## Preview example
+
+`public/examples/clock-{emery,flint,gabbro}.pbw` are compiled versions of the Apache-2.0
+source in `examples/preview-clock`, built with the pinned browser compiler and official
+SDK 4.33.1 ABI library. They contain the application's code and SDK API linkage, with no
+firmware, SDK archive, system font data or phone script. Reproduction instructions accompany
+the source; package hashes are recorded in the root `pebble-preview.json`.
+
 ## Rust CPU
 
 `vendor/rp2350-emu` is version 0.2.6 of [picoem](https://github.com/0x4D44/picoem),

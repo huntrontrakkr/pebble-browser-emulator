@@ -46,6 +46,7 @@ for (const name of names) {
       await page.getByRole('button', { name: label, exact: true }).click();
     };
     await page.goto(base);
+    await click('Developer tools');
     await page.getByText('Core ready', { exact: true }).waitFor();
     await page
       .getByLabel('Open micro flash .bin / .elf', { exact: true })

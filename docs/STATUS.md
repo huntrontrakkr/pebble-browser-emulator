@@ -7,6 +7,25 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Preview and phone usability
+
+The first workspace now offers **Try example**, **Open watchface .pbw**, and GitHub project
+previews. It starts no Workers until needed. Clock is an actual precompiled native watchface;
+its installation uses the same firmware protocol as developer builds. A one-time local
+firmware setup is still required, with per-profile persistence, board/version checks and
+official 4.37.0 checksums. Saved firmware boots automatically on example and project links.
+Prepared projects use a checksummed `pebble-preview.json`; source-only projects retain the
+existing SDK and compiler acceptance limits. [Link contract and setup](PREVIEWS.md).
+
+Screen snapshots are coalesced independently of guest execution, clock-barrier messages no
+longer update Angular on every quantum, and preview mode paces the virtual clock. Developer
+panels load on demand; the optional 3D renderer stops when inactive. Startup reuses the flash
+upload allocation: measured Emery Wasm linear memory fell from 104.5 to 40.375 MiB. These
+changes reduce host work without establishing a physical-phone FPS claim or calibrated cycles.
+The new core still matches all three frozen native sensor frames exactly.
+The preview/cached-reload workflow passes Chromium, Firefox and Linux WebKit at a mobile
+viewport, including WebKit's IndexedDB fallback. [Memory, frame and browser records](evidence/preview-performance.json).
+
 | Capability                 | Verified scope                                                                                                                                                                                                                                           |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                  |

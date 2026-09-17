@@ -30,6 +30,7 @@ page.on('request', (r) => requests.push(r.url()));
 page.setDefaultTimeout(180000);
 try {
   await page.goto(base);
+  await page.getByRole('button', { name: 'Developer tools', exact: true }).click();
   await page.getByText('Core ready', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Projects', exact: true }).click();
   await page.getByLabel('Open project folder', { exact: true }).setInputFiles(source);
@@ -45,6 +46,7 @@ try {
   // The reference image is larger than Chromium's serialized-record limit. Verify that
   // Blob-backed persistence survives a real reload before starting the Worker.
   await page.reload();
+  await page.getByRole('button', { name: 'Developer tools', exact: true }).click();
   await page.getByText('Core ready', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Projects', exact: true }).click();
   await page.getByText('Linux compatibility build', { exact: true }).click();

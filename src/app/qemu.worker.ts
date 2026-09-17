@@ -15,6 +15,7 @@ import { UartWriter } from './uart-writer.ts';
 import { healthPreferences } from './watch-preferences.ts';
 import { ClockBarrier } from './clock-barrier.ts';
 import { signalRoute } from './board-registry.ts';
+import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
 let api: any,
   running = false,
   loaded = false,
@@ -33,7 +34,13 @@ let transport: PebbleTransport | undefined,
   linked = false,
   battery = 100,
   charging = false;
-const yieldTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+const yieldTask = yieldWorker;
+const presentation = new PresentationBudget();
+let lastClock = -Infinity;
+let batchSize = 50000;
+let cpuMs = 1;
+let realtime = false;
+let paceStart: { wall: number; virtual: number } | undefined;
 const timeline = new SignalTimeline();
 const uartWriter = new UartWriter();
 let scenarioName = '';
@@ -116,8 +123,15 @@ function tick(count = 100000): Promise<number> {
   return task;
 }
 async function tickOnce(count: number) {
+  const began = performance.now();
   let remaining = count;
-  const quantumEnd = phoneCoupled ? api.spike_ticks() + 640000 : Number.MAX_SAFE_INTEGER;
+  const quantumEnd =
+    api.spike_ticks() +
+    (phoneCoupled
+      ? 640000
+      : realtime && firmwareReady
+        ? 1280000
+        : Number.MAX_SAFE_INTEGER - api.spike_ticks());
   while (remaining > 0) {
     for (const event of timeline.takeDue(api.spike_ticks() / 64))
       applySignal(event.signal, event.atUs);
@@ -141,17 +155,18 @@ async function tickOnce(count: number) {
   flushUart();
   const frame = api.spike_frame_counter();
   const phase = phoneCoupled ? phoneClock.begin() : undefined;
-  postMessage({
-    type: 'clock',
-    generation,
-    epochMs: api.spike_epoch_ms(),
-    virtualUs: api.spike_ticks() / 64,
-    ...(phase ? { sequence: phase.sequence } : {}),
-  });
-  if (frame !== lastFrame || steps % 2000000 === 0) {
-    lastFrame = frame;
-    state();
+  if (phase || performance.now() - lastClock >= 100) {
+    lastClock = performance.now();
+    postMessage({
+      type: 'clock',
+      generation,
+      epochMs: api.spike_epoch_ms(),
+      virtualUs: api.spike_ticks() / 64,
+      ...(phase ? { sequence: phase.sequence } : {}),
+    });
   }
+  state(false);
+  cpuMs = Math.max(0.1, performance.now() - began);
   if (phase) await phase.done;
   return frame;
 }
@@ -227,6 +242,7 @@ function upload(bytes: Uint8Array) {
 }
 function stop() {
   runSequence++;
+  paceStart = undefined;
   running = false;
   clearTimeout(timer);
 }
@@ -255,6 +271,9 @@ function state(force = true) {
       ? `Bus ${api.spike_fault_write() ? 'write' : 'read'} at 0x${address.toString(16)}; PC 0x${api.spike_fault_pc().toString(16)}`
       : '';
   if (fault) stop();
+  const frame = api.spike_frame_counter();
+  if (!presentation.due(performance.now(), frame !== lastFrame, force || !!fault)) return;
+  lastFrame = frame;
   const framebuffer = new Uint8Array(
     api.memory.buffer,
     api.spike_frame(),
@@ -294,8 +313,18 @@ async function batch() {
   const owner = generation;
   const loop = runSequence;
   try {
-    await tick(250000);
-    if (owner === generation && loop === runSequence && running) timer = setTimeout(batch, 0);
+    await tick(batchSize);
+    if (owner !== generation || loop !== runSequence || !running) return;
+    batchSize = Math.max(10000, Math.min(250000, Math.round(batchSize * Math.min(2, 8 / cpuMs))));
+    if (realtime && firmwareReady) {
+      const wall = performance.now(),
+        virtual = api.spike_ticks() / 64000;
+      paceStart ??= { wall, virtual };
+      const delay = virtual - paceStart.virtual - (wall - paceStart.wall);
+      if (delay > 1) await new Promise((resolve) => setTimeout(resolve, Math.min(delay, 100)));
+    }
+    await yieldWorker();
+    if (owner === generation && loop === runSequence && running) void batch();
   } catch (e) {
     if (owner !== generation) return;
     stop();
@@ -307,6 +336,7 @@ function resetSession() {
   generation++;
   phoneClock.clear();
   phoneCoupled = false;
+  paceStart = undefined;
   cpuPump = Promise.resolve();
   timeline.clear();
   uartWriter.clear();
@@ -335,10 +365,12 @@ function boot(
   const selected = candidate.profile ?? 'qemu_emery';
   if (!isFirmwareProfile(selected)) throw new Error('Unsupported firmware profile.');
   stop();
-  const bytes = new Uint8Array(candidate.micro.length + candidate.flash.length);
-  bytes.set(candidate.micro);
-  bytes.set(candidate.flash, candidate.micro.length);
-  upload(bytes);
+  const length = candidate.micro.length + candidate.flash.length;
+  const pointer = api.spike_upload(length);
+  if (!pointer) throw new Error('Firmware exceeds the emulator upload limit.');
+  const destination = new Uint8Array(api.memory.buffer, pointer, length);
+  destination.set(candidate.micro);
+  destination.set(candidate.flash, candidate.micro.length);
   if (
     !api.spike_boot_profile(
       FIRMWARE_PROFILES[selected].id,
@@ -372,12 +404,17 @@ self.onmessage = async ({ data }) => {
     }
     if (!api) throw new Error('QEMU core is still loading.');
     switch (data.type) {
+      case 'pacing':
+        realtime = !!data.realtime;
+        paceStart = undefined;
+        break;
       case 'firmware':
         boot({ micro: data.micro, flash: data.flash, profile: data.profile }, data.name);
         break;
       case 'run':
         if (!loaded) throw new Error('Load firmware first.');
         if (!running) {
+          paceStart = undefined;
           running = true;
           batch();
         }

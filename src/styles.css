@@ -959,3 +959,276 @@ textarea {
   border-radius: 50%;
   overflow: hidden;
 }
+
+/* Preview is the primary workspace; inspection tools are opened explicitly. */
+:root {
+  font-size: 16px;
+}
+button,
+.file-button {
+  min-height: 42px;
+  font-size: 0.875rem;
+}
+label,
+.help,
+.tabs button,
+.segmented button,
+.watch-buttons button {
+  font-size: 0.875rem;
+}
+h2 {
+  font-size: 1.125rem;
+}
+h3 {
+  font-size: 1rem;
+}
+h1 {
+  font-size: 1.35rem;
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+.preview-launcher {
+  padding: 24px;
+}
+.workspace-modes {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.workspace-modes button {
+  border: 0;
+  border-radius: 0;
+  padding: 18px 0 14px;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+}
+.workspace-modes button.selected {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.preview-workspace {
+  grid-template-columns: minmax(300px, 390px) minmax(350px, 1fr);
+  gap: 24px;
+}
+.preview-mode {
+  max-width: 1240px;
+}
+.preview-mode .machine-bar {
+  min-height: 50px;
+  margin-top: -12px;
+}
+.preview-mode .machine-bar .label {
+  display: none;
+}
+.preview-mode .display-stage {
+  height: 520px;
+}
+.preview-mode .display-panel {
+  position: sticky;
+  top: 20px;
+}
+.preview-mode .display-caption {
+  font-size: 0.75rem;
+}
+.preview-chooser summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--muted);
+  padding: 4px 0 12px;
+}
+.preview-chooser > summary {
+  list-style-position: outside;
+  margin-left: 16px;
+}
+.preview-chooser label {
+  margin-top: 14px;
+}
+.launch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+.launch-actions > * {
+  width: 100%;
+  margin: 0;
+}
+.repository-launch {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+}
+.repository-launch > button {
+  width: 100%;
+  margin-top: 8px;
+}
+.repository-launch details {
+  margin: 8px 0;
+}
+.preview-selection {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 20px 0 12px;
+  overflow-wrap: anywhere;
+}
+.preview-selection a {
+  font-size: 0.875rem;
+}
+.preview-progress {
+  font-size: 0.875rem;
+  padding: 12px;
+  line-height: 1.6;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.preview-note {
+  margin: 18px 0 0;
+  font-size: 0.8125rem;
+}
+.firmware-setup {
+  margin: 18px 0;
+  padding: 18px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.firmware-setup p,
+.firmware-setup li {
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.firmware-setup ol {
+  padding-left: 20px;
+}
+.firmware-setup li {
+  margin: 12px 0;
+}
+.download-pair {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+.download-pair a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.firmware-setup .file-button {
+  white-space: normal;
+  text-align: center;
+}
+.preview-sharing {
+  margin-top: 20px;
+}
+.preview-sharing .actions {
+  gap: 8px;
+}
+.pixel-screen {
+  max-width: calc(100% - 40px);
+  height: auto !important;
+}
+.watch-buttons button {
+  min-height: 48px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (max-width: 1020px) {
+  .preview-workspace {
+    grid-template-columns: minmax(280px, 340px) minmax(300px, 1fr);
+  }
+  .preview-launcher {
+    padding: 20px;
+  }
+}
+@media (max-width: 780px) {
+  .preview-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .preview-mode .display-panel {
+    position: static;
+  }
+  .preview-mode .display-stage {
+    height: 380px;
+  }
+  .preview-mode .program-name {
+    max-width: 100%;
+  }
+  .preview-mode .machine-bar {
+    display: none;
+  }
+  .preview-mode .display-toolbar {
+    flex-wrap: wrap;
+  }
+  .preview-launcher {
+    padding: 18px;
+  }
+  .preview-launcher .section-heading {
+    margin-bottom: 10px;
+  }
+  .preview-note {
+    font-size: 0.8125rem;
+  }
+  .header-actions > a {
+    display: none;
+  }
+  .header-actions {
+    flex: initial;
+    margin-left: auto;
+  }
+  .topbar {
+    gap: 10px;
+    padding: 14px 16px;
+    align-items: center;
+  }
+  .identity {
+    font-size: 0.95rem;
+  }
+  .theme-control {
+    font-size: 0.75rem;
+    gap: 6px;
+  }
+  .theme-control select {
+    width: auto;
+  }
+  .workspace-modes {
+    margin-bottom: 16px;
+  }
+  .preview-selection {
+    margin: 12px 0;
+  }
+  .preview-sharing {
+    margin-top: 12px;
+  }
+  .preview-progress {
+    margin: 12px 0;
+  }
+  input:not([type='range']),
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+  .display-caption {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+.watch-progress { margin: 0; padding: 12px 18px; font-size: .875rem; background: var(--selected); border-bottom: 1px solid var(--line); }
+@media (max-width: 780px) {
+  .preview-workspace:not(.preview-active) .display-panel { display: none; }
+  .preview-workspace.preview-active .display-panel { order: -1; }
+  .preview-mode .display-stage { height: 350px; }
+  .preview-mode .pixel-screen { max-width: min(280px, calc(100% - 40px)); }
+}

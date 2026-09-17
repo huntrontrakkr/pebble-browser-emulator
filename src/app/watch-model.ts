@@ -14,6 +14,7 @@ export class WatchModel {
   private controls: OrbitControls;
   private frame = 0;
   private disposed = false;
+  private active = true;
   private geometry?: THREE.BufferGeometry;
   private material = new THREE.MeshStandardMaterial({
     color: 0xb6b9bd,
@@ -41,6 +42,7 @@ export class WatchModel {
     this.camera.position.set(36, 22, 115);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
+    this.controls.addEventListener('change', () => this.invalidate());
     this.controls.minDistance = 65;
     this.controls.maxDistance = 200;
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x69717e, 3));
@@ -82,17 +84,27 @@ export class WatchModel {
       this.renderer.setSize(width, height);
       this.camera.aspect = width / Math.max(1, height);
       this.camera.updateProjectionMatrix();
+      this.invalidate();
     });
     this.resize.observe(host);
-    const animate = () => {
-      if (this.disposed) return;
-      this.frame = requestAnimationFrame(animate);
-      if (host.clientHeight) {
-        this.controls.update();
-        this.renderer.render(this.scene, this.camera);
-      }
-    };
-    animate();
+    this.invalidate();
+  }
+  setActive(active: boolean) {
+    this.active = active;
+    if (active) this.invalidate();
+    else {
+      cancelAnimationFrame(this.frame);
+      this.frame = 0;
+    }
+  }
+  private invalidate() {
+    if (this.disposed || !this.active || this.frame) return;
+    this.frame = requestAnimationFrame(() => {
+      this.frame = 0;
+      if (this.disposed || !this.active || !this.host.clientHeight) return;
+      this.controls.update();
+      this.renderer.render(this.scene, this.camera);
+    });
   }
   async load(signal: AbortSignal) {
     const bytes = await readLimited(await fetch(CAD_URL, { signal }), 11 * 1024 * 1024);
@@ -107,13 +119,16 @@ export class WatchModel {
     this.geometry.translate(-127.9631424, -128.0000381, -6.2);
     this.geometry.computeVertexNormals();
     this.scene.add(new THREE.Mesh(this.geometry, this.material));
+    this.invalidate();
   }
   pixels(rgba: Uint8ClampedArray) {
     (this.texture.image.data as Uint8Array).set(rgba);
     this.texture.needsUpdate = true;
+    this.invalidate();
   }
   finish(value: string) {
     this.material.color.set(value === 'black' ? 0x30343b : 0xb6b9bd);
+    this.invalidate();
   }
   reset() {
     this.camera.position.set(36, 22, 115);

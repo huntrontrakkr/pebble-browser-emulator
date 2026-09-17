@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import type { EmulatorCommand, EmulatorEvent } from './emulator.types';
+import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
 type Wasm = WebAssembly.Exports & { memory: WebAssembly.Memory; [name: string]: any };
 let core: Wasm | undefined;
 let running = false,
@@ -9,6 +10,8 @@ let running = false,
 let desiredButtons = 0,
   desiredBattery = 100;
 let timer: ReturnType<typeof setTimeout> | undefined;
+let runSequence = 0;
+const presentation = new PresentationBudget();
 const emit = (event: EmulatorEvent) => postMessage(event);
 const out = () =>
   new Uint8Array(core!.memory.buffer, core!['output_ptr'](), core!['output_len']()).slice();
@@ -18,8 +21,9 @@ const input = (bytes: Uint8Array) => {
   if (!pointer) throw new Error('Input exceeds the 24 MiB limit.');
   new Uint8Array(core!.memory.buffer, pointer, bytes.length).set(bytes);
 };
-function state() {
+function state(force = true) {
   if (!core) return;
+  if (!presentation.due(performance.now(), true, force)) return;
   core['fault']();
   emit({
     type: 'state',
@@ -40,16 +44,22 @@ function state() {
   });
 }
 function stop() {
+  runSequence++;
   running = false;
   clearTimeout(timer);
 }
-function tick() {
+async function tick() {
   try {
     if (!running || !core) return;
-    core['run'](10000);
+    const owner = runSequence;
+    const began = performance.now();
+    do {
+      core['run'](10000);
+    } while (!core['halted']() && performance.now() - began < 8);
     if (core['halted']()) stop();
-    state();
-    if (running) timer = setTimeout(tick, 0);
+    state(!running);
+    await yieldWorker();
+    if (running && owner === runSequence) void tick();
   } catch (e) {
     stop();
     emit({ type: 'error', message: String(e), fatal: true });
@@ -85,6 +95,7 @@ addEventListener('message', async ({ data }: MessageEvent<EmulatorCommand>) => {
       case 'run':
         if (!running && !core['halted']()) {
           running = true;
+          state();
           tick();
         } else state();
         break;

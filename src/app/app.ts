@@ -11,6 +11,9 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirmwarePanel } from './firmware-panel.ts';
 import { ProjectPanel } from './project-panel.ts';
+import { PreviewPanel, type PreviewLaunch } from './preview-panel.ts';
+import { saveFirmware, type PreviewFirmware } from './preview-firmware.ts';
+import type { SourceSnapshot } from './projects.ts';
 import { SensorPanel, type SignalObservation } from './sensor-panel.ts';
 import { FramePanel } from './frame-panel.ts';
 import type { DeviceSignal, SignalScenario } from './signals.ts';
@@ -21,11 +24,41 @@ import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.ty
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, DecimalPipe, FirmwarePanel, ProjectPanel, SensorPanel, FramePanel],
+  imports: [
+    FormsModule,
+    DecimalPipe,
+    FirmwarePanel,
+    ProjectPanel,
+    SensorPanel,
+    FramePanel,
+    PreviewPanel,
+  ],
   templateUrl: './app.html',
 })
 export class App implements AfterViewInit, OnDestroy {
   @ViewChild('screen') screen!: ElementRef<HTMLCanvasElement>;
+  @ViewChild(PreviewPanel) preview?: PreviewPanel;
+  @ViewChild('projectEditor') projectEditor?: ProjectPanel;
+  workbench = signal(false);
+  toolsOpened = signal(false);
+  previewBusy = signal(false);
+  previewStatus = signal('');
+  previewSource = signal<SourceSnapshot | null>(null);
+  private pendingPreview?: PreviewLaunch['package'];
+  private firmwareToSave?: PreviewFirmware;
+  private autoRunFirmware = false;
+  private sourcePreview = false;
+  private resumeVisible = false;
+  private visibility = () => {
+    this.model?.setActive(!document.hidden && this.displayMode() === 'model');
+    if (document.hidden && !this.workbench() && this.running() && !this.installing()) {
+      this.resumeVisible = true;
+      this.pause();
+    } else if (!document.hidden && this.resumeVisible) {
+      this.resumeVisible = false;
+      this.run();
+    }
+  };
   ready = signal(false);
   loaded = signal(false);
   running = signal(false);
@@ -46,6 +79,11 @@ export class App implements AfterViewInit, OnDestroy {
   appPlatform() {
     const p = this.profile();
     return p === 'diagnostic-v1' ? 'emery' : FIRMWARE_PROFILES[p].platform;
+  }
+  buildPlatform() {
+    return this.sourcePreview && this.preview
+      ? FIRMWARE_PROFILES[this.preview.profile()].platform
+      : this.appPlatform();
   }
   hasModel() {
     return this.profile() === 'qemu_emery' || this.profile() === 'diagnostic-v1';
@@ -136,6 +174,10 @@ export class App implements AfterViewInit, OnDestroy {
       (document as Document & { modelContext?: InspectorRegistry }).modelContext,
       () => this.state(),
     );
+    document.addEventListener('visibilitychange', this.visibility);
+  }
+  private startDiagnosticCore() {
+    if (this.worker) return;
     this.worker = new Worker(new URL('./emulator.worker', import.meta.url), { type: 'module' });
     this.worker.onmessage = ({ data }: MessageEvent<EmulatorEvent>) => {
       if (data.type === 'ready') this.diagnosticReady = true;
@@ -198,6 +240,78 @@ export class App implements AfterViewInit, OnDestroy {
     this.phoneWorker?.terminate();
     this.modelAbort?.abort();
     this.model?.dispose();
+    document.removeEventListener('visibilitychange', this.visibility);
+  }
+  showTools(tab?: string) {
+    this.toolsOpened.set(true);
+    this.workbench.set(true);
+    if (tab) this.tab.set(tab);
+    this.startDiagnosticCore();
+  }
+  showPreview() {
+    this.workbench.set(false);
+  }
+  beginPreview() {
+    if (this.sourcePreview) this.projectEditor?.cancel();
+    this.sourcePreview = false;
+    this.previewSource.set(null);
+  }
+  async startPreview(data: PreviewLaunch) {
+    this.sourcePreview = false;
+    this.workbench.set(false);
+    this.error.set('');
+    this.pendingPreview = data.package;
+    this.previewBusy.set(true);
+    if (data.firmware) {
+      this.previewStatus.set('Starting firmware…');
+      await this.loadFirmware(data.firmware, true);
+    } else if (this.profile() === data.profile && this.loaded()) {
+      this.qemuWorker?.postMessage({ type: 'pacing', realtime: true });
+      if (this.watchReady()) this.installPreview();
+      else {
+        this.previewStatus.set('Starting firmware…');
+        this.run();
+      }
+    } else {
+      this.pendingPreview = undefined;
+      this.previewBusy.set(false);
+      this.error.set('Set up matching firmware before starting this preview.');
+    }
+  }
+  private installPreview() {
+    const pkg = this.pendingPreview;
+    if (!pkg) return;
+    this.pendingPreview = undefined;
+    this.previewStatus.set('Installing watchface…');
+    this.installPackage(pkg);
+    if (!this.running()) this.run();
+  }
+  cancelPreview() {
+    this.beginPreview();
+    const cancelInstall = this.installing() || (this.previewBusy() && !this.pendingPreview);
+    this.pendingPreview = undefined;
+    this.firmwareToSave = undefined;
+    this.autoRunFirmware = false;
+    this.loadRevision++;
+    this.previewBusy.set(false);
+    this.previewStatus.set('Preview canceled.');
+    this.resumeVisible = false;
+    if (cancelInstall && this.isFirmware()) this.reset();
+    else if (this.isFirmware()) {
+      this.qemuWorker?.postMessage({ type: 'pause' });
+      this.running.set(false);
+    }
+  }
+  openPreviewSource(source: SourceSnapshot) {
+    this.sourcePreview = true;
+    this.previewSource.set(source);
+    this.showTools('Projects');
+  }
+  projectPackage(data: { bytes: Uint8Array; name: string }) {
+    if (this.sourcePreview) {
+      this.workbench.set(false);
+      void this.preview?.builtPackage(data);
+    } else this.installPackage(data);
   }
   send(command: EmulatorCommand) {
     if (this.ready()) (this.isFirmware() ? this.qemuWorker : this.worker)?.postMessage(command);
@@ -344,7 +458,7 @@ export class App implements AfterViewInit, OnDestroy {
       0,
       0,
     );
-    if (this.hasModel()) this.model?.pixels(rgba);
+    if (this.hasModel() && this.displayMode() === 'model') this.model?.pixels(rgba);
   }
   redraw() {
     const state = this.state();
@@ -361,6 +475,7 @@ export class App implements AfterViewInit, OnDestroy {
   async setDisplay(mode: DisplayMode) {
     if (mode === 'model' && !this.hasModel()) return;
     this.displayMode.set(mode);
+    this.model?.setActive(mode === 'model' && !document.hidden);
     this.redraw();
     if (mode !== 'model' || this.model || this.modelLoading) return;
     this.modelLoading = true;
@@ -384,13 +499,17 @@ export class App implements AfterViewInit, OnDestroy {
   resetModel() {
     this.model?.reset();
   }
-  async loadFirmware(data: {
-    micro: Uint8Array;
-    flash: Uint8Array;
-    name: string;
-    profile?: FirmwareProfile;
-  }) {
+  async loadFirmware(
+    data: {
+      micro: Uint8Array;
+      flash: Uint8Array;
+      name: string;
+      profile?: FirmwareProfile;
+    },
+    autoRun = false,
+  ) {
     const revision = ++this.loadRevision;
+    this.autoRunFirmware = autoRun;
     this.worker?.postMessage({ type: 'pause' });
     this.error.set('');
     try {
@@ -407,10 +526,14 @@ export class App implements AfterViewInit, OnDestroy {
               return;
             }
             if (data.type === 'error') {
+              this.firmwareToSave = undefined;
               this.error.set(data.message);
               if (data.command === 'health-settings' && data.generation === this.watchGeneration)
                 this.healthStatus.set(data.message);
               this.running.set(false);
+              this.pendingPreview = undefined;
+              this.previewBusy.set(false);
+              this.previewStatus.set('Preview stopped. See the error above.');
               reject(new Error(data.message));
               return;
             }
@@ -452,15 +575,20 @@ export class App implements AfterViewInit, OnDestroy {
       }
       await this.qemuReady;
       if (revision !== this.loadRevision || this.destroyed) return;
+      this.firmwareToSave =
+        !autoRun && data.profile ? { ...data, profile: data.profile } : undefined;
+      this.qemuWorker.postMessage({ type: 'pacing', realtime: autoRun });
       this.qemuWorker.postMessage({ type: 'firmware', ...data });
       this.log('LOAD', data.name);
-      this.tab.set('Inputs');
+      if (!autoRun) this.tab.set('Inputs');
     } catch (e) {
       if (revision !== this.loadRevision) return;
       this.qemuWorker?.terminate();
       this.qemuWorker = undefined;
       this.qemuReady = undefined;
       this.error.set(String(e));
+      this.pendingPreview = undefined;
+      this.previewBusy.set(false);
     }
   }
   installPackage(data: { bytes: Uint8Array; name: string }) {
@@ -478,7 +606,6 @@ export class App implements AfterViewInit, OnDestroy {
       this.healthStatus.set('Firmware accepted the health preferences.');
     if (data.type === 'clock' && data.generation === this.watchGeneration) {
       this.watchEpochMs = data.epochMs;
-      this.virtualSeconds.set(data.virtualUs / 1e6);
       if (this.phoneAccepting)
         this.phoneWorker?.postMessage({
           type: 'clock',
@@ -519,12 +646,22 @@ export class App implements AfterViewInit, OnDestroy {
       );
     }
     if (data.type === 'firmware-loaded' && isFirmwareProfile(data.profile)) {
+      const saved = this.firmwareToSave;
+      this.firmwareToSave = undefined;
+      if (saved && saved.profile === data.profile && saved.name === data.name)
+        void saveFirmware(saved).catch(() =>
+          this.log('STORAGE', 'Firmware loaded for this session; local storage is unavailable.'),
+        );
       this.stopPhone();
       this.profile.set(data.profile);
       this.ready.set(true);
       this.watchReady.set(false);
       this.buttons = 0;
       if (!this.hasModel() && this.displayMode() === 'model') this.displayMode.set('pixels');
+      if (this.autoRunFirmware) {
+        this.autoRunFirmware = false;
+        this.qemuWorker?.postMessage({ type: 'run' });
+      }
       return;
     }
     if (data.type === 'session') {
@@ -542,6 +679,8 @@ export class App implements AfterViewInit, OnDestroy {
     if (data.type === 'firmware-ready') {
       this.watchReady.set(true);
       this.log('FIRMWARE', 'Boot complete. Ready for app installation.');
+      this.installPreview();
+      this.preview?.resumeAfterFirmware();
     }
     if (data.type === 'connection') {
       this.linked.set(data.connected);
@@ -562,6 +701,13 @@ export class App implements AfterViewInit, OnDestroy {
         appInfo: data.appinfo,
       });
       if (data.script) this.startPhone();
+      this.previewBusy.set(false);
+      this.previewStatus.set('Ready. Use the buttons below the watch to interact.');
+      this.preview?.collapseOnPhone();
+      if (typeof matchMedia === 'function' && matchMedia('(max-width: 780px)').matches)
+        requestAnimationFrame(() =>
+          this.screen?.nativeElement.closest('.display-panel')?.scrollIntoView({ block: 'start' }),
+        );
     }
     if (data.type === 'protocol') {
       this.packets.update((rows) =>

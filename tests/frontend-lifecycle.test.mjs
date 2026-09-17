@@ -115,6 +115,35 @@ test('switching to the diagnostic profile cannot leave an installation running i
   );
 });
 
+test('a queued preview installs once after firmware boot; cancel removes the queued launch', () => {
+  const app = makeApp();
+  app.pendingPreview = { bytes: new Uint8Array([1]), name: 'Clock.pbw' };
+  app.watchReady.set(false);
+  app.handleQemuEvent({ type: 'firmware-ready' });
+  app.handleQemuEvent({ type: 'firmware-ready' });
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
+  app.pendingPreview = { bytes: new Uint8Array([2]), name: 'Canceled.pbw' };
+  app.cancelPreview();
+  app.handleQemuEvent({ type: 'firmware-ready' });
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
+});
+
+test('phone clock barriers keep acknowledgments without scheduling UI clock redraws', () => {
+  const app = makeApp();
+  app.virtualSeconds.set(42);
+  for (let sequence = 1; sequence <= 100; sequence++)
+    app.handleQemuEvent({
+      type: 'clock',
+      generation: 1,
+      sequence,
+      virtualUs: sequence * 10000,
+      epochMs: sequence * 10,
+    });
+  assert.equal(app.virtualSeconds(), 42);
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'phone-clock-ack').length, 100);
+  assert.equal(app.watchEpochMs, 1000);
+});
+
 test('an ACK for the previous phone instance cannot acknowledge the replacement phone', () => {
   const app = makeApp();
   app.startPhone();

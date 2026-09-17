@@ -101,6 +101,9 @@ Implemented: clean utility interface, light/dark themes, exact pixels, adjustabl
 approximation, and rotatable official Time 2 CAD with the live screen.
 
 - [x] Public static release of the first useful firmware/app workflow.
+- [x] Preview workspace, prepared Clock PBWs, one-time cached firmware setup, and commit-pinned GitHub preview links.
+- [x] Lazy developer panels, bounded screen updates, paced previews and reduced firmware startup allocations.
+- [ ] A redistributable default firmware image for zero-setup public previews; actual phone benchmarks and CPU throughput optimization.
 - [x] Chromium/Firefox/Linux WebKit sensor workflow, exact frame export and local-request audit.
 - [ ] Actual desktop Chrome/Edge/Firefox/Safari release matrix, accessibility, offline reload
       and full build workflows; static deployment portability.

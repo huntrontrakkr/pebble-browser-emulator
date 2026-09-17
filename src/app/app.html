@@ -2,7 +2,7 @@
   <a class="identity" href="./">Pebble Browser Emulator</a>
   <div class="header-actions">
     <span class="connection"
-      ><i [class.connected]="ready()"></i>{{ ready() ? 'Core ready' : 'Loading core' }}</span
+      ><i [class.connected]="ready()"></i>{{ ready() ? 'Core ready' : 'Ready to load' }}</span
     ><label class="theme-control"
       >Theme<select [ngModel]="theme()" (ngModelChange)="setTheme($event)">
         <option value="light">Light</option>
@@ -16,8 +16,20 @@
     >
   </div>
 </header>
-<main>
-  <div class="machine-bar">
+<main [class.preview-mode]="!workbench()">
+  <nav class="workspace-modes" aria-label="Workspace">
+    <button
+      [class.selected]="!workbench()"
+      [attr.aria-pressed]="!workbench()"
+      (click)="showPreview()"
+    >
+      Preview
+    </button>
+    <button [class.selected]="workbench()" [attr.aria-pressed]="workbench()" (click)="showTools()">
+      Developer tools
+    </button>
+  </nav>
+  <div class="machine-bar" [hidden]="!loaded() && !workbench()">
     <div>
       <span class="label">Machine</span><strong>{{ machineName() }}</strong
       ><span class="tag">{{
@@ -32,8 +44,28 @@
       ><button (click)="error.set('')" aria-label="Dismiss error">×</button>
     </div>
   }
-  <div class="workspace">
+  <div
+    class="workspace"
+    [class.preview-workspace]="!workbench()"
+    [class.preview-active]="loaded() || previewBusy()"
+  >
+    <section class="preview-launcher panel" [hidden]="workbench()">
+      <preview-panel
+        [currentProfile]="profile()"
+        [watchLoaded]="isFirmware() && loaded()"
+        [sessionBusy]="previewBusy()"
+        [sessionStatus]="previewStatus()"
+        (launch)="startPreview($event)"
+        (source)="openPreviewSource($event)"
+        (tools)="showTools($event)"
+        (canceled)="cancelPreview()"
+        (starting)="beginPreview()"
+      />
+    </section>
     <section class="display-panel panel" aria-label="Watch display">
+      @if (!workbench() && previewBusy()) {
+        <p class="watch-progress" role="status">{{ previewStatus() }}</p>
+      }
       <div class="display-toolbar">
         <nav class="segmented" aria-label="Display view">
           <button
@@ -62,7 +94,7 @@
             3D watch
           </button>
         </nav>
-        <label class="compact" [hidden]="displayMode() === 'model'"
+        <label class="compact" [hidden]="displayMode() === 'model' || !workbench()"
           >Scale<select [(ngModel)]="zoom">
             <option [ngValue]="1">1×</option>
             <option [ngValue]="2">2×</option>
@@ -78,10 +110,13 @@
           [style.width.px]="display().width * zoom"
           [class.round-screen]="display().round"
           [style.height.px]="display().height * zoom"
+          [style.aspect-ratio]="display().width + ' / ' + display().height"
         >
           <canvas #screen width="200" height="228" aria-label="Live watch framebuffer"></canvas>
           @if (!loaded()) {
-            <div class="empty-display">No firmware loaded</div>
+            <div class="empty-display">
+              {{ workbench() ? 'No firmware loaded' : 'Choose a watchface to start' }}
+            </div>
           }
         </div>
         @if (displayMode() === 'model' && modelStatus()) {
@@ -144,6 +179,7 @@
         ><button
           [disabled]="!loaded() || !ready() || !!state()?.halted || running() || installing()"
           (click)="send({ type: 'step' })"
+          [hidden]="!workbench()"
         >
           Step</button
         ><button
@@ -157,19 +193,21 @@
         >
           Reset
         </button>
-        <div class="execution-stats">
+        <div class="execution-stats" [hidden]="!workbench()">
           <strong>{{ state()?.instructions || 0 | number }}</strong
           ><span>{{ isFirmware() ? 'Scheduler steps' : 'Instructions' }}</span>
         </div>
       </div>
-      @if (installStatus()) {
+      @if (installStatus() && workbench()) {
         <p class="install-status" role="status">{{ installStatus() }}</p>
       }
-      <frame-panel
-        [frame]="state()?.framebuffer"
-        [width]="display().width"
-        [height]="display().height"
-      />
+      @if (workbench()) {
+        <frame-panel
+          [frame]="state()?.framebuffer"
+          [width]="display().width"
+          [height]="display().height"
+        />
+      }
       <div class="watch-buttons" aria-label="Watch buttons">
         @for (item of buttonList; track item.mask) {
           <button
@@ -191,384 +229,395 @@
         }
       </div>
     </section>
-    <section class="tools-panel panel">
-      <nav class="tabs" aria-label="Development tools">
-        @for (name of ['Firmware', 'Projects', 'Inputs', 'Phone', 'Debug', 'Packets']; track name) {
-          <button
-            [class.selected]="tab() === name"
-            [attr.aria-current]="tab() === name ? 'page' : null"
-            (click)="tab.set(name)"
-          >
-            {{ name }}
-          </button>
-        }
-      </nav>
-      <div class="tool-content" [hidden]="tab() !== 'Firmware'">
-        <firmware-panel (loadFirmware)="loadFirmware($event)" />
-        <hr />
-        <h3>Core diagnostic</h3>
-        <p class="help">A separate test board for instruction and framebuffer checks.</p>
-        <div class="actions">
-          <button (click)="diagnostic()" [disabled]="!ready()">Load diagnostic</button
-          ><label class="file-button"
-            >Open diagnostic .bin<input
-              type="file"
-              accept=".bin"
-              (change)="loadImage($event)"
-              [disabled]="!ready()"
-          /></label>
-        </div>
-      </div>
-      <div class="tool-content" [hidden]="tab() !== 'Projects'">
-        <project-panel
-          [platform]="appPlatform()"
-          (packageReady)="installPackage($event)"
-          (scriptReady)="setScript($event)"
-        />
-      </div>
-      <div class="tool-content" [hidden]="tab() !== 'Inputs'">
-        <h2>Device inputs</h2>
-        <label
-          >Battery level
-          <div class="range-number">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              [ngModel]="battery()"
-              (ngModelChange)="setBattery(+$event)"
-              [disabled]="isFirmware() && !watchReady()"
-            /><input
-              type="number"
-              min="0"
-              max="100"
-              [ngModel]="battery()"
-              (ngModelChange)="setBattery(+$event)"
-              [disabled]="isFirmware() && !watchReady()"
-            /><span>%</span>
-          </div></label
-        >
-        <p class="help">
-          {{
-            profile() === 'diagnostic-v1'
-              ? 'Writes the diagnostic battery register.'
-              : 'Sets the firmware battery reading through the QEMU control interface.'
-          }}
-          Electrical discharge and power consumption are not modeled.
-        </p>
-        <label class="checkbox"
-          ><input
-            type="checkbox"
-            [(ngModel)]="charging"
-            (ngModelChange)="setCharge()"
-            [disabled]="!isFirmware() || !watchReady()"
-          />
-          Charging</label
-        ><label class="checkbox"
-          ><input
-            type="checkbox"
-            [ngModel]="linked()"
-            (ngModelChange)="setConnection($event)"
-            [disabled]="!isFirmware() || !watchReady()"
-          />
-          Virtual phone connected</label
-        >
-        <hr />
-        <h3>Phone location</h3>
-        <p class="help">
-          Coordinates delivered to PebbleKit JS geolocation callbacks. Pebble watches get location
-          from the phone.
-        </p>
-        <div class="field-grid">
-          <label
-            >Latitude<input
-              type="number"
-              min="-90"
-              max="90"
-              step="0.0001"
-              [(ngModel)]="latitude" /></label
-          ><label
-            >Longitude<input
-              type="number"
-              min="-180"
-              max="180"
-              step="0.0001"
-              [(ngModel)]="longitude"
-          /></label>
-        </div>
-        <label>Accuracy (meters)<input type="number" min="0" [(ngModel)]="accuracy" /></label
-        ><button (click)="applyLocation()">Apply location</button>
-        <div class="field-grid">
-          <label>Altitude (m)<input type="number" [(ngModel)]="altitude" /></label>
-          <label
-            >Heading (° clockwise)<input
-              type="number"
-              [(ngModel)]="locationHeading"
-              min="0"
-              max="360"
-          /></label>
-          <label>Speed (m/s)<input type="number" [(ngModel)]="speed" min="0" /></label>
-        </div>
-        <button (click)="locationUnavailable()" [disabled]="phoneStatus() !== 'Running'">
-          Simulate unavailable location
-        </button>
-        <hr />
-        <h3>Watch clock</h3>
-        <label
-          >Date and time (UTC)<input
-            type="datetime-local"
-            [(ngModel)]="epochValue"
-            [disabled]="!isFirmware()" /></label
-        ><button [disabled]="!isFirmware() || !loaded()" (click)="setClock()">Set clock</button>
-        <p class="help">
-          Virtual elapsed time: {{ virtualSeconds() | number: '1.2-2' }} s. Execution speed is not
-          calibrated to physical hardware.
-        </p>
-        <sensor-panel
-          [profile]="profile()"
-          [ready]="isFirmware() && watchReady()"
-          [pending]="scenarioPending()"
-          [observations]="sensorEvents()"
-          [vibrating]="vibrating()"
-          [healthStatus]="healthStatus()"
-          (healthSettings)="applyHealthSettings($event)"
-          (signalInput)="sendSignal($event)"
-          (scenarioInput)="scheduleSignals($event)"
-          (cancelScenario)="cancelSignals()"
-        />
-      </div>
-      <div class="tool-content" [hidden]="tab() !== 'Phone'">
-        <h2>Virtual phone</h2>
-        <p class="help">
-          PebbleKit JS runs in an isolated JavaScript engine. Location, time, and storage belong to
-          this virtual phone.
-        </p>
-        <dl class="properties">
-          <div>
-            <dt>Script</dt>
-            <dd>{{ phoneScriptName() }}</dd>
+    @defer (when toolsOpened()) {
+      <section class="tools-panel panel" [hidden]="!workbench()">
+        <nav class="tabs" aria-label="Development tools">
+          @for (
+            name of ['Firmware', 'Projects', 'Inputs', 'Phone', 'Debug', 'Packets'];
+            track name
+          ) {
+            <button
+              [class.selected]="tab() === name"
+              [attr.aria-current]="tab() === name ? 'page' : null"
+              (click)="tab.set(name)"
+            >
+              {{ name }}
+            </button>
+          }
+        </nav>
+        <div class="tool-content" [hidden]="tab() !== 'Firmware'">
+          <firmware-panel (loadFirmware)="loadFirmware($event)" />
+          <hr />
+          <h3>Core diagnostic</h3>
+          <p class="help">A separate test board for instruction and framebuffer checks.</p>
+          <div class="actions">
+            <button (click)="diagnostic()" [disabled]="!ready()">Load diagnostic</button
+            ><label class="file-button"
+              >Open diagnostic .bin<input
+                type="file"
+                accept=".bin"
+                (change)="loadImage($event)"
+                [disabled]="!ready()"
+            /></label>
           </div>
-          <div>
-            <dt>Status</dt>
-            <dd>{{ phoneStatus() }}</dd>
-          </div>
-        </dl>
-        <div class="actions">
-          <button (click)="startPhone()" [disabled]="!phoneScript()">Run script</button
-          ><button (click)="stopPhone()" [disabled]="phoneStatus() === 'Stopped'">Stop</button
-          ><button
-            (click)="advancePhone()"
-            [disabled]="phoneStatus() !== 'Running' || isFirmware()"
-            [title]="
-              isFirmware()
-                ? 'Phone timers follow the watch clock'
-                : 'Advance the standalone phone clock'
-            "
-          >
-            Advance 1 s</button
-          ><button (click)="locationDemo()">Location test</button>
         </div>
-        <details class="phone-settings">
-          <summary>Phone environment</summary>
+        <div class="tool-content" [hidden]="tab() !== 'Projects'">
+          <project-panel
+            #projectEditor
+            [platform]="buildPlatform()"
+            [launchSource]="previewSource()"
+            (packageReady)="projectPackage($event)"
+            (scriptReady)="setScript($event)"
+          />
+        </div>
+        <div class="tool-content" [hidden]="tab() !== 'Inputs'">
+          <h2>Device inputs</h2>
           <label
-            >HTTP requests<select [(ngModel)]="phoneNetworkMode">
-              <option value="disabled">Disabled</option>
-              <option value="fixtures">Test responses</option>
-              <option value="cors">Browser network (CORS)</option>
-            </select></label
+            >Battery level
+            <div class="range-number">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                [ngModel]="battery()"
+                (ngModelChange)="setBattery(+$event)"
+                [disabled]="isFirmware() && !watchReady()"
+              /><input
+                type="number"
+                min="0"
+                max="100"
+                [ngModel]="battery()"
+                (ngModelChange)="setBattery(+$event)"
+                [disabled]="isFirmware() && !watchReady()"
+              /><span>%</span>
+            </div></label
           >
           <p class="help">
-            Applies when the script starts. Browser requests need the server's CORS permission. Test
-            responses match a URL, method and optional body at a specified virtual delay.
+            {{
+              profile() === 'diagnostic-v1'
+                ? 'Writes the diagnostic battery register.'
+                : 'Sets the firmware battery reading through the QEMU control interface.'
+            }}
+            Electrical discharge and power consumption are not modeled.
           </p>
-          @if (phoneNetworkMode === 'fixtures') {
+          <label class="checkbox"
+            ><input
+              type="checkbox"
+              [(ngModel)]="charging"
+              (ngModelChange)="setCharge()"
+              [disabled]="!isFirmware() || !watchReady()"
+            />
+            Charging</label
+          ><label class="checkbox"
+            ><input
+              type="checkbox"
+              [ngModel]="linked()"
+              (ngModelChange)="setConnection($event)"
+              [disabled]="!isFirmware() || !watchReady()"
+            />
+            Virtual phone connected</label
+          >
+          <hr />
+          <h3>Phone location</h3>
+          <p class="help">
+            Coordinates delivered to PebbleKit JS geolocation callbacks. Pebble watches get location
+            from the phone.
+          </p>
+          <div class="field-grid">
             <label
-              >Responses (JSON array)<textarea
-                [(ngModel)]="phoneFixtures"
-                rows="10"
+              >Latitude<input
+                type="number"
+                min="-90"
+                max="90"
+                step="0.0001"
+                [(ngModel)]="latitude" /></label
+            ><label
+              >Longitude<input
+                type="number"
+                min="-180"
+                max="180"
+                step="0.0001"
+                [(ngModel)]="longitude"
+            /></label>
+          </div>
+          <label>Accuracy (meters)<input type="number" min="0" [(ngModel)]="accuracy" /></label
+          ><button (click)="applyLocation()">Apply location</button>
+          <div class="field-grid">
+            <label>Altitude (m)<input type="number" [(ngModel)]="altitude" /></label>
+            <label
+              >Heading (° clockwise)<input
+                type="number"
+                [(ngModel)]="locationHeading"
+                min="0"
+                max="360"
+            /></label>
+            <label>Speed (m/s)<input type="number" [(ngModel)]="speed" min="0" /></label>
+          </div>
+          <button (click)="locationUnavailable()" [disabled]="phoneStatus() !== 'Running'">
+            Simulate unavailable location
+          </button>
+          <hr />
+          <h3>Watch clock</h3>
+          <label
+            >Date and time (UTC)<input
+              type="datetime-local"
+              [(ngModel)]="epochValue"
+              [disabled]="!isFirmware()" /></label
+          ><button [disabled]="!isFirmware() || !loaded()" (click)="setClock()">Set clock</button>
+          <p class="help">
+            Virtual elapsed time: {{ virtualSeconds() | number: '1.2-2' }} s. Execution speed is not
+            calibrated to physical hardware.
+          </p>
+          <sensor-panel
+            [profile]="profile()"
+            [ready]="isFirmware() && watchReady()"
+            [pending]="scenarioPending()"
+            [observations]="sensorEvents()"
+            [vibrating]="vibrating()"
+            [healthStatus]="healthStatus()"
+            (healthSettings)="applyHealthSettings($event)"
+            (signalInput)="sendSignal($event)"
+            (scenarioInput)="scheduleSignals($event)"
+            (cancelScenario)="cancelSignals()"
+          />
+        </div>
+        <div class="tool-content" [hidden]="tab() !== 'Phone'">
+          <h2>Virtual phone</h2>
+          <p class="help">
+            PebbleKit JS runs in an isolated JavaScript engine. Location, time, and storage belong
+            to this virtual phone.
+          </p>
+          <dl class="properties">
+            <div>
+              <dt>Script</dt>
+              <dd>{{ phoneScriptName() }}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{{ phoneStatus() }}</dd>
+            </div>
+          </dl>
+          <div class="actions">
+            <button (click)="startPhone()" [disabled]="!phoneScript()">Run script</button
+            ><button (click)="stopPhone()" [disabled]="phoneStatus() === 'Stopped'">Stop</button
+            ><button
+              (click)="advancePhone()"
+              [disabled]="phoneStatus() !== 'Running' || isFirmware()"
+              [title]="
+                isFirmware()
+                  ? 'Phone timers follow the watch clock'
+                  : 'Advance the standalone phone clock'
+              "
+            >
+              Advance 1 s</button
+            ><button (click)="locationDemo()">Location test</button>
+          </div>
+          <details class="phone-settings">
+            <summary>Phone environment</summary>
+            <label
+              >HTTP requests<select [(ngModel)]="phoneNetworkMode">
+                <option value="disabled">Disabled</option>
+                <option value="fixtures">Test responses</option>
+                <option value="cors">Browser network (CORS)</option>
+              </select></label
+            >
+            <p class="help">
+              Applies when the script starts. Browser requests need the server's CORS permission.
+              Test responses match a URL, method and optional body at a specified virtual delay.
+            </p>
+            @if (phoneNetworkMode === 'fixtures') {
+              <label
+                >Responses (JSON array)<textarea
+                  [(ngModel)]="phoneFixtures"
+                  rows="10"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+            }
+            <label
+              >Watch information override (JSON)<textarea
+                [(ngModel)]="phoneWatchOverride"
+                rows="3"
+                placeholder="Use the loaded watch model and firmware version"
                 spellcheck="false"
               ></textarea>
             </label>
-          }
-          <label
-            >Watch information override (JSON)<textarea
-              [(ngModel)]="phoneWatchOverride"
-              rows="3"
-              placeholder="Use the loaded watch model and firmware version"
-              spellcheck="false"
-            ></textarea>
-          </label>
-          <p class="help">
-            Overrides Pebble.getActiveWatchInfo(). If an imported file has no identifiable version,
-            provide platform, model, language and firmware fields here.
-          </p>
-          <div class="field-grid">
-            <label>Test watch token<input [(ngModel)]="watchToken" /></label>
-            <label>Test account token<input [(ngModel)]="accountToken" /></label>
-          </div>
-          <p class="help">
-            These values belong to the simulated phone and are not Pebble account credentials.
-          </p>
-        </details>
-        <hr />
-        <h3>App configuration</h3>
-        <button (click)="showConfiguration()" [disabled]="phoneStatus() !== 'Running'">
-          Request configuration
-        </button>
-        @if (configuration(); as view) {
-          <label>Requested URL<textarea [value]="view.url" readonly rows="3"></textarea></label>
-          @if (configurationLink(); as link) {
-            <a [href]="link" target="_blank" rel="noopener noreferrer">Open configuration page ↗</a>
-          }
-          <label
-            >Return value<textarea
-              [(ngModel)]="configurationResponse"
-              rows="3"
-              placeholder="Exact webviewclosed response string"
-            ></textarea>
-          </label>
-          <div class="actions">
-            <button (click)="closeConfiguration()">Return to app</button
-            ><button (click)="closeConfiguration(true)">Cancel configuration</button>
-          </div>
-          <p class="help">
-            Returns the entered string to webviewclosed. Embedded WebView navigation and automatic
-            return URLs are not implemented.
-          </p>
-        }
-        @if (phoneHttp().length) {
-          <details>
-            <summary>HTTP events ({{ phoneHttp().length }})</summary>
-            @for (event of phoneHttp(); track $index) {
-              <pre class="source-preview">{{ event }}</pre>
-            }
-          </details>
-        }
-        <pre class="source-preview">{{
-          phoneScript()
-            ? phoneScript().slice(0, 16000) + (phoneScript().length > 16000 ? '\n…' : '')
-            : 'Build and install a project to run its companion script.'
-        }}</pre>
-      </div>
-      <div class="tool-content" [hidden]="tab() !== 'Debug'">
-        <h2>CPU registers</h2>
-        <div class="registers">
-          @for (value of state()?.registers || []; track $index) {
-            <div>
-              <span>{{
-                $index === 13 ? 'SP' : $index === 14 ? 'LR' : $index === 15 ? 'PC' : 'R' + $index
-              }}</span
-              ><code>{{ hex(value) }}</code>
+            <p class="help">
+              Overrides Pebble.getActiveWatchInfo(). If an imported file has no identifiable
+              version, provide platform, model, language and firmware fields here.
+            </p>
+            <div class="field-grid">
+              <label>Test watch token<input [(ngModel)]="watchToken" /></label>
+              <label>Test account token<input [(ngModel)]="accountToken" /></label>
             </div>
-          }
-        </div>
-        <dl class="properties">
-          <div>
-            <dt>xPSR</dt>
-            <dd>
-              <code>{{ hex(state()?.flags || 0) }}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Profile</dt>
-            <dd>{{ profile() }}</dd>
-          </div>
-        </dl>
-        <hr />
-        <h3>State snapshots</h3>
-        <div class="actions">
-          <button
-            [disabled]="!loaded() || profile() !== 'diagnostic-v1'"
-            (click)="send({ type: 'snapshot' })"
-          >
-            Save state</button
-          ><button
-            [disabled]="!snapshotAvailable() || profile() !== 'diagnostic-v1'"
-            (click)="restore()"
-          >
-            Restore state
+            <p class="help">
+              These values belong to the simulated phone and are not Pebble account credentials.
+            </p>
+          </details>
+          <hr />
+          <h3>App configuration</h3>
+          <button (click)="showConfiguration()" [disabled]="phoneStatus() !== 'Running'">
+            Request configuration
           </button>
-        </div>
-        <p class="help">
-          Snapshots currently support the diagnostic board. Firmware snapshots need CPU, flash, and
-          peripheral state serialization.
-        </p>
-      </div>
-      <div class="tool-content" [hidden]="tab() !== 'Packets'">
-        <div class="section-heading">
-          <h2>Packets</h2>
-          <div class="actions">
-            <button (click)="packets.set([])">Clear</button
-            ><button (click)="exportPackets()" [disabled]="!packets().length">Export</button>
-          </div>
-        </div>
-        <label
-          >Filter<input [(ngModel)]="packetFilter" placeholder="Endpoint, number, or direction"
-        /></label>
-        <div class="packet-list">
-          @for (p of packetRows(); track p.id) {
+          @if (configuration(); as view) {
+            <label>Requested URL<textarea [value]="view.url" readonly rows="3"></textarea></label>
+            @if (configurationLink(); as link) {
+              <a [href]="link" target="_blank" rel="noopener noreferrer"
+                >Open configuration page ↗</a
+              >
+            }
+            <label
+              >Return value<textarea
+                [(ngModel)]="configurationResponse"
+                rows="3"
+                placeholder="Exact webviewclosed response string"
+              ></textarea>
+            </label>
+            <div class="actions">
+              <button (click)="closeConfiguration()">Return to app</button
+              ><button (click)="closeConfiguration(true)">Cancel configuration</button>
+            </div>
+            <p class="help">
+              Returns the entered string to webviewclosed. Embedded WebView navigation and automatic
+              return URLs are not implemented.
+            </p>
+          }
+          @if (phoneHttp().length) {
             <details>
-              <summary>
-                <span>{{ p.direction === 'phone' ? 'Phone → Watch' : 'Watch → Phone' }}</span
-                ><strong>{{ endpointName(p.endpoint) }}</strong
-                ><span>{{ p.bytes.length }} B · {{ p.time | number: '1.3-3' }} s</span>
-              </summary>
-              <pre>{{ packetHex(p.bytes) }}</pre>
+              <summary>HTTP events ({{ phoneHttp().length }})</summary>
+              @for (event of phoneHttp(); track $index) {
+                <pre class="source-preview">{{ event }}</pre>
+              }
             </details>
           }
-          @if (!packetRows().length) {
-            <p class="help">Connect the virtual phone or install an app to capture traffic.</p>
+          <pre class="source-preview">{{
+            phoneScript()
+              ? phoneScript().slice(0, 16000) + (phoneScript().length > 16000 ? '\n…' : '')
+              : 'Build and install a project to run its companion script.'
+          }}</pre>
+        </div>
+        <div class="tool-content" [hidden]="tab() !== 'Debug'">
+          <h2>CPU registers</h2>
+          <div class="registers">
+            @for (value of state()?.registers || []; track $index) {
+              <div>
+                <span>{{
+                  $index === 13 ? 'SP' : $index === 14 ? 'LR' : $index === 15 ? 'PC' : 'R' + $index
+                }}</span
+                ><code>{{ hex(value) }}</code>
+              </div>
+            }
+          </div>
+          <dl class="properties">
+            <div>
+              <dt>xPSR</dt>
+              <dd>
+                <code>{{ hex(state()?.flags || 0) }}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Profile</dt>
+              <dd>{{ profile() }}</dd>
+            </div>
+          </dl>
+          <hr />
+          <h3>State snapshots</h3>
+          <div class="actions">
+            <button
+              [disabled]="!loaded() || profile() !== 'diagnostic-v1'"
+              (click)="send({ type: 'snapshot' })"
+            >
+              Save state</button
+            ><button
+              [disabled]="!snapshotAvailable() || profile() !== 'diagnostic-v1'"
+              (click)="restore()"
+            >
+              Restore state
+            </button>
+          </div>
+          <p class="help">
+            Snapshots currently support the diagnostic board. Firmware snapshots need CPU, flash,
+            and peripheral state serialization.
+          </p>
+        </div>
+        <div class="tool-content" [hidden]="tab() !== 'Packets'">
+          <div class="section-heading">
+            <h2>Packets</h2>
+            <div class="actions">
+              <button (click)="packets.set([])">Clear</button
+              ><button (click)="exportPackets()" [disabled]="!packets().length">Export</button>
+            </div>
+          </div>
+          <label
+            >Filter<input [(ngModel)]="packetFilter" placeholder="Endpoint, number, or direction"
+          /></label>
+          <div class="packet-list">
+            @for (p of packetRows(); track p.id) {
+              <details>
+                <summary>
+                  <span>{{ p.direction === 'phone' ? 'Phone → Watch' : 'Watch → Phone' }}</span
+                  ><strong>{{ endpointName(p.endpoint) }}</strong
+                  ><span>{{ p.bytes.length }} B · {{ p.time | number: '1.3-3' }} s</span>
+                </summary>
+                <pre>{{ packetHex(p.bytes) }}</pre>
+              </details>
+            }
+            @if (!packetRows().length) {
+              <p class="help">Connect the virtual phone or install an app to capture traffic.</p>
+            }
+          </div>
+          <hr />
+          <h3>Send packet</h3>
+          <p class="help">
+            Inject a payload into the live Pebble protocol. The transport adds framing.
+          </p>
+          <label>Endpoint (decimal or hex)<input [(ngModel)]="injectEndpoint" /></label
+          ><label
+            >Payload (hex bytes)<textarea
+              [(ngModel)]="injectHex"
+              rows="3"
+              placeholder="01 00 …"
+            ></textarea></label
+          ><button [disabled]="!watchReady() || !isFirmware()" (click)="injectPacket()">
+            Send to watch
+          </button>
+          @if (profile() === 'diagnostic-v1') {
+            <hr />
+            <h3>Codec diagnostic</h3>
+            <button (click)="send({ type: 'ping', cookie: 305419896 })">Encode Ping</button>
+            @if (packet()) {
+              <pre class="packet">{{ packet() }}</pre>
+            }
           }
         </div>
-        <hr />
-        <h3>Send packet</h3>
-        <p class="help">
-          Inject a payload into the live Pebble protocol. The transport adds framing.
-        </p>
-        <label>Endpoint (decimal or hex)<input [(ngModel)]="injectEndpoint" /></label
-        ><label
-          >Payload (hex bytes)<textarea
-            [(ngModel)]="injectHex"
-            rows="3"
-            placeholder="01 00 …"
-          ></textarea></label
-        ><button [disabled]="!watchReady() || !isFirmware()" (click)="injectPacket()">
-          Send to watch
-        </button>
-        @if (profile() === 'diagnostic-v1') {
-          <hr />
-          <h3>Codec diagnostic</h3>
-          <button (click)="send({ type: 'ping', cookie: 305419896 })">Encode Ping</button>
-          @if (packet()) {
-            <pre class="packet">{{ packet() }}</pre>
-          }
+      </section>
+    }
+  </div>
+  @if (workbench()) {
+    <section class="console panel">
+      <div class="console-heading">
+        <h2>
+          Session log <span>{{ trace().length }}</span>
+        </h2>
+        <div class="actions">
+          <button (click)="trace.set([])">Clear</button
+          ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
+        </div>
+      </div>
+      <div class="console-lines" role="log">
+        @for (event of trace(); track event.index) {
+          <div>
+            <span>{{ event.index }}</span
+            ><strong>{{ event.kind }}</strong
+            ><code>{{ event.text }}</code>
+          </div>
+        }
+        @if (!trace().length) {
+          <p class="help">Execution, compiler, and device events appear here.</p>
         }
       </div>
     </section>
-  </div>
-  <section class="console panel">
-    <div class="console-heading">
-      <h2>
-        Session log <span>{{ trace().length }}</span>
-      </h2>
-      <div class="actions">
-        <button (click)="trace.set([])">Clear</button
-        ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
-      </div>
-    </div>
-    <div class="console-lines" role="log">
-      @for (event of trace(); track event.index) {
-        <div>
-          <span>{{ event.index }}</span
-          ><strong>{{ event.kind }}</strong
-          ><code>{{ event.text }}</code>
-        </div>
-      }
-      @if (!trace().length) {
-        <p class="help">Execution, compiler, and device events appear here.</p>
-      }
-    </div>
-  </section>
+  }
   <footer>
     <span>Local compilation and emulation</span>
     <a href="licenses/NOTICE.md" target="_blank" rel="noopener">Licenses</a>

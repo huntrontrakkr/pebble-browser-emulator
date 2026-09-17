@@ -10,6 +10,18 @@ for Pebble 2 Duo, Pebble Time 2, and Pebble Round 2. Older watches and physical-
 need their own board implementations. Sharing an app platform does not make firmware images
 interchangeable. See the [product matrix](docs/PRODUCT_MATRIX.md) and [verified scope](docs/STATUS.md).
 
+## Try a watchface
+
+[Open the preview](https://pebble-browser-emulator.whunt003.chatgpt.site/#/example/clock).
+Choose **Try example** or **Open watchface .pbw**. The first visit guides you through opening
+two official firmware files; they stay on the device. The watch boots and installs the app
+automatically. Future preview links reuse the saved firmware. No compiler is needed for the
+included Clock example or a prepared PBW.
+
+Public GitHub projects can supply a checksummed `pebble-preview.json` for a direct preview,
+or open in Developer tools for a source build. **Copy preview link** shares the selected
+watch and exact project commit. See [preview setup, URL format and performance](docs/PREVIEWS.md).
+
 ## Run locally
 
 Install Node.js 24 and Rust using rustup, then:
@@ -19,6 +31,8 @@ npm ci
 npm run build:wasm
 npm run dev
 ```
+
+For the full development workflow, open **Developer tools**:
 
 1. In **Firmware**, find release **v4.37.0** or browse official releases. Select the watch model and download its matching QEMU micro-flash
    and SPI-flash pair, open both files, select **Load firmware**, then **Run**. First boot
@@ -96,6 +110,7 @@ including all 45,600 framebuffer bytes. It does not establish complete Cortex-M3
 - `public/compiler`: portable compiler worker, package builder, and licensed JS loader.
 - `examples/platform-watchface`: adaptive C/PKJS demo with resources, modules, weather fixtures, location and messages.
 - `examples/watchface`: unchanged original rendering reference.
+- `examples/preview-clock`: precompiled preview example; outputs in `public/examples`.
 - `examples/sensor-test`: sensor service callback and frame comparison example.
 - `tools/linux-build`: optional local Linux/Wasm image preparation and recipe contract.
 - `docs`: [architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and evidence.
@@ -106,5 +121,5 @@ require a server process. Hosting configuration is in `.openai/hosting.json`.
 ## License
 
 Original source: Apache-2.0. Dependencies retain their own licenses; see
-[third-party notices](THIRD_PARTY_NOTICES.md). No firmware or proprietary SDK binary is
+[third-party notices](THIRD_PARTY_NOTICES.md). No firmware or SDK archive is
 committed. This is an independent project.
