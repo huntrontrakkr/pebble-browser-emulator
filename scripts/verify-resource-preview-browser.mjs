@@ -66,6 +66,12 @@ try {
   await page.getByRole('button', { name: 'Browse watchfaces', exact: true }).click();
   await page.locator('.store-result').first().waitFor();
   results.catalogRows = await page.locator('.store-result').count();
+  await page.getByLabel('Store type', { exact: true }).selectOption('watchapps-and-companions');
+  await page.locator('.store-result').first().waitFor();
+  results.appRows = await page.locator('.store-result').count();
+  assert.ok(results.appRows > 0, 'the live apps category contains matching packages');
+  await page.getByLabel('Store type', { exact: true }).selectOption('watchfaces');
+  await page.locator('.store-result').first().waitFor();
   await page.screenshot({ path: resolve(out, 'store-mobile.png'), fullPage: true });
   await page
     .getByLabel('Store link', { exact: true })

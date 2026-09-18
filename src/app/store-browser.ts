@@ -32,7 +32,7 @@ import type { FirmwareProfile } from './watch-profiles.ts';
       </form>
       <div class="field-grid">
         <label
-          >Type<select [(ngModel)]="category" (ngModelChange)="reload()">
+          >Type<select aria-label="Store type" [(ngModel)]="category" (ngModelChange)="reload()">
             <option value="watchfaces">Watchfaces</option>
             <option value="watchapps-and-companions">Apps</option>
           </select></label
@@ -234,6 +234,7 @@ export class StoreBrowser implements OnChanges, OnDestroy {
         [
           page.cached ? 'Showing saved catalog results.' : '',
           page.unavailable ? `${page.unavailable} entries have unavailable package metadata.` : '',
+          page.incompatible ? `${page.incompatible} entries do not support this watch.` : '',
         ]
           .filter(Boolean)
           .join(' '),

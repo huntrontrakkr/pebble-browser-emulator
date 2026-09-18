@@ -137,10 +137,14 @@ export async function storePage(
   if (!Array.isArray(result.data.data) || result.data.data.length > 100)
     throw new Error('Unexpected store catalog response.');
   const apps: StoreApp[] = [];
-  let unavailable = 0;
+  let unavailable = 0,
+    incompatible = 0;
   for (const item of result.data.data) {
     try {
-      apps.push(describeStoreApp(item, profile));
+      const app = describeStoreApp(item, profile);
+      // The upstream catalog may ignore its hardware filter, especially for older apps.
+      if (app.platforms.includes(FIRMWARE_PROFILES[profile].platform)) apps.push(app);
+      else incompatible++;
     } catch {
       unavailable++;
     }
@@ -148,6 +152,7 @@ export async function storePage(
   return {
     apps,
     unavailable,
+    incompatible,
     more: !!result.data.links?.nextPage,
     cached: result.cached,
     count: result.data.data.length,

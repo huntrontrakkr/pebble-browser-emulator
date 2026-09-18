@@ -284,11 +284,16 @@ test('store catalog respects selected watch and reports unusable entries without
     new AbortController().signal,
     async (url) => {
       assert.match(url, /hardware=emery&limit=20&offset=20/);
-      return Response.json({ data: [app, { ...app, id: 'bad' }], links: { nextPage: '/ignored' } });
+      return Response.json({
+        data: [app, { ...app, id: 'bad' }, { ...app, hardware_platforms: [{ name: 'chalk' }] }],
+        links: { nextPage: '/ignored' },
+      });
     },
   );
   assert.equal(page.apps.length, 1);
   assert.equal(page.unavailable, 1);
+  assert.equal(page.incompatible, 1);
+  assert.equal(page.count, 3, 'pagination advances over unsupported upstream entries too');
   assert.equal(page.more, true);
 });
 test('store download validation accepts the current, rebuilt and archived store layouts', () => {

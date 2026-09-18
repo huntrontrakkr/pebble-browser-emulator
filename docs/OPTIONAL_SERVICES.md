@@ -67,6 +67,8 @@ only a service you trust. No service endpoint, credential or token is included i
 
 **Browse watchfaces** includes watchfaces and apps, a direct store-link field, and platform
 selection. Store fetches currently work directly where the publisher supplies CORS headers.
+The frontend checks each entry's declared platforms itself because the upstream catalog
+can return incompatible apps despite its hardware query; pagination still advances over them.
 GitHub preview also accepts an exact release tag and PBW attachment; those downloads can
 use the optional service. A pinned link verifies its SHA-256 even if the release asset is
 later replaced.
