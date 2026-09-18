@@ -27,7 +27,9 @@ and app installation. [Format, measurements and checks](STARTUP_CHECKPOINTS.md).
 A scheduled/manual GitHub workflow discovers and validates complete stable emulator releases
 into temporary artifacts. New defaults require provenance and independent reference review;
 the checker does not publish unreviewed firmware or change visitors' selected versions.
-The existing static hosting configuration is unchanged and this revision has not been deployed.
+GitHub Pages publishes successful `main` builds after the production checks and verifies the
+deployed files against the tested artifact. The optional service remains unhosted and disabled
+by default. The separate Sites deployment is not updated by this workflow. [Hosting](HOSTING.md).
 The production gate passes 87 Rust tests and 371 JavaScript/Wasm tests (nine optional fixture
 tests skipped in that command), plus live service/store, Chromium/WebKit offline, real Clay
 configuration and model regressions. Separate sensor runs match every frozen native QEMU

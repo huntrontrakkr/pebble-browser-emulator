@@ -69,8 +69,8 @@ deployment mismatches; they are not a separate trust system for a compromised ho
 Use `npm run build` to build the Rust/Wasm core, Kotlin/Wasm companion, and Angular app.
 `scripts/build-pwa.mjs` creates `dist/client/sw.js` from the final static assets and refuses
 an incomplete build missing required runtime, icon, example or firmware files. CI builds
-both runtimes before publishing its static artifact. No automatic deployment is configured
-by this change.
+both runtimes before publishing its static artifact. Successful `main` builds automatically
+deploy that artifact to GitHub Pages; see [hosting and releases](HOSTING.md).
 
 The relative base URL, manifest and worker scope support a static subdirectory as well as a
 domain root. Serve the complete `dist/client` directory; `sw.js` must not be given an

@@ -15,7 +15,8 @@ The public project is `huntrontrakkr/pebble-browser-emulator`. The application r
 standalone static site. An optional, separately configured public-resource download/cache
 service is authorized; it must never be required for local emulation or compilation.
 CI may build the website/toolchains and prepare validated firmware startup checkpoints,
-but must never compile visitors' projects remotely. Hosting changes are deferred.
+but must never compile visitors' projects remotely. GitHub Pages hosts successful `main`
+builds; the optional service and custom domain remain separate hosting decisions.
 
 ## Optional resources and preview startup
 
@@ -27,7 +28,8 @@ but must never compile visitors' projects remotely. Hosting changes are deferred
 - [x] Restore locally with normal-boot fallback and an explicit preference to test cold boot.
 - [x] Scheduled/manual upstream release discovery and candidate validation reports.
 - [ ] Review each new default's redistribution provenance and independent reference evidence before promotion.
-- [ ] Choose hosting, domain and production cache/rate-limit configuration when requested.
+- [x] Host the static application on GitHub Pages with verified automatic `main` deployments.
+- [ ] Choose a custom domain and production host/cache/rate-limit configuration for the optional service.
 
 See [optional service](OPTIONAL_SERVICES.md) and [startup format/gates](STARTUP_CHECKPOINTS.md).
 

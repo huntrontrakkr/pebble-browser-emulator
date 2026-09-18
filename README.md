@@ -13,10 +13,11 @@ interchangeable. See the [product matrix](docs/PRODUCT_MATRIX.md) and [verified 
 
 ## Try a watchface
 
-[Open the preview](https://pebble-browser-emulator.whunt003.chatgpt.site/#/example/clock).
+[Open the preview](https://huntrontrakkr.github.io/pebble-browser-emulator/#/example/clock).
 The repository now also includes **Browse watchfaces**, with watchfaces and apps from the
-Pebble store, alongside **Try example** and **Open watchface .pbw**. Hosting this revision is
-deferred. Default official emulator firmware loads automatically, including on the first visit.
+Pebble store, alongside **Try example** and **Open watchface .pbw**. GitHub Pages publishes
+successful `main` builds after verification. [Hosting and releases](docs/HOSTING.md).
+Default official emulator firmware loads automatically, including on the first visit.
 Matching prepared startup states avoid repeating the initial boot. Future previews reuse saved files;
 Developer tools can override it. No compiler is needed for the
 included Clock example or a prepared PBW.
