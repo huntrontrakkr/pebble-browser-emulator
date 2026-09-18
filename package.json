@@ -13,6 +13,7 @@
     "firmware:check": "node scripts/check-firmware-releases.mjs",
     "firmware:audit-physical": "node scripts/audit-sifli-images.mjs",
     "fidelity:capture": "node scripts/verify-fidelity-run.mjs",
+    "fidelity:audio-reference": "node scripts/verify-audio-reference.mjs",
     "fidelity:compare": "node scripts/verify-fidelity-run.mjs --compare",
     "build:wasm": "node scripts/build-wasm.mjs && node scripts/collect-notices.mjs",
     "build:phone": "node scripts/build-phone.mjs",

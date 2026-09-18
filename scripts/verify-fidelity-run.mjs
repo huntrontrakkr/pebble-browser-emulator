@@ -43,6 +43,7 @@ async function capture() {
     'metrics.json',
     'trace.json',
     'workload.json',
+    'mmio-probe.json',
     'console.txt',
   ])
     await rm(resolve(out, name), { force: true });
@@ -135,12 +136,18 @@ async function capture() {
     transport,
     serial = '',
     steps = 0,
-    canceled = false;
+    canceled = false,
+    fatalConsoleReported = false;
   const started = performance.now();
   const maximumMs = bounded('PEBBLE_HOST_TIMEOUT_MS', 180000, 1000, 3600000);
   const metrics = [],
     diagnostics = [],
     workload = [];
+  const probeMs = bounded('PEBBLE_MMIO_PROBE_MS', 0, 0, 1000);
+  const probeEachSample = bounded('PEBBLE_MMIO_PROBE_EACH_SAMPLE', 0, 0, 1) === 1;
+  const probeWindows = [];
+  const probedPhases = new Set();
+  let activeProbe = null;
   const cancel = () => {
     canceled = true;
   };
@@ -163,17 +170,87 @@ async function capture() {
         `Bus fault at 0x${api.spike_fault().toString(16)}, PC 0x${api.spike_pc().toString(16)}`,
       );
     steps += done;
+    if (activeProbe) {
+      const length = api.spike_trace_export();
+      const records = decodeCoreTrace(
+        new Uint8Array(api.memory.buffer, api.spike_trace_ptr(), length),
+        api.spike_trace_version(),
+      );
+      for (const event of records) {
+        const key = `${event.kind}:${event.address}`;
+        let entry = activeProbe.addresses.get(key);
+        if (!entry) {
+          if (activeProbe.addresses.size >= 512)
+            throw new Error('MMIO probe exceeded 512 distinct access types/addresses.');
+          entry = {
+            kind: event.kind,
+            address: event.address,
+            count: 0,
+            firstPc: event.pc,
+            lastPc: event.pc,
+            firstValue: event.value,
+            lastValue: event.value,
+            firstVirtualUs: event.ticks / 64,
+            lastVirtualUs: event.ticks / 64,
+          };
+          activeProbe.addresses.set(key, entry);
+        }
+        entry.count++;
+        entry.lastPc = event.pc;
+        entry.lastValue = event.value;
+        entry.lastVirtualUs = event.ticks / 64;
+        activeProbe.events++;
+      }
+      const dropped = api.spike_trace_dropped();
+      activeProbe.droppedEvents += dropped;
+      run.droppedEvents += dropped;
+      if (!api.spike_trace_configure(1, 32768))
+        throw new Error('MMIO probe reset rejected.');
+    }
     for (const port of [1, 2]) {
       const length = api.spike_uart_tx_len(port);
       const data = new Uint8Array(api.memory.buffer, api.spike_uart_tx_ptr(port), length).slice();
       api.spike_uart_tx_consume(port, length);
       if (port === 1) transport.feedUart(data);
-      else serial = (serial + new TextDecoder().decode(data)).slice(-1024 * 1024);
+      else if (data.length) {
+        serial = (serial + new TextDecoder().decode(data)).slice(-1024 * 1024);
+        if (!fatalConsoleReported && /service_system_task: System task queue full|Resetting!/i.test(serial.slice(-4096))) {
+          fatalConsoleReported = true;
+          throw new Error(`Firmware reported system task queue overflow/reset at ${clockMs()} virtual ms.`);
+        }
+      }
     }
     await yieldTask();
   }
   async function waitUntil(ms) {
     while (clockMs() < ms) await advance(50000, Math.min(ms * 64000, api.spike_ticks() + 640000));
+  }
+  async function probeOperation(phase, operation) {
+    activeProbe = {
+      phase,
+      fromVirtualUs: api.spike_ticks() / 64,
+      addresses: new Map(),
+      events: 0,
+      droppedEvents: 0,
+    };
+    if (!api.spike_trace_configure(1, 32768))
+      throw new Error('MMIO probe configuration rejected.');
+    try {
+      await operation();
+    } finally {
+      api.spike_trace_configure(0, 0);
+      probeWindows.push({
+        phase: activeProbe.phase,
+        fromVirtualUs: activeProbe.fromVirtualUs,
+        toVirtualUs: api.spike_ticks() / 64,
+        events: activeProbe.events,
+        droppedEvents: activeProbe.droppedEvents,
+        addresses: [...activeProbe.addresses.values()].sort(
+          (a, b) => b.count - a.count || a.address - b.address,
+        ),
+      });
+      activeProbe = null;
+    }
   }
   async function sampleUntil(ms, phase) {
     const fromVirtualUs = api.spike_ticks() / 64;
@@ -181,6 +258,11 @@ async function capture() {
     const fromEstimatedCpuCycles = api.spike_estimated_cpu_cycles();
     const fromFrames = api.spike_frame_counter();
     const fromHostMs = performance.now();
+    if (probeMs && (probeEachSample || !probedPhases.has(phase))) {
+      probedPhases.add(phase);
+      const startMs = clockMs();
+      await probeOperation(phase, () => waitUntil(Math.min(ms, startMs + probeMs)));
+    }
     await waitUntil(ms);
     workload.push({
       phase,
@@ -270,7 +352,9 @@ async function capture() {
     while (!serial.includes('Ready for communication.')) await advance();
     captureCheckpoint('boot');
     await transport.setBluetooth(true);
-    await transport.install(appPackage(bytes.app, platform));
+    if (probeMs)
+      await probeOperation('initial-install', () => transport.install(appPackage(bytes.app, platform)));
+    else await transport.install(appPackage(bytes.app, platform));
     captureCheckpoint('installed');
     const began = clockMs();
     if (scenario.touch) {
@@ -324,6 +408,21 @@ async function capture() {
       workload,
     }))
       await writeFile(resolve(out, name + '.json'), JSON.stringify(value, null, 2) + '\n');
+    if (probeMs)
+      await writeFile(
+        resolve(out, 'mmio-probe.json'),
+        JSON.stringify(
+          {
+            format: 'pebble-mmio-probe',
+            version: 1,
+            identity: run.identity,
+            windowMs: probeMs,
+            windows: probeWindows,
+          },
+          null,
+          2,
+        ) + '\n',
+      );
     await writeFile(resolve(out, 'console.txt'), serial);
     console.log(
       JSON.stringify({

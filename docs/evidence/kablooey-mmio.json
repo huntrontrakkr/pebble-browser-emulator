@@ -1,0 +1,36 @@
+{
+  "format": "pebble-generic-mmio-investigation",
+  "version": 1,
+  "referenceTarget": "internal-observation-and-pinned-QEMU-source",
+  "profile": "qemu_emery",
+  "firmwareVersion": "4.37.0",
+  "firmwareMicroSha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+  "firmwareSpiSha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+  "kablooeyPbWSha256": "7eb911a829a289f92deb75ab5ddabf82b9d13f45947749192e031ec553646dca",
+  "wasmSha256": "c96af8db30e76a3ff2d3c5eb60d0de3697feca391f6dd43f997b3b7a74e12f71",
+  "scenarioSha256": "c8a27138c71947032dc48c20ca8feb8adf78fd8c8ecf529d3ba955534e567b29",
+  "seed": 1,
+  "capture": "scripts/verify-fidelity-run.mjs with PEBBLE_MMIO_PROBE_MS=1000 and PEBBLE_MMIO_PROBE_EACH_SAMPLE=1; unchanged firmware and app; full initial install plus sampled 10-second interaction. This capture preceded the audio-model change.",
+  "observed": {
+    "windows": 12,
+    "mmioEvents": 55054,
+    "droppedEvents": 0,
+    "initialInstallVirtualMs": 1212.062078125,
+    "audioWritesDuringInitialInstall": [
+      { "register": "0x40012000", "count": 2 },
+      { "register": "0x40012008", "count": 2 },
+      { "register": "0x40012010", "count": 1 },
+      { "register": "0x40012014", "count": 1 },
+      { "register": "0x4001201c", "count": 1 }
+    ],
+    "audioDataWrites": 0,
+    "audioReads": 0,
+    "audioAccessesDuringInteraction": 0,
+    "clockAudioAccessesDuringInitialInstall": 0,
+    "unprobedCheckpointAgreement": "Exact virtual time, full-state and frame hashes at boot, installed, interaction and failure",
+    "laterFailure": "BlobDB endpoint 0xb1db timeout at 31.100 virtual seconds"
+  },
+  "sourceObservation": "Pinned generic QEMU raises a refill IRQ when audio CTRL changes from 0 to 1 and INTCTRL permits it. The earlier Rust generic speaker registers did not queue samples or raise that IRQ.",
+  "source": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/hw/misc/pebble_audio.c",
+  "limits": "This identifies a firmware-visible model difference, not proof that the audio gap causes the BlobDB timeout. The capture is from Rust/Wasm; matching native-QEMU interrupt and packet traces remain to be collected."
+}

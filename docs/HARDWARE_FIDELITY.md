@@ -48,6 +48,12 @@ needs scenario-specific behavioral assertions before satisfying the plan's gamep
 `PEBBLE_HOST_TIMEOUT_MS` bounds execution (default 180 seconds, maximum one hour).
 SIGINT/SIGTERM cancel at the next bounded execution quantum. `PEBBLE_TRACE=0` executes
 the same diagnostic steps without observation, allowing an exact observer-effect comparison.
+`PEBBLE_MMIO_PROBE_MS=100` additionally aggregates register accesses during the first
+100 virtual milliseconds of each interaction phase and throughout the initial app
+install. `PEBBLE_MMIO_PROBE_EACH_SAMPLE=1` repeats the bounded probe for every one-second
+sample. The optional `mmio-probe.json` includes address, read/write direction, count,
+first/last PC, value and time, and dropped-event count. It contains no raw firmware bytes.
+A lost trace event fails the run rather than being treated as complete evidence.
 
 Reports include exact input hashes, board/revision, firmware tag, core hash, scenario
 hash, initial RTC and a seed (reserved for future generated inputs; this scenario has
@@ -84,6 +90,28 @@ at 11–12 frames per virtual second. Clock's median idle cost is about 0.45 mil
 estimated cycles per virtual second. Kablooey still times out on the next install.
 Sampling leaves every earlier state/frame hash and virtual timestamp unchanged. This
 narrows the timing investigation but does not justify changing the generic clock.
+An [MMIO probe](evidence/kablooey-mmio.json) then observed seven audio-register writes
+while Kablooey installed, where Clock made none. The old generic model omitted the
+speaker's initial refill IRQ and FIFO behavior documented in pinned Pebble QEMU.
+No audio DATA writes or reads appeared in the sampled ten-second interaction, but that
+could result from the missing interrupt. The complete probed and unprobed checkpoints
+matched. This identifies a model gap, not the cause of the later BlobDB timeout.
+The generic speaker now models the pinned QEMU FIFO, initial/threshold refill IRQs,
+10 ms virtual drain and null-sink rate budget. It uses IRQ 10 and stores the FIFO and
+deadlines in checkpoint format v2; older generic checkpoints are rejected and prepared
+states must be rebuilt against the new Wasm hash. A separate
+[native-QEMU differential smoke](evidence/audio-initial-irq-reference.json) proves the
+initial status byte and IRQ 10 delivery with identical synthetic Thumb programs in
+native QEMU and Rust/Wasm. FIFO consumption and timer pacing remain source-backed
+**modeled** behavior, not yet native-trace matched or browser sound output. Reproduce
+the narrow reference gate with `PEBBLE_QEMU=/path/to/qemu-pebble npm run
+fidelity:audio-reference`; no Pebble firmware is required.
+In the [repeated Kablooey scenario](evidence/kablooey-audio-model.json), the unchanged
+firmware now writes audio samples, but reports a full system task queue and resets at
+7.102 virtual seconds. The prior full run then timed out on a subsequent install; the
+current runner stops at the first fatal firmware log. The audio omission was real, but
+its repair does not meet the Kablooey acceptance gate. The first native virtual-time divergence
+and CPU/peripheral timing remain under investigation.
 
 ## Trace ABI v1
 
@@ -136,6 +164,16 @@ Both ELF headers advertise entry `0x120256f8`, which must not replace the vector
 The separate RAM initializer and zero-fill segments show why copying the raw image
 straight into a generic QEMU board cannot boot it. This establishes layout consistency
 only; it does not establish the post-bootloader machine state or execute firmware.
+
+The read-only audit also recognizes the exact 4.37.0 reset prologue on each candidate
+board. Both reset handlers set MSP/PSP limits, copy two ELF initializer ranges from
+QSPI2 to SRAM, clear only the contiguous kernel BSS range, then call `SystemInit` and
+`main` (symbol names from the published ELFs). Entry at the reset vector must let the
+firmware perform those copies; a future post-initialization entry would need a different,
+explicitly evidenced SRAM state. The uninitialized stack sections and the bootloader's
+clock, cache, security and controller setup remain unknown. [Exact ranges and asset
+identities](evidence/sifli-reset-startup.json) are recorded without adding either
+firmware image to the repository.
 
 Reproduce with locally supplied release assets (nothing is added to site resources):
 

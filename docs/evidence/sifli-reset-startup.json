@@ -1,0 +1,35 @@
+{
+  "format": "pebble-sifli-reset-startup-evidence",
+  "version": 1,
+  "referenceTarget": "published-4.37.0-ELF-and-raw-image",
+  "method": "auditSifliImage verifies ELF/raw PT_LOAD identity; inspectSifliResetStartup recognizes the exact reset prologue, copy loops and branch encodings, and checks literal-pool ranges against ELF segments. Published ELF symbols identify Reset_Handler, memset, SystemInit and main. No firmware bytes are modified or distributed.",
+  "boards": {
+    "obelix_pvt": {
+      "binSha256": "67b56825d66eaeab97bc1f8a6803c7b689cd42f28c31813379469059b99c49b2",
+      "elfSha256": "591e715a5dda8bae5a082625c0a1a591740e1b42cca725a63d74b3e2fc950df5",
+      "resetVector": "0x12046bb9",
+      "initialMsp": "0x20034d40",
+      "msplimSetByReset": "0x20034940",
+      "copyRanges": [
+        { "source": "0x122082e0", "destination": "0x20004520", "bytes": 22512 },
+        { "source": "0x120211cc", "destination": "0x20000000", "bytes": 17696 }
+      ],
+      "zeroRange": { "destination": "0x20009d10", "bytes": 175142 },
+      "zeroFileSegmentsOutsideResetClear": 9226
+    },
+    "getafix_dvt2": {
+      "binSha256": "49de4261874c5ac93caabf2e1a8be81b3e46298f8e17e256b89653775d1f9245",
+      "elfSha256": "e4c4d411f3c408309f99f8b6e5f8231366dee3685c1f3f7d315c9a48721e1fc4",
+      "resetVector": "0x12040ec1",
+      "initialMsp": "0x2002ec60",
+      "msplimSetByReset": "0x2002e860",
+      "copyRanges": [
+        { "source": "0x121d6300", "destination": "0x20004520", "bytes": 22040 },
+        { "source": "0x120211cc", "destination": "0x20000000", "bytes": 17696 }
+      ],
+      "zeroRange": { "destination": "0x20009b38", "bytes": 150797 },
+      "zeroFileSegmentsOutsideResetClear": 9243
+    }
+  },
+  "scope": "This is binary startup-path evidence, not execution or physical validation. The contents of SRAM before reset entry, clock/flash/cache/security state, SiFli ROM, LCPU, controller and MMIO behavior remain unknown. ELF zero-file stack sections are not cleared by this reset routine; that does not prove their prior contents."
+}

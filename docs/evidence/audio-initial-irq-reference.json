@@ -1,0 +1,25 @@
+{
+  "format": "pebble-audio-reference",
+  "version": 1,
+  "outcome": "match",
+  "referenceTarget": "pinned-native-generic-QEMU",
+  "method": "scripts/verify-audio-reference.mjs generates two tiny original Thumb programs, runs them in locally supplied pinned QEMU v10.1.5-pebble17 and the compiled Rust/Wasm core, and compares the first UART2 byte. No Pebble firmware or app is used.",
+  "nativeQemuSha256": "977a8e967836b5c10ddfcd2fceb2ebe26d44f5b284ce208c647da09265870c6c",
+  "wasmSha256": "c72fe9f9475abb7b776c3cc231fd1f4cddb3a116f75a7fbb32a2e147b420f2e3",
+  "cases": [
+    {
+      "name": "initial-status",
+      "syntheticMicroSha256": "e4d1a0bfbb33523b143db6aab7f55603d757b32507844d2392045c27bd1a6d1f",
+      "nativeFirstUartByte": 1,
+      "wasmFirstUartByte": 1
+    },
+    {
+      "name": "irq-10",
+      "syntheticMicroSha256": "23237be884c201e4c64466f1b411c9e0d946582cf9e01e06bc94ce5da1cb6e68",
+      "nativeFirstUartByte": 73,
+      "wasmFirstUartByte": 73
+    }
+  ],
+  "source": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/hw/misc/pebble_audio.c",
+  "limits": "This independently verifies initial INTSTAT and IRQ 10 delivery only. PCM drain timing, refill backpressure, production firmware scheduling and physical-watch behavior remain unverified."
+}

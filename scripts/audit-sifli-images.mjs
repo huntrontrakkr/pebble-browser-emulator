@@ -3,7 +3,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
-import { auditSifliImage } from '../src/app/sifli-image-audit.ts';
+import { auditSifliImage, inspectSifliResetStartup } from '../src/app/sifli-image-audit.ts';
 
 const [revision, elfPath, binPath, reportPath] = process.argv.slice(2);
 if (!['obelix_pvt', 'getafix_dvt2'].includes(revision) || !elfPath || !binPath) {
@@ -26,6 +26,7 @@ const report = {
     bin: { name: basename(binPath), bytes: bin.byteLength, sha256: sha256(bin) },
   },
   audit,
+  resetStartup: inspectSifliResetStartup(audit, bin),
 };
 const json = JSON.stringify(report, null, 2) + '\n';
 if (reportPath) await writeFile(reportPath, json);

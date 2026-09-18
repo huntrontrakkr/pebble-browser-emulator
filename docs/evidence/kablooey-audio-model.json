@@ -1,0 +1,37 @@
+{
+  "format": "pebble-generic-audio-model-evidence",
+  "version": 1,
+  "referenceTarget": "pinned-QEMU-source-for-register-contract; internal-Rust-Wasm-run-for-outcome",
+  "profile": "qemu_emery",
+  "firmwareVersion": "4.37.0",
+  "appSha256": "7eb911a829a289f92deb75ab5ddabf82b9d13f45947749192e031ec553646dca",
+  "wasmSha256": "8ecbe96c4af63589ead5078fa20f05e4f9124837b65ffe509666afef18bd9c6c",
+  "scenarioSha256": "c8a27138c71947032dc48c20ca8feb8adf78fd8c8ecf529d3ba955534e567b29",
+  "seed": 1,
+  "source": {
+    "audioDevice": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/hw/misc/pebble_audio.c",
+    "boardIrq": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/include/hw/arm/pebble_generic.h",
+    "modeled": "4096-sample FIFO; IRQ 10; initial refill interrupt; 1024-free-sample refill threshold; 10 ms virtual drain; CTRL stop/restart; rate-limited null sink; volume and register masks"
+  },
+  "observedAfterModel": {
+    "initialInstallAudioDataWrites": 4684,
+    "firstSecondAudioDataWrites": 7604,
+    "initialInstallAudioFreeReads": 9,
+    "firstSecondAudioFreeReads": 15,
+    "traceDroppedEvents": 0,
+    "firmwareReported": [
+      "service_system_task: System task queue full",
+      "Resetting!"
+    ],
+    "subsequentInstall": "BlobDB endpoint 0xb1db timeout at 31.101 virtual seconds",
+    "first10SecondsAfterTouchFrames": 0
+  },
+  "interpretation": "The new IRQ reaches the unchanged firmware and causes sample production. It does not resolve Kablooey compatibility; the firmware now reports queue overflow and reset before the later install timeout. Native QEMU default wall-clock execution previously completed this workload, while native instruction-count pacing also overflowed. Exact native virtual-time trace and CPU timing calibration are still required before attributing the failure or claiming equivalence.",
+  "status": "modeled-unverified",
+  "finalCoreRetest": {
+    "wasmSha256": "c72fe9f9475abb7b776c3cc231fd1f4cddb3a116f75a7fbb32a2e147b420f2e3",
+    "firstDetectedFailureVirtualMs": 7102.41803125,
+    "reason": "Firmware reported system task queue overflow/reset",
+    "runnerStoppedBeforeReplacementInstall": true
+  }
+}

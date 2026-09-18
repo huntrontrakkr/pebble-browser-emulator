@@ -419,6 +419,15 @@ pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64
                 elapsed = elapsed.min(deadline.saturating_sub(bus.devices.ticks).max(1))
             }
         }
+        if bus.devices.audio.running {
+            elapsed = elapsed.min(
+                bus.devices
+                    .audio
+                    .next_drain
+                    .saturating_sub(bus.devices.ticks)
+                    .max(1),
+            );
+        }
         elapsed = elapsed.min(deadline.saturating_sub(bus.devices.ticks));
     }
     bus.devices.advance(bus.devices.ticks + elapsed);

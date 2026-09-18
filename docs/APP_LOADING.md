@@ -23,8 +23,8 @@ The reported app name/link was not supplied. Testing found a concrete failure wi
 [Kablooey! 1.0.0](https://apps.repebble.com/app_1e6c5bbde96f4e6ca3497194) on unchanged
 `qemu_emery` PebbleOS 4.37.0. Its initial game frame appears, but later input/service work
 can stall. Installing another app in that session times out on BlobDB endpoint `0xb1db`.
-The console reports acceleration subscribers falling behind and eventually a full system
-callback queue and firmware reset/core dump. The Rust core reports no bus fault.
+With the current source-backed speaker model, firmware reports a full system task queue
+and reset/core dump before that timeout. The Rust core reports no bus fault.
 
 Controlled comparisons with official native QEMU **v10.1.5-pebble17**, the same PBW and
 identical firmware images:
@@ -37,11 +37,12 @@ identical firmware images:
 
 This establishes sensitivity to available execution time between firmware timer events;
 it does not prove a specific physical clock rate or rule out other core defects. Native
-QEMU's audio device also differs from the browser's incomplete audio model. An experimental
-speaker FIFO/IRQ model and an explicit close-before-install exchange did not resolve the
-browser failure; neither change is retained. No guest firmware, app, timing or instruction
-semantics were altered in this change. The shipped core remains SHA-256
-`c515bbed6ef18caa27d65dcb6f493fa3e8e1c62d7ddcbbf32f8c9ad0e44d362a`.
+QEMU's audio device exposed a separate register-level discrepancy. A bounded MMIO trace
+showed Kablooey enabling speaker IRQs during install; the old browser model did not raise
+QEMU's documented initial refill interrupt. The current core models that interrupt,
+FIFO and virtual-time drain. Kablooey now supplies audio samples, but the full system
+task queue and reset still prevent the next install. This is a modeled QEMU-source
+correction, not a native-trace equivalence or a compatibility fix. [Capture and scope](HARDWARE_FIDELITY.md).
 
 A later [bounded virtual-time workload capture](evidence/kablooey-workload.json) finds
 Kablooey using nearly the full generic 64 MHz estimated CPU budget continuously after
@@ -59,7 +60,7 @@ Clock Dude succeeded. That is installation coverage, not certification of their 
 behavior. In particular, network-dependent features and app-specific sensor processing
 remain separate gates. The UI recovery fix does not mark Kablooey compatible.
 
-Next: compare callback scheduling and instruction budgets against native traces, finish
+Next: compare callback scheduling and instruction budgets against native traces, validate
 speaker timing/backpressure with independent device evidence, and reproduce the user's
 specific app on its selected profile. Keep those corrections separate from host loading
 and input controls.

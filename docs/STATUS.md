@@ -22,10 +22,24 @@ unresolved, and its failed report is retained rather than classified as passing 
 One-second workload samples now place Kablooey near the generic CPU budget before touch
 and at the full estimated 64 MHz budget after touch. They leave checkpoint state and frame
 hashes unchanged; the cause and corrective behavior still need independent evidence.
+An opt-in bounded MMIO probe captures register activity around install and interaction.
+It found that Kablooey initializes the generic speaker, while Clock does not. The old
+audio stub omitted the initial refill IRQ required by pinned Pebble QEMU. A source-backed
+FIFO, virtual-time drain and refill IRQ now cause Kablooey to submit sample data. The
+probe preserved all unprobed checkpoint hashes before the model change and lost no
+events. With the model, Kablooey instead reports a full system task queue and resets;
+the prior full run's later install also timed out. The runner now reports that earlier
+overflow at 7.102 virtual seconds. Audio behavior remains modeled, not native-trace
+verified in full, and the compatibility failure is unresolved. A synthetic firmware
+reference gate matches pinned native QEMU for initial speaker status and IRQ 10 delivery;
+PCM drain timing and refill backpressure are not yet independently matched.
 Official Obelix PVT and Getafix DVT2 4.37.0 slot-0 ELF/raw pairs now pass a read-only
 segment/vector audit with recorded SHA-256 identities. Both require distinct flash and
 RAM initialization; their ELF entry is not their reset vector. This is an asset-layout
 milestone only: neither physical board executes firmware yet.
+The exact 4.37.0 reset prologues now have a repeatable audit: each copies its own two
+flash-backed SRAM sections and clears kernel BSS, while stack sections remain outside
+that zeroing range. The audit does not supply the post-bootloader clock/controller state.
 An isolated Rust SiFli address space now maps supplied slot-0 bytes and HCPU RAM for
 those two revisions; missing ROM, LCPU, flash and MMIO accesses fail with structured
 context. Uninitialized SRAM also faults instead of manufacturing a zero-filled boot state.

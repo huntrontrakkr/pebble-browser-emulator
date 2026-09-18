@@ -28,6 +28,18 @@ export interface SifliImageAudit {
   missingBootState: readonly string[];
 }
 
+export interface SifliResetStartup {
+  pattern: 'sf32lb52x-slot0-reset-v1';
+  resetHandler: number;
+  initialStackPointer: number;
+  mainStackLimit: number;
+  copies: { source: number; destination: number; bytes: number }[];
+  zeroFill: { destination: number; bytes: number };
+  ramSegmentsNotClearedByReset: { destination: number; bytes: number }[];
+  postMainAssertionHash: number;
+  postBootloaderStateKnown: false;
+}
+
 const FLASH_BASE = 0x12020000; // QSPI2 image origin for the audited slot-0 builds.
 const VECTOR = 0x12021000;
 const RAM_BASE = 0x20000000;
@@ -156,5 +168,89 @@ export function auditSifliImage(
       'SiFli ROM and LCPU/controller dependencies',
       'board-specific peripheral behavior',
     ],
+  };
+}
+
+/** Recognizes the reset prologue in the audited 4.37.0 SF32LB52J slot images.
+ * An unknown prologue is left unknown; it is never treated as equivalent.
+ * This describes bytes and initializer ranges, not a bootable CPU state.
+ */
+export function inspectSifliResetStartup(
+  audit: SifliImageAudit,
+  image: Uint8Array,
+): SifliResetStartup | null {
+  const reset = audit.resetHandler & ~1;
+  const offset = reset - FLASH_BASE;
+  if (offset < 0 || offset + 128 > image.byteLength) return null;
+  const prologue = Uint8Array.from(
+    '15 4b 83 f3 0a 88 00 23 83 f3 0b 88 13 49 14 4a 14 48 52 1a 9a 42 13 dc 00 23 13 49 13 4a 14 48 52 1a 9a 42 12 dc 13 48 13 4a 00 21 12 1a'
+      .split(' ')
+      .map((x) => parseInt(x, 16)),
+  );
+  const copyLoops = Uint8Array.from(
+    '10 f8 01 4b 01 33 01 f8 01 4b e3 e7 10 f8 01 4b 01 33 01 f8 01 4b e4 e7'
+      .split(' ')
+      .map((x) => parseInt(x, 16)),
+  );
+  // The branch encodings pin memset, SystemInit, main, and the assertion
+  // reached only if main returns in these exact published payloads.
+  const callSequence = Uint8Array.from(
+    (audit.boardRevision === 'obelix_pvt'
+      ? 'e3 f7 af f9 ce f0 17 fb 6b f0 2d f8 10 48 51 f0 68 f8'
+      : 'e9 f7 0d f8 bf f0 53 ff 66 f0 a3 fe 10 48 4d f0 72 f9')
+      .split(' ')
+      .map((x) => parseInt(x, 16)),
+  );
+  if (
+    prologue.some((b, i) => image[offset + i] !== b) ||
+    callSequence.some((b, i) => image[offset + 46 + i] !== b) ||
+    copyLoops.some((b, i) => image[offset + 64 + i] !== b)
+  )
+    return null;
+  const word = (at: number) =>
+    new DataView(image.buffer, image.byteOffset + offset + at, 4).getUint32(0, true);
+  const [mainStackLimit, dataStart, dataEnd, dataSource, codeStart, codeEnd, codeSource, bssStart,
+    bssEnd, postMainAssertionHash] = Array.from({ length: 10 }, (_, i) => word(88 + i * 4));
+  const copies = [
+    { source: dataSource, destination: dataStart, bytes: dataEnd - dataStart },
+    { source: codeSource, destination: codeStart, bytes: codeEnd - codeStart },
+  ];
+  const initializerSegments = audit.segments.filter((s) => s.category === 'ram-initializer');
+  const zeroSegments = audit.segments.filter((s) => s.category === 'zero-initialized-ram');
+  const matchesCopy = ({ source, destination, bytes }: (typeof copies)[number]) =>
+    bytes > 0 &&
+    initializerSegments.some(
+      (s) =>
+        s.physicalAddress === source && s.virtualAddress === destination && s.fileBytes === bytes,
+    );
+  const clearedSegments = zeroSegments.filter(
+    (s) => s.virtualAddress >= bssStart && s.virtualAddress + s.memoryBytes <= bssEnd,
+  );
+  if (
+    copies.length !== initializerSegments.length ||
+    !copies.every(matchesCopy) ||
+    bssStart !== dataEnd ||
+    bssEnd < bssStart ||
+    clearedSegments.reduce((n, s) => n + s.memoryBytes, 0) !== bssEnd - bssStart ||
+    zeroSegments.some(
+      (s) => s.virtualAddress < bssEnd && s.virtualAddress + s.memoryBytes > bssEnd,
+    ) ||
+    mainStackLimit < bssEnd ||
+    mainStackLimit >= audit.initialStackPointer ||
+    postMainAssertionHash !== 0x2a57
+  )
+    return null;
+  return {
+    pattern: 'sf32lb52x-slot0-reset-v1',
+    resetHandler: audit.resetHandler,
+    initialStackPointer: audit.initialStackPointer,
+    mainStackLimit,
+    copies,
+    zeroFill: { destination: bssStart, bytes: bssEnd - bssStart },
+    ramSegmentsNotClearedByReset: zeroSegments
+      .filter((s) => !clearedSegments.includes(s))
+      .map((s) => ({ destination: s.virtualAddress, bytes: s.memoryBytes })),
+    postMainAssertionHash,
+    postBootloaderStateKnown: false,
   };
 }

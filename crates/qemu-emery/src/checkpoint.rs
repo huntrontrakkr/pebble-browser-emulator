@@ -1,14 +1,14 @@
 //! Complete generic-board state. This format is distinct from diagnostic-v1 snapshots.
 use crate::{
     PebbleBus,
-    peripherals::{Devices, Timer, Uart},
+    peripherals::{Audio, Devices, Timer, Uart},
     profile::BoardProfile,
 };
 use rp2350_emu::{
     CortexM33,
     core::checkpoint::{Reader, Result, StateValue},
 };
-const MAGIC: &[u8] = b"PEBBLE-QEMU-STATE\x01";
+const MAGIC: &[u8] = b"PEBBLE-QEMU-STATE\x02";
 pub const MAXIMUM: usize = 40 * 1024 * 1024;
 macro_rules! fields {
     ($ty:ty { $($field:ident),+ $(,)? }) => { impl StateValue for $ty {
@@ -36,6 +36,23 @@ fields!(Timer {
     pending,
     divider,
     started
+});
+fields!(Audio {
+    ctrl,
+    samplerate,
+    intctrl,
+    intstat,
+    volume,
+    ring,
+    ring_read,
+    ring_write,
+    ring_count,
+    running,
+    stopping,
+    started,
+    next_drain,
+    active_rate,
+    samples_sent
 });
 fields!(Devices {
     profile,
@@ -137,6 +154,20 @@ pub fn decode(bytes: &[u8], expected: BoardProfile) -> Result<(CortexM33, Pebble
         || bus.flash.len() != 32 * 1024 * 1024
         || bus.devices.profile != profile
         || bus.devices.rtc_set_at > bus.devices.ticks
+        || bus.devices.audio.ring.len() != 4096 * 2
+        || bus.devices.audio.ring_read >= 4096
+        || bus.devices.audio.ring_write >= 4096
+        || bus.devices.audio.ring_count > 4096
+        || bus.devices.audio.ctrl > 1
+        || bus.devices.audio.intctrl > 1
+        || bus.devices.audio.intstat > 1
+        || bus.devices.audio.volume > 100
+        || (bus.devices.audio.running
+            && (bus.devices.audio.started > bus.devices.ticks
+                || bus.devices.audio.next_drain <= bus.devices.ticks
+                || bus.devices.audio.active_rate == 0))
+        || (!bus.devices.audio.running
+            && (bus.devices.audio.ring_count != 0 || bus.devices.audio.stopping))
         || cpu.ppb.last_systick_cycles > bus.devices.ticks
         || bus.devices.buttons > 15
         || bus

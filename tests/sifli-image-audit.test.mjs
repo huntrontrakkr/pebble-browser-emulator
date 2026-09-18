@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { auditSifliImage } from '../src/app/sifli-image-audit.ts';
+import { auditSifliImage, inspectSifliResetStartup } from '../src/app/sifli-image-audit.ts';
 
 const FLASH = 0x12020000;
 const VECTOR = 0x12021000;
@@ -48,6 +48,7 @@ test('audits a split vector/code image without mistaking ELF entry for reset', (
   assert.equal(report.resetHandler, VECTOR + 0x101);
   assert.equal(report.elfEntry, VECTOR + 0x100);
   assert.equal(report.segments.length, 2);
+  assert.equal(inspectSifliResetStartup(report, bin), null);
 });
 
 test('rejects payload mismatch, invalid vectors and incomplete load segments', () => {
@@ -96,5 +97,18 @@ for (const [revision, expectedSp, expectedReset] of [
     assert.equal(report.copiedRamBytes, evidence.boards[revision].ramInitializerBytes);
     assert.equal(report.zeroInitializedRamBytes, evidence.boards[revision].zeroInitializedRamBytes);
     assert.equal(report.loadable, false);
+    const reset = inspectSifliResetStartup(report, bin);
+    assert.equal(reset?.initialStackPointer, expectedSp);
+    assert.equal(reset?.resetHandler, expectedReset);
+    assert.equal(reset?.copies.length, 2);
+    assert.equal(reset?.copies.reduce((n, copy) => n + copy.bytes, 0), report.copiedRamBytes);
+    assert.equal(
+      reset?.zeroFill.bytes + reset?.ramSegmentsNotClearedByReset.reduce((n, s) => n + s.bytes, 0),
+      report.zeroInitializedRamBytes,
+    );
+    assert.equal(reset?.postBootloaderStateKnown, false);
+    const changed = bin.slice();
+    changed[(expectedReset & ~1) - FLASH + 46] ^= 1;
+    assert.equal(inspectSifliResetStartup(report, changed), null);
   });
 }

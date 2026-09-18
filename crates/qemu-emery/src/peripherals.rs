@@ -17,6 +17,151 @@ pub struct Timer {
     pub divider: u32,
     pub started: u64,
 }
+/// Generic QEMU speaker registers and FIFO. The virtual-time drain follows
+/// the pinned Pebble QEMU device with its rate-limited `driver=none` sink.
+pub struct Audio {
+    pub ctrl: u32,
+    pub samplerate: u32,
+    pub intctrl: u32,
+    pub intstat: u32,
+    pub volume: u32,
+    pub ring: Vec<u8>,
+    pub ring_read: u32,
+    pub ring_write: u32,
+    pub ring_count: u32,
+    pub running: bool,
+    pub stopping: bool,
+    pub started: u64,
+    pub next_drain: u64,
+    pub active_rate: u32,
+    pub samples_sent: u64,
+}
+impl Default for Audio {
+    fn default() -> Self {
+        Self {
+            ctrl: 0,
+            samplerate: 16000,
+            intctrl: 0,
+            intstat: 0,
+            volume: 100,
+            ring: vec![0; 4096 * 2],
+            ring_read: 0,
+            ring_write: 0,
+            ring_count: 0,
+            running: false,
+            stopping: false,
+            started: 0,
+            next_drain: 0,
+            active_rate: 0,
+            samples_sent: 0,
+        }
+    }
+}
+impl Audio {
+    const CAPACITY: u32 = 4096;
+    const INTERVAL: u64 = 640_000; // 10 ms at the generic 64 MHz clock.
+
+    fn start(&mut self, ticks: u64) {
+        if self.stopping {
+            self.stopping = false;
+            return;
+        }
+        if self.running {
+            return;
+        }
+        self.ring_read = 0;
+        self.ring_write = 0;
+        self.ring_count = 0;
+        self.running = true;
+        self.started = ticks;
+        self.next_drain = ticks.saturating_add(Self::INTERVAL);
+        self.active_rate = if self.samplerate == 0 {
+            16000
+        } else {
+            self.samplerate
+        };
+        self.samples_sent = 0;
+        self.intstat |= 1; // Initial refill IRQ in pinned generic QEMU.
+    }
+
+    fn stop(&mut self) {
+        if self.running && !self.stopping {
+            self.stopping = true;
+            self.intstat &= !1;
+        }
+    }
+
+    fn teardown(&mut self) {
+        self.running = false;
+        self.stopping = false;
+        self.ring_read = 0;
+        self.ring_write = 0;
+        self.ring_count = 0;
+        self.intstat = 0;
+        self.next_drain = 0;
+    }
+
+    pub fn advance(&mut self, ticks: u64) {
+        while self.running && ticks >= self.next_drain {
+            // QEMU's null audio backend admits bytes according to elapsed
+            // virtual time. Unused credit accumulates when the FIFO is empty.
+            let allowed = ((self.next_drain - self.started) as u128 * self.active_rate as u128
+                / 64_000_000) as u64;
+            let sent = allowed
+                .saturating_sub(self.samples_sent)
+                .min(self.ring_count as u64) as u32;
+            self.ring_read = (self.ring_read + sent) % Self::CAPACITY;
+            self.ring_count -= sent;
+            self.samples_sent += sent as u64;
+            if self.stopping && self.ring_count == 0 {
+                self.teardown();
+            } else {
+                if !self.stopping && Self::CAPACITY - self.ring_count >= 1024 {
+                    self.intstat |= 1;
+                }
+                self.next_drain = self.next_drain.saturating_add(Self::INTERVAL);
+            }
+        }
+    }
+
+    fn read(&self, offset: u32) -> u32 {
+        match offset {
+            0 => self.ctrl,
+            4 => 1, // STATUS: FIFO ready.
+            8 => self.samplerate,
+            16 => self.intctrl,
+            20 => self.intstat,
+            24 => Self::CAPACITY - self.ring_count,
+            28 => self.volume,
+            _ => 0, // Pinned QEMU logs bad register offsets and returns zero.
+        }
+    }
+
+    fn write(&mut self, offset: u32, value: u32, ticks: u64) {
+        match offset {
+            0 => {
+                let old = self.ctrl;
+                self.ctrl = value & 1;
+                if self.ctrl != 0 && old == 0 {
+                    self.start(ticks);
+                } else if self.ctrl == 0 && old != 0 {
+                    self.stop();
+                }
+            }
+            8 => self.samplerate = value,
+            12 if self.running && self.ring_count < Self::CAPACITY => {
+                let at = self.ring_write as usize * 2;
+                self.ring[at..at + 2].copy_from_slice(&(value as u16).to_le_bytes());
+                self.ring_write = (self.ring_write + 1) % Self::CAPACITY;
+                self.ring_count += 1;
+            }
+            16 => self.intctrl = value & 1,
+            20 => self.intstat &= !value,
+            28 => self.volume = value.min(100),
+            _ => {} // Pinned QEMU logs unsupported writes.
+        }
+    }
+}
 pub struct Devices {
     pub profile: BoardProfile,
     pub systick_fraction: u64,
@@ -37,7 +182,7 @@ pub struct Devices {
     pub flash_addr: u32,
     pub sync_len: u32,
     pub touch: [u32; 5],
-    pub audio: [u32; 8],
+    pub audio: Audio,
     pub irq_levels: u32,
 }
 impl Default for Devices {
@@ -82,7 +227,7 @@ impl Devices {
             flash_addr: 0,
             sync_len: 0,
             touch: [0; 5],
-            audio: [0, 1, 16000, 0, 0, 0, 8192, 100],
+            audio: Audio::default(),
             irq_levels: 0,
         }
     }
@@ -123,6 +268,9 @@ impl Devices {
     }
     pub fn advance(&mut self, ticks: u64) {
         self.ticks = ticks;
+        if self.profile.audio {
+            self.audio.advance(ticks);
+        }
         for t in &mut self.timer {
             let period = t.load as u64 * (t.divider as u64 + 1);
             if t.ctrl & 1 != 0 && period != 0 && ticks.saturating_sub(t.started) >= period {
@@ -158,6 +306,9 @@ impl Devices {
         }
         if self.touch[3] & self.touch[4] & 1 != 0 {
             out |= 1 << 9
+        }
+        if self.profile.audio && self.audio.intctrl & self.audio.intstat & 1 != 0 {
+            out |= 1 << 10
         }
         out
     }
@@ -228,9 +379,7 @@ impl Devices {
             0x40011000 if self.profile.touch => {
                 self.touch.get((off / 4) as usize).copied().unwrap_or(0)
             }
-            0x40012000 if self.profile.audio => {
-                self.audio.get((off / 4) as usize).copied().unwrap_or(0)
-            }
+            0x40012000 if self.profile.audio => self.audio.read(off),
             _ => return None,
         })
     }
@@ -334,11 +483,7 @@ impl Devices {
                 16 => self.touch[4] &= !v,
                 _ => {}
             },
-            0x40012000 if self.profile.audio => match off {
-                0 | 8 | 16 | 28 => self.audio[(off / 4) as usize] = v,
-                20 => self.audio[5] &= !v,
-                _ => {}
-            },
+            0x40012000 if self.profile.audio => self.audio.write(off, v, self.ticks),
             _ => return false,
         }
         true

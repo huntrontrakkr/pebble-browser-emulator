@@ -89,3 +89,36 @@ fn wfi_timer_and_pending_interrupt_continue_from_the_same_boundary() {
         checkpoint::encode(&cpu, &bus)
     );
 }
+
+#[test]
+fn speaker_fifo_and_drain_deadline_continue_from_snapshot() {
+    let (cpu, mut bus) = machine(BoardProfile::EMERY);
+    assert!(bus.devices.write(0x4001_2010, 1, &mut bus.flash));
+    assert!(bus.devices.write(0x4001_2000, 1, &mut bus.flash));
+    for sample in 0..600 {
+        assert!(bus.devices.write(0x4001_200c, sample, &mut bus.flash));
+    }
+    bus.devices.advance(640_000);
+    let bytes = checkpoint::encode(&cpu, &bus);
+    let (resumed_cpu, mut resumed_bus) = checkpoint::decode(&bytes, BoardProfile::EMERY).unwrap();
+    assert_eq!(checkpoint::encode(&resumed_cpu, &resumed_bus), bytes);
+    for time in [1_280_000, 1_920_000, 2_560_000] {
+        bus.devices.advance(time);
+        resumed_bus.devices.advance(time);
+        assert_eq!(
+            checkpoint::encode(&resumed_cpu, &resumed_bus),
+            checkpoint::encode(&cpu, &bus)
+        );
+    }
+}
+
+#[test]
+fn speaker_snapshot_rejects_impossible_fifo_and_timer_state() {
+    let (cpu, mut bus) = machine(BoardProfile::EMERY);
+    bus.devices.audio.ring_count = 4097;
+    assert!(checkpoint::decode(&checkpoint::encode(&cpu, &bus), BoardProfile::EMERY).is_err());
+    bus.devices.audio.ring_count = 0;
+    assert!(bus.devices.write(0x4001_2000, 1, &mut bus.flash));
+    bus.devices.audio.next_drain = bus.devices.ticks;
+    assert!(checkpoint::decode(&checkpoint::encode(&cpu, &bus), BoardProfile::EMERY).is_err());
+}
