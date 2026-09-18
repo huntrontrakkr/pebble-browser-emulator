@@ -1,0 +1,60 @@
+{
+  "format": "pebble-sifli-image-evidence",
+  "version": 1,
+  "source": {
+    "release": "https://github.com/coredevices/PebbleOS/releases/tag/v4.37.0",
+    "pebbleOsSourceCommit": "9399f564fb5035057a9174025d2c6c625e942285",
+    "sifliSdkCommit": "bfee83c7adc0b19c2923f1788238def50f0a9dce"
+  },
+  "method": "scripts/audit-sifli-images.mjs compares every file-backed ELF PT_LOAD byte to the locally downloaded raw slot-0 image at its physical flash address, then checks vector and execution ranges. SHA-256 values identify local release downloads; GitHub's release API did not supply asset digests in this capture.",
+  "evidenceTarget": "published-binary-self-consistency",
+  "outcome": "layout-verified-not-bootable",
+  "shared": {
+    "rawImageFlashBase": "0x12020000",
+    "hcpuVector": "0x12021000",
+    "elfEntry": "0x120256f8",
+    "loadSegmentsPerBoard": 11,
+    "firmwareBytesModified": false
+  },
+  "boards": {
+    "obelix_pvt": {
+      "bin": {
+        "name": "firmware_obelix_pvt_v4.37.0_slot0.bin",
+        "bytes": 2036800,
+        "sha256": "67b56825d66eaeab97bc1f8a6803c7b689cd42f28c31813379469059b99c49b2"
+      },
+      "elf": {
+        "name": "firmware_obelix_pvt_v4.37.0_slot0.elf",
+        "bytes": 23405528,
+        "sha256": "591e715a5dda8bae5a082625c0a1a591740e1b42cca725a63d74b3e2fc950df5"
+      },
+      "initialStackPointer": "0x20034d40",
+      "resetHandler": "0x12046bb9",
+      "ramInitializerBytes": 40208,
+      "zeroInitializedRamBytes": 184368
+    },
+    "getafix_dvt2": {
+      "bin": {
+        "name": "firmware_getafix_dvt2_v4.37.0_slot0.bin",
+        "bytes": 1831560,
+        "sha256": "49de4261874c5ac93caabf2e1a8be81b3e46298f8e17e256b89653775d1f9245"
+      },
+      "elf": {
+        "name": "firmware_getafix_dvt2_v4.37.0_slot0.elf",
+        "bytes": 22365284,
+        "sha256": "e4c4d411f3c408309f99f8b6e5f8231366dee3685c1f3f7d315c9a48721e1fc4"
+      },
+      "initialStackPointer": "0x2002ec60",
+      "resetHandler": "0x12040ec1",
+      "ramInitializerBytes": 39736,
+      "zeroInitializedRamBytes": 160040
+    }
+  },
+  "missing": [
+    "verified post-bootloader CPU registers and SRAM",
+    "SiFli ROM/LCPU/controller assets and permitted redistribution",
+    "clock/flash/cache reset state",
+    "board-specific MMIO and interrupt behavior",
+    "independent watch boot or timing measurement"
+  ]
+}

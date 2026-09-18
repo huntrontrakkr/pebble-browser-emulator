@@ -7,6 +7,32 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Hardware fidelity work
+
+The [five-stage implementation plan](../HARDWARE_FIDELITY_PLAN.md) is saved in the repository
+root. Its first implementation adds a validated evidence/trace format, bounded opt-in Wasm
+MMIO/exception/step tracing, a local firmware scenario runner and first-divergence comparison.
+Traced and untraced Clock runs match at five full-state/frame checkpoints with identical
+virtual timestamps. This is internal consistency, not physical validation.
+
+The Worker now consistently orders simultaneous demo, scenario and gesture inputs on both
+sides of a CPU batch boundary; explicit scenarios no longer lose precedence at the end of
+a batch. The new runner reproduces Kablooey's later BlobDB timeout. That failure remains
+unresolved, and its failed report is retained rather than classified as passing evidence.
+One-second workload samples now place Kablooey near the generic CPU budget before touch
+and at the full estimated 64 MHz budget after touch. They leave checkpoint state and frame
+hashes unchanged; the cause and corrective behavior still need independent evidence.
+Official Obelix PVT and Getafix DVT2 4.37.0 slot-0 ELF/raw pairs now pass a read-only
+segment/vector audit with recorded SHA-256 identities. Both require distinct flash and
+RAM initialization; their ELF entry is not their reset vector. This is an asset-layout
+milestone only: neither physical board executes firmware yet.
+An isolated Rust SiFli address space now maps supplied slot-0 bytes and HCPU RAM for
+those two revisions; missing ROM, LCPU, flash and MMIO accesses fail with structured
+context. Uninitialized SRAM also faults instead of manufacturing a zero-filled boot state.
+There is still no physical CPU, bootloader or peripheral execution.
+Physical SiFli implementation, active phone snapshots, native deterministic replay and actual
+watch calibration remain open. [Contracts, reproduction and source inventory](HARDWARE_FIDELITY.md).
+
 ## Time 2 optical prototype
 
 Time 2's 3D preview now offers **Layered (experimental)** and **Standard** display optics.
@@ -196,24 +222,24 @@ phone clock/output loop improved 2.6–6.0× depending on stored payload. The co
 byte-identical to the previous version; this is not a whole-emulator or physical-phone FPS
 claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/browser-performance.json).
 
-| Capability                 | Verified scope                                                                                                                                                                                                                                           |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                  |
-| Physical and older watches | Firmware package inspection; physical Asterix/Obelix/Getafix and legacy Tintin/Snowy/Spalding/Silk/Robert execution remain unimplemented.                                                                                                                |
-| GitHub source              | Public repositories, commit-pinned downloads, branches/subfolders, local ZIP and folder import; unsupported build behavior reports an error.                                                                                                             |
-| Linux build sandbox        | Local container2wasm WASI image, custom YAML/shell commands, imported dependencies, quotas, cancellation and artifact export. Python + actual ARM GCC object generation verified; full SDK/Waf PBW gate remains open.                                    |
-| Native C builds            | SDK 4.33.1 headers/libraries/defines/limits for Aplite, Basalt, Chalk, Diorite, Emery, Flint and Gabbro; modern and legacy SDK 3 metadata.                                                                                                               |
-| Resources                  | PNG/PBI/bitmap/raw resources, selected platform variants, aliases, generated IDs, resource packs and menu icons. Custom font/SVG generation is pending.                                                                                                  |
-| JavaScript builds          | Local CommonJS/ES modules/JSON, SDK message keys, integrity-checked npm v2/v3 lockfiles, published Pebble JS `dist.zip` packages.                                                                                                                        |
-| Installation               | Actual BlobDB/AppFetch/PutBytes transfers, CRC commits, native app-running events, main binary/resources/background worker.                                                                                                                              |
-| Background workers         | Compiled/packaged worker matches SDK metadata; firmware starts it and emits its expected log.                                                                                                                                                            |
-| Virtual phone              | Isolated QuickJS, geolocation, time/timers, app storage, actual AppMessage ACK/NACK, watch context, XHR/fetch test responses or browser CORS.                                                                                                            |
-| Configuration              | Source-ported upstream Kotlin/Compose settings, sandboxed HTML/Clay pages, automatic correlated returns, app-scoped persistence. Remote pages require `return_to` and browser embedding support; explicit new-tab fallback.                              |
-| Inputs and inspection      | Accelerometer, tap, touch, health metrics/raw heart rate, health preferences, compass channel, seeded scenarios/CSV; battery/buttons/time/link; phone location/errors; actual haptic output events and protocol inspection.                              |
-| Firmware identity          | Exact release tags from public GitHub sources; checksummed, board-specific bundle imports. A file being accepted does not imply firmware compatibility.                                                                                                  |
-| Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                              |
-| Display                    | 144×168 monochrome, 200×228 color, 260×260 round color; committed guest frames; exact color conversion. Reflective optics remain an approximation.                                                                                                       |
-| 3D model                   | Simplified official current Time 2, 2 Duo and Round 2 CAD with live native-resolution screens, reflective materials and selectable lighting. Optical response remains uncalibrated. |
+| Capability                 | Verified scope                                                                                                                                                                                                                                                                                 |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                                                        |
+| Physical and older watches | Firmware package inspection; physical Asterix/Obelix/Getafix and legacy Tintin/Snowy/Spalding/Silk/Robert execution remain unimplemented.                                                                                                                                                      |
+| GitHub source              | Public repositories, commit-pinned downloads, branches/subfolders, local ZIP and folder import; unsupported build behavior reports an error.                                                                                                                                                   |
+| Linux build sandbox        | Local container2wasm WASI image, custom YAML/shell commands, imported dependencies, quotas, cancellation and artifact export. Python + actual ARM GCC object generation verified; full SDK/Waf PBW gate remains open.                                                                          |
+| Native C builds            | SDK 4.33.1 headers/libraries/defines/limits for Aplite, Basalt, Chalk, Diorite, Emery, Flint and Gabbro; modern and legacy SDK 3 metadata.                                                                                                                                                     |
+| Resources                  | PNG/PBI/bitmap/raw resources, selected platform variants, aliases, generated IDs, resource packs and menu icons. Custom font/SVG generation is pending.                                                                                                                                        |
+| JavaScript builds          | Local CommonJS/ES modules/JSON, SDK message keys, integrity-checked npm v2/v3 lockfiles, published Pebble JS `dist.zip` packages.                                                                                                                                                              |
+| Installation               | Actual BlobDB/AppFetch/PutBytes transfers, CRC commits, native app-running events, main binary/resources/background worker.                                                                                                                                                                    |
+| Background workers         | Compiled/packaged worker matches SDK metadata; firmware starts it and emits its expected log.                                                                                                                                                                                                  |
+| Virtual phone              | Isolated QuickJS, geolocation, time/timers, app storage, actual AppMessage ACK/NACK, watch context, XHR/fetch test responses or browser CORS.                                                                                                                                                  |
+| Configuration              | Source-ported upstream Kotlin/Compose settings, sandboxed HTML/Clay pages, automatic correlated returns, app-scoped persistence. Remote pages require `return_to` and browser embedding support; explicit new-tab fallback.                                                                    |
+| Inputs and inspection      | Accelerometer, tap, touch, health metrics/raw heart rate, health preferences, compass channel, seeded scenarios/CSV; battery/buttons/time/link; phone location/errors; actual haptic output events and protocol inspection.                                                                    |
+| Firmware identity          | Exact release tags from public GitHub sources; checksummed, board-specific bundle imports. A file being accepted does not imply firmware compatibility.                                                                                                                                        |
+| Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                                                                    |
+| Display                    | 144×168 monochrome, 200×228 color, 260×260 round color; committed guest frames; exact color conversion. Reflective optics remain an approximation.                                                                                                                                             |
+| 3D model                   | Simplified official current Time 2, 2 Duo and Round 2 CAD with live native-resolution screens, reflective materials and selectable lighting. Optical response remains uncalibrated.                                                                                                            |
 | State                      | Watch restart preserves modified SPI flash and RTC. Matching pristine startup checkpoints restore the full generic machine and host transport. Phone timers follow watch time with acknowledged 10 ms quanta. Active phone/watch session snapshots and complete session replay remain pending. |
 
 ## New acceptance gates

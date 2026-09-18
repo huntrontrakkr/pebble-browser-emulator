@@ -18,6 +18,7 @@ import { signalRoute } from './board-registry.ts';
 import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
 import { DemoSignalStream, normalizeDemoSettings } from './demo-settings.ts';
 import { wristShake } from './watch-gestures.ts';
+import { mergeDueSignals } from './scheduled-inputs.ts';
 import { demoRecords, type DemoRecord } from './demo-timeline.ts';
 import { bytesHash } from './resource-cache.ts';
 import {
@@ -166,6 +167,17 @@ function tick(count = 100000): Promise<number> {
   cpuPump = task.catch(() => {});
   return task;
 }
+function flushScheduledSignals() {
+  const now = api.spike_ticks() / 64;
+  const gestureActive = gesture.pending > 0;
+  for (const event of mergeDueSignals(
+    demoStream.takeDue(now),
+    timeline.takeDue(now),
+    gesture.takeDue(now),
+    gestureActive,
+  ))
+    applySignal(event.signal, event.atUs);
+}
 async function tickOnce(count: number) {
   const began = performance.now();
   let remaining = count;
@@ -177,13 +189,7 @@ async function tickOnce(count: number) {
         ? 1280000
         : Number.MAX_SAFE_INTEGER - api.spike_ticks());
   while (remaining > 0) {
-    for (const event of demoStream.takeDue(api.spike_ticks() / 64))
-      if (!gesture.pending || event.signal.kind !== 'acceleration')
-        applySignal(event.signal, event.atUs);
-    for (const event of timeline.takeDue(api.spike_ticks() / 64))
-      applySignal(event.signal, event.atUs);
-    for (const event of gesture.takeDue(api.spike_ticks() / 64))
-      applySignal(event.signal, event.atUs);
+    flushScheduledSignals();
     flushUart();
     const deadline = Math.min(
       quantumEnd,
@@ -208,13 +214,7 @@ async function tickOnce(count: number) {
     )
       break;
   }
-  for (const event of timeline.takeDue(api.spike_ticks() / 64))
-    applySignal(event.signal, event.atUs);
-  for (const event of demoStream.takeDue(api.spike_ticks() / 64))
-    if (!gesture.pending || event.signal.kind !== 'acceleration')
-      applySignal(event.signal, event.atUs);
-  for (const event of gesture.takeDue(api.spike_ticks() / 64))
-    applySignal(event.signal, event.atUs);
+  flushScheduledSignals();
   flushUart();
   if (announceReady) {
     announceReady = false;

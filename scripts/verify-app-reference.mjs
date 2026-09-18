@@ -2,9 +2,9 @@
 // No app or firmware is modified, redistributed or used as a runtime backend.
 import fs from 'node:fs/promises';
 import net from 'node:net';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { resolve } from 'node:path';
+import { resolve, delimiter } from 'node:path';
 import { tmpdir } from 'node:os';
 import { PebbleTransport } from '../src/app/pebble-transport.ts';
 import { appPackage } from '../src/app/archives.ts';
@@ -19,13 +19,47 @@ const platform = FIRMWARE_PROFILES[profile].platform,
 const assets = resolve(process.env.PEBBLE_FIRMWARE_DIR),
   out = resolve(process.env.PEBBLE_TRACE_DIR ?? 'tmp/app-reference-' + platform);
 await fs.mkdir(out, { recursive: true });
-const scratch = await fs.mkdtemp(resolve(tmpdir(), 'pebble-app-oracle-'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const hash = (b) => createHash('sha256').update(b).digest('hex');
+const executableName = process.env.PEBBLE_QEMU ?? 'qemu-pebble';
+let executablePath;
+for (const path of executableName.includes('/')
+  ? [resolve(executableName)]
+  : (process.env.PATH ?? '').split(delimiter).map((dir) => resolve(dir, executableName))) {
+  if (
+    await fs.access(path, fs.constants.X_OK).then(
+      () => true,
+      () => false,
+    )
+  ) {
+    executablePath = path;
+    break;
+  }
+}
+if (!executablePath) throw new Error('Native QEMU executable is unavailable.');
+const versionResult = spawnSync(executablePath, ['--version'], {
+  encoding: 'utf8',
+  timeout: 10000,
+});
+if (versionResult.error || versionResult.status !== 0)
+  throw new Error(
+    'Native QEMU version check failed: ' + (versionResult.error?.message ?? versionResult.stderr),
+  );
+const referenceIdentity = {
+  name: 'native Pebble QEMU',
+  version: versionResult.stdout.trim(),
+  sha256: hash(await fs.readFile(executablePath)),
+  clock: {
+    execution: process.env.PEBBLE_QEMU_ICOUNT ?? 'default virtual clock',
+    rtc: 'host wall time',
+    inputScheduling: 'host waits; not deterministic virtual-time replay',
+  },
+};
 const micro = resolve(assets, `${profile}_v${version}_micro_flash.bin`),
   flash = resolve(assets, `${profile}_v${version}_spi_flash.bin`);
+const scratch = await fs.mkdtemp(resolve(tmpdir(), 'pebble-app-oracle-'));
 const processHandle = spawn(
-  process.env.PEBBLE_QEMU ?? 'qemu-pebble',
+  executablePath,
   [
     '-machine',
     'pebble-' + platform,
@@ -181,6 +215,10 @@ try {
   await fs.writeFile(out + '/native-frame.bin', frame);
   await fs.writeFile(out + '/native-console.bin', consoleBytes);
   const evidence = {
+    referenceIdentity,
+    referenceTarget: 'native-qemu',
+    scope:
+      'Launch, input and app-switch observations. A changed frame does not establish gameplay correctness or physical timing.',
     profile,
     version,
     qemuIcount: process.env.PEBBLE_QEMU_ICOUNT ?? null,

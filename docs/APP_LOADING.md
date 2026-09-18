@@ -43,6 +43,17 @@ browser failure; neither change is retained. No guest firmware, app, timing or i
 semantics were altered in this change. The shipped core remains SHA-256
 `c515bbed6ef18caa27d65dcb6f493fa3e8e1c62d7ddcbbf32f8c9ad0e44d362a`.
 
+A later [bounded virtual-time workload capture](evidence/kablooey-workload.json) finds
+Kablooey using nearly the full generic 64 MHz estimated CPU budget continuously after
+touch, compared with under 0.5 million estimated cycles per second for idle Clock.
+The 64 MHz value is the [pinned QEMU generic SYSCLK declaration](https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/include/hw/arm/pebble_generic.h#L73),
+not a measurement of a physical Time 2. Native QEMU's default CPU execution is not
+limited to one instruction per nominal clock cycle.
+The Kablooey install timeout reproduces with the same full-state/frame checkpoint hashes
+as before the samples were added. This supports a load/timing investigation, but an
+estimated interpreter cost is neither a retired instruction count nor a physical clock
+measurement. A reference-backed scheduler, CPU or device cause remains unproven.
+
 Fresh store installs of Clear Timer, Roon Remote, Spin the Bottle, Fatal Run, Slow and
 Clock Dude succeeded. That is installation coverage, not certification of their complete
 behavior. In particular, network-dependent features and app-specific sensor processing

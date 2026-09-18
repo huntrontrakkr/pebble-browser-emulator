@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/emulator-core", "crates/emulator-wasm", "crates/qemu-emery"]
+members = ["crates/emulator-core", "crates/emulator-wasm", "crates/qemu-emery", "crates/sifli-board"]
 resolver = "2"
 exclude = ["vendor/rp2350-emu"]
 

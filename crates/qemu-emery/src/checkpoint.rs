@@ -73,6 +73,7 @@ pub fn encode(cpu: &CortexM33, bus: &PebbleBus) -> Vec<u8> {
         devices,
         active_pc,
         failed,
+        trace: _, // Observation is deliberately outside guest state.
         wait,
         fetch,
         observed_pending_irqs,
@@ -122,6 +123,7 @@ pub fn decode(bytes: &[u8], expected: BoardProfile) -> Result<(CortexM33, Pebble
         devices: StateValue::decode(&mut input)?,
         active_pc: StateValue::decode(&mut input)?,
         failed: StateValue::decode(&mut input)?,
+        trace: crate::trace::Trace::default(),
         wait: StateValue::decode(&mut input)?,
         fetch: StateValue::decode(&mut input)?,
         observed_pending_irqs: StateValue::decode(&mut input)?,

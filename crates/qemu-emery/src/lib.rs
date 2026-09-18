@@ -3,6 +3,7 @@ use std::sync::Arc;
 pub mod checkpoint;
 pub mod peripherals;
 pub mod profile;
+pub mod trace;
 use profile::BoardProfile;
 
 const RAM: u32 = 0x2000_0000;
@@ -19,6 +20,7 @@ pub struct PebbleBus {
     pub devices: peripherals::Devices,
     pub active_pc: u32,
     pub failed: Option<(u32, u32, bool)>,
+    pub trace: trace::Trace,
     wait: u32,
     fetch: u32,
     observed_pending_irqs: u64,
@@ -48,6 +50,7 @@ impl PebbleBus {
             devices: peripherals::Devices::with_profile(profile),
             active_pc: 0,
             failed: None,
+            trace: trace::Trace::default(),
             wait: 0,
             fetch: 0,
             observed_pending_irqs: 0,
@@ -116,6 +119,9 @@ impl CoreBus for PebbleBus {
         if (0x40000000..0x50000000).contains(&a)
             && let Some(v) = self.devices.read(a)
         {
+            if self.trace.enabled(trace::MMIO) {
+                self.emit_mmio_trace('R', 4, a, v, 0);
+            }
             return v;
         }
         u32::from_le_bytes(std::array::from_fn(|i| {
@@ -133,6 +139,9 @@ impl CoreBus for PebbleBus {
     fn write32(&mut self, a: u32, v: u32, _: u8) {
         let frames = self.devices.frames;
         if self.devices.write(a, v, &mut self.flash) {
+            if self.trace.enabled(trace::MMIO) {
+                self.emit_mmio_trace('W', 4, a, v, 0);
+            }
             if self.devices.frames != frames {
                 if self.profile.guest_bpp == 1 {
                     // Pebble monochrome rows are 32-bit aligned, LSB first.
@@ -229,9 +238,22 @@ impl CoreBus for PebbleBus {
         self.fetch = a
     }
     fn mmio_trace_enabled(&self) -> bool {
-        false
+        self.trace.enabled(trace::MMIO)
     }
-    fn emit_mmio_trace(&mut self, _: char, _: u32, _: u32, _: u32, _: u8) {}
+    fn emit_mmio_trace(&mut self, direction: char, width: u32, address: u32, value: u32, _: u8) {
+        self.trace.push([
+            if direction == 'R' { 1 } else { 2 },
+            self.devices.ticks as u32,
+            (self.devices.ticks >> 32) as u32,
+            self.active_pc,
+            address,
+            value,
+            width,
+            0,
+            0,
+            0,
+        ]);
+    }
 }
 fn image(words: &[u16]) -> Vec<u8> {
     let mut b = vec![0; 0x100];
@@ -355,6 +377,8 @@ pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64
         return;
     }
     let prev = cpu.cycles();
+    let before_exception = cpu.regs.xpsr & 0x1ff;
+    let before_pc = cpu.regs.pc();
     cpu.ppb.update_latest_cycles(bus.devices.ticks);
     let mask = bus.devices.irq_mask();
     // Convert peripheral levels to rising edges; re-pend still-high inactive lines.
@@ -413,6 +437,26 @@ pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64
     advance_systick(cpu, tick_count);
     cpu.ppb.last_systick_cycles = bus.devices.ticks;
     observe_pending_events(cpu, bus);
+    if bus.trace.enabled(trace::STEPS)
+        || (bus.trace.enabled(trace::TRANSITIONS) && before_exception != cpu.regs.xpsr & 0x1ff)
+    {
+        bus.trace.push([
+            if before_exception != cpu.regs.xpsr & 0x1ff {
+                3
+            } else {
+                4
+            },
+            bus.devices.ticks as u32,
+            (bus.devices.ticks >> 32) as u32,
+            before_pc,
+            cpu.regs.pc(),
+            cpu.regs.xpsr,
+            0,
+            bus.devices.irq_mask(),
+            cpu.cycles() as u32,
+            (cpu.cycles() >> 32) as u32,
+        ]);
+    }
 }
 
 // Pending transitions are sampled before wake/arbitration and after each
@@ -717,6 +761,48 @@ pub extern "C" fn spike_ticks() -> f64 {
             .as_ref()
             .map_or(0.0, |(_, b)| b.devices.ticks as f64)
     })
+}
+/// Diagnostic ABI v1. Observation never changes guest scheduling or checkpoint bytes.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_trace_version() -> u32 {
+    1
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_trace_configure(flags: u32, capacity: u32) -> u32 {
+    MACHINE.with(|m| {
+        m.borrow_mut().as_mut().map_or(0, |(_, b)| {
+            b.trace.configure(flags, capacity as usize) as u32
+        })
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_trace_export() -> u32 {
+    MACHINE.with(|m| {
+        m.borrow_mut()
+            .as_mut()
+            .map_or(0, |(_, b)| b.trace.export() as u32)
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_trace_ptr() -> *const u32 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(std::ptr::null(), |(_, b)| b.trace.ptr())
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_trace_dropped() -> f64 {
+    MACHINE.with(|m| {
+        m.borrow()
+            .as_ref()
+            .map_or(0.0, |(_, b)| b.trace.dropped as f64)
+    })
+}
+/// Interpreter cost estimate, NOT measured physical CPU cycles or instructions.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_estimated_cpu_cycles() -> f64 {
+    MACHINE.with(|m| m.borrow().as_ref().map_or(0.0, |(c, _)| c.cycles() as f64))
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn spike_fault() -> u32 {

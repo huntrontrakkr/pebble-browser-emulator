@@ -1,0 +1,46 @@
+{
+  "format": "pebble-generic-workload-evidence",
+  "version": 1,
+  "referenceTarget": "internal-consistency",
+  "profile": "qemu_emery",
+  "firmwareVersion": "4.37.0",
+  "genericClockSource": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/include/hw/arm/pebble_generic.h#L73",
+  "firmware": {
+    "microFlashSha256": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+    "spiFlashSha256": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5"
+  },
+  "apps": {
+    "kablooeyPbWSha256": "7eb911a829a289f92deb75ab5ddabf82b9d13f45947749192e031ec553646dca",
+    "clockPbWSha256": "e43dc348dfd3d117660d5e01aaf71739b3483b228626ced28fa21c4fe8a4ca6a"
+  },
+  "capture": "scripts/verify-fidelity-run.mjs with one-second interaction samples, fixed RTC and unchanged firmware/PBW; same core and host. Rates are rounded from local workload.json. Estimated CPU cycles are interpreter costs, not measured instructions or physical hardware cycles.",
+  "comparison": {
+    "clockIdle": {
+      "medianSchedulerStepsPerVirtualSecond": 237296,
+      "medianEstimatedCpuCyclesPerVirtualSecond": 449982,
+      "completedFramesInSampledIdleSeconds": 0,
+      "outcome": "passed"
+    },
+    "kablooeyBeforeTouch": {
+      "schedulerStepsPerVirtualSecond": 37202607,
+      "estimatedCpuCyclesPerVirtualSecond": 56514155,
+      "completedFrames": 14
+    },
+    "kablooeyTouchHeld": {
+      "schedulerStepsPerVirtualSecond": 42240420,
+      "estimatedCpuCyclesPerVirtualSecond": 64000000,
+      "completedFrames": 1
+    },
+    "kablooeyAfterTouch": {
+      "sampledWindows": 9,
+      "schedulerStepsPerVirtualSecondRange": [42459792, 42694767],
+      "estimatedCpuCyclesPerVirtualSecondRange": [63999999, 64000002],
+      "completedFramesPerSampleRange": [11, 12],
+      "outcome": "failed",
+      "failure": "Timeout waiting for Pebble endpoint 0xb1db at 31.100 virtual seconds"
+    }
+  },
+  "observerEffect": "All corresponding boot, install, interaction and final Clock/Kablooey checkpoint virtual timestamps, full-state hashes and frame hashes matched the earlier unsampled runs exactly.",
+  "inference": "Kablooey keeps the modeled generic 64 MHz CPU budget occupied. This is consistent with timing sensitivity also seen under native QEMU instruction-count timing, but does not isolate whether application workload, CPU cost estimates, firmware scheduling or peripherals cause the install timeout.",
+  "remaining": "Controlled native virtual-clock replay, earliest callback/interrupt divergence and a reference-backed correction are still required."
+}
