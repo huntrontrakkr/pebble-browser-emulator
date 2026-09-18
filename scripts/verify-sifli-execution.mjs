@@ -14,7 +14,7 @@ if (!['obelix_pvt', 'getafix_dvt2'].includes(revision) || !elfPath || !imagePath
 }
 const report = {
   format: 'pebble-sifli-reset-execution',
-  version: 3,
+  version: 4,
   revision,
   outcome: 'not-run',
   bootComplete: false,
@@ -36,7 +36,7 @@ try {
   const systemInit = revision === 'obelix_pvt' ? 0x1211521c : 0x12100d9c;
   const { instance } = await WebAssembly.instantiate(wasm, {});
   const e = instance.exports;
-  assert.equal(e.sifli_abi_version(), 3);
+  assert.equal(e.sifli_abi_version(), 4);
   const output = () =>
     JSON.parse(
       new TextDecoder().decode(
@@ -114,7 +114,7 @@ try {
     state.clock.estimatedCoreCycles - report.mainEntry.clock.estimatedCoreCycles >= 48 * 260,
   );
   report.clockStartup = state;
-  report.outcome = 'early-clock-startup-matched';
+  report.outcome = 'lcpu-reset-sequence-matched';
   // Continue without inventing the hardware state to identify the next blocker.
   for (let i = 0; i < 100; i++) {
     e.sifli_run(100000, 0);
@@ -122,10 +122,81 @@ try {
     if (state.stop) break;
   }
   report.hardwareBoundary = state;
+  assert.equal(state.lcpuReset.cpuWait, true);
+  assert.equal(state.lcpuReset.assertedMask, 0);
+  assert.equal(state.lcpuReset.assertions, 1);
+  assert.equal(state.lcpuReset.releases, 1);
+  assert.equal(state.factoryData.loadedBankMask, 0);
+  assert.equal(state.stop?.kind, 'MissingFactoryCalibration');
+  assert.equal(state.stop.address, 0x5000c000);
   if (!state.stop)
     throw new Error('Instruction budget exhausted before a classified hardware boundary');
+  // Separate synthetic fixture: tests transport of bank bytes through the real
+  // firmware HAL into conf_sys. This is NOT factory calibration or a boot claim.
+  const again = e.sifli_input(image.length);
+  new Uint8Array(e.memory.buffer, again, image.length).set(image);
+  assert.equal(e.sifli_load(revision === 'obelix_pvt' ? 0 : 1), 1);
+  const fixture = Uint8Array.from({ length: 32 }, (_, i) => 0x40 + i);
+  new Uint8Array(e.memory.buffer, e.sifli_efuse_input(), 32).set(fixture);
+  assert.equal(e.sifli_load_efuse_bank(1), 1);
+  for (let i = 0; i < 100; i++) {
+    e.sifli_run(100000, 0);
+    state = output();
+    if (state.stop) break;
+  }
+  assert.equal(state.factoryData.readsCompleted, 1);
+  // Pinned ELF local conf_sys symbols; compare every copied byte.
+  const destination = revision === 'obelix_pvt' ? 0x20026678 : 0x2001c538;
+  const visible = Uint8Array.from({ length: 32 }, (_, i) => {
+    const b = e.sifli_read_cpu_byte(destination + i) >>> 0;
+    assert.ok(b <= 255);
+    return b;
+  });
+  assert.deepEqual(visible, fixture);
+  assert.equal(state.stop?.address, 0x5000b004); // unknown chip identity remains explicit
+  report.syntheticEfuse = {
+    source: 'synthetic-controller-test-only',
+    bytesMatched: 32,
+    destination,
+    fixtureSha256: sha(fixture),
+    state,
+    physicalCalibrationVerified: false,
+  };
+  // Numeric-series identity is deliberately synthetic. It exercises the HAL
+  // trim path, not the identity or calibrated voltage of either target watch.
+  const third = e.sifli_input(image.length);
+  new Uint8Array(e.memory.buffer, third, image.length).set(image);
+  assert.equal(e.sifli_load(revision === 'obelix_pvt' ? 0 : 1), 1);
+  new Uint8Array(e.memory.buffer, e.sifli_efuse_input(), 32).set(fixture);
+  assert.equal(e.sifli_load_efuse_bank(1), 1);
+  assert.equal(e.sifli_set_chip_id(0), 1);
+  for (let i = 0; i < 100; i++) {
+    e.sifli_run(100000, 0);
+    state = output();
+    if (state.stop) break;
+  }
+  // Independently decoded from pinned BSP_CONFIG_get bank1 byte fields.
+  assert.equal(state.calibration.lpVout, fixture[1] & 15);
+  assert.equal(state.calibration.vret, (0x20 << 16) | ((fixture[1] >> 4) << 10) | (7 << 2) | 1);
+  assert.equal(
+    state.calibration.aonBg,
+    (3 << 3) | ((fixture[3] >> 4) & 7) | ((fixture[3] & 128) >> 2),
+  );
+  assert.equal(
+    state.calibration.periLdo,
+    ((fixture[2] >> 4) << 9) | ((fixture[3] & 15) << 17) | ((fixture[2] & 15) << 1),
+  );
+  assert.equal(state.calibration.hpVout, 11); // EFUSE read restored supply setting
+  assert.equal(state.stop?.address, 0x50042084); // next dependency: MPI2 NOR controller
+  report.syntheticTrim = {
+    source: 'synthetic-controller-test-only',
+    state,
+    registersMatched: true,
+    physicalCalibrationVerified: false,
+  };
   report.limits = [
-    'No verified bootloader handoff state',
+    'No verified bootloader handoff state; LCPU controls assume an active domain awaiting reset',
+    'No factory calibration supplied; synthetic bank transfer is not hardware calibration',
     'No physical reference or calibrated timing',
     'Limited architectural registers, MPU, functional caches and early boot register model',
     'HXT settling defaults to an assumed 48000 reference ticks; DWT uses estimated engine cycles',

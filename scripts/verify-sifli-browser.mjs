@@ -70,7 +70,21 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
               await new Promise(resolve=>setTimeout(resolve,0));
             }
             e.sifli_run(100000,0);
-            postMessage({startup:state,mainEntry,clockStartup,hardwareBoundary:report(),ramMatched:true});
+            const hardwareBoundary=report();
+            const input=e.sifli_input(data.image.length);
+            new Uint8Array(e.memory.buffer,input,data.image.length).set(data.image);
+            if(!e.sifli_load(data.revision)) throw new Error('reload failed');
+            const fixture=Uint8Array.from({length:32},(_,i)=>0x40+i);
+            new Uint8Array(e.memory.buffer,e.sifli_efuse_input(),32).set(fixture);
+            if(!e.sifli_load_efuse_bank(1) || !e.sifli_set_chip_id(0)) throw new Error('fixture rejected');
+            let syntheticTrim;
+            for(let n=0;n<100;n++) {
+              e.sifli_run(100000,0); syntheticTrim=report();
+              if(syntheticTrim.stop) break;
+              await new Promise(resolve=>setTimeout(resolve,0));
+            }
+            for(let i=0;i<32;i++) if((e.sifli_read_cpu_byte(data.expected.syntheticEfuse.destination+i)>>>0)!==fixture[i]) throw new Error('CPU-visible calibration copy mismatch');
+            postMessage({startup:state,mainEntry,clockStartup,hardwareBoundary,syntheticTrim,ramMatched:true});
           } catch (e) { postMessage({error:String(e)}); }
         }`;
           const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
@@ -111,6 +125,7 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       assert.deepEqual(result.mainEntry, fixture.expected.mainEntry);
       assert.deepEqual(result.clockStartup, fixture.expected.clockStartup);
       assert.deepEqual(result.hardwareBoundary, fixture.expected.hardwareBoundary);
+      assert.deepEqual(result.syntheticTrim, fixture.expected.syntheticTrim.state);
       results.push({
         browser: name,
         version: browser.version(),
@@ -118,6 +133,7 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
         ramMatched: result.ramMatched,
         mainEntryMatched: true,
         clockStartupMatched: true,
+        syntheticCalibrationMatched: true,
         instructions: result.startup.instructionsCompleted,
         hardwareBoundaryMatched: true,
       });
@@ -132,7 +148,7 @@ const report = {
   wasmSha256: createHash('sha256').update(wasm).digest('hex'),
   results,
   scope:
-    'Actual desktop browser Workers, unchanged local firmware; reset, SystemInit and early clock/delay execution. No full boot or physical-phone performance claim.',
+    'Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, early clock/delay, LCPU reset and synthetic calibration transfer/trim execution. No full boot or physical-phone performance claim.',
 };
 const text = JSON.stringify(report, null, 2) + '\n';
 if (reportPath) await writeFile(reportPath, text);

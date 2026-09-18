@@ -4,9 +4,12 @@
 //! supplied slot-0 bytes and HCPU SRAM are backed. Every other access faults.
 
 pub mod cache;
+pub mod calibration;
 pub mod clock;
 pub mod debug_counter;
+pub mod efuse;
 pub mod execution;
+pub mod lcpu_reset;
 pub mod startup_io;
 pub mod system;
 mod wasm;
@@ -45,6 +48,8 @@ pub enum FaultKind {
     MissingQspi1,
     MissingQspi2,
     MissingLcpuState,
+    MissingFactoryCalibration,
+    MissingChipIdentity,
     UninitializedHcpuRam,
     UnmodeledMmio,
     ReadOnlyFlash,

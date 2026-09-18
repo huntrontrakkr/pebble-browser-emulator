@@ -36,6 +36,18 @@ impl Cache {
         let set = (a as usize / 32) % self.sets;
         (set * self.ways..(set + 1) * self.ways).find(|&i| self.lines[i].tag == Some(a & !31))
     }
+    /// Inspect a cached byte without filling, evicting, cleaning or changing state.
+    /// None means cache miss; an unknown cached byte must stay unknown.
+    pub fn peek_byte(&self, a: u32) -> Option<Result<u8, crate::FaultKind>> {
+        self.find(a).map(|i| {
+            let line = &self.lines[i];
+            if line.known & (1 << (a & 31)) == 0 {
+                Err(crate::FaultKind::UninitializedHcpuRam)
+            } else {
+                Ok(line.bytes[(a & 31) as usize])
+            }
+        })
+    }
     fn clean(
         &mut self,
         i: usize,

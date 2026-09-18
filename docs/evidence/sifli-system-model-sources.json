@@ -1,6 +1,6 @@
 {
   "format": "pebble-sifli-system-model-sources",
-  "version": 2,
+  "version": 3,
   "status": "modeled",
   "sources": [
     {
@@ -34,10 +34,34 @@
     {
       "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/lpsys_aon.h",
       "sha256": "bb798330e19dfa6b207fe724da382a5bb30dfbe374360dda36dec817aaea5387"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/lpsys_rcc.h",
+      "sha256": "e6bbd8348562ef21a35b58a859818ee16636c5b0368ceb6786ad3620a3a5b222"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_efuse.c",
+      "sha256": "da99f26537f11fb0051af547da991b96e49c5529c8ff25dd53ebd91350a45ec8"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_sys_cfg.c",
+      "sha256": "6402332ccf0aaa7bb145f703c74069ce0bbf04a34a5a8d6fd1ab4ed053388d4a"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_pmu.c",
+      "sha256": "e38ebb6b5ad1acc289c534f51196cdca9446f3a2552c158a8d1dd54767d16086"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/efusec.h",
+      "sha256": "c352a6e26be3dc4dff6868a8d575b2ffe2f7779686fde4287af31cfca1c879f9"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/hpsys_cfg.h",
+      "sha256": "72ef0bd82687bed20a06380b7258870207dc60e6a28ecb983cfc99ca76bc596d"
     }
   ],
   "cacheGeometrySource": "https://downloads.sifli.com/user%20manual/DS5201-SF32LB52x-Datasheet%20V2p5.pdf",
-  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC), 4-3 (HPSYS_AON ACR/ISSR), 5-4 (PA21), 9-7 (backup); pinned CMSIS DWT/DEMCR fields.",
+  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC), 4-3 (HPSYS_AON ACR/ISSR), 5-4 (PA21), 9-7 (backup); pinned CMSIS DWT/DEMCR fields. Also 3-3 (PMUC trim register reset values/masks), 13-4 (EFUSE).",
   "assumptions": [
     "Explicit secure architectural reset state and fresh backup-domain POR; not captured bootloader handoff.",
     "Functional split cache with deterministic round-robin replacement; timing, allocation flags and replacement not silicon-verified.",
@@ -45,7 +69,9 @@
     "Faults terminate the probe; runtime exception dispatch, complete peripheral clocks and board boot are not accepted.",
     "HRC ready at application entry; HXT requested and settling for 48000 nominal 48MHz ticks by default. Configurable settling/failure, not calibrated silicon timing.",
     "DWT cycle/CPI counters use estimated engine costs. Minimal debug feature contract and disabled SysTick at entry are assumptions; other trace/timer programming faults.",
-    "Documented LP_ACTIVE POR status is not LCPU execution or a controller response. Unknown LPSYS_AON.PMR still faults."
+    "Documented LP_ACTIVE POR status is not LCPU execution or a controller response. LCPU controls now use an explicit active-domain/non-sleeping entry assumption, CPUWAIT initially clear; releasing it requires missing LCPU execution state.",
+    "EFUSE transfer estimate is 512 + THRCK PCLK ticks, not measured chip timing. Data must be supplied; no default calibration/identity is invented.",
+    "PMUC calibration models digital trim fields only, not measured analog voltages or regulator dynamics."
   ],
   "gates": {
     "resetRam": "matches unchanged ELF/raw initializers and zero-fill",
@@ -56,6 +82,8 @@
       "webkit"
     ],
     "fullBoot": false,
-    "earlyClockStartup": "both images reach HAL_RCC_Reset_and_Halt_LCPU after source switch and 230us/30us DWT waits; internal consistency, not measured timing"
+    "earlyClockStartup": "both images reach HAL_RCC_Reset_and_Halt_LCPU after source switch and 230us/30us DWT waits; internal consistency, not measured timing",
+    "lcpuReset": "both images assert and release reset once, retaining CPUWAIT; initial state is assumed, not captured",
+    "calibration": "synthetic fixtures match HAL byte transfer and PMUC trim mappings; physical calibration not verified"
   }
 }

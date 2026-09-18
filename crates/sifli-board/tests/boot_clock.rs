@@ -72,6 +72,6 @@ fn lp_active_is_documented_power_status_not_a_controller_response() {
     assert_eq!(io.read(0x500c002c, 4), Ok(0x30));
     io.write(0x500c002c, 4, 0x11).unwrap();
     assert_eq!(io.read(0x500c002c, 4), Ok(0x31)); // RO LP_ACTIVE preserved
-    assert_eq!(io.read(0x40040000, 4), Err(FaultKind::UnmodeledMmio));
+    assert_eq!(io.read(0x40040000, 4), Ok(0)); // explicit assumed entry
     assert!(io.write(0x500c002c, 4, 0).is_err()); // HP low power not modeled
 }

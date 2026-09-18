@@ -170,8 +170,10 @@ Chromium, Firefox and WebKit Worker checks. Architectural register access, MPU c
 functional cache visibility and minimal documented boot registers now have regressions.
 
 Plan 3 remains incomplete. The early HXT48 switch and DWT delay loops now execute with
-explicit estimated timing. The current boundary is LPSYS_AON.PMR in the LCPU reset/halt
-sequence. Remaining oscillator/power/clock sequencing, LCPU/ROM, EFUSE calibration,
+explicit estimated timing. LCPU reset/halt, EFUSE reads and PMUC trim latches are modeled;
+separate synthetic fixtures verify the unchanged calibration data path. Real factory inputs
+remain absent, and the next synthetic-fixture boundary is MPI2 NOR initialization.
+Remaining oscillator/power/clock sequencing, LCPU/ROM, physical calibration,
 device controllers, full boot, display, installation and phone exchange still
 need implementation and independent acceptance. Initial hardware state and cache replacement
 remain explicit assumptions. [Evidence and reproduction](docs/HARDWARE_FIDELITY.md#physical-reset-execution).

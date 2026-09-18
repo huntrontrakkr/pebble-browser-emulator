@@ -255,12 +255,18 @@ is readable; configuring an unimplemented timer/trace/DLL still faults.
 
 Both unchanged images now execute the crystal switch, LCPU power-domain wake request and
 230us/30us HAL delays. The documented LP_ACTIVE POR bit is power-domain status, not a
-fabricated controller reply or proof of LCPU execution. The next boundary is LPSYS_AON.PMR
-at `0x40040000`, PC `0x200025ea`, inside `HAL_RCC_Reset_and_Halt_LCPU`. Its initial state
-and reset effects, EFUSE calibration, global timers/watchdogs, DLLs, remaining devices and
-full boot are not yet supplied. See [physical measurements](PHYSICAL_MEASUREMENTS.md).
-A successful early clock checkpoint is not a successful watch boot, frame, app install or
-phone connection.
+fabricated controller reply or proof of LCPU execution. Both images now execute the LCPU
+reset/halt sequence under an explicit active-domain entry assumption. CPUWAIT remains
+asserted after reset; releasing it requires missing LCPU execution state.
+
+EFUSE transfers require caller-supplied bank data. Its timing/status, RCC gating and reset
+behavior are modeled; absent data produces `MissingFactoryCalibration`. Separate synthetic
+bank/identity fixtures verify the unchanged HAL's 32-byte copy and PMUC trim writes. The
+next dependency under those fixtures is MPI2 TIMR (`0x50042084`) in NOR initialization.
+These are not measured factory calibration or a complete `BSP_System_Config` result.
+See the [factory-data interface and limits](SIFLI_FACTORY_DATA.md) and
+[physical measurements](PHYSICAL_MEASUREMENTS.md). A successful calibration-transfer test
+is not a successful watch boot, frame, app install or phone connection.
 
 ```sh
 npm run build:wasm
@@ -271,8 +277,8 @@ node scripts/verify-sifli-browser.mjs /path/to/local/images report.json
 
 The runner audits ELF/raw identity, caps each phase at 10 million instructions and
 compares every initializer/BSS byte plus the `main` MPU/cache configuration derived
-from pinned source, then checks the early clock/delay checkpoint. Missing inputs exit 2;
-a failed comparison or exhausted boundary search exits 1. Wasm ABI 3 runs
+from pinned source, then checks the early clock/delay checkpoint, LCPU reset and separate synthetic calibration transfer/trim tests. Missing inputs exit 2;
+a failed comparison or exhausted boundary search exits 1. Wasm ABI 4 runs
 at most 100,000 steps per call so Workers can yield or terminate. The module has no
 host imports. After loading and before executing, `sifli_configure_hxt(ticks)` accepts a
 nominal 48MHz startup delay (`0xffffffff` injects failure); it rejects changes after execution.
@@ -280,7 +286,7 @@ Reports keep `estimatedCoreCycles`, reference ticks and measured instruction cou
 It is built with the static app but is not a working preview profile.
 No production firmware is modified or published.
 
-Actual Chromium, Firefox and WebKit Workers reproduce reset, main and early clock checkpoints and the first
+Actual Chromium, Firefox and WebKit Workers reproduce reset, main and early clock checkpoints, LCPU reset, synthetic calibration and the first
 hardware boundary. [Browser record](evidence/sifli-browser-reset.json),
 [Time 2 execution](evidence/obelix-reset-execution.json),
 [Round 2 execution](evidence/getafix-reset-execution.json),

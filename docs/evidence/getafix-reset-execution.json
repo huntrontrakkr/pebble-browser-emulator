@@ -1,18 +1,28 @@
 {
   "format": "pebble-sifli-reset-execution",
-  "version": 3,
+  "version": 4,
   "revision": "getafix_dvt2",
-  "outcome": "early-clock-startup-matched",
+  "outcome": "lcpu-reset-sequence-matched",
   "bootComplete": false,
   "referenceTarget": "ELF-initializers-and-reset-binary",
   "entryState": "assumed-secure-reset-probe-v2",
   "identity": {
     "elfSha256": "e4c4d411f3c408309f99f8b6e5f8231366dee3685c1f3f7d315c9a48721e1fc4",
     "imageSha256": "49de4261874c5ac93caabf2e1a8be81b3e46298f8e17e256b89653775d1f9245",
-    "wasmSha256": "65647b35ccfbfa39267095914d28ab5f37961fe3a51e8c840ecae0b7bec3b7f1"
+    "wasmSha256": "1d6aa45af7bb7ea51e1f5cc618e48d8ea4e4aeabfb51e26eee0ee6a3d728679f"
   },
   "startup": {
     "bootComplete": false,
+    "calibration": {
+      "analogVerified": false,
+      "aonBg": 24,
+      "buck": 2953390337,
+      "chipId": null,
+      "hpVout": 11,
+      "lpVout": 5,
+      "periLdo": 789528,
+      "vret": 2104349
+    },
     "clock": {
       "estimatedCoreCycles": 510543,
       "hxtReady": true,
@@ -21,7 +31,20 @@
       "timingVerified": false
     },
     "entryState": "assumed-secure-reset-probe-v2",
+    "factoryData": {
+      "loadedBankMask": 0,
+      "readsCompleted": 0,
+      "source": "missing"
+    },
     "instructionsCompleted": 313880,
+    "lcpuReset": {
+      "assertedMask": 0,
+      "assertions": 0,
+      "cpuWait": false,
+      "entryState": "assumed-active-awaiting-reset",
+      "executesLcpu": false,
+      "releases": 0
+    },
     "msplim": 537061472,
     "psplim": 0,
     "registerState": "current",
@@ -132,6 +155,16 @@
   },
   "mainEntry": {
     "bootComplete": false,
+    "calibration": {
+      "analogVerified": false,
+      "aonBg": 24,
+      "buck": 2953390337,
+      "chipId": null,
+      "hpVout": 11,
+      "lpVout": 5,
+      "periLdo": 789528,
+      "vret": 2104349
+    },
     "clock": {
       "estimatedCoreCycles": 514908,
       "hxtReady": true,
@@ -140,7 +173,20 @@
       "timingVerified": false
     },
     "entryState": "assumed-secure-reset-probe-v2",
+    "factoryData": {
+      "loadedBankMask": 0,
+      "readsCompleted": 0,
+      "source": "missing"
+    },
     "instructionsCompleted": 316738,
+    "lcpuReset": {
+      "assertedMask": 0,
+      "assertions": 0,
+      "cpuWait": false,
+      "entryState": "assumed-active-awaiting-reset",
+      "executesLcpu": false,
+      "releases": 0
+    },
     "msplim": 537061472,
     "psplim": 0,
     "registerState": "current",
@@ -229,6 +275,16 @@
   },
   "clockStartup": {
     "bootComplete": false,
+    "calibration": {
+      "analogVerified": false,
+      "aonBg": 24,
+      "buck": 2953390337,
+      "chipId": null,
+      "hpVout": 11,
+      "lpVout": 5,
+      "periLdo": 789528,
+      "vret": 2104349
+    },
     "clock": {
       "estimatedCoreCycles": 528082,
       "hxtReady": true,
@@ -237,7 +293,20 @@
       "timingVerified": false
     },
     "entryState": "assumed-secure-reset-probe-v2",
+    "factoryData": {
+      "loadedBankMask": 0,
+      "readsCompleted": 0,
+      "source": "missing"
+    },
     "instructionsCompleted": 327133,
+    "lcpuReset": {
+      "assertedMask": 0,
+      "assertions": 0,
+      "cpuWait": false,
+      "entryState": "assumed-active-awaiting-reset",
+      "executesLcpu": false,
+      "releases": 0
+    },
     "msplim": 537061472,
     "psplim": 0,
     "registerState": "current",
@@ -326,43 +395,66 @@
   },
   "hardwareBoundary": {
     "bootComplete": false,
+    "calibration": {
+      "analogVerified": false,
+      "aonBg": 24,
+      "buck": 2953390337,
+      "chipId": null,
+      "hpVout": 14,
+      "lpVout": 5,
+      "periLdo": 789528,
+      "vret": 2104349
+    },
     "clock": {
-      "estimatedCoreCycles": 528085,
+      "estimatedCoreCycles": 530565,
       "hxtReady": true,
       "hxtStartupTicks": 48000,
-      "referenceTicks48MHz": 528085,
+      "referenceTicks48MHz": 530565,
       "timingVerified": false
     },
     "entryState": "assumed-secure-reset-probe-v2",
-    "instructionsCompleted": 327134,
+    "factoryData": {
+      "loadedBankMask": 0,
+      "readsCompleted": 0,
+      "source": "missing"
+    },
+    "instructionsCompleted": 328857,
+    "lcpuReset": {
+      "assertedMask": 0,
+      "assertions": 1,
+      "cpuWait": true,
+      "entryState": "assumed-active-awaiting-reset",
+      "executesLcpu": false,
+      "releases": 1
+    },
     "msplim": 537061472,
     "psplim": 0,
     "registerState": "last-completed-instruction",
     "registers": [
+      14132,
+      384000,
+      1342226432,
+      5,
+      536986936,
+      32,
       1,
-      0,
-      1074003968,
-      1,
+      11,
       0,
       0,
       0,
       0,
-      0,
-      0,
-      0,
-      0,
-      4294966431,
-      537062440,
-      302247673,
-      536880618
+      122880,
+      537062288,
+      536883163,
+      303030630
     ],
     "revision": "GetafixDvt2",
-    "stepsAttempted": 327135,
+    "stepsAttempted": 328858,
     "stop": {
-      "address": 1074003968,
-      "kind": "UnmodeledMmio",
-      "operation": "Read",
-      "pc": 536880618,
+      "address": 1342226432,
+      "kind": "MissingFactoryCalibration",
+      "operation": "Write",
+      "pc": 303030630,
       "type": "access",
       "width": 4
     },
@@ -428,8 +520,275 @@
       "vtor": 536987648
     }
   },
+  "syntheticEfuse": {
+    "source": "synthetic-controller-test-only",
+    "bytesMatched": 32,
+    "destination": 536986936,
+    "fixtureSha256": "ca2a4fe727faaecf16ecd130a86e0885c5540c05375340445071c0657555fd42",
+    "state": {
+      "bootComplete": false,
+      "calibration": {
+        "analogVerified": false,
+        "aonBg": 24,
+        "buck": 2953390337,
+        "chipId": null,
+        "hpVout": 11,
+        "lpVout": 5,
+        "periLdo": 789528,
+        "vret": 2104349
+      },
+      "clock": {
+        "estimatedCoreCycles": 531838,
+        "hxtReady": true,
+        "hxtStartupTicks": 48000,
+        "referenceTicks48MHz": 531838,
+        "timingVerified": false
+      },
+      "entryState": "assumed-secure-reset-probe-v2",
+      "factoryData": {
+        "loadedBankMask": 2,
+        "readsCompleted": 1,
+        "source": "caller-supplied-unverified"
+      },
+      "instructionsCompleted": 329725,
+      "lcpuReset": {
+        "assertedMask": 0,
+        "assertions": 1,
+        "cpuWait": true,
+        "entryState": "assumed-active-awaiting-reset",
+        "executesLcpu": false,
+        "releases": 1
+      },
+      "msplim": 537061472,
+      "psplim": 0,
+      "registerState": "last-completed-instruction",
+      "registers": [
+        14,
+        537061423,
+        1342222336,
+        536986968,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        122880,
+        537062280,
+        303031115,
+        303031318
+      ],
+      "revision": "GetafixDvt2",
+      "stepsAttempted": 329726,
+      "stop": {
+        "address": 1342222340,
+        "kind": "MissingChipIdentity",
+        "operation": "Read",
+        "pc": 303031318,
+        "type": "access",
+        "width": 4
+      },
+      "system": {
+        "ccr": 197120,
+        "cpacr": 15728703,
+        "mair": [
+          17442,
+          0
+        ],
+        "mpuControl": 7,
+        "mpuRegions": [
+          [
+            301989894,
+            335544289
+          ],
+          [
+            1073741825,
+            1610612709
+          ],
+          [
+            536870916,
+            536888579
+          ],
+          [
+            541048832,
+            542113763
+          ],
+          [
+            537394177,
+            537395171
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "shcsr": 65536,
+        "vtor": 536987648
+      }
+    },
+    "physicalCalibrationVerified": false
+  },
+  "syntheticTrim": {
+    "source": "synthetic-controller-test-only",
+    "state": {
+      "bootComplete": false,
+      "calibration": {
+        "analogVerified": false,
+        "aonBg": 28,
+        "buck": 2953390337,
+        "chipId": 0,
+        "hpVout": 11,
+        "lpVout": 1,
+        "periLdo": 395268,
+        "vret": 2101277
+      },
+      "clock": {
+        "estimatedCoreCycles": 532241,
+        "hxtReady": true,
+        "hxtStartupTicks": 48000,
+        "referenceTicks48MHz": 532241,
+        "timingVerified": false
+      },
+      "entryState": "assumed-secure-reset-probe-v2",
+      "factoryData": {
+        "loadedBankMask": 2,
+        "readsCompleted": 1,
+        "source": "caller-supplied-unverified"
+      },
+      "instructionsCompleted": 329986,
+      "lcpuReset": {
+        "assertedMask": 0,
+        "assertions": 1,
+        "cpuWait": true,
+        "entryState": "assumed-active-awaiting-reset",
+        "executesLcpu": false,
+        "releases": 1
+      },
+      "msplim": 537061472,
+      "psplim": 0,
+      "registerState": "last-completed-instruction",
+      "registers": [
+        537062360,
+        1,
+        1342447616,
+        0,
+        537062360,
+        255,
+        1342197760,
+        0,
+        0,
+        0,
+        0,
+        0,
+        122880,
+        537062296,
+        303032011,
+        536877374
+      ],
+      "revision": "GetafixDvt2",
+      "stepsAttempted": 329987,
+      "stop": {
+        "address": 1342447748,
+        "kind": "UnmodeledMmio",
+        "operation": "Write",
+        "pc": 536877374,
+        "type": "access",
+        "width": 4
+      },
+      "system": {
+        "ccr": 197120,
+        "cpacr": 15728703,
+        "mair": [
+          17442,
+          0
+        ],
+        "mpuControl": 7,
+        "mpuRegions": [
+          [
+            301989894,
+            335544289
+          ],
+          [
+            1073741825,
+            1610612709
+          ],
+          [
+            536870916,
+            536888579
+          ],
+          [
+            541048832,
+            542113763
+          ],
+          [
+            537394177,
+            537395171
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "shcsr": 65536,
+        "vtor": 536987648
+      }
+    },
+    "registersMatched": true,
+    "physicalCalibrationVerified": false
+  },
   "limits": [
-    "No verified bootloader handoff state",
+    "No verified bootloader handoff state; LCPU controls assume an active domain awaiting reset",
+    "No factory calibration supplied; synthetic bank transfer is not hardware calibration",
     "No physical reference or calibrated timing",
     "Limited architectural registers, MPU, functional caches and early boot register model",
     "HXT settling defaults to an assumed 48000 reference ticks; DWT uses estimated engine cycles",

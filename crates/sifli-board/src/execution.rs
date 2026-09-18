@@ -383,6 +383,23 @@ impl ResetProbe {
         true
     }
 
+    pub fn supply_chip_id(&mut self, value: u32) -> bool {
+        if self.steps_attempted != 0 || self.stop.is_some() {
+            return false;
+        }
+        self.bus.io.calibration.chip_id = Some(value);
+        true
+    }
+    pub fn supply_efuse(&mut self, bank: usize, bytes: [u8; 32]) -> bool {
+        if self.steps_attempted != 0 || self.stop.is_some() {
+            return false;
+        }
+        self.bus.io.efuse.supply(bank, bytes)
+    }
+    pub fn startup_io(&self) -> &crate::startup_io::StartupIo {
+        &self.bus.io
+    }
+
     pub fn clock(&self) -> &crate::clock::BootClock {
         &self.bus.io.clock
     }
@@ -405,6 +422,27 @@ impl ResetProbe {
     }
     pub fn revision(&self) -> Revision {
         self.bus.memory.revision()
+    }
+    /// Non-mutating CPU-visible data inspection. Does not read peripherals or
+    /// clean dirty cache lines; backing-memory inspection remains separate.
+    pub fn read_cpu_byte(&self, address: u32) -> Result<u32, AccessFault> {
+        self.bus
+            .memory
+            .region(self.cpu.regs.pc(), address, 1, Operation::Read)?;
+        let policy = self
+            .bus
+            .system
+            .access(address, 1, Operation::Read, self.bus.privileged)
+            .map_err(|k| self.bus.error(address, 1, Operation::Read, k))?;
+        if self.bus.system.ccr & (1 << 16) != 0
+            && matches!(policy, Policy::WriteThrough | Policy::WriteBack)
+            && let Some(value) = self.bus.dcache.peek_byte(address)
+        {
+            return value
+                .map(u32::from)
+                .map_err(|k| self.bus.error(address, 1, Operation::Read, k));
+        }
+        self.read(address, 1)
     }
     pub fn read(&self, address: u32, width: u8) -> Result<u32, AccessFault> {
         self.bus
@@ -478,7 +516,6 @@ impl ResetProbe {
                 .advance(self.cpu.cycles().wrapping_sub(cycles_before));
             self.bus
                 .io
-                .clock
                 .advance(self.cpu.cycles().wrapping_sub(cycles_before));
             self.instructions_completed += 1;
         }

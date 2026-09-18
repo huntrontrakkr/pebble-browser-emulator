@@ -5,6 +5,7 @@ use crate::{
 };
 use std::cell::RefCell;
 thread_local! {
+    static EFUSE_INPUT: RefCell<Option<Box<[u8; 32]>>> = const { RefCell::new(None) };
     static INPUT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
     static PROBE: RefCell<Option<ResetProbe>> = const { RefCell::new(None) };
     static OUTPUT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
@@ -14,7 +15,7 @@ fn output(value: serde_json::Value) {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_abi_version() -> u32 {
-    3
+    4
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_input(size: u32) -> *mut u8 {
@@ -31,6 +32,7 @@ pub extern "C" fn sifli_input(size: u32) -> *mut u8 {
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_load(revision: u32) -> u32 {
     PROBE.with(|p| *p.borrow_mut() = None);
+    EFUSE_INPUT.with(|i| *i.borrow_mut() = None);
     let revision = match revision {
         0 => Revision::ObelixPvt,
         1 => Revision::GetafixDvt2,
@@ -51,6 +53,35 @@ pub extern "C" fn sifli_load(revision: u32) -> u32 {
             0
         }
     }
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_set_chip_id(value: u32) -> u32 {
+    PROBE.with(|p| {
+        p.borrow_mut()
+            .as_mut()
+            .is_some_and(|p| p.supply_chip_id(value)) as u32
+    })
+}
+/// Separate single-use staging buffer; no default factory data is supplied.
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_efuse_input() -> *mut u8 {
+    EFUSE_INPUT.with(|i| {
+        let mut i = i.borrow_mut();
+        let b = i.insert(Box::new([0; 32]));
+        b.as_mut_ptr()
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_load_efuse_bank(bank: u32) -> u32 {
+    let data = EFUSE_INPUT.with(|i| i.borrow_mut().take());
+    let Some(data) = data else {
+        return 0;
+    };
+    PROBE.with(|p| {
+        p.borrow_mut()
+            .as_mut()
+            .is_some_and(|p| p.supply_efuse(bank as usize, *data)) as u32
+    })
 }
 /// Configure a loaded but unexecuted probe. u32::MAX injects crystal failure.
 #[unsafe(no_mangle)]
@@ -84,6 +115,19 @@ pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
                 Stop::Coprocessor{pc,opcode} => serde_json::json!({"type":"unsupported-coprocessor","pc":pc,"opcode":opcode}),
                 Stop::Sleeping{pc} => serde_json::json!({"type":"sleeping-without-wake-model","pc":pc}),
             }),
+            "lcpuReset": {"cpuWait":p.startup_io().lcpu.halted(),
+                "assertedMask":p.startup_io().lcpu.asserted(),
+                "assertions":p.startup_io().lcpu.reset_assertions,
+                "releases":p.startup_io().lcpu.reset_releases,
+                "entryState":"assumed-active-awaiting-reset", "executesLcpu":false},
+            "calibration": {"chipId":p.startup_io().calibration.chip_id,
+                "vret":p.startup_io().calibration.vret,"aonBg":p.startup_io().calibration.aon_bg,
+                "buck":p.startup_io().calibration.buck,"periLdo":p.startup_io().calibration.peri_ldo,
+                "hpVout":p.startup_io().calibration.hp_vout,"lpVout":p.startup_io().calibration.lp_vout,
+                "analogVerified":false},
+            "factoryData": {"loadedBankMask":p.startup_io().efuse.loaded_mask(),
+                "readsCompleted":p.startup_io().efuse.reads_completed,
+                "source": if p.startup_io().efuse.loaded_mask() == 0 {"missing"} else {"caller-supplied-unverified"}},
             "clock": {"estimatedCoreCycles": p.clock().estimated_cycles,
                 "referenceTicks48MHz": p.clock().reference_ticks, "hxtReady": p.clock().hxt_ready(),
                 "hxtStartupTicks": p.clock().hxt_startup_ticks, "timingVerified": false},
@@ -93,6 +137,15 @@ pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
             "bootComplete": false, "entryState": "assumed-secure-reset-probe-v2"
         }));
         if stop.is_some() { 2 } else { 1 }
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_read_cpu_byte(address: u32) -> u32 {
+    PROBE.with(|p| {
+        p.borrow()
+            .as_ref()
+            .and_then(|p| p.read_cpu_byte(address).ok())
+            .unwrap_or(u32::MAX)
     })
 }
 // Inspection has a distinct failure sentinel and never initializes memory.

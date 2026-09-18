@@ -1,7 +1,7 @@
 {
   "format": "pebble-sifli-browser-reset",
   "version": 1,
-  "wasmSha256": "65647b35ccfbfa39267095914d28ab5f37961fe3a51e8c840ecae0b7bec3b7f1",
+  "wasmSha256": "1d6aa45af7bb7ea51e1f5cc618e48d8ea4e4aeabfb51e26eee0ee6a3d728679f",
   "results": [
     {
       "browser": "chromium",
@@ -10,6 +10,7 @@
       "ramMatched": true,
       "mainEntryMatched": true,
       "clockStartupMatched": true,
+      "syntheticCalibrationMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -20,6 +21,7 @@
       "ramMatched": true,
       "mainEntryMatched": true,
       "clockStartupMatched": true,
+      "syntheticCalibrationMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -30,6 +32,7 @@
       "ramMatched": true,
       "mainEntryMatched": true,
       "clockStartupMatched": true,
+      "syntheticCalibrationMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -40,6 +43,7 @@
       "ramMatched": true,
       "mainEntryMatched": true,
       "clockStartupMatched": true,
+      "syntheticCalibrationMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -50,6 +54,7 @@
       "ramMatched": true,
       "mainEntryMatched": true,
       "clockStartupMatched": true,
+      "syntheticCalibrationMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -60,9 +65,10 @@
       "ramMatched": true,
       "mainEntryMatched": true,
       "clockStartupMatched": true,
+      "syntheticCalibrationMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     }
   ],
-  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit and early clock/delay execution. No full boot or physical-phone performance claim."
+  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, early clock/delay, LCPU reset and synthetic calibration transfer/trim execution. No full boot or physical-phone performance claim."
 }

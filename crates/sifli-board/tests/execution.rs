@@ -39,7 +39,7 @@ fn unchanged_thumb_program_initializes_ram_and_stops_before_breakpoint() {
 fn all_access_widths_reject_ppb_sio_and_missing_hardware() {
     for revision in [Revision::ObelixPvt, Revision::GetafixDvt2] {
         for address in [
-            0xe000ed00, 0xd0000060, 0x40000000, 0, 0x20400000, 0x20000000,
+            0xe000ed00, 0xd0000060, 0x40000100, 0, 0x20400000, 0x20000000,
         ] {
             for (opcode, width, operation) in [
                 (0x6801, 4, Operation::Read),

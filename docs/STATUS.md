@@ -54,18 +54,25 @@ The early clock model now executes the HXT48 switch, LCPU wake request and both 
 DWT delay loops. Readiness advances with estimated execution time, not register polling;
 startup delay and crystal failure are configurable before execution. Default crystal settling
 is an explicit 1ms assumption. DWT cycle/CPI counters are estimates, not silicon cycles.
-Both images reach `HAL_RCC_Reset_and_Halt_LCPU`, then stop reading LPSYS_AON.PMR
-(`0x40040000`, PC `0x200025ea`): 342,137 completed instructions for Obelix, 327,134 for
-Getafix. LCPU reset/handoff, factory calibration, remaining clock/device controllers and
-full boot remain unfinished. [Physical measurement steps](PHYSICAL_MEASUREMENTS.md)
-distinguish ordinary app tests from boot-time debug captures.
+Both images now complete `HAL_RCC_Reset_and_Halt_LCPU`: one reset assertion/release,
+CPUWAIT retained. The LCPU domain entry state remains an explicit assumption, and releasing
+CPUWAIT still requires missing LCPU execution state. EFUSE now has timed bank transfers,
+clock gating, reset cancellation, W1C status and caller-supplied factory-bank inputs.
+Missing factory data stops explicitly. The PMUC calibration trim fields and chip-identity
+input are modeled separately from analog behavior.
+Separate synthetic fixtures run unchanged firmware through a 32-byte EFUSE copy and PMUC
+trim application in both revisions. CPU-visible inspection includes dirty cache bytes without
+altering them. These tests reach MPI2 NOR initialization (`0x50042084`), which still needs
+its command controller and flash OTP data. They do not establish physical calibration.
+See the [factory-data contract](SIFLI_FACTORY_DATA.md) and
+[physical measurement steps](PHYSICAL_MEASUREMENTS.md). No actual watch data was collected.
 This is still a diagnostic module, not a selectable working physical-watch preview.
 [Time 2 evidence](evidence/obelix-reset-execution.json),
 [Round 2 evidence](evidence/getafix-reset-execution.json),
 [model sources and assumptions](evidence/sifli-system-model-sources.json).
 Actual Chromium, Firefox and WebKit Workers match both reset and `main` checkpoints,
-clock/delay checkpoints, RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
-Validation: 117 Rust tests, 393 JavaScript tests (9 optional skips), Clippy and the full
+clock/delay checkpoints, LCPU reset, synthetic calibration, RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
+Validation: 122 Rust tests, 394 JavaScript tests (9 optional skips), Clippy and the full
 production build pass. The generic Emery Clock regression preserves all five previous
 state/frame/time checkpoints ([record](evidence/sifli-system-generic-regression.json)).
 Physical SiFli implementation, active phone snapshots, native deterministic replay and actual

@@ -38,7 +38,7 @@ async function core() {
 test('physical Wasm is self-contained and records the first hardware boundary', async () => {
   for (const revision of [0, 1]) {
     const { e, upload, report } = await core();
-    assert.equal(e.sifli_abi_version(), 3);
+    assert.equal(e.sifli_abi_version(), 4);
     upload(image());
     assert.equal(e.sifli_load(revision), 1);
     assert.equal(e.sifli_run(100, 0), 2);
@@ -121,4 +121,33 @@ test('physical oscillator failure stays in the guest polling loop and is bounded
     }
     assert.equal(e.sifli_configure_hxt(0), 0);
   }
+});
+
+test('factory bank staging is single-use, bounded and cannot replace live calibration', async () => {
+  const { e, upload, report } = await core();
+  assert.equal(e.sifli_load_efuse_bank(1), 0);
+  e.sifli_efuse_input();
+  assert.equal(e.sifli_load_efuse_bank(1), 0); // no loaded firmware
+  upload(image());
+  assert.equal(e.sifli_load(0), 1);
+  let p = e.sifli_efuse_input();
+  new Uint8Array(e.memory.buffer, p, 32).fill(0x69);
+  assert.equal(e.sifli_load_efuse_bank(4), 0);
+  assert.equal(e.sifli_load_efuse_bank(1), 0); // invalid commit consumed staging
+  p = e.sifli_efuse_input();
+  new Uint8Array(e.memory.buffer, p, 32).fill(0x69);
+  assert.equal(e.sifli_load_efuse_bank(1), 1);
+  assert.equal(e.sifli_set_chip_id(0x12345678), 1);
+  assert.equal(e.sifli_load_efuse_bank(2), 0);
+  e.sifli_run(1, 0);
+  assert.equal(report().factoryData.loadedBankMask, 2);
+  assert.equal(report().calibration.chipId, 0x12345678);
+  assert.equal(e.sifli_set_chip_id(0), 0);
+  e.sifli_efuse_input();
+  assert.equal(e.sifli_load_efuse_bank(2), 0); // cannot edit running instance
+  upload(image());
+  assert.equal(e.sifli_load(1), 1);
+  e.sifli_run(0, 0);
+  assert.equal(report().factoryData.loadedBankMask, 0);
+  assert.equal(report().calibration.chipId, null);
 });
