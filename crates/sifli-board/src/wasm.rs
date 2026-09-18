@@ -5,6 +5,7 @@ use crate::{
 };
 use std::cell::RefCell;
 thread_local! {
+    static OTP_INPUT: RefCell<Option<Box<[u8;256]>>> = const { RefCell::new(None) };
     static EFUSE_INPUT: RefCell<Option<Box<[u8; 32]>>> = const { RefCell::new(None) };
     static INPUT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
     static PROBE: RefCell<Option<ResetProbe>> = const { RefCell::new(None) };
@@ -15,7 +16,7 @@ fn output(value: serde_json::Value) {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_abi_version() -> u32 {
-    4
+    5
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_input(size: u32) -> *mut u8 {
@@ -33,6 +34,7 @@ pub extern "C" fn sifli_input(size: u32) -> *mut u8 {
 pub extern "C" fn sifli_load(revision: u32) -> u32 {
     PROBE.with(|p| *p.borrow_mut() = None);
     EFUSE_INPUT.with(|i| *i.borrow_mut() = None);
+    OTP_INPUT.with(|i| *i.borrow_mut() = None);
     let revision = match revision {
         0 => Revision::ObelixPvt,
         1 => Revision::GetafixDvt2,
@@ -53,6 +55,29 @@ pub extern "C" fn sifli_load(revision: u32) -> u32 {
             0
         }
     }
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_configure_nor(jedec: u32, sr1: u32, sr2: u32) -> u32 {
+    PROBE.with(|p| {
+        p.borrow_mut()
+            .as_mut()
+            .is_some_and(|p| p.configure_nor(jedec, sr1, sr2)) as u32
+    })
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_otp_input() -> *mut u8 {
+    OTP_INPUT.with(|i| i.borrow_mut().insert(Box::new([0; 256])).as_mut_ptr())
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_load_otp(page: u32) -> u32 {
+    let Some(data) = OTP_INPUT.with(|i| i.borrow_mut().take()) else {
+        return 0;
+    };
+    PROBE.with(|p| {
+        p.borrow_mut()
+            .as_mut()
+            .is_some_and(|p| p.supply_otp(page, *data)) as u32
+    })
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_set_chip_id(value: u32) -> u32 {
@@ -120,6 +145,11 @@ pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
                 "assertions":p.startup_io().lcpu.reset_assertions,
                 "releases":p.startup_io().lcpu.reset_releases,
                 "entryState":"assumed-active-awaiting-reset", "executesLcpu":false},
+            "nor": {"profile":if p.startup_io().mpi.nor.is_some(){"caller-selected-w25q128jv"}else{"missing"},
+                "otpLoadedMask":p.startup_io().mpi.nor.as_ref().map_or(0,|n|n.otp_mask()),
+                "commandsCompleted":p.startup_io().mpi.commands_completed,
+                "otpBytesRead":p.startup_io().mpi.otp_bytes_read,"lastCommand":p.startup_io().mpi.last_command,
+                "timingVerified":false},
             "calibration": {"chipId":p.startup_io().calibration.chip_id,
                 "vret":p.startup_io().calibration.vret,"aonBg":p.startup_io().calibration.aon_bg,
                 "buck":p.startup_io().calibration.buck,"periLdo":p.startup_io().calibration.peri_ldo,

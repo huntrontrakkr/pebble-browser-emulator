@@ -10,6 +10,8 @@ pub mod debug_counter;
 pub mod efuse;
 pub mod execution;
 pub mod lcpu_reset;
+pub mod mpi;
+pub mod nor;
 pub mod startup_io;
 pub mod system;
 mod wasm;
@@ -50,6 +52,10 @@ pub enum FaultKind {
     MissingLcpuState,
     MissingFactoryCalibration,
     MissingChipIdentity,
+    MissingNorState,
+    MissingFlashOtp,
+    UnsupportedFlashCommand,
+    PeripheralNotReady,
     UninitializedHcpuRam,
     UnmodeledMmio,
     ReadOnlyFlash,

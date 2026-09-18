@@ -172,7 +172,9 @@ functional cache visibility and minimal documented boot registers now have regre
 Plan 3 remains incomplete. The early HXT48 switch and DWT delay loops now execute with
 explicit estimated timing. LCPU reset/halt, EFUSE reads and PMUC trim latches are modeled;
 separate synthetic fixtures verify the unchanged calibration data path. Real factory inputs
-remain absent, and the next synthetic-fixture boundary is MPI2 NOR initialization.
+remain absent. An explicit W25Q128JV profile and synthetic OTP pages now complete the
+NOR read path and `BSP_System_Config`; the next boundary is global-timer initialization.
+Array/OTP program/erase and full MPI XIP bus behavior are not implemented.
 Remaining oscillator/power/clock sequencing, LCPU/ROM, physical calibration,
 device controllers, full boot, display, installation and phone exchange still
 need implementation and independent acceptance. Initial hardware state and cache replacement

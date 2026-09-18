@@ -52,7 +52,7 @@ define the next dependencies:
 | Reset copies/BSS, MPU/caches, entry to main | Executes unchanged firmware in both revisions | Hardware handoff/cache reference still needed |
 | HXT48 request/switch, LCPU wake request and 230us/30us delays | Executes with functional clocks and estimated DWT cycles | Measured readiness/timing; slow/failing crystal tests already run |
 | LCPU reset/halt | Executes with CPUWAIT retained under explicit active-domain assumption | Capture real entry state; LCPU execution and sleep still absent |
-| BSP configuration / EFUSE | Timed transfers and trim latches modeled; synthetic data path passes | Supply matched EFUSE/identity and external flash OTP; implement MPI2 commands |
+| BSP configuration / EFUSE | Timed transfers, trim latches and NOR/OTP reads modeled; synthetic board configuration passes | Supply matched EFUSE/identity/flash data; verify the actual part and nonempty factory records |
 | Global timer, RC32K, watchdog, DLL and HCLK setup | Not reached | Implement timebases, locking/calibration, reset effects and interrupt routing |
 | Flash, board devices, scheduler, display and phone | Not accepted | Device models and independent boot/frame/protocol captures |
 

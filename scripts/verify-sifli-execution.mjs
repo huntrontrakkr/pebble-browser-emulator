@@ -14,7 +14,7 @@ if (!['obelix_pvt', 'getafix_dvt2'].includes(revision) || !elfPath || !imagePath
 }
 const report = {
   format: 'pebble-sifli-reset-execution',
-  version: 4,
+  version: 5,
   revision,
   outcome: 'not-run',
   bootComplete: false,
@@ -36,7 +36,7 @@ try {
   const systemInit = revision === 'obelix_pvt' ? 0x1211521c : 0x12100d9c;
   const { instance } = await WebAssembly.instantiate(wasm, {});
   const e = instance.exports;
-  assert.equal(e.sifli_abi_version(), 4);
+  assert.equal(e.sifli_abi_version(), 5);
   const output = () =>
     JSON.parse(
       new TextDecoder().decode(
@@ -187,11 +187,79 @@ try {
     ((fixture[2] >> 4) << 9) | ((fixture[3] & 15) << 17) | ((fixture[2] & 15) << 1),
   );
   assert.equal(state.calibration.hpVout, 11); // EFUSE read restored supply setting
-  assert.equal(state.stop?.address, 0x50042084); // next dependency: MPI2 NOR controller
+  assert.equal(state.stop?.address, 0x50042018);
+  assert.equal(state.stop.kind, 'MissingNorState'); // no fabricated flash identity
   report.syntheticTrim = {
     source: 'synthetic-controller-test-only',
     state,
     registersMatched: true,
+    physicalCalibrationVerified: false,
+  };
+  // Fourth fixture: explicit W25Q128JV, three distinct synthetic OTP pages.
+  // FF terminates the optional settings list; remaining bytes test exact copying.
+  const reload = () => {
+    const p = e.sifli_input(image.length);
+    new Uint8Array(e.memory.buffer, p, image.length).set(image);
+    assert.equal(e.sifli_load(revision === 'obelix_pvt' ? 0 : 1), 1);
+    new Uint8Array(e.memory.buffer, e.sifli_efuse_input(), 32).set(fixture);
+    assert.equal(e.sifli_load_efuse_bank(1), 1);
+    assert.equal(e.sifli_set_chip_id(0), 1);
+    assert.equal(e.sifli_configure_nor(0xef4018, 0, 0), 1);
+  };
+  const until = (pc = 0) => {
+    for (let i = 0; i < 100; i++) {
+      e.sifli_run(100000, pc);
+      state = output();
+      if (state.stop || state.registers[15] === pc) return state;
+    }
+    throw new Error('NOR phase exhausted instruction budget');
+  };
+  reload();
+  until();
+  assert.equal(state.stop?.kind, 'MissingFlashOtp');
+  assert.equal(state.nor.otpBytesRead, 0);
+  report.missingOtp = { rejected: true, state };
+  reload();
+  const pages = [1, 2, 3].map((n) =>
+    Uint8Array.from({ length: 256 }, (_, i) => (i === 0 ? 255 : (n * 53 + i) & 255)),
+  );
+  for (let i = 0; i < 3; i++) {
+    new Uint8Array(e.memory.buffer, e.sifli_otp_input(), 256).set(pages[i]);
+    assert.equal(e.sifli_load_otp(i + 1), 1);
+  }
+  until(0x200019ee); // pinned HAL_QSPI_READ_OTP entry before first system-page read
+  assert.equal(state.stop, null);
+  assert.equal(state.registers[1], 0x1000);
+  assert.equal(state.registers[3], 32);
+  const systemBuffer = state.registers[2];
+  until(0x20002f7c); // pinned HAL_HPAON_StartGTimer, after BSP_System_Config returns
+  assert.equal(state.stop, null);
+  assert.equal(state.nor.otpBytesRead, 544);
+  assert.equal(state.nor.commandsCompleted, 14);
+  const destinations = [
+    systemBuffer,
+    revision === 'obelix_pvt' ? 0x20026798 : 0x2001c658,
+    revision === 'obelix_pvt' ? 0x20026698 : 0x2001c558,
+  ];
+  const copies = destinations.map((destination, i) => {
+    const length = i === 0 ? 32 : 256;
+    const actual = Uint8Array.from({ length }, (_, j) => {
+      const b = e.sifli_read_cpu_byte(destination + j) >>> 0;
+      assert.ok(b <= 255);
+      return b;
+    });
+    assert.deepEqual(actual, pages[i].subarray(0, length));
+    return { page: i + 1, destination, bytesMatched: length, sha256: sha(actual) };
+  });
+  const boardConfigComplete = state;
+  until();
+  assert.equal(state.stop?.address, 0x40040004); // next unmodeled global timer
+  report.syntheticNor = {
+    source: 'synthetic-controller-test-only',
+    profile: 'W25Q128JV',
+    copies,
+    boardConfigComplete,
+    nextBoundary: state,
     physicalCalibrationVerified: false,
   };
   report.limits = [

@@ -327,6 +327,8 @@ impl ResetProbe {
     /// reset engine register defaults, MSP/PC from the slot-0 vector table.
     /// These are a probe contract, not measured post-bootloader state.
     pub fn new(revision: Revision, slot: Vec<u8>) -> Result<Self, EntryError> {
+        let mut io = crate::startup_io::StartupIo::default();
+        io.mpi.set_slot(slot.clone());
         let memory = SifliAddressSpace::new(revision, slot).map_err(EntryError::Image)?;
         let msp = memory
             .read(0, 0x12021000, 4, Operation::Read)
@@ -364,7 +366,7 @@ impl ResetProbe {
                 // Documented RTC backup-domain POR values (UM5201 §9.7).
                 // This probe assumes a newly powered backup domain; it does
                 // not stand in for a captured warm-boot retention image.
-                io: crate::startup_io::StartupIo::default(),
+                io,
             },
             stop: None,
             fault_registers: None,
@@ -383,6 +385,23 @@ impl ResetProbe {
         true
     }
 
+    pub fn configure_nor(&mut self, jedec: u32, sr1: u32, sr2: u32) -> bool {
+        if self.steps_attempted != 0 || self.stop.is_some() {
+            return false;
+        }
+        self.bus.io.mpi.configure(jedec, sr1, sr2)
+    }
+    pub fn supply_otp(&mut self, page: u32, bytes: [u8; 256]) -> bool {
+        if self.steps_attempted != 0 || self.stop.is_some() {
+            return false;
+        }
+        self.bus
+            .io
+            .mpi
+            .nor
+            .as_mut()
+            .is_some_and(|n| n.supply(page, bytes))
+    }
     pub fn supply_chip_id(&mut self, value: u32) -> bool {
         if self.steps_attempted != 0 || self.stop.is_some() {
             return false;

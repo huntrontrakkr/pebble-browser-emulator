@@ -62,8 +62,12 @@ Missing factory data stops explicitly. The PMUC calibration trim fields and chip
 input are modeled separately from analog behavior.
 Separate synthetic fixtures run unchanged firmware through a 32-byte EFUSE copy and PMUC
 trim application in both revisions. CPU-visible inspection includes dirty cache bytes without
-altering them. These tests reach MPI2 NOR initialization (`0x50042084`), which still needs
-its command controller and flash OTP data. They do not establish physical calibration.
+altering them. An explicit W25Q128JV profile now executes MPI2 NOR startup and security-page reads.
+With three distinct synthetic OTP pages, both images return from `BSP_System_Config` after
+14 commands and 544 byte-for-byte verified OTP transfers. Missing flash identity/pages
+remain explicit faults. This establishes the boot-time read path, not physical calibration
+or flash program/erase support. The next fixture boundary is LPSYS_AON.CR1 (`0x40040004`)
+in global-timer startup. The CPU slot/XIP mapping remains independent of full MPI bus timing.
 See the [factory-data contract](SIFLI_FACTORY_DATA.md) and
 [physical measurement steps](PHYSICAL_MEASUREMENTS.md). No actual watch data was collected.
 This is still a diagnostic module, not a selectable working physical-watch preview.
@@ -71,8 +75,8 @@ This is still a diagnostic module, not a selectable working physical-watch previ
 [Round 2 evidence](evidence/getafix-reset-execution.json),
 [model sources and assumptions](evidence/sifli-system-model-sources.json).
 Actual Chromium, Firefox and WebKit Workers match both reset and `main` checkpoints,
-clock/delay checkpoints, LCPU reset, synthetic calibration, RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
-Validation: 122 Rust tests, 394 JavaScript tests (9 optional skips), Clippy and the full
+clock/delay checkpoints, LCPU reset, synthetic calibration and NOR/OTP, RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
+Validation: 127 Rust tests, 395 JavaScript tests (9 optional skips), Clippy and the full
 production build pass. The generic Emery Clock regression preserves all five previous
 state/frame/time checkpoints ([record](evidence/sifli-system-generic-regression.json)).
 Physical SiFli implementation, active phone snapshots, native deterministic replay and actual

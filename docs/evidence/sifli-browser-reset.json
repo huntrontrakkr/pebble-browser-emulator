@@ -1,7 +1,7 @@
 {
   "format": "pebble-sifli-browser-reset",
   "version": 1,
-  "wasmSha256": "1d6aa45af7bb7ea51e1f5cc618e48d8ea4e4aeabfb51e26eee0ee6a3d728679f",
+  "wasmSha256": "64f27cf39847ca6bdaa75b966de70fb1b1582c2ac7dc7a0cf7baecb2a4940650",
   "results": [
     {
       "browser": "chromium",
@@ -11,6 +11,7 @@
       "mainEntryMatched": true,
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
+      "syntheticNorOtpMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -22,6 +23,7 @@
       "mainEntryMatched": true,
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
+      "syntheticNorOtpMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -33,6 +35,7 @@
       "mainEntryMatched": true,
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
+      "syntheticNorOtpMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -44,6 +47,7 @@
       "mainEntryMatched": true,
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
+      "syntheticNorOtpMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -55,6 +59,7 @@
       "mainEntryMatched": true,
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
+      "syntheticNorOtpMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -66,9 +71,10 @@
       "mainEntryMatched": true,
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
+      "syntheticNorOtpMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     }
   ],
-  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, early clock/delay, LCPU reset and synthetic calibration transfer/trim execution. No full boot or physical-phone performance claim."
+  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, early clock/delay, LCPU reset and synthetic calibration transfer/trim and NOR/OTP board-configuration execution. No full boot or physical-phone performance claim."
 }

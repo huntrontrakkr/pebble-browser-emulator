@@ -1,6 +1,6 @@
 {
   "format": "pebble-sifli-system-model-sources",
-  "version": 3,
+  "version": 4,
   "status": "modeled",
   "sources": [
     {
@@ -58,10 +58,31 @@
     {
       "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/hpsys_cfg.h",
       "sha256": "72ef0bd82687bed20a06380b7258870207dc60e6a28ecb983cfc99ca76bc596d"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/mpi.h",
+      "sha256": "339fd0e82f7141f31951162359207252596f2ddd9edc9384ec47db85c1130ece"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_mpi.c",
+      "sha256": "58e5224b7b1b1763c00edf70501ef238fd857c839e705b699b78b3caf8ae14bb"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_qspi.c",
+      "sha256": "017146f9b1151024e973847c60b73b2bca7e7936a4c2a8376858a8790d30b5fc"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/flash_table.c",
+      "sha256": "425bf769a6a02a9c0f9fc67f34d689a3080f23f19882b626203d68137d2a8a87"
+    },
+    {
+      "url": "https://www.winbond.com/resource-files/w25q128jv%20revg%2004082019%20plus.pdf",
+      "sha256": "5e2f6a77e0225a5c61b8f4b5b9680b57e0e1fe68cfc011465e30f665fe282057",
+      "scope": "SPI read/status, security registers and reset; Revision G, sections 8.2.4/5, 8.2.31, 8.2.37 and AC timing."
     }
   ],
   "cacheGeometrySource": "https://downloads.sifli.com/user%20manual/DS5201-SF32LB52x-Datasheet%20V2p5.pdf",
-  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC), 4-3 (HPSYS_AON ACR/ISSR), 5-4 (PA21), 9-7 (backup); pinned CMSIS DWT/DEMCR fields. Also 3-3 (PMUC trim register reset values/masks), 13-4 (EFUSE).",
+  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC), 4-3 (HPSYS_AON ACR/ISSR), 5-4 (PA21), 9-7 (backup); pinned CMSIS DWT/DEMCR fields. Also 3-3 (PMUC trim register reset values/masks), 13-4 (EFUSE). Also 14-2 (MPI2).",
   "assumptions": [
     "Explicit secure architectural reset state and fresh backup-domain POR; not captured bootloader handoff.",
     "Functional split cache with deterministic round-robin replacement; timing, allocation flags and replacement not silicon-verified.",
@@ -71,7 +92,10 @@
     "DWT cycle/CPI counters use estimated engine costs. Minimal debug feature contract and disabled SysTick at entry are assumptions; other trace/timer programming faults.",
     "Documented LP_ACTIVE POR status is not LCPU execution or a controller response. LCPU controls now use an explicit active-domain/non-sleeping entry assumption, CPUWAIT initially clear; releasing it requires missing LCPU execution state.",
     "EFUSE transfer estimate is 512 + THRCK PCLK ticks, not measured chip timing. Data must be supplied; no default calibration/identity is invented.",
-    "PMUC calibration models digital trim fields only, not measured analog voltages or regulator dynamics."
+    "PMUC calibration models digital trim fields only, not measured analog voltages or regulator dynamics.",
+    "NOR profile is caller-selected W25Q128JV, not verified watch BOM. Three security pages are explicit inputs, never default erased bytes.",
+    "MPI uses whole-transfer buffering with padded final FIFO words and estimated serial-clock timing. DMA, IRQ, chaining, write/erase and full XIP bus behavior are unsupported.",
+    "NOR volatile refresh is rounded to 3 nominal 48MHz ticks; reset recovery is modeled at the datasheet approximate 30us. These are not captured hardware timings."
   ],
   "gates": {
     "resetRam": "matches unchanged ELF/raw initializers and zero-fill",
@@ -84,6 +108,7 @@
     "fullBoot": false,
     "earlyClockStartup": "both images reach HAL_RCC_Reset_and_Halt_LCPU after source switch and 230us/30us DWT waits; internal consistency, not measured timing",
     "lcpuReset": "both images assert and release reset once, retaining CPUWAIT; initial state is assumed, not captured",
-    "calibration": "synthetic fixtures match HAL byte transfer and PMUC trim mappings; physical calibration not verified"
+    "calibration": "synthetic fixtures match HAL byte transfer and PMUC trim mappings; physical calibration not verified",
+    "norOtp": "both unchanged images return from BSP_System_Config with separate synthetic EFUSE/identity/NOR/OTP inputs; all 544 OTP destination bytes match in all three browser engines"
   }
 }

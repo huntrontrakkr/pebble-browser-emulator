@@ -262,8 +262,11 @@ asserted after reset; releasing it requires missing LCPU execution state.
 EFUSE transfers require caller-supplied bank data. Its timing/status, RCC gating and reset
 behavior are modeled; absent data produces `MissingFactoryCalibration`. Separate synthetic
 bank/identity fixtures verify the unchanged HAL's 32-byte copy and PMUC trim writes. The
-next dependency under those fixtures is MPI2 TIMR (`0x50042084`) in NOR initialization.
-These are not measured factory calibration or a complete `BSP_System_Config` result.
+NOR/OTP path now accepts an explicit W25Q128JV profile and three caller-supplied security
+pages. Separate synthetic fixtures return from `BSP_System_Config`, verifying 544 copied
+OTP bytes across 14 commands. The next dependency is LPSYS_AON.CR1 (`0x40040004`) during
+global-timer startup. Array/OTP programming and full XIP bus behavior are still unsupported.
+These are synthetic read-path checks, not measured factory calibration.
 See the [factory-data interface and limits](SIFLI_FACTORY_DATA.md) and
 [physical measurements](PHYSICAL_MEASUREMENTS.md). A successful calibration-transfer test
 is not a successful watch boot, frame, app install or phone connection.
@@ -278,7 +281,7 @@ node scripts/verify-sifli-browser.mjs /path/to/local/images report.json
 The runner audits ELF/raw identity, caps each phase at 10 million instructions and
 compares every initializer/BSS byte plus the `main` MPU/cache configuration derived
 from pinned source, then checks the early clock/delay checkpoint, LCPU reset and separate synthetic calibration transfer/trim tests. Missing inputs exit 2;
-a failed comparison or exhausted boundary search exits 1. Wasm ABI 4 runs
+a failed comparison or exhausted boundary search exits 1. Wasm ABI 5 runs
 at most 100,000 steps per call so Workers can yield or terminate. The module has no
 host imports. After loading and before executing, `sifli_configure_hxt(ticks)` accepts a
 nominal 48MHz startup delay (`0xffffffff` injects failure); it rejects changes after execution.

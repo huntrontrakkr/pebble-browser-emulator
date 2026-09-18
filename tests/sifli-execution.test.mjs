@@ -38,7 +38,7 @@ async function core() {
 test('physical Wasm is self-contained and records the first hardware boundary', async () => {
   for (const revision of [0, 1]) {
     const { e, upload, report } = await core();
-    assert.equal(e.sifli_abi_version(), 4);
+    assert.equal(e.sifli_abi_version(), 5);
     upload(image());
     assert.equal(e.sifli_load(revision), 1);
     assert.equal(e.sifli_run(100, 0), 2);
@@ -150,4 +150,34 @@ test('factory bank staging is single-use, bounded and cannot replace live calibr
   e.sifli_run(0, 0);
   assert.equal(report().factoryData.loadedBankMask, 0);
   assert.equal(report().calibration.chipId, null);
+});
+
+test('NOR profile and OTP imports are explicit, single-use and reset between images', async () => {
+  const { e, upload, report } = await core();
+  assert.equal(e.sifli_configure_nor(0xef4018, 0, 0), 0);
+  upload(image());
+  assert.equal(e.sifli_load(0), 1);
+  e.sifli_otp_input();
+  assert.equal(e.sifli_load_otp(1), 0);
+  assert.equal(e.sifli_configure_nor(0x123456, 0, 0), 0);
+  assert.equal(e.sifli_configure_nor(0xef4018, 0, 0), 1);
+  const p = e.sifli_otp_input();
+  new Uint8Array(e.memory.buffer, p, 256).fill(0x69);
+  assert.equal(e.sifli_load_otp(0), 0);
+  assert.equal(e.sifli_load_otp(1), 0);
+  new Uint8Array(e.memory.buffer, e.sifli_otp_input(), 256).fill(0x69);
+  assert.equal(e.sifli_load_otp(1), 1);
+  assert.equal(e.sifli_load_otp(2), 0);
+  e.sifli_run(1, 0);
+  assert.equal(report().nor.otpLoadedMask, 1);
+  assert.equal(e.sifli_configure_nor(0xef4018, 0, 0), 0);
+  e.sifli_otp_input();
+  assert.equal(e.sifli_load_otp(2), 0);
+  e.sifli_otp_input();
+  upload(image());
+  assert.equal(e.sifli_load(1), 1);
+  assert.equal(e.sifli_configure_nor(0xef4018, 0, 0), 1);
+  assert.equal(e.sifli_load_otp(1), 0);
+  e.sifli_run(0, 0);
+  assert.equal(report().nor.otpLoadedMask, 0);
 });

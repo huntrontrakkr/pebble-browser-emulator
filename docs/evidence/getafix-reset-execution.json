@@ -1,6 +1,6 @@
 {
   "format": "pebble-sifli-reset-execution",
-  "version": 4,
+  "version": 5,
   "revision": "getafix_dvt2",
   "outcome": "lcpu-reset-sequence-matched",
   "bootComplete": false,
@@ -9,7 +9,7 @@
   "identity": {
     "elfSha256": "e4c4d411f3c408309f99f8b6e5f8231366dee3685c1f3f7d315c9a48721e1fc4",
     "imageSha256": "49de4261874c5ac93caabf2e1a8be81b3e46298f8e17e256b89653775d1f9245",
-    "wasmSha256": "1d6aa45af7bb7ea51e1f5cc618e48d8ea4e4aeabfb51e26eee0ee6a3d728679f"
+    "wasmSha256": "64f27cf39847ca6bdaa75b966de70fb1b1582c2ac7dc7a0cf7baecb2a4940650"
   },
   "startup": {
     "bootComplete": false,
@@ -46,6 +46,14 @@
       "releases": 0
     },
     "msplim": 537061472,
+    "nor": {
+      "commandsCompleted": 0,
+      "lastCommand": null,
+      "otpBytesRead": 0,
+      "otpLoadedMask": 0,
+      "profile": "missing",
+      "timingVerified": false
+    },
     "psplim": 0,
     "registerState": "current",
     "registers": [
@@ -188,6 +196,14 @@
       "releases": 0
     },
     "msplim": 537061472,
+    "nor": {
+      "commandsCompleted": 0,
+      "lastCommand": null,
+      "otpBytesRead": 0,
+      "otpLoadedMask": 0,
+      "profile": "missing",
+      "timingVerified": false
+    },
     "psplim": 0,
     "registerState": "current",
     "registers": [
@@ -308,6 +324,14 @@
       "releases": 0
     },
     "msplim": 537061472,
+    "nor": {
+      "commandsCompleted": 0,
+      "lastCommand": null,
+      "otpBytesRead": 0,
+      "otpLoadedMask": 0,
+      "profile": "missing",
+      "timingVerified": false
+    },
     "psplim": 0,
     "registerState": "current",
     "registers": [
@@ -428,6 +452,14 @@
       "releases": 1
     },
     "msplim": 537061472,
+    "nor": {
+      "commandsCompleted": 0,
+      "lastCommand": null,
+      "otpBytesRead": 0,
+      "otpLoadedMask": 0,
+      "profile": "missing",
+      "timingVerified": false
+    },
     "psplim": 0,
     "registerState": "last-completed-instruction",
     "registers": [
@@ -560,6 +592,14 @@
         "releases": 1
       },
       "msplim": 537061472,
+      "nor": {
+        "commandsCompleted": 0,
+        "lastCommand": null,
+        "otpBytesRead": 0,
+        "otpLoadedMask": 0,
+        "profile": "missing",
+        "timingVerified": false
+      },
       "psplim": 0,
       "registerState": "last-completed-instruction",
       "registers": [
@@ -669,10 +709,10 @@
         "vret": 2101277
       },
       "clock": {
-        "estimatedCoreCycles": 532241,
+        "estimatedCoreCycles": 532318,
         "hxtReady": true,
         "hxtStartupTicks": 48000,
-        "referenceTicks48MHz": 532241,
+        "referenceTicks48MHz": 532318,
         "timingVerified": false
       },
       "entryState": "assumed-secure-reset-probe-v2",
@@ -681,7 +721,7 @@
         "readsCompleted": 1,
         "source": "caller-supplied-unverified"
       },
-      "instructionsCompleted": 329986,
+      "instructionsCompleted": 330035,
       "lcpuReset": {
         "assertedMask": 0,
         "assertions": 1,
@@ -691,15 +731,23 @@
         "releases": 1
       },
       "msplim": 537061472,
+      "nor": {
+        "commandsCompleted": 0,
+        "lastCommand": null,
+        "otpBytesRead": 0,
+        "otpLoadedMask": 0,
+        "profile": "missing",
+        "timingVerified": false
+      },
       "psplim": 0,
       "registerState": "last-completed-instruction",
       "registers": [
         537062360,
-        1,
-        1342447616,
+        159,
         0,
+        1342447616,
         537062360,
-        255,
+        159,
         1342197760,
         0,
         0,
@@ -707,17 +755,17 @@
         0,
         0,
         122880,
-        537062296,
-        303032011,
-        536877374
+        537062272,
+        536877047,
+        536875658
       ],
       "revision": "GetafixDvt2",
-      "stepsAttempted": 329987,
+      "stepsAttempted": 330036,
       "stop": {
-        "address": 1342447748,
-        "kind": "UnmodeledMmio",
+        "address": 1342447640,
+        "kind": "MissingNorState",
         "operation": "Write",
-        "pc": 536877374,
+        "pc": 536875658,
         "type": "access",
         "width": 4
       },
@@ -784,6 +832,432 @@
       }
     },
     "registersMatched": true,
+    "physicalCalibrationVerified": false
+  },
+  "missingOtp": {
+    "rejected": true,
+    "state": {
+      "bootComplete": false,
+      "calibration": {
+        "analogVerified": false,
+        "aonBg": 28,
+        "buck": 2953390337,
+        "chipId": 0,
+        "hpVout": 11,
+        "lpVout": 1,
+        "periLdo": 395268,
+        "vret": 2101277
+      },
+      "clock": {
+        "estimatedCoreCycles": 534478,
+        "hxtReady": true,
+        "hxtStartupTicks": 48000,
+        "referenceTicks48MHz": 534478,
+        "timingVerified": false
+      },
+      "entryState": "assumed-secure-reset-probe-v2",
+      "factoryData": {
+        "loadedBankMask": 2,
+        "readsCompleted": 1,
+        "source": "caller-supplied-unverified"
+      },
+      "instructionsCompleted": 331292,
+      "lcpuReset": {
+        "assertedMask": 0,
+        "assertions": 1,
+        "cpuWait": true,
+        "entryState": "assumed-active-awaiting-reset",
+        "executesLcpu": false,
+        "releases": 1
+      },
+      "msplim": 537061472,
+      "nor": {
+        "commandsCompleted": 5,
+        "lastCommand": 1,
+        "otpBytesRead": 0,
+        "otpLoadedMask": 0,
+        "profile": "caller-selected-w25q128jv",
+        "timingVerified": false
+      },
+      "psplim": 0,
+      "registerState": "last-completed-instruction",
+      "registers": [
+        537062360,
+        72,
+        4096,
+        1342447616,
+        537062360,
+        72,
+        4096,
+        72,
+        32,
+        537062328,
+        32,
+        0,
+        0,
+        537062224,
+        536876431,
+        536875658
+      ],
+      "revision": "GetafixDvt2",
+      "stepsAttempted": 331293,
+      "stop": {
+        "address": 1342447640,
+        "kind": "MissingFlashOtp",
+        "operation": "Write",
+        "pc": 536875658,
+        "type": "access",
+        "width": 4
+      },
+      "system": {
+        "ccr": 197120,
+        "cpacr": 15728703,
+        "mair": [
+          17442,
+          0
+        ],
+        "mpuControl": 7,
+        "mpuRegions": [
+          [
+            301989894,
+            335544289
+          ],
+          [
+            1073741825,
+            1610612709
+          ],
+          [
+            536870916,
+            536888579
+          ],
+          [
+            541048832,
+            542113763
+          ],
+          [
+            537394177,
+            537395171
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "shcsr": 65536,
+        "vtor": 536987648
+      }
+    }
+  },
+  "syntheticNor": {
+    "source": "synthetic-controller-test-only",
+    "profile": "W25Q128JV",
+    "copies": [
+      {
+        "page": 1,
+        "destination": 537062328,
+        "bytesMatched": 32,
+        "sha256": "aea89ae3527b37e6e3ff4819043a50beb82174fba4de1b1cb2d2500c4debafb6"
+      },
+      {
+        "page": 2,
+        "destination": 536987224,
+        "bytesMatched": 256,
+        "sha256": "b6a4451ec0213b22185e6696fe3813b5fae77454023c641c7eaa36f2bde33e9c"
+      },
+      {
+        "page": 3,
+        "destination": 536986968,
+        "bytesMatched": 256,
+        "sha256": "f43442f950e1305cd61220a28e9539b4a6d22d94b37aad5fb169ab372d4ddd7b"
+      }
+    ],
+    "boardConfigComplete": {
+      "bootComplete": false,
+      "calibration": {
+        "analogVerified": false,
+        "aonBg": 28,
+        "buck": 2953390337,
+        "chipId": 0,
+        "hpVout": 11,
+        "lpVout": 1,
+        "periLdo": 395268,
+        "vret": 2101277
+      },
+      "clock": {
+        "estimatedCoreCycles": 557586,
+        "hxtReady": true,
+        "hxtStartupTicks": 48000,
+        "referenceTicks48MHz": 557586,
+        "timingVerified": false
+      },
+      "entryState": "assumed-secure-reset-probe-v2",
+      "factoryData": {
+        "loadedBankMask": 2,
+        "readsCompleted": 1,
+        "source": "caller-supplied-unverified"
+      },
+      "instructionsCompleted": 347889,
+      "lcpuReset": {
+        "assertedMask": 0,
+        "assertions": 1,
+        "cpuWait": true,
+        "entryState": "assumed-active-awaiting-reset",
+        "executesLcpu": false,
+        "releases": 1
+      },
+      "msplim": 537061472,
+      "nor": {
+        "commandsCompleted": 14,
+        "lastCommand": 72,
+        "otpBytesRead": 544,
+        "otpLoadedMask": 7,
+        "profile": "caller-selected-w25q128jv",
+        "timingVerified": false
+      },
+      "psplim": 0,
+      "registerState": "current",
+      "registers": [
+        0,
+        536986968,
+        256,
+        1342447616,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        537062440,
+        302247681,
+        536883068
+      ],
+      "revision": "GetafixDvt2",
+      "stepsAttempted": 347889,
+      "stop": null,
+      "system": {
+        "ccr": 197120,
+        "cpacr": 15728703,
+        "mair": [
+          17442,
+          0
+        ],
+        "mpuControl": 7,
+        "mpuRegions": [
+          [
+            301989894,
+            335544289
+          ],
+          [
+            1073741825,
+            1610612709
+          ],
+          [
+            536870916,
+            536888579
+          ],
+          [
+            541048832,
+            542113763
+          ],
+          [
+            537394177,
+            537395171
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "shcsr": 65536,
+        "vtor": 536987648
+      }
+    },
+    "nextBoundary": {
+      "bootComplete": false,
+      "calibration": {
+        "analogVerified": false,
+        "aonBg": 28,
+        "buck": 2953390337,
+        "chipId": 0,
+        "hpVout": 11,
+        "lpVout": 1,
+        "periLdo": 395268,
+        "vret": 2101277
+      },
+      "clock": {
+        "estimatedCoreCycles": 557595,
+        "hxtReady": true,
+        "hxtStartupTicks": 48000,
+        "referenceTicks48MHz": 557595,
+        "timingVerified": false
+      },
+      "entryState": "assumed-secure-reset-probe-v2",
+      "factoryData": {
+        "loadedBankMask": 2,
+        "readsCompleted": 1,
+        "source": "caller-supplied-unverified"
+      },
+      "instructionsCompleted": 347895,
+      "lcpuReset": {
+        "assertedMask": 0,
+        "assertions": 1,
+        "cpuWait": true,
+        "entryState": "assumed-active-awaiting-reset",
+        "executesLcpu": false,
+        "releases": 1
+      },
+      "msplim": 537061472,
+      "nor": {
+        "commandsCompleted": 14,
+        "lastCommand": 72,
+        "otpBytesRead": 544,
+        "otpLoadedMask": 7,
+        "profile": "caller-selected-w25q128jv",
+        "timingVerified": false
+      },
+      "psplim": 0,
+      "registerState": "last-completed-instruction",
+      "registers": [
+        0,
+        1074003968,
+        3288334336,
+        1342963712,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        537062440,
+        302247681,
+        536883080
+      ],
+      "revision": "GetafixDvt2",
+      "stepsAttempted": 347896,
+      "stop": {
+        "address": 1074003972,
+        "kind": "UnmodeledMmio",
+        "operation": "Read",
+        "pc": 536883080,
+        "type": "access",
+        "width": 4
+      },
+      "system": {
+        "ccr": 197120,
+        "cpacr": 15728703,
+        "mair": [
+          17442,
+          0
+        ],
+        "mpuControl": 7,
+        "mpuRegions": [
+          [
+            301989894,
+            335544289
+          ],
+          [
+            1073741825,
+            1610612709
+          ],
+          [
+            536870916,
+            536888579
+          ],
+          [
+            541048832,
+            542113763
+          ],
+          [
+            537394177,
+            537395171
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "shcsr": 65536,
+        "vtor": 536987648
+      }
+    },
     "physicalCalibrationVerified": false
   },
   "limits": [

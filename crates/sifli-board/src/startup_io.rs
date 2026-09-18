@@ -8,6 +8,9 @@ pub struct StartupIo {
     pub lcpu: crate::lcpu_reset::LcpuReset,
     pub efuse: crate::efuse::Efuse,
     rstr1: u32,
+    rstr2: u32,
+    enr2: u32,
+    pub mpi: crate::mpi::Mpi,
     pub calibration: crate::calibration::Calibration,
     issr: u32,
     pub backup: [u32; 10],
@@ -21,6 +24,9 @@ impl Default for StartupIo {
             lcpu: crate::lcpu_reset::LcpuReset::default(),
             efuse: crate::efuse::Efuse::default(),
             rstr1: 0,
+            rstr2: 0,
+            enr2: 0x02401107,
+            mpi: crate::mpi::Mpi::default(),
             calibration: crate::calibration::Calibration::default(),
             issr: 0x30,
             backup: [0; 10],
@@ -35,17 +41,29 @@ impl StartupIo {
             let pdiv = 1 << ((self.clock.read(0x50000024).unwrap() >> 8) & 7);
             self.efuse.advance(cycles, pdiv);
         }
+        let before = self.clock.reference_ticks;
         self.clock.advance(cycles);
+        if let Some(nor) = self.mpi.nor.as_mut() {
+            nor.advance(self.clock.reference_ticks - before);
+        }
+        if self.enr2 & 4 != 0 && self.rstr2 & 4 == 0 {
+            self.mpi.advance(self.clock.reference_ticks - before);
+        }
     }
     pub fn owns(a: u32) -> bool {
-        crate::calibration::Calibration::owns(a)
+        crate::mpi::Mpi::owns(a)
+            || crate::calibration::Calibration::owns(a)
             || crate::efuse::Efuse::owns(a)
             || crate::lcpu_reset::LcpuReset::owns(a)
             || crate::clock::BootClock::owns(a)
             || (0x500cb030..0x500cb058).contains(&a)
             || matches!(
                 a,
-                0x500ca094
+                0x50000004
+                    | 0x5000000c
+                    | 0x50000014
+                    | 0x5000001c
+                    | 0x500ca094
                     | 0x50000000
                     | 0x50000008
                     | 0x50000010
@@ -54,7 +72,13 @@ impl StartupIo {
                     | 0x50003088
             )
     }
-    pub fn read(&self, a: u32, width: u8) -> Result<u32, FaultKind> {
+    pub fn read(&mut self, a: u32, width: u8) -> Result<u32, FaultKind> {
+        if crate::mpi::Mpi::owns(a) {
+            if self.enr2 & 4 == 0 || self.rstr2 & 4 != 0 {
+                return Err(FaultKind::PeripheralNotReady);
+            }
+            return self.mpi.read(a, width);
+        }
         if width != 4 || a & 3 != 0 {
             return Err(FaultKind::InvalidWidth);
         }
@@ -75,6 +99,8 @@ impl StartupIo {
         }
         match a {
             0x50000000 => Ok(self.rstr1),
+            0x50000004 => Ok(self.rstr2),
+            0x5000000c => Ok(self.enr2),
             0x500cb030..=0x500cb054 => Ok(self.backup[((a - 0x500cb030) / 4) as usize]),
             0x50000008 => Ok(self.enr1),
             0x500c002c => Ok(self.issr),
@@ -83,6 +109,12 @@ impl StartupIo {
         }
     }
     pub fn write(&mut self, a: u32, width: u8, value: u32) -> Result<(), FaultKind> {
+        if crate::mpi::Mpi::owns(a) {
+            if self.enr2 & 4 == 0 || self.rstr2 & 4 != 0 {
+                return Err(FaultKind::PeripheralNotReady);
+            }
+            return self.mpi.write(a, width, value);
+        }
         if width != 4 || a & 3 != 0 {
             return Err(FaultKind::InvalidWidth);
         }
@@ -103,6 +135,15 @@ impl StartupIo {
         }
         const MASK: u32 = 0x9af7fdf7;
         match a {
+            0x50000004 if value & !4 == 0 => {
+                if value & 4 != 0 {
+                    self.mpi.reset_controller();
+                }
+                self.rstr2 = value;
+            }
+            0x5000000c if (value ^ self.enr2) & !4 == 0 => self.enr2 = value,
+            0x50000014 if value & !4 == 0 => self.enr2 |= value,
+            0x5000001c if value & !4 == 0 => self.enr2 &= !value,
             0x50000000 => {
                 // Reset only the implemented controller. Other domains need
                 // their own reset effects; never acknowledge an inert reset.
