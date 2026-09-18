@@ -16,6 +16,8 @@ function downloads(profile) {
       shell(asset) ||
       asset.path.startsWith('wasm/') ||
       asset.path.startsWith('phone-app/') ||
+      asset.path === 'checkpoints/index.json' ||
+      asset.path === `checkpoints/${profile}.pbcp` ||
       asset.path === `examples/clock-${platform}.pbw` ||
       (asset.path.startsWith('firmware/') &&
         (!asset.path.endsWith('.gz') || asset.path.includes('/' + profile + '_'))),

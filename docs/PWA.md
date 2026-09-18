@@ -10,7 +10,7 @@ UI depends on the browser; see [MDN's installation requirements](https://develop
 
 In **Preferences → Offline access**, choose a watch and select **Download for offline use**.
 This saves the app shell, Wasm runtimes, that watch's official default firmware, its Clock
-PBW, and the companion configuration module with its license/source files. The size shown
+PBW, its matching prepared startup state, and the companion configuration module with its license/source files. The size shown
 is the total for that watch; shared assets are reused when downloading another watch.
 Progress and cancellation work during large downloads. Readiness requires every selected
 asset to be present. It does not indicate that arbitrary firmware or applications are supported.
@@ -19,8 +19,9 @@ Once the download completes, the example can boot and its local configuration pa
 save settings without a network connection. **Open saved watchface** reopens the most recent
 PBW from IndexedDB, with its selected watch profile. Local PBWs can also be imported offline.
 The one saved PBW replaces the previous one; this is not a watchface library. Firmware and
-app settings use their existing local stores. Running CPU state is not saved; reopening
-starts the watch from the stored firmware image.
+app settings use their existing local stores. A pristine firmware startup checkpoint can
+accelerate reopening. An active phone/watch session is not saved: reopening still installs
+the selected app and applies the current demo settings.
 
 Saving an already open local HTML/Clay form also works if the connection drops without
 an offline download. Its return stays inside the sandboxed page and requires no server
@@ -34,6 +35,12 @@ package. The compiler/SDK and Linux build images have
 separate import and cache requirements and are not included in this offline package.
 Pixels and Reflective views need no downloaded CAD model. Browser storage can be evicted,
 so retain important source files and PBWs separately.
+
+Public catalog responses and downloaded store/release packages use a separate bounded
+IndexedDB cache, whether fetched directly or through the optional service. Pinned package
+links can reuse it without a catalog request. **Clear cached downloads** removes that cache
+without removing saved firmware, phone settings or the last opened watchface. The optional
+service itself is never required for offline operation.
 
 **Remove offline downloads** clears the large assets in this app's service-worker cache.
 It keeps the shell, saved firmware, the last PBW, app settings, and unrelated site data.

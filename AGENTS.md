@@ -2,8 +2,10 @@
 
 ## Product contract
 
-Angular frontend, Rust/Wasm hardware core, browser-only application runtime. No remote
-compilation service, application backend, or CORS proxy. Preserve the approved roadmap
+Angular frontend, Rust/Wasm hardware core, browser-only application runtime and compilation.
+An optional public-resource download/cache service is authorized. The static application,
+direct imports, local files, saved state, and emulation must work without that service.
+Do not deploy or provision hosting without a hosting request. Preserve the approved roadmap
 in docs/ROADMAP.md. Keep diagnostic-v1 separate from the experimental generic Pebble firmware runtime.
 
 ## Accuracy

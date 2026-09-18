@@ -1,4 +1,5 @@
 pub mod bus_trait;
+pub mod checkpoint;
 pub(crate) mod coprocessor;
 pub(crate) mod decode;
 pub(crate) mod exceptions;

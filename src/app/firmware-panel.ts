@@ -1,5 +1,7 @@
 import { WATCH_PRODUCTS, fileProfile, type FirmwareProfile } from './watch-profiles.ts';
-import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Output, OnDestroy, signal } from '@angular/core';
+import { downloadFirmwareRelease } from './firmware-downloads.ts';
+import { resourceFetch } from './resource-fetch.ts';
 import { microFlashImage } from './firmware-image.ts';
 import { inspectFirmwareBundle } from './firmware-bundle.ts';
 import { FormsModule } from '@angular/forms';
@@ -55,7 +57,7 @@ import type { PackageInfo } from './archives.ts';
     <button (click)="findRelease()" [disabled]="busy()">Find release</button>
     @if (releases().length) {
       <label
-        >Release<select [ngModel]="selectedTag()" (ngModelChange)="selectedTag.set($event)">
+        >Release<select [ngModel]="selectedTag()" (ngModelChange)="selectRelease($event)">
           <option value="">Select a release</option>
           @for (release of releases(); track release.tag) {
             <option [value]="release.tag">
@@ -76,9 +78,17 @@ import type { PackageInfo } from './archives.ts';
       @if (selectedTag() && !selectedAssets().length) {
         <p class="help">This release has no images for the selected emulator board.</p>
       }
+      @if (product().runtime && selectedAssets().length) {
+        <button class="primary" (click)="downloadSelected()" [disabled]="busy()">
+          Load selected firmware
+        </button>
+        @if (downloading()) {
+          <button (click)="cancelFirmwareDownload()">Cancel download</button>
+        }
+      }
       <p class="help">
-        GitHub release downloads do not permit browser imports across origins. Download the files
-        above, then open them below. Matching catalog checksums are verified locally.
+        Downloads use the browser first, then your optional download service if enabled. You can
+        also open files below.
       </p>
     }
     <div class="field-grid">
@@ -140,7 +150,49 @@ import type { PackageInfo } from './archives.ts';
     }
   `,
 })
-export class FirmwarePanel {
+export class FirmwarePanel implements OnDestroy {
+  downloading = signal(false);
+  private downloadController?: AbortController;
+  ngOnDestroy() {
+    this.downloadController?.abort();
+  }
+  cancelFirmwareDownload() {
+    this.downloadController?.abort();
+  }
+  selectRelease(tag: string) {
+    this.cancelFirmwareDownload();
+    this.selectedTag.set(tag);
+  }
+  async downloadSelected() {
+    const release = this.releases().find((r) => r.tag === this.selectedTag());
+    const profile = this.product().runtime;
+    if (!release || !profile || this.busy()) return;
+    const controller = new AbortController();
+    this.downloadController = controller;
+    this.begin();
+    this.downloading.set(true);
+    this.status.set('Downloading firmware…');
+    try {
+      const firmware = await downloadFirmwareRelease(
+        release,
+        profile,
+        this.repository,
+        controller.signal,
+      );
+      controller.signal.throwIfAborted();
+      this.loadFirmware.emit(firmware);
+      this.status.set('Firmware downloaded and loaded.');
+    } catch (error) {
+      this.status.set(
+        controller.signal.aborted
+          ? 'Firmware download canceled.'
+          : String((error as Error).message),
+      );
+    } finally {
+      this.downloading.set(false);
+      this.end();
+    }
+  }
   showLegacy = false;
   legacyChanged() {
     if (!this.showLegacy && !this.product().runtime) this.selectProduct('time-2');
@@ -151,6 +203,7 @@ export class FirmwarePanel {
   repository = 'coredevices/PebbleOS';
   private catalogRevision = 0;
   resetCatalog() {
+    this.cancelFirmwareDownload();
     this.catalogRevision++;
     this.releases.set([]);
     this.selectedTag.set('');
@@ -161,6 +214,7 @@ export class FirmwarePanel {
     return WATCH_PRODUCTS.find((p) => p.id === this.productId())!;
   }
   selectProduct(id: string) {
+    this.cancelFirmwareDownload();
     if (!this.products.some((p) => p.id === id)) return;
     this.productId.set(id);
     this.revisions.micro++;
@@ -208,7 +262,12 @@ export class FirmwarePanel {
     const revision = this.catalogRevision;
     this.begin();
     try {
-      const items = await fetchFirmwareReleases(this.page, undefined, fetch, this.repository);
+      const items = await fetchFirmwareReleases(
+        this.page,
+        undefined,
+        resourceFetch,
+        this.repository,
+      );
       if (revision !== this.catalogRevision) return;
       this.releases.update((r) => [
         ...r,

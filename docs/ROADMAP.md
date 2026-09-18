@@ -11,8 +11,25 @@ against independent references and physical watches. A full browser build sandbo
 scripts is required; large downloads and slower builds are accepted. Companion phone services
 are required; Android OS/APK emulation is outside this plan. Desktop browsers come first.
 
-The public project is `huntrontrakkr/pebble-browser-emulator`. Host only static assets.
-CI may build the website/toolchains but must never compile visitors' projects remotely.
+The public project is `huntrontrakkr/pebble-browser-emulator`. The application remains a
+standalone static site. An optional, separately configured public-resource download/cache
+service is authorized; it must never be required for local emulation or compilation.
+CI may build the website/toolchains and prepare validated firmware startup checkpoints,
+but must never compile visitors' projects remotely. Hosting changes are deferred.
+
+## Optional resources and preview startup
+
+- [x] Browse store watchfaces/apps and load original published PBWs through direct browser requests.
+- [x] Share store and GitHub release PBWs pinned to a version and SHA-256; cache public bytes locally.
+- [x] Optional, separately configured download/cache service, disabled by default; bounded approved public resources only.
+- [x] Download matching normal QEMU firmware image pairs; preserve manual imports and local compilation.
+- [x] Prepare pristine startup states for the exact core/firmware/board; validate complete-state, UART and frame continuation.
+- [x] Restore locally with normal-boot fallback and an explicit preference to test cold boot.
+- [x] Scheduled/manual upstream release discovery and candidate validation reports.
+- [ ] Review each new default's redistribution provenance and independent reference evidence before promotion.
+- [ ] Choose hosting, domain and production cache/rate-limit configuration when requested.
+
+See [optional service](OPTIONAL_SERVICES.md) and [startup format/gates](STARTUP_CHECKPOINTS.md).
 
 ## 1. Rust firmware boot — IN PROGRESS
 
@@ -52,7 +69,7 @@ emulator firmware; it does not establish production Time 2 compatibility.
 - [ ] Verify offline rebuild and offline application reload.
 
 Exit: a fresh browser imports the public demo, compiles a PBW locally, installs it through
-the phone protocol, and runs it in firmware. No application backend or proxy.
+the phone protocol, and runs it in firmware without requiring an application backend.
 
 ## 3. Virtual phone and inspection
 

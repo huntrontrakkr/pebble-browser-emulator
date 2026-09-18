@@ -1,5 +1,6 @@
 use rp2350_emu::{CortexM33, core::CoreBus, threaded::CoreAtomics};
 use std::sync::Arc;
+pub mod checkpoint;
 pub mod peripherals;
 pub mod profile;
 use profile::BoardProfile;
@@ -515,10 +516,47 @@ fn advance_systick(cpu: &mut CortexM33, mut ticks: u64) {
 thread_local! {
  static UPLOAD:std::cell::RefCell<Vec<u8>>=const{std::cell::RefCell::new(Vec::new())};
  static MACHINE:std::cell::RefCell<Option<(CortexM33,PebbleBus)>>=const{std::cell::RefCell::new(None)};
+ static CHECKPOINT:std::cell::RefCell<Vec<u8>>=const{std::cell::RefCell::new(Vec::new())};
+}
+/// Serialize a paused instruction boundary; host transport state is saved separately.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_checkpoint_save() -> u32 {
+    let bytes = MACHINE.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .map(|(cpu, bus)| checkpoint::encode(cpu, bus))
+    });
+    let Some(bytes) = bytes else {
+        return 0;
+    };
+    let length = bytes.len() as u32;
+    CHECKPOINT.with(|slot| *slot.borrow_mut() = bytes);
+    length
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_checkpoint_ptr() -> *const u8 {
+    CHECKPOINT.with(|slot| slot.borrow().as_ptr())
+}
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_checkpoint_clear() {
+    CHECKPOINT.with(|slot| *slot.borrow_mut() = Vec::new());
+}
+/// Invalid input never replaces the current machine. Decoded allocations are bounded.
+#[unsafe(no_mangle)]
+pub extern "C" fn spike_checkpoint_restore(profile_id: u32) -> u32 {
+    let Some(profile) = BoardProfile::from_id(profile_id) else {
+        return 0;
+    };
+    let bytes = UPLOAD.with(|slot| std::mem::take(&mut *slot.borrow_mut()));
+    let Ok(machine) = checkpoint::decode(&bytes, profile) else {
+        return 0;
+    };
+    MACHINE.with(|slot| *slot.borrow_mut() = Some(machine));
+    1
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn spike_upload(size: u32) -> *mut u8 {
-    if size > 36 * 1024 * 1024 {
+    if size > checkpoint::MAXIMUM as u32 {
         return std::ptr::null_mut();
     }
     UPLOAD.with(|b| {

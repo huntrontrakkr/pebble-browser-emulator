@@ -7,6 +7,32 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Public downloads and prepared startup
+
+The preview now browses official store watchfaces/apps, loads published PBWs directly, and
+shares version/SHA-256-pinned links. Public downloads try the browser first. The optional
+download/cache service is disabled until a user configures it; it handles approved public
+resources and never executes visitor builds, watch firmware or phone scripts. GitHub release
+PBWs and matching normal emulator firmware pairs can use it to overcome download CORS.
+Direct store preview, cached reopening, service-assisted firmware download, and operation
+after disabling the service have browser gates. [Setup and limits](OPTIONAL_SERVICES.md).
+
+All three current generic boards have prepared boot states generated from unchanged official
+4.37.0 firmware using the exact shipped Wasm core. Restore validates board/core/firmware hashes
+and falls back to cold boot. Complete machine continuation, UART and frames match the original
+cold instance through deterministic button/battery inputs. This is a restore-equivalence gate,
+not new physical-fidelity evidence. The saved state precedes phone setup, synthetic inputs,
+and app installation. [Format, measurements and checks](STARTUP_CHECKPOINTS.md).
+
+A scheduled/manual GitHub workflow discovers and validates complete stable emulator releases
+into temporary artifacts. New defaults require provenance and independent reference review;
+the checker does not publish unreviewed firmware or change visitors' selected versions.
+The existing static hosting configuration is unchanged and this revision has not been deployed.
+The production gate passes 87 Rust tests and 371 JavaScript/Wasm tests (nine optional fixture
+tests skipped in that command), plus live service/store, Chromium/WebKit offline, real Clay
+configuration and model regressions. Separate sensor runs match every frozen native QEMU
+frame byte on all three profiles. [Hashes, measurements and browser scope](evidence/optional-resources-startup.json).
+
 ## Demo settings and watch controls
 
 Preview defaults now set battery to **69%**, seed two fictional notifications and two
@@ -145,7 +171,7 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
 | Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                              |
 | Display                    | 144×168 monochrome, 200×228 color, 260×260 round color; committed guest frames; exact color conversion. Reflective optics remain an approximation.                                                                                                       |
 | 3D model                   | Simplified official current Time 2, 2 Duo and Round 2 CAD with live native-resolution screens, reflective materials and selectable lighting. Optical response remains uncalibrated. |
-| State                      | Watch restart preserves modified SPI flash and RTC. Phone timers follow watch time with acknowledged 10 ms quanta; timed input scenarios replay from a supplied initial state. Full firmware/phone snapshots and complete session replay remain pending. |
+| State                      | Watch restart preserves modified SPI flash and RTC. Matching pristine startup checkpoints restore the full generic machine and host transport. Phone timers follow watch time with acknowledged 10 ms quanta. Active phone/watch session snapshots and complete session replay remain pending. |
 
 ## New acceptance gates
 

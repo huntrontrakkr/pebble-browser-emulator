@@ -1,8 +1,9 @@
 # Pebble Browser Emulator
 
 A browser-only Pebble development utility with an Angular interface, a Rust/Wasm firmware
-emulator, a Wasm ARM compiler, and an isolated PebbleKit JS phone runtime. No application
-backend, remote build service, or CORS proxy.
+emulator, a Wasm ARM compiler, and an isolated PebbleKit JS phone runtime. Emulation and
+compilation run locally. An [optional public download/cache service](docs/OPTIONAL_SERVICES.md)
+can help with resources whose publishers block cross-origin browser downloads; it is off by default.
 
 The scope is the full Pebble watch family. **App builds cover all seven SDK platforms.**
 Firmware execution currently covers the official **Flint, Emery, and Gabbro emulator boards**
@@ -13,8 +14,10 @@ interchangeable. See the [product matrix](docs/PRODUCT_MATRIX.md) and [verified 
 ## Try a watchface
 
 [Open the preview](https://pebble-browser-emulator.whunt003.chatgpt.site/#/example/clock).
-Choose **Try example** or **Open watchface .pbw**. Default official emulator firmware loads
-automatically, including on the first visit. Future previews reuse the saved firmware;
+The repository now also includes **Browse watchfaces**, with watchfaces and apps from the
+Pebble store, alongside **Try example** and **Open watchface .pbw**. Hosting this revision is
+deferred. Default official emulator firmware loads automatically, including on the first visit.
+Matching prepared startup states avoid repeating the initial boot. Future previews reuse saved files;
 Developer tools can override it. No compiler is needed for the
 included Clock example or a prepared PBW.
 
@@ -62,10 +65,18 @@ For the full development workflow, open **Developer tools**:
    Generate repeatable motion, import CSV/JSON scenarios, and use **Frame comparison** under
    the watch to capture and compare exact pixels. See [sensor controls](docs/SENSORS.md).
 
-Existing platform-matching PBWs can be opened without compiling. GitHub release and SDK downloads lack
-suitable CORS headers, so those files are opened locally. Source files, the required SDK
+Existing platform-matching PBWs can be opened without compiling. Store catalog/packages work directly
+where the publisher permits CORS. GitHub release attachments can use the optional service or local
+file import. SDK archives retain their existing local import workflow. Source files, the required SDK
 subset, and compiler downloads stay on the device. The three default emulator image pairs
 are included as static assets; imported firmware is never uploaded.
+
+**Copy preview link** pins store and GitHub release packages to a version and SHA-256.
+To try the optional service locally, run `npm run dev:resources`, then enter
+`http://127.0.0.1:4318` under **Preferences → Download service** and enable it. The default
+allowed frontend origins use ports 4201 and 4202; set `RESOURCE_ALLOWED_ORIGINS` for another
+development port. [Setup, limits and hosting separation](docs/OPTIONAL_SERVICES.md).
+Prepared startup states are static files too; [generation and verification](docs/STARTUP_CHECKPOINTS.md).
 
 Display modes are exact monochrome/64-color pixels, an **uncalibrated** reflective preview, and a
 rotatable models using official Time 2, 2 Duo and Round 2 CAD fetched from pinned upstream revisions. Light
@@ -130,6 +141,7 @@ including all 45,600 framebuffer bytes. It does not establish complete Cortex-M3
 - `examples/preview-clock`: precompiled preview example; outputs in `public/examples`.
 - `examples/sensor-test`: sensor service callback and frame comparison example.
 - `tools/linux-build`: optional local Linux/Wasm image preparation and recipe contract.
+- `services/resources`: optional, separately runnable public download/cache service.
 - `docs`: [architecture](docs/ARCHITECTURE.md), [roadmap](docs/ROADMAP.md), and evidence.
 
 `npm run build` produces portable static files in `dist/client`. The application does not

@@ -10,6 +10,12 @@ export interface PebblePacket {
   payload: Uint8Array;
   sequence: number;
 }
+export interface StartupTransportState {
+  serial: number[];
+  spp: number[];
+  inbox: { endpoint: number; payload: number[]; sequence: number }[];
+  sequence: number;
+}
 export interface PebbleTransportHost {
   /** Write ALL bytes to UART1 in order, handling partial hardware FIFO writes. */
   writeUart(bytes: Uint8Array): Promise<void>;
@@ -76,6 +82,45 @@ export function encodeQemuPacket(channel: number, payload: Uint8Array): Uint8Arr
  * One transport instance belongs to one CPU boot; discard it on reset/load.
  */
 export class PebbleTransport {
+  /** Startup checkpoints are taken before the first host write or app installation. */
+  startupState(): StartupTransportState {
+    this.checkAlive();
+    if (this.hostWritten || this.installing || this.token)
+      throw new Error('Transport has already started a phone session.');
+    return {
+      serial: Array.from(this.serial),
+      spp: Array.from(this.spp),
+      inbox: this.inbox.map((p) => ({ ...p, payload: Array.from(p.payload) })),
+      sequence: this.sequence,
+    };
+  }
+  restoreStartup(value: StartupTransportState): void {
+    this.startupState();
+    const bytes = (v: number[]) => {
+      if (
+        !Array.isArray(v) ||
+        v.length > 65536 ||
+        v.some((b) => !Number.isInteger(b) || b < 0 || b > 255)
+      )
+        throw new Error('Invalid startup transport bytes.');
+      return Uint8Array.from(v);
+    };
+    uint(value.sequence, Number.MAX_SAFE_INTEGER, 'transport sequence');
+    if (!Array.isArray(value.inbox) || value.inbox.length > 256)
+      throw new Error('Invalid startup inbox.');
+    const serial = bytes(value.serial),
+      spp = bytes(value.spp);
+    const inbox = value.inbox.map((p) => {
+      uint(p.endpoint, 65535, 'endpoint');
+      uint(p.sequence, value.sequence, 'packet sequence');
+      return { ...p, payload: bytes(p.payload) };
+    });
+    this.serial = serial;
+    this.spp = spp;
+    this.inbox = inbox;
+    this.sequence = value.sequence;
+  }
+  private hostWritten = false;
   private serial = new Uint8Array(0);
   private spp = new Uint8Array(0);
   private inbox: PebblePacket[] = [];
@@ -206,6 +251,7 @@ export class PebbleTransport {
   }
   private enqueue(operation: () => Promise<void>): Promise<void> {
     this.checkAlive();
+    this.hostWritten = true;
     const next = this.serialWrites.then(() => {
       this.checkAlive();
       return operation();

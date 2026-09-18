@@ -1,3 +1,4 @@
+import { resourceFetch } from './resource-fetch.ts';
 export interface SourceSnapshot {
   version: 1;
   owner: string;
@@ -45,7 +46,7 @@ export function parseRepository(value: string, ref = '', root = ''): RepositoryS
 export async function githubJson(
   path: string,
   signal?: AbortSignal,
-  request: Fetcher = fetch,
+  request: Fetcher = resourceFetch,
 ): Promise<any> {
   const response = await request(`https://api.github.com${path}`, {
     signal,
@@ -68,7 +69,7 @@ export async function importRepository(
   spec: RepositorySpec,
   signal?: AbortSignal,
   progress: (text: string) => void = () => {},
-  request: Fetcher = fetch,
+  request: Fetcher = resourceFetch,
 ): Promise<SourceSnapshot> {
   const downloads = new AbortController();
   signal = signal ? AbortSignal.any([signal, downloads.signal]) : downloads.signal;

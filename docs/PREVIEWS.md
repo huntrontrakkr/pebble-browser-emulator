@@ -1,7 +1,10 @@
 # Watchface previews and links
 
-The default workspace is **Preview**. Choose a watch, then **Try example**, **Open
-watchface .pbw**, or expand **Open from GitHub** and enter a public repository.
+The default workspace is **Preview**. Choose a watch, then **Browse watchfaces**, **Try example**,
+**Open watchface .pbw**, or expand **Open from GitHub** and enter a public repository.
+The store supports watchfaces/apps, most-loved/recently-updated lists, pagination, filtering
+the loaded results, and pasting an official store link or app ID. A package still needs a
+compatible platform and supported firmware/phone behavior to run.
 Developer tools remain available
 for source builds, firmware changes, inputs, the virtual phone, packets and frame checks.
 
@@ -20,18 +23,21 @@ If a download fails, **Retry default firmware** and manual file import remain av
 Cancellation stops the stream and prevents an abandoned preview from launching.
 
 Firmware loaded through Developer tools becomes the saved default for its profile.
-Choose another version there to override it. These are original firmware images, not
-full running-machine snapshots: the guest still boots on each page load. Reset keeps
-the current session's flash; a new preview session starts from the saved image pair.
+Choose another version there to override it. A matching [startup checkpoint](STARTUP_CHECKPOINTS.md)
+resumes the original firmware just after boot, before phone/demo/app inputs. Missing or
+incompatible checkpoints fall back to normal boot. **Preferences → Watch startup** can disable
+this for boot testing. Reset keeps the current session's flash; a new preview session starts
+from the saved image pair or its pristine startup checkpoint.
 Clearing saved files or browser site data removes the stored firmware too.
 
 The bundled emulator images have a pinned source/component review, original release
 hashes, licenses and corresponding-source links in
 [their notice](../public/firmware/v4.37.0/NOTICE.md). The QEMU configurations exclude
 the physical-device vendor blobs. This does not establish redistribution rights for
-all firmware. GitHub release-asset and SDK downloads still lack browser CORS permission;
-other versions and the SDK use manual import. There is no proxy. Storage denial is
-reported and does not prevent the current session from running.
+all firmware. **Developer tools → Firmware → Load selected firmware** downloads a matching
+normal QEMU pair from an exact release. Downloads try the browser first, then an explicitly
+enabled [optional download service](OPTIONAL_SERVICES.md). Unsupported sources and SDK archives
+can still use manual import. Storage denial does not prevent the current session from running.
 
 ## Shareable URLs
 
@@ -42,6 +48,8 @@ inside a subdirectory:
 https://pebble-browser-emulator.whunt003.chatgpt.site/#/example/clock
 https://pebble-browser-emulator.whunt003.chatgpt.site/#/github/owner/repository
 https://pebble-browser-emulator.whunt003.chatgpt.site/#/github/owner/repository?ref=main&path=watchface&watch=qemu_flint
+https://example.com/emulator/#/store/50bdea7ee3ff48308157c046
+https://example.com/emulator/#/github/owner/repository?release=v1.0&asset=watchface.pbw
 ```
 
 `watch` is `qemu_emery` (default), `qemu_flint`, or `qemu_gabbro`. `ref` accepts a
@@ -49,6 +57,13 @@ branch, tag or commit; `path` selects the project folder. Values must be URL enc
 The loader resolves the reference to a commit before fetching files. **Copy preview
 link** then shares that exact commit, so a moving branch does not silently change the
 shared example. **Download PBW** saves the actual package that was selected.
+
+Store links initially resolve an app ID. After download, **Copy preview link** records its
+approved PBW URL, version and SHA-256, plus a plain-text display title. Release links record
+the tag, attachment filename and SHA-256. Reopening a pinned package does not require the
+catalog API and refuses changed bytes. Successful public downloads are cached on the device;
+a cached pinned package can reopen while the source/service is unavailable. Browser eviction
+can remove that cache. A link never enables or chooses a download service for its recipient.
 
 ### Prepared previews
 
@@ -75,8 +90,9 @@ Repository text is data; preview manifests cannot execute build commands.
 
 For a repository with an existing committed PBW, `&pbw=preview/watchface.pbw` selects
 that artifact directly. It is still pinned to the resolved Git commit; a manifest adds
-an explicit content checksum. GitHub release attachments cannot be used here because
-of their CORS restrictions. Publish a committed PBW or open a downloaded package locally.
+an explicit content checksum. Release attachments use the release tag/filename inputs and
+may need the optional service because of their CORS restrictions. A committed PBW or local
+file remains usable without it.
 
 This repository's root manifest is a complete working example. Its public preview is
 `#/github/huntrontrakkr/pebble-browser-emulator`.

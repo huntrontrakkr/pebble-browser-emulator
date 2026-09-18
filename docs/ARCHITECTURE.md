@@ -17,8 +17,13 @@ The static Angular application orchestrates independent Workers:
 - **Archive Worker:** bounded ZIP/TAR/gzip extraction and package inspection with path,
   expanded-size, header, size, and CRC validation.
 
-No user compilation or app execution runs on a server. Public GitHub source and compiler/CAD
-assets are fetched directly; release and SDK artifacts without CORS are opened locally.
+No user compilation or app execution runs on a server. Public imports try direct browser
+requests first. An explicitly enabled [download service](OPTIONAL_SERVICES.md) can fetch and
+cache approved public resource URLs when direct requests fail. Local files remain available.
+Guest phone networking and external configuration pages do not implicitly use that service.
+Prepared firmware startup states are generated with the actual Rust/Wasm core at build time,
+served as checksummed static files, and restored entirely in the browser. They are keyed to
+the exact board, core and original firmware hashes; see [checkpoint format](STARTUP_CHECKPOINTS.md).
 
 ## Board separation
 

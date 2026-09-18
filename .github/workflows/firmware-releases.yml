@@ -1,0 +1,41 @@
+name: Check firmware releases
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional complete stable release tag; defaults to latest'
+        type: string
+        required: false
+  schedule:
+    - cron: '23 7 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: firmware-release-check
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - run: npm ci
+      - run: npm run build:wasm
+      - run: npm run firmware:check -- --validate
+        env:
+          PEBBLE_FIRMWARE_TAG: ${{ inputs.tag }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: firmware-release-check
+          path: |
+            tmp/firmware-releases/catalog.json
+            tmp/firmware-releases/validation.json
+          if-no-files-found: warn

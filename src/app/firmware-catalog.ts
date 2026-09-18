@@ -1,5 +1,6 @@
 import { fileProfile } from './watch-profiles.ts';
 import { githubJson, parseRepository } from './projects.ts';
+import { resourceFetch } from './resource-fetch.ts';
 export interface FirmwareAsset {
   id: number;
   name: string;
@@ -49,7 +50,7 @@ export function describeAsset(asset: {
 export async function fetchFirmwareReleases(
   page = 1,
   signal?: AbortSignal,
-  request: typeof fetch = fetch,
+  request: typeof fetch = resourceFetch,
   repository = 'coredevices/PebbleOS',
 ): Promise<FirmwareRelease[]> {
   const spec = parseRepository(repository);
@@ -73,7 +74,7 @@ function releaseInfo(r: any): FirmwareRelease {
 export async function fetchFirmwareRelease(
   tag: string,
   repository = 'coredevices/PebbleOS',
-  request: typeof fetch = fetch,
+  request: typeof fetch = resourceFetch,
 ): Promise<FirmwareRelease> {
   tag = tag.trim();
   if (!/^[^\s\x00-\x1f\x7f]{1,200}$/.test(tag))

@@ -37,6 +37,8 @@ regression tests. Upstream test fixture binaries are
 not included, and their optional test targets are removed from the vendored manifest.
 The generic Pebble board adapter is original code. No QEMU implementation source is copied
 or linked into the shipped application. `picoem-common` is pinned through Cargo.lock.
+The original checkpoint codec enumerates CPU/PPB state explicitly and changes no instruction
+execution semantics; its reviewable patch and restore tests accompany the source.
 
 ## Compiler
 
@@ -83,6 +85,9 @@ Google/Apache attribution in the relevant source files.
 configurations exclude the hardware-specific nonfree components; the included runtime,
 libraries, fonts and artwork retain the licenses in the packaged notice inventory.
 This is not a blanket redistribution determination for physical firmware or other releases.
+Generated `public/checkpoints` artifacts contain pristine runtime states derived from those
+same reviewed images. Their embedded firmware/font/artwork bytes retain the same notices
+and corresponding sources. Candidate states for other releases remain temporary test inputs.
 Official QEMU and Unicorn are separate local verification oracles only, never linked into
 or used as a backend for this application.
 

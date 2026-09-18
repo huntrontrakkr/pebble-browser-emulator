@@ -11,6 +11,13 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import {
+  resourceSettings,
+  saveResourceSettings,
+  normalizeResourceSettings,
+} from './resource-fetch.ts';
+import { clearResourceCache } from './resource-cache.ts';
+import { STARTUP_SETTINGS_KEY, startupCheckpointsEnabled } from './startup-checkpoint.ts';
 type OfflineStatus = {
   version: string;
   bytes: number;
@@ -122,6 +129,56 @@ interface InstallEvent extends Event {
             services need a connection.
           </p>
         </section>
+        <section>
+          <h3>Download service</h3>
+          <p class="help">
+            Optional assistance for public downloads blocked by the source website. The watch and
+            phone run on this device.
+          </p>
+          <label class="check"
+            ><input
+              type="checkbox"
+              [(ngModel)]="serviceEnabled"
+              (ngModelChange)="serviceChanged()"
+            />Use a download service</label
+          >
+          <label
+            >Service URL<input
+              [(ngModel)]="serviceEndpoint"
+              (change)="serviceChanged()"
+              placeholder="https://downloads.example.com"
+              type="url"
+          /></label>
+          <p class="help">
+            Direct downloads are tried first. An enabled service receives the public download URLs
+            it handles.
+          </p>
+          <div class="actions">
+            <button
+              (click)="checkService()"
+              [disabled]="checkingService() || !serviceEndpoint.trim()"
+            >
+              Test connection</button
+            ><button (click)="removeResources()">Clear cached downloads</button>
+          </div>
+          @if (serviceNotice()) {
+            <p class="help" role="status">{{ serviceNotice() }}</p>
+          }
+        </section>
+        <section>
+          <h3>Watch startup</h3>
+          <label class="check"
+            ><input
+              type="checkbox"
+              [(ngModel)]="fastStartup"
+              (ngModelChange)="startupChanged()"
+            />Use prepared startup state</label
+          >
+          <p class="help">
+            Resume a matching firmware checkpoint before loading your watchface. Turn off to test a
+            complete boot. Applies to the next preview session.
+          </p>
+        </section>
         @if (updateReady()) {
           <section>
             <h3>Application update</h3>
@@ -155,6 +212,58 @@ export class PreferencesPanel implements OnInit, OnDestroy {
   progress = signal(0);
   message = signal('');
   offlineProfile = 'qemu_emery';
+  serviceEnabled = resourceSettings().enabled;
+  fastStartup = startupCheckpointsEnabled();
+  startupChanged() {
+    try {
+      localStorage.setItem(STARTUP_SETTINGS_KEY, this.fastStartup ? 'enabled' : 'disabled');
+    } catch {
+      this.message.set('This browser could not save the startup preference.');
+    }
+  }
+  serviceEndpoint = resourceSettings().endpoint;
+  serviceNotice = signal('');
+  checkingService = signal(false);
+  serviceChanged() {
+    try {
+      saveResourceSettings({ enabled: this.serviceEnabled, endpoint: this.serviceEndpoint });
+      this.serviceNotice.set(
+        this.serviceEnabled
+          ? 'Service enabled for supported public downloads.'
+          : 'Service disabled. Direct downloads and local files remain available.',
+      );
+    } catch (error) {
+      this.serviceNotice.set(String((error as Error).message));
+    }
+  }
+  async checkService() {
+    this.checkingService.set(true);
+    try {
+      const settings = normalizeResourceSettings({ enabled: true, endpoint: this.serviceEndpoint });
+      const response = await fetch(settings.endpoint + '/v1/status', {
+        credentials: 'omit',
+        signal: AbortSignal.timeout(10000),
+      });
+      const data = await response.json();
+      if (!response.ok || data.protocol !== 'pebble-resources-v1')
+        throw new Error('The endpoint is not a compatible download service.');
+      this.serviceNotice.set('Download service is reachable.');
+    } catch (error) {
+      this.serviceNotice.set('Connection failed: ' + String((error as Error).message));
+    } finally {
+      this.checkingService.set(false);
+    }
+  }
+  async removeResources() {
+    try {
+      await clearResourceCache();
+      this.serviceNotice.set(
+        'Cached public downloads removed. Saved firmware, watchface and settings are kept.',
+      );
+    } catch {
+      this.serviceNotice.set('Cached downloads could not be cleared.');
+    }
+  }
   private registration?: ServiceWorkerRegistration;
   private downloadId?: string;
   private reloadForUpdate = false;

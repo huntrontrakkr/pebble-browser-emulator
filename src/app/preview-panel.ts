@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { StoreBrowser } from './store-browser.ts';
 import { readLocal, writeLocal } from './local-store.ts';
 import { parseRepository, readLimited, type SourceSnapshot } from './projects.ts';
 import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './watch-profiles.ts';
@@ -15,6 +16,7 @@ import {
   parsePreviewLink,
   previewLink,
   repositoryPreview,
+  storePreview,
   type PreviewTarget,
   type PreviewPackage,
 } from './preview-links.ts';
@@ -40,7 +42,7 @@ interface SavedWatchface {
 
 @Component({
   selector: 'preview-panel',
-  imports: [FormsModule],
+  imports: [FormsModule, StoreBrowser],
   template: `
     <div class="section-heading">
       <h2>{{ title() ? 'Watchface' : 'Open watchface' }}</h2>
@@ -64,9 +66,14 @@ interface SavedWatchface {
         </select></label
       >
       <div class="launch-actions">
-        <button class="primary" (click)="example()" [disabled]="busy() || sessionBusy">
-          Try example
+        <button
+          class="primary"
+          (click)="showStore.set(!showStore())"
+          [disabled]="busy() || sessionBusy"
+        >
+          Browse watchfaces
         </button>
+        <button (click)="example()" [disabled]="busy() || sessionBusy">Try example</button>
         <label class="file-button"
           >Open watchface .pbw<input
             type="file"
@@ -75,6 +82,16 @@ interface SavedWatchface {
             [disabled]="busy() || sessionBusy"
         /></label>
       </div>
+      @defer (when showStore()) {
+        @if (showStore()) {
+          <store-browser
+            [profile]="profile()"
+            [disabled]="busy() || sessionBusy"
+            (selected)="openStore($event)"
+            (closed)="showStore.set(false)"
+          />
+        }
+      }
       @if (recent(); as saved) {
         <button class="recent-watchface" (click)="openRecent()" [disabled]="busy() || sessionBusy">
           <span>Open saved watchface</span><strong>{{ saved.name }}</strong>
@@ -105,6 +122,15 @@ interface SavedWatchface {
                 name="pbw"
                 placeholder="preview/watchface.pbw"
             /></label>
+            <label
+              >Release tag (optional)<input [(ngModel)]="release" name="release" placeholder="v1.0"
+            /></label>
+            <label
+              >Release attachment<input
+                [(ngModel)]="asset"
+                name="asset"
+                placeholder="watchface.pbw"
+            /></label>
           </details>
           <button type="submit" [disabled]="!repo.trim() || busy() || sessionBusy">
             Open project
@@ -116,7 +142,9 @@ interface SavedWatchface {
       <div class="preview-selection">
         <strong>{{ title() }}</strong>
         @if (sourceLink()) {
-          <a [href]="sourceLink()" target="_blank" rel="noopener noreferrer">Source ↗</a>
+          <a [href]="sourceLink()" target="_blank" rel="noopener noreferrer">{{
+            target()?.kind === 'store' ? 'Store details ↗' : 'Source ↗'
+          }}</a>
         }
       </div>
     }
@@ -204,6 +232,9 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   ref = '';
   root = '';
   pbw = '';
+  release = '';
+  asset = '';
+  showStore = signal(false);
   busy = signal(false);
   setup = signal(false);
   status = signal('');
@@ -290,6 +321,10 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   example() {
     void this.open({ kind: 'example', profile: this.profile() });
   }
+  openStore(appId: string) {
+    this.showStore.set(false);
+    void this.open({ kind: 'store', profile: this.profile(), appId });
+  }
   github() {
     try {
       const value = this.repo.trim().startsWith('github.com/')
@@ -300,6 +335,9 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
         profile: this.profile(),
         repository: parseRepository(value, this.ref, this.root),
         ...(this.pbw.trim() ? { pbw: this.pbw.trim() } : {}),
+        ...(this.release.trim() || this.asset.trim()
+          ? { release: this.release.trim(), asset: this.asset.trim() }
+          : {}),
       };
       parsePreviewLink(new URL(previewLink(location.href, target)).hash);
       void this.open(target);
@@ -328,7 +366,9 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
     this.title.set(
       target.kind === 'example'
         ? 'Clock'
-        : `${target.repository.owner}/${target.repository.repository}`,
+        : target.kind === 'store'
+          ? 'Store watchface'
+          : `${target.repository.owner}/${target.repository.repository}`,
     );
     history.replaceState(null, '', previewLink(location.href, target));
     try {
@@ -345,11 +385,22 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
         const bytes = await readLimited(response, 1048576);
         signal.throwIfAborted();
         this.package.set({ bytes, name: 'Clock.pbw' });
+      } else if (target.kind === 'store') {
+        const result = await storePreview(target, signal, (text) => {
+          if (generation === this.generation) this.status.set(text);
+        });
+        signal.throwIfAborted();
+        this.title.set(result.title);
+        this.package.set(result.package);
+        this.target.set(result.target);
+        history.replaceState(null, '', previewLink(location.href, result.target));
       } else {
         this.repo = `${target.repository.owner}/${target.repository.repository}`;
         this.ref = target.repository.ref;
         this.root = target.repository.root;
         this.pbw = target.pbw ?? '';
+        this.release = target.release ?? '';
+        this.asset = target.asset ?? '';
         const result = await repositoryPreview(target, signal, (text) => {
           if (generation === this.generation) this.status.set(text);
         });
@@ -503,6 +554,7 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   sourceLink() {
     const target = this.target();
     if (!target) return '';
+    if (target.kind === 'store') return `https://apps.repebble.com/app_${target.appId}`;
     return target.kind === 'example'
       ? 'https://github.com/huntrontrakkr/pebble-browser-emulator/tree/main/examples/preview-clock'
       : `https://github.com/${target.repository.owner}/${target.repository.repository}/tree/${encodeURIComponent(target.repository.ref || 'HEAD')}/${target.repository.root.split('/').map(encodeURIComponent).join('/')}`;

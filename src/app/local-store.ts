@@ -47,3 +47,30 @@ export async function clearLocal(): Promise<void> {
     db.close();
   }
 }
+/** Synchronous update inside one transaction, shared across tabs and workers. */
+export async function updateLocalIndex<T>(
+  key: string,
+  update: (previous: T | undefined, store: IDBObjectStore) => T,
+): Promise<void> {
+  const db = await open();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction('workspace', 'readwrite');
+      const store = transaction.objectStore('workspace');
+      const request = store.get(key);
+      request.onsuccess = () => {
+        try {
+          store.put(update(request.result, store), key);
+        } catch (error) {
+          transaction.abort();
+          reject(error);
+        }
+      };
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  } finally {
+    db.close();
+  }
+}

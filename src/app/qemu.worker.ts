@@ -18,6 +18,21 @@ import { signalRoute } from './board-registry.ts';
 import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
 import { DemoSignalStream, normalizeDemoSettings } from './demo-settings.ts';
 import { demoRecords, type DemoRecord } from './demo-timeline.ts';
+import { bytesHash } from './resource-cache.ts';
+import {
+  startupIdentity,
+  loadStartupCheckpoint,
+  saveStartupCheckpoint,
+  type StartupIdentity,
+  type StartupCheckpoint,
+} from './startup-checkpoint.ts';
+let coreHash = '',
+  checkpointBase = '';
+let startupOwner: StartupIdentity | undefined;
+let exportStartup = false,
+  announceReady = false;
+let bootController: AbortController | undefined;
+let bootRevision = 0;
 let api: any,
   running = false,
   loaded = false,
@@ -188,6 +203,51 @@ async function tickOnce(count: number) {
   for (const event of demoStream.takeDue(api.spike_ticks() / 64))
     applySignal(event.signal, event.atUs);
   flushUart();
+  if (announceReady) {
+    announceReady = false;
+    if (startupOwner) {
+      try {
+        if (linked || installing || demoApplying || phoneCoupled || uartWriter.pending)
+          throw new Error('Startup state is no longer isolated.');
+        const length = api.spike_checkpoint_save();
+        if (!length) throw new Error('Firmware startup could not be captured.');
+        let machine: Uint8Array;
+        try {
+          machine = new Uint8Array(api.memory.buffer, api.spike_checkpoint_ptr(), length).slice();
+        } finally {
+          api.spike_checkpoint_clear();
+        }
+        const checkpoint: StartupCheckpoint = {
+          version: 1,
+          identity: startupOwner,
+          steps,
+          transport: transport!.startupState(),
+          machine,
+        };
+        if (exportStartup)
+          postMessage({ type: 'startup-checkpoint', checkpoint }, [machine.buffer]);
+        else {
+          const owner = generation;
+          void saveStartupCheckpoint(checkpoint)
+            .then(() => {
+              if (owner === generation)
+                postMessage({
+                  type: 'startup-status',
+                  message: 'Startup state saved on this device.',
+                });
+            })
+            .catch(() => {});
+        }
+      } catch (error) {
+        postMessage({
+          type: 'startup-status',
+          message: 'Startup cache unavailable: ' + String((error as Error).message),
+        });
+      }
+      startupOwner = undefined;
+    }
+    postMessage({ type: 'firmware-ready' });
+  }
   const frame = api.spike_frame_counter();
   const phase = phoneCoupled ? phoneClock.begin() : undefined;
   // If this quantum emitted time-sensitive events through the UI, its clock
@@ -306,7 +366,7 @@ function serial() {
       consoleTail = (consoleTail + text).slice(-2000);
       if (!firmwareReady && consoleTail.includes('Ready for communication.')) {
         firmwareReady = true;
-        postMessage({ type: 'firmware-ready' });
+        announceReady = true;
       }
       postMessage({ type: 'serial', port, bytes, text }, [bytes.buffer]);
     }
@@ -399,6 +459,8 @@ function resetSession() {
   buttons = 0;
   lastFrame = -1;
   firmwareReady = false;
+  announceReady = false;
+  startupOwner = undefined;
   consoleTail = '';
   linked = false;
   installing = false;
@@ -436,10 +498,85 @@ function boot(
   resetSession();
 }
 function restart() {
+  bootController?.abort();
+  bootRevision++;
   if (!loaded) throw new Error('Load firmware first.');
   stop();
   if (!api.spike_restart()) throw new Error('The loaded watch could not restart.');
   resetSession();
+}
+async function bootWithStartup(data: any) {
+  bootController?.abort();
+  const controller = new AbortController();
+  bootController = controller;
+  const revision = ++bootRevision;
+  stop();
+  // Invalidate earlier installation/phone-clock awaits before asynchronous loading.
+  generation++;
+  closeClockPort();
+  phoneCoupled = false;
+  transport?.dispose();
+  transport = undefined;
+  loaded = false;
+  postMessage({ type: 'session', generation });
+  try {
+    const selected = data.profile;
+    if (!isFirmwareProfile(selected)) throw new Error('Unsupported firmware profile.');
+    let identity: StartupIdentity | undefined;
+    let restored: Awaited<ReturnType<typeof loadStartupCheckpoint>>;
+    try {
+      identity = await startupIdentity(selected, coreHash, data.micro, data.flash);
+      controller.signal.throwIfAborted();
+      if (!data.exportStartup)
+        restored = await loadStartupCheckpoint(identity, checkpointBase, controller.signal);
+    } catch {
+      controller.signal.throwIfAborted();
+      postMessage({
+        type: 'startup-status',
+        message: 'Using normal boot; prepared startup state is unavailable or incompatible.',
+      });
+    }
+    if (revision !== bootRevision || controller.signal.aborted) return;
+    if (restored) {
+      try {
+        const candidateTransport = createTransport();
+        candidateTransport.restoreStartup(restored.checkpoint.transport);
+        candidateTransport.dispose();
+        upload(restored.checkpoint.machine);
+        if (!api.spike_checkpoint_restore(FIRMWARE_PROFILES[selected].id))
+          throw new Error('Invalid machine checkpoint.');
+        profile = selected;
+        name = data.name;
+        if (data.preserveCheckpointClock !== true) api.spike_set_epoch(Date.now() / 1000);
+        postMessage({ type: 'firmware-loaded', profile, name });
+        resetSession();
+        transport!.restoreStartup(restored.checkpoint.transport);
+        steps = restored.checkpoint.steps;
+        firmwareReady = true;
+        state();
+        postMessage({
+          type: 'startup-status',
+          restored: true,
+          source: restored.source,
+          message: 'Restored prepared firmware startup state.',
+        });
+        postMessage({ type: 'firmware-ready' });
+        return;
+      } catch {
+        postMessage({
+          type: 'startup-status',
+          message: 'Startup state was rejected. Booting firmware normally.',
+        });
+      }
+    }
+    boot({ micro: data.micro, flash: data.flash, profile: selected }, data.name);
+    startupOwner = identity;
+    exportStartup = data.exportStartup === true;
+    postMessage({ type: 'startup-status', restored: false, message: 'Booting firmware normally.' });
+  } catch (error) {
+    if (revision === bootRevision && !controller.signal.aborted)
+      postMessage({ type: 'error', generation, command: 'firmware', message: String(error) });
+  }
 }
 self.onmessage = async ({ data }) => {
   const commandGeneration = generation;
@@ -447,7 +584,10 @@ self.onmessage = async ({ data }) => {
     if (data.type === 'init') {
       const response = await fetch(data.wasmUrl);
       if (!response.ok) throw new Error(`QEMU core download failed (${response.status}).`);
-      const result = await WebAssembly.instantiate(await response.arrayBuffer(), {});
+      const wasm = await response.arrayBuffer();
+      coreHash = await bytesHash(new Uint8Array(wasm));
+      checkpointBase = new URL('../checkpoints/', data.wasmUrl).href;
+      const result = await WebAssembly.instantiate(wasm, {});
       api = result.instance.exports;
       postMessage({ type: 'ready' });
       return;
@@ -461,9 +601,20 @@ self.onmessage = async ({ data }) => {
         realtime = !!data.realtime;
         paceStart = undefined;
         break;
+      case 'cancel-startup':
+        if (!loaded) {
+          bootController?.abort();
+          bootRevision++;
+        }
+        break;
       case 'firmware':
         demoOwned.clear();
-        boot({ micro: data.micro, flash: data.flash, profile: data.profile }, data.name);
+        if (data.startup) await bootWithStartup(data);
+        else {
+          bootController?.abort();
+          bootRevision++;
+          boot({ micro: data.micro, flash: data.flash, profile: data.profile }, data.name);
+        }
         break;
       case 'run':
         if (!loaded) throw new Error('Load firmware first.');

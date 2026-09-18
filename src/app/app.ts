@@ -8,6 +8,7 @@ import {
 import { AppMessageRouter } from './app-message-router.ts';
 import { BufferedHistory } from './buffered-history.ts';
 import { PreferencesPanel } from './preferences-panel.ts';
+import { startupCheckpointsEnabled } from './startup-checkpoint.ts';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -419,6 +420,7 @@ export class App implements AfterViewInit, OnDestroy {
     if (!this.running()) this.run();
   }
   cancelPreview() {
+    this.qemuWorker?.postMessage({ type: 'cancel-startup' });
     this.beginPreview();
     const cancelInstall =
       this.installing() || this.demoBusy() || (this.previewBusy() && !this.pendingPreview);
@@ -810,7 +812,11 @@ export class App implements AfterViewInit, OnDestroy {
       this.firmwareToSave =
         !autoRun && data.profile ? { ...data, profile: data.profile } : undefined;
       this.qemuWorker.postMessage({ type: 'pacing', realtime: autoRun });
-      this.qemuWorker.postMessage({ type: 'firmware', ...data });
+      this.qemuWorker.postMessage({
+        type: 'firmware',
+        ...data,
+        startup: autoRun && startupCheckpointsEnabled(),
+      });
       this.log('LOAD', data.name);
       if (!autoRun) this.tab.set('Inputs');
     } catch (e) {
@@ -834,6 +840,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.qemuWorker?.postMessage({ type: 'install', ...data });
   }
   handleQemuEvent(data: any) {
+    if (data.type === 'startup-status') this.log('STARTUP', data.message);
     if (data.generation === this.watchGeneration && data.revision === this.demoRevision) {
       if (data.type === 'demo-status') this.demoBusy.set(data.busy);
       if (data.type === 'demo-applied') {

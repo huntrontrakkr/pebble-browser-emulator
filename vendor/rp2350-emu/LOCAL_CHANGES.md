@@ -44,3 +44,12 @@ see `docs/STATUS.md` for the remaining compatibility limits.
 retaining the upstream default. Generic Pebble profiles supply the official QEMU Cortex-M4
 or Cortex-M33 identity. This does not enforce the complete architecture-specific instruction
 availability or implement physical-watch CPU timing. Profile ABI tests cover the values.
+
+`core/checkpoint.rs` and its `core/mod.rs` declaration add an original explicit portable
+state codec for prepared firmware startup. It enumerates CPU registers, PPB/FPU/interrupt,
+exclusive/event/security state and shared atomics, preserving float bit patterns. Exhaustive
+field destructuring forces added fields to be reviewed. The decoded-op cache is regenerated;
+no raw Rust memory layout or pointers are persisted. Decoding has an allocation budget and
+rejects invalid scalar values. No instruction execution code is changed by this addition.
+See `docs/evidence/startup-checkpoint-cpu.patch`, the adapter's checkpoint tests, and
+`docs/STARTUP_CHECKPOINTS.md` for complete-state/continuation comparisons and their limits.
