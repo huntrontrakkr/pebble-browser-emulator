@@ -101,6 +101,7 @@ function makeApp() {
       savedFirmwares.push(firmware);
     },
     Worker: Port,
+    AbortController,
     URL,
     TextEncoder,
     Date,
@@ -442,4 +443,46 @@ test('settings return belongs to its exact page, app and phone generation; repla
   app.returnConfiguration({ request: current, response: 'duplicate' });
   assert.equal(phone.messages.filter((m) => m.type === 'configurationClosed').length, 1);
   app.stopPhone();
+});
+
+test('changing 3D profile resizes before redraw, retains the renderer and cancels stale loads', async () => {
+  const app = makeApp();
+  const loads = [],
+    events = [];
+  const model = {
+    setActive() {},
+    finish() {},
+    setSpec(spec) {
+      events.push('spec:' + spec.profile);
+    },
+    dispose() {
+      assert.fail('Switching should retain the renderer');
+    },
+    load(signal) {
+      return new Promise((resolve) => loads.push({ signal, resolve }));
+    },
+  };
+  app.model = model;
+  app.modelProfile = 'qemu_flint';
+  app.modelLoaded = true;
+  app.redraw = () => events.push('draw:' + app.profile());
+  app.profile.set('qemu_gabbro');
+  const first = app.setDisplay('model');
+  assert.equal(events[0], 'spec:qemu_gabbro');
+  assert.equal(events[1], 'draw:qemu_gabbro');
+  app.profile.set('qemu_emery');
+  const second = app.setDisplay('model');
+  assert.equal(loads[0].signal.aborted, true);
+  loads[0].resolve();
+  await first;
+  assert.equal(app.modelLoaded, false);
+  assert.equal(app.modelLoading, true);
+  loads[1].resolve();
+  await second;
+  assert.equal(app.model, model);
+  assert.equal(app.modelProfile, 'qemu_emery');
+  assert.equal(app.modelLoaded, true);
+  assert.equal(app.modelStatus(), '');
+  await app.setDisplay('model');
+  assert.equal(loads.length, 2, 'Already loaded geometry is not reloaded');
 });

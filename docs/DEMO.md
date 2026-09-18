@@ -86,11 +86,29 @@ capture, pressed state and keyboard support. Arrow keys work while the watch are
 Window blur/visibility changes release held buttons. The default pixel view preserves all
 rectangular framebuffer pixels, and the round screen clips its actual round display.
 
-All three current products have their own official CAD geometry, loaded only when 3D watch
+All three current products have their own simplified official CAD geometry, loaded only when 3D watch
 is selected. Controls are projected from case-space anchors and move when the watch rotates;
 they hide on the back. WebGL stops while hidden, uses an on-demand render loop and caps its
 pixel ratio at 1.5. Materials, optical response, screen placement and enlarged button targets
 are visual approximations, not evidence of physical hardware or color calibration.
+
+Selecting a different watch reopens the current example, GitHub target or uploaded PBW for
+that profile. Unsupported packages still report their platform/installation error. The
+renderer is reused, replaced loads are canceled, and parsed/simplified geometry is prepared
+in a Worker and cached in device storage. The initial download still uses the original CAD;
+subsequent opens use the derived mesh. Geometry reduction does not change the live framebuffer.
+
+The 3D **Lighting** menu selects studio, daylight or warm room; **Light direction** rotates
+the environment and key light. **Ambient light** controls reflected illumination, while
+**Backlight** adds screen emission. A diffuse LCD material with a clear cover layer responds
+to view angle, and metal/plastic cases reflect the same environment. Small procedural maps
+are generated once per environment and reused; no HDR downloads, shadow maps, bloom,
+transmission passes or per-frame reflection captures are needed. Reflective 2D mode combines
+ambient and backlight in linear light and is dark with both at zero. These manual optical
+controls are separate from injected sensor values and do not claim measured material,
+display spectral response, lux, LED output or physical-panel calibration.
+
+See [3D changes, measurements and reproduction](MODEL_RENDERING.md).
 
 CAD is fetched directly from Core Devices' pinned hardware repository revision
 `cb50db8e68c053e7dd595188313dd54aba693bc9` and checked against these SHA-256 values. The STL

@@ -217,6 +217,7 @@
             >Ambient light <span>{{ ambient }}%</span
             ><input
               type="range"
+              aria-label="Ambient light"
               min="0"
               max="100"
               [(ngModel)]="ambient"
@@ -225,12 +226,35 @@
             >Backlight <span>{{ backlight }}%</span
             ><input
               type="range"
+              aria-label="Backlight"
               min="0"
               max="100"
               [(ngModel)]="backlight"
               (ngModelChange)="redraw()"
           /></label>
           @if (displayMode() === 'model') {
+            <label
+              >Lighting<select
+                aria-label="Lighting environment"
+                [(ngModel)]="lightingEnvironment"
+                (ngModelChange)="redraw()"
+              >
+                <option value="studio">Studio</option>
+                <option value="daylight">Daylight</option>
+                <option value="warm-room">Warm room</option>
+              </select></label
+            >
+            <label
+              >Light direction <span>{{ lightAzimuth }}°</span
+              ><input
+                type="range"
+                aria-label="Light direction"
+                min="-180"
+                max="180"
+                step="5"
+                [(ngModel)]="lightAzimuth"
+                (ngModelChange)="redraw()"
+            /></label>
             <label
               >Case<select [(ngModel)]="finish" (ngModelChange)="redraw()">
                 <option value="silver">{{ modelSpec().plastic ? 'White' : 'Silver' }}</option>
@@ -250,7 +274,7 @@
         <p class="model-credit">
           Drag to rotate · Scroll to zoom ·
           <a [href]="modelSource()" target="_blank" rel="noopener"
-            >Official {{ modelSpec().name }} geometry</a
+            >{{ modelSpec().name }} CAD source</a
           >
         </p>
       }

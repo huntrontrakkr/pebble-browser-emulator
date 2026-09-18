@@ -35,6 +35,7 @@ import { FramePanel } from './frame-panel.ts';
 import type { DeviceSignal, SignalScenario } from './signals.ts';
 import { renderPixels, type DisplayMode } from './display.ts';
 import type { WatchModel } from './watch-model.ts';
+import type { LightingEnvironment } from './watch-lighting.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
 
@@ -138,12 +139,15 @@ export class App implements AfterViewInit, OnDestroy {
   theme = signal('light');
   ambient = 80;
   backlight = 0;
+  lightingEnvironment: LightingEnvironment = 'studio';
+  lightAzimuth = -35;
   finish = 'silver';
   zoom = 2;
   modelStatus = signal('');
   private model?: WatchModel;
   private modelAbort?: AbortController;
   private modelLoading = false;
+  private modelLoaded = false;
   private modelProfile?: MachineProfile;
   private modelRevision = 0;
   private destroyed = false;
@@ -471,6 +475,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.stopPhone();
     this.qemuWorker?.postMessage({ type: 'pause' });
     this.profile.set('diagnostic-v1');
+    if (this.displayMode() === 'model') void this.setDisplay('model');
     this.ready.set(this.diagnosticReady);
     this.loadRevision++;
     this.error.set('');
@@ -616,6 +621,7 @@ export class App implements AfterViewInit, OnDestroy {
       this.stopPhone();
       this.qemuWorker?.postMessage({ type: 'pause' });
       this.profile.set('diagnostic-v1');
+      if (this.displayMode() === 'model') void this.setDisplay('model');
       this.ready.set(this.diagnosticReady);
       this.send({ type: 'image', bytes, name: file.name });
     } catch (e) {
@@ -645,12 +651,19 @@ export class App implements AfterViewInit, OnDestroy {
     if (canvas.width !== width) canvas.width = width;
     if (canvas.height !== height) canvas.height = height;
     context.putImageData(this.screenImage, 0, 0);
-    if (this.hasModel() && this.displayMode() === 'model') this.model?.pixels(rgba);
+    if (this.hasModel() && this.displayMode() === 'model' && this.modelProfile === this.profile())
+      this.model?.pixels(rgba);
   }
   redraw() {
     const state = this.state();
     if (state) this.draw(state.framebuffer);
     this.model?.finish(this.finish);
+    this.model?.setLighting({
+      environment: this.lightingEnvironment,
+      ambient: this.ambient / 100,
+      backlight: this.backlight / 100,
+      azimuth: this.lightAzimuth,
+    });
   }
   setTheme(value: string) {
     this.theme.set(value);
@@ -663,39 +676,43 @@ export class App implements AfterViewInit, OnDestroy {
     if (mode === 'model' && !this.hasModel()) return;
     this.displayMode.set(mode);
     this.model?.setActive(mode === 'model' && !document.hidden);
-    this.redraw();
-    if (mode !== 'model') return;
+    if (mode !== 'model') {
+      this.redraw();
+      return;
+    }
     if (this.modelProfile !== this.profile()) {
       this.modelAbort?.abort();
-      this.model?.dispose();
-      this.model = undefined;
       this.modelLoading = false;
+      this.modelLoaded = false;
       this.modelProfile = this.profile();
       this.modelRevision++;
       this.modelButtons.set([]);
+      this.model?.setSpec(this.modelSpec());
     }
-    if (this.model || this.modelLoading) return;
+    this.redraw();
+    if (this.modelLoaded || this.modelLoading) return;
     this.modelLoading = true;
     const revision = ++this.modelRevision;
-    let model: WatchModel | undefined;
-    this.modelStatus.set('Loading official CAD model…');
-    this.modelAbort = new AbortController();
+    this.modelStatus.set('Loading 3D model…');
+    const controller = (this.modelAbort = new AbortController());
     try {
-      const { WatchModel } = await import('./watch-model.ts');
-      if (this.destroyed || revision !== this.modelRevision) return;
-      model = new WatchModel(this.modelHost.nativeElement, this.modelSpec(), (positions) => {
-        if (revision === this.modelRevision) this.modelButtons.set(positions);
-      });
-      this.model = model;
+      if (!this.model) {
+        const { WatchModel } = await import('./watch-model.ts');
+        if (this.destroyed || revision !== this.modelRevision) return;
+        this.model = new WatchModel(this.modelHost.nativeElement, this.modelSpec(), (positions) => {
+          if (!this.destroyed) this.modelButtons.set(positions);
+        });
+      }
+      const model = this.model;
       model.setActive(this.displayMode() === 'model' && !document.hidden);
-      await model.load(this.modelAbort.signal);
+      this.redraw();
+      await model.load(controller.signal);
       if (this.destroyed || revision !== this.modelRevision) return;
+      this.modelLoaded = true;
       this.modelStatus.set('');
       this.redraw();
     } catch (e) {
-      model?.dispose();
-      if (revision === this.modelRevision) {
-        this.model = undefined;
+      if (!this.destroyed && revision === this.modelRevision) {
         this.modelStatus.set(String(e));
       }
     } finally {

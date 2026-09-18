@@ -59,6 +59,11 @@ license texts and QuickJS notices are included there as well. QuickJS Wasm is co
 build. Three.js and fflate are MIT. Angular, RxJS, tslib, and tooling retain their published
 licenses. Exact versions are recorded in package-lock.json.
 
+The geometry Worker uses the unmodified meshoptimizer 1.1 simplifier distributed with
+Three.js 0.186.0, copyright 2016–2026 Arseny Kapoulkine, under MIT. Its full license from
+https://github.com/zeux/meshoptimizer/blob/v1.1/LICENSE.md is preserved in
+`vendor/licenses/MESHOPTIMIZER.txt` and shipped as `licenses/MESHOPTIMIZER.txt`.
+
 The 3D watch geometry is fetched from Core Devices' official hardware repository at pinned
 commit cb50db8e68c053e7dd595188313dd54aba693bc9, verified by SHA-256, and not committed here.
 The upstream README grants use for researching, learning, coding, and hacking on its gadgets;

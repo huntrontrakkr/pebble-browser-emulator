@@ -5,6 +5,8 @@ export interface DisplayOptions {
   backlight: number;
 }
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
+const linear = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+const srgb = (v: number) => (v <= 0.0031308 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055);
 let paletteKey = '';
 const palette = new Uint8ClampedArray(256 * 4);
 const words = new Uint32Array(palette.buffer);
@@ -18,8 +20,10 @@ export function renderPixels(
   if (rgba.length !== source.length * 4 || rgba.byteOffset % 4 !== 0)
     throw new Error('Pixel destination must have matching size and word alignment.');
   const reflective = options.mode !== 'pixels';
-  const light = clamp(options.ambient),
-    back = clamp(options.backlight);
+  // The 3D material needs fixed pigment reflectance, not already-lit pixels.
+  // Lighting and the separate backlight emission are applied by its shader.
+  const light = options.mode === 'model' ? 1 : clamp(options.ambient),
+    back = options.mode === 'model' ? 0 : clamp(options.backlight);
   const paper = [212, 218, 199];
   const ink = [31, 38, 35];
   const key = reflective ? `${light}/${back}` : 'pixels';
@@ -30,8 +34,11 @@ export function renderPixels(
       for (let c = 0; c < 3; c++) {
         const raw = components[c] / 3;
         palette[p * 4 + c] = reflective
-          ? (ink[c] + (paper[c] - ink[c]) * raw) * (0.25 + 0.75 * light) * (1 - back) +
-            raw * 255 * back
+          ? 255 *
+            srgb(
+              linear((ink[c] + (paper[c] - ink[c]) * raw) / 255) * light +
+                (0.008 + linear(raw) * 0.7) * back,
+            )
           : raw * 255;
       }
       palette[p * 4 + 3] = 255;

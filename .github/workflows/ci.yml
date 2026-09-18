@@ -33,11 +33,21 @@ jobs:
       - run: node scripts/verify-pwa-browser.mjs
         env:
           PEBBLE_BROWSERS: chromium
+      - run: node scripts/verify-model-browser.mjs
+      - run: node scripts/verify-optics-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pwa-browser-evidence
           path: tmp/pwa-browser/
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: model-browser-evidence
+          path: |
+            tmp/model-browser/
+            tmp/optics-browser/
           if-no-files-found: ignore
       - run: python -m pip install unicorn==2.1.4
       - run: python scripts/verify-reference.py

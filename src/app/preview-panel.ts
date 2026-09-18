@@ -53,6 +53,7 @@ interface SavedWatchface {
       <summary [hidden]="!title()">Choose another watchface</summary>
       <label
         >Watch<select
+          aria-label="Watch"
           [ngModel]="profile()"
           (ngModelChange)="changeWatch($event)"
           [disabled]="sessionBusy"
@@ -274,8 +275,14 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
     this.generation++;
   }
   changeWatch(profile: FirmwareProfile) {
+    if (profile === this.profile()) return;
+    const target = this.target(),
+      file = this.package();
     this.cancel();
     this.profile.set(profile);
+    if (target) void this.open({ ...target, profile });
+    else if (file) void this.builtPackage(file);
+    else this.status.set('');
   }
   download(role: 'micro' | 'spi') {
     return firmwareDownload(this.profile(), role);

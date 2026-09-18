@@ -1,0 +1,2015 @@
+{
+  "recordedAt": "2026-09-18T00:54:34.873Z",
+  "baselineCommit": "6cbfba07dbd040c71b72a28508781c80790b3e31",
+  "sourceHashes": {
+    "src/app/watch-model.ts": "461b02f25fe0d9bcbf2ccf40484464ff64251fbb253f12a428a120152a456d72",
+    "src/app/watch-model-geometry.ts": "81788e7f54ee6d33430802ee957731a86d66a8d23ddc00dbf06e372a153d9867",
+    "src/app/watch-model.worker.ts": "ed1c11661d7552490321195ed777799d253ae66dfd153c7e2e0218234ec5af7d",
+    "src/app/watch-model-loader.ts": "ba8f7f0fcbf1cf9a7d5febb3bfd4b4dea7c5034c6d4695b121ba544b048b61f9",
+    "src/app/watch-lighting.ts": "094224a33f39807ba33b2e4350e7e47dc71f481bb33de733e84ba14e9c971cbb",
+    "src/app/display.ts": "13b221342c8fabecf53080ed9913c8569e00defd60811df8042963305684677f",
+    "src/app/app.ts": "eb5603c0319451c033b1bf219277922f40678aec54c10e7871028faa873a8d5c",
+    "src/app/preview-panel.ts": "2b2b7965b6a78d17e0e63c887cbb61d48ffe6654aebc97fb8b480157025c2bae"
+  },
+  "coreSha256": "67b6dfc41fadb7865cdc10d73f917b13abda443cb2ed542076893aa302d649ec",
+  "unitTests": {
+    "passed": 355,
+    "failed": 0,
+    "optionalSkipped": 9
+  },
+  "productionBuild": {
+    "passed": true,
+    "serviceWorkerVersion": "9999add0bc5467f3ddfb"
+  },
+  "modelBrowsers": [
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5
+      },
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5
+      },
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5
+      },
+      "errors": []
+    }
+  ],
+  "finalChromiumAfterResizeOptimization": [
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5
+      },
+      "errors": []
+    }
+  ],
+  "optics": [
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profile": "qemu_emery",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 124.50474946977798,
+          "center": [
+            160,
+            169,
+            157
+          ],
+          "hash": 3072895461
+        },
+        {
+          "name": "daylight",
+          "mean": 160.8731194978401,
+          "center": [
+            215,
+            220,
+            198
+          ],
+          "hash": 1570808205
+        },
+        {
+          "name": "warm-room",
+          "mean": 86.08785310151306,
+          "center": [
+            146,
+            118,
+            76
+          ],
+          "hash": 3168828599
+        },
+        {
+          "name": "side-light",
+          "mean": 98.46439797444177,
+          "center": [
+            112,
+            120,
+            112
+          ],
+          "hash": 2318558582
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 2418646261
+        },
+        {
+          "name": "backlight",
+          "mean": 84.54096748719975,
+          "center": [
+            155,
+            169,
+            169
+          ],
+          "hash": 2917772517
+        },
+        {
+          "name": "glancing",
+          "mean": 137.95968556935375,
+          "center": [
+            161,
+            170,
+            158
+          ],
+          "hash": 1062659754
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 34381,
+      "textures": 5
+    },
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profile": "qemu_flint",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 170.8716650081065,
+          "center": [
+            160,
+            169,
+            157
+          ],
+          "hash": 3788073212
+        },
+        {
+          "name": "daylight",
+          "mean": 216.49385522767395,
+          "center": [
+            215,
+            220,
+            198
+          ],
+          "hash": 2723939114
+        },
+        {
+          "name": "warm-room",
+          "mean": 120.5023476078114,
+          "center": [
+            146,
+            118,
+            76
+          ],
+          "hash": 565513261
+        },
+        {
+          "name": "side-light",
+          "mean": 129.29775649061747,
+          "center": [
+            112,
+            120,
+            112
+          ],
+          "hash": 2199068513
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 3546141205
+        },
+        {
+          "name": "backlight",
+          "mean": 64.04424721478544,
+          "center": [
+            155,
+            169,
+            169
+          ],
+          "hash": 2694652162
+        },
+        {
+          "name": "glancing",
+          "mean": 156.7998417054766,
+          "center": [
+            161,
+            170,
+            158
+          ],
+          "hash": 692475201
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 12156,
+      "textures": 5
+    },
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profile": "qemu_gabbro",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 134.29754255566468,
+          "center": [
+            160,
+            169,
+            157
+          ],
+          "hash": 338842375
+        },
+        {
+          "name": "daylight",
+          "mean": 174.36835297249883,
+          "center": [
+            215,
+            220,
+            198
+          ],
+          "hash": 2481919322
+        },
+        {
+          "name": "warm-room",
+          "mean": 93.72162148048434,
+          "center": [
+            146,
+            118,
+            76
+          ],
+          "hash": 3637437165
+        },
+        {
+          "name": "side-light",
+          "mean": 100.6320873226713,
+          "center": [
+            112,
+            120,
+            112
+          ],
+          "hash": 3713433619
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 1695798920
+        },
+        {
+          "name": "backlight",
+          "mean": 103.2866794527456,
+          "center": [
+            155,
+            169,
+            169
+          ],
+          "hash": 3930692695
+        },
+        {
+          "name": "glancing",
+          "mean": 140.41087213578194,
+          "center": [
+            161,
+            170,
+            158
+          ],
+          "hash": 3199135692
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 8056,
+      "textures": 5
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "profile": "qemu_emery",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 124.25796891179208,
+          "center": [
+            160,
+            169,
+            156
+          ],
+          "hash": 3776506512
+        },
+        {
+          "name": "daylight",
+          "mean": 160.67223719056807,
+          "center": [
+            214,
+            220,
+            198
+          ],
+          "hash": 4287458744
+        },
+        {
+          "name": "warm-room",
+          "mean": 85.67555325272745,
+          "center": [
+            146,
+            117,
+            75
+          ],
+          "hash": 442036728
+        },
+        {
+          "name": "side-light",
+          "mean": 98.19544962578856,
+          "center": [
+            111,
+            120,
+            112
+          ],
+          "hash": 2286658683
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 4153027128
+        },
+        {
+          "name": "backlight",
+          "mean": 84.206890040243,
+          "center": [
+            154,
+            168,
+            169
+          ],
+          "hash": 3218429828
+        },
+        {
+          "name": "glancing",
+          "mean": 137.7426314919619,
+          "center": [
+            161,
+            169,
+            157
+          ],
+          "hash": 194039592
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 34381,
+      "textures": 5
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "profile": "qemu_flint",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 170.57924859064474,
+          "center": [
+            160,
+            169,
+            156
+          ],
+          "hash": 3682964484
+        },
+        {
+          "name": "daylight",
+          "mean": 216.29889149606237,
+          "center": [
+            214,
+            220,
+            198
+          ],
+          "hash": 257222797
+        },
+        {
+          "name": "warm-room",
+          "mean": 120.08932761550001,
+          "center": [
+            146,
+            117,
+            75
+          ],
+          "hash": 573953334
+        },
+        {
+          "name": "side-light",
+          "mean": 128.97492245869313,
+          "center": [
+            111,
+            120,
+            112
+          ],
+          "hash": 2348616555
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 3660422648
+        },
+        {
+          "name": "backlight",
+          "mean": 63.785643390824774,
+          "center": [
+            154,
+            168,
+            169
+          ],
+          "hash": 2467587037
+        },
+        {
+          "name": "glancing",
+          "mean": 156.5460586307295,
+          "center": [
+            161,
+            169,
+            157
+          ],
+          "hash": 3879055000
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 12156,
+      "textures": 5
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "profile": "qemu_gabbro",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 134.03318954994836,
+          "center": [
+            160,
+            169,
+            156
+          ],
+          "hash": 578659475
+        },
+        {
+          "name": "daylight",
+          "mean": 174.17089309794076,
+          "center": [
+            214,
+            220,
+            198
+          ],
+          "hash": 3166099703
+        },
+        {
+          "name": "warm-room",
+          "mean": 93.25150126615983,
+          "center": [
+            146,
+            117,
+            75
+          ],
+          "hash": 2236956993
+        },
+        {
+          "name": "side-light",
+          "mean": 100.33238058282328,
+          "center": [
+            111,
+            120,
+            112
+          ],
+          "hash": 3231553211
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 1473447429
+        },
+        {
+          "name": "backlight",
+          "mean": 102.86838112001071,
+          "center": [
+            154,
+            168,
+            169
+          ],
+          "hash": 1923727615
+        },
+        {
+          "name": "glancing",
+          "mean": 140.18054287996924,
+          "center": [
+            161,
+            169,
+            157
+          ],
+          "hash": 720296630
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 8056,
+      "textures": 5
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "profile": "qemu_emery",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 124.25796891179208,
+          "center": [
+            160,
+            169,
+            156
+          ],
+          "hash": 3776506512
+        },
+        {
+          "name": "daylight",
+          "mean": 160.67223719056807,
+          "center": [
+            214,
+            220,
+            198
+          ],
+          "hash": 4287458744
+        },
+        {
+          "name": "warm-room",
+          "mean": 85.67555325272745,
+          "center": [
+            146,
+            117,
+            75
+          ],
+          "hash": 442036728
+        },
+        {
+          "name": "side-light",
+          "mean": 98.19544962578856,
+          "center": [
+            111,
+            120,
+            112
+          ],
+          "hash": 2286658683
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 4153027128
+        },
+        {
+          "name": "backlight",
+          "mean": 84.206890040243,
+          "center": [
+            154,
+            168,
+            169
+          ],
+          "hash": 3218429828
+        },
+        {
+          "name": "glancing",
+          "mean": 137.7426314919619,
+          "center": [
+            161,
+            169,
+            157
+          ],
+          "hash": 194039592
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 34381,
+      "textures": 5
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "profile": "qemu_flint",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 170.57924859064474,
+          "center": [
+            160,
+            169,
+            156
+          ],
+          "hash": 3682964484
+        },
+        {
+          "name": "daylight",
+          "mean": 216.29889149606237,
+          "center": [
+            214,
+            220,
+            198
+          ],
+          "hash": 257222797
+        },
+        {
+          "name": "warm-room",
+          "mean": 120.08932761550001,
+          "center": [
+            146,
+            117,
+            75
+          ],
+          "hash": 573953334
+        },
+        {
+          "name": "side-light",
+          "mean": 128.97492245869313,
+          "center": [
+            111,
+            120,
+            112
+          ],
+          "hash": 2348616555
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 3660422648
+        },
+        {
+          "name": "backlight",
+          "mean": 63.785643390824774,
+          "center": [
+            154,
+            168,
+            169
+          ],
+          "hash": 2467587037
+        },
+        {
+          "name": "glancing",
+          "mean": 156.5460586307295,
+          "center": [
+            161,
+            169,
+            157
+          ],
+          "hash": 3879055000
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 12156,
+      "textures": 5
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "profile": "qemu_gabbro",
+      "captures": [
+        {
+          "name": "studio",
+          "mean": 134.03318954994836,
+          "center": [
+            160,
+            169,
+            156
+          ],
+          "hash": 578659475
+        },
+        {
+          "name": "daylight",
+          "mean": 174.17089309794076,
+          "center": [
+            214,
+            220,
+            198
+          ],
+          "hash": 3166099703
+        },
+        {
+          "name": "warm-room",
+          "mean": 93.25150126615983,
+          "center": [
+            146,
+            117,
+            75
+          ],
+          "hash": 2236956993
+        },
+        {
+          "name": "side-light",
+          "mean": 100.33238058282328,
+          "center": [
+            111,
+            120,
+            112
+          ],
+          "hash": 3231553211
+        },
+        {
+          "name": "dark",
+          "mean": 0,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "hash": 1473447429
+        },
+        {
+          "name": "backlight",
+          "mean": 102.86838112001071,
+          "center": [
+            154,
+            168,
+            169
+          ],
+          "hash": 1923727615
+        },
+        {
+          "name": "glancing",
+          "mean": 140.18054287996924,
+          "center": [
+            161,
+            169,
+            157
+          ],
+          "hash": 720296630
+        }
+      ],
+      "unchangedPixels": true,
+      "environments": 3,
+      "triangles": 8056,
+      "textures": 5
+    }
+  ],
+  "geometryOnlyComparison": {
+    "browser": "153.0.8010.12",
+    "viewport": {
+      "width": 390,
+      "height": 460,
+      "deviceScaleFactor": 1.5
+    },
+    "note": "Software/headless desktop renderer timings, not physical phone FPS. Pattern pixels are renderer test input.",
+    "samples": [
+      {
+        "variant": "before",
+        "trial": 0,
+        "profile": "qemu_emery",
+        "loadMs": 203.5,
+        "triangles": 197374,
+        "memoryBytes": 14210928,
+        "mainThreadLongTasks": [
+          {
+            "start": 194.60000002384186,
+            "duration": 81
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 44.400000005960464
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 44
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 46.5
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 49.099999994039536
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 0,
+        "profile": "qemu_flint",
+        "loadMs": 95.40000000596046,
+        "triangles": 99772,
+        "memoryBytes": 7183584,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 27.30000001192093
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 26.5
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 27.19999998807907
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 31.599999994039536
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 0,
+        "profile": "qemu_gabbro",
+        "loadMs": 24.299999982118607,
+        "triangles": 11766,
+        "memoryBytes": 847152,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 6.5
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 6.5
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 6.0999999940395355
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 7.5999999940395355
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 0,
+        "profile": "qemu_emery",
+        "loadMs": 1469.199999988079,
+        "triangles": 34381,
+        "memoryBytes": 2088420,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 11.699999988079071
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 11.200000017881393
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 11.599999994039536
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 12.200000017881393
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 0,
+        "profile": "qemu_flint",
+        "loadMs": 768.0999999940395,
+        "triangles": 12156,
+        "memoryBytes": 648504,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 7.0999999940395355
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 6.799999982118607
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 6.5
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 7.5
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 0,
+        "profile": "qemu_gabbro",
+        "loadMs": 103.09999999403954,
+        "triangles": 8056,
+        "memoryBytes": 567960,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 5.4000000059604645
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 5.5
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 5.0999999940395355
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 5.300000011920929
+          }
+        ],
+        "screenUnchanged": true
+      }
+    ],
+    "comparisons": [
+      {
+        "profile": "qemu_emery",
+        "view": "front",
+        "silhouetteIoU": 0.9996892050555978,
+        "meanAbsoluteRgbDifference": 0.24595207664052873
+      },
+      {
+        "profile": "qemu_emery",
+        "view": "straight",
+        "silhouetteIoU": 0.9997286805526568,
+        "meanAbsoluteRgbDifference": 0.21610543969158613
+      },
+      {
+        "profile": "qemu_emery",
+        "view": "side",
+        "silhouetteIoU": 0.9993667177073291,
+        "meanAbsoluteRgbDifference": 1.3268830018316924
+      },
+      {
+        "profile": "qemu_emery",
+        "view": "back",
+        "silhouetteIoU": 0.9997504623785339,
+        "meanAbsoluteRgbDifference": 0.6160394857263113
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "front",
+        "silhouetteIoU": 0.9996602738839593,
+        "meanAbsoluteRgbDifference": 0.3068418738756234
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "straight",
+        "silhouetteIoU": 0.9998681358530374,
+        "meanAbsoluteRgbDifference": 0.2559051332140904
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "side",
+        "silhouetteIoU": 0.999344170644648,
+        "meanAbsoluteRgbDifference": 0.5312799216791643
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "back",
+        "silhouetteIoU": 0.99965718483451,
+        "meanAbsoluteRgbDifference": 0.4429819905884018
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "front",
+        "silhouetteIoU": 0.9999776124415125,
+        "meanAbsoluteRgbDifference": 0.04311194029850746
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "straight",
+        "silhouetteIoU": 0.9999624144929715,
+        "meanAbsoluteRgbDifference": 0.02829292739460001
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "side",
+        "silhouetteIoU": 0.9999463041120311,
+        "meanAbsoluteRgbDifference": 0.14116333018300542
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "back",
+        "silhouetteIoU": 0.9999688587510802,
+        "meanAbsoluteRgbDifference": 0.15466782930949916
+      }
+    ]
+  },
+  "geometryComparisonScope": "Intermediate build with final simplification settings and original renderer/materials; isolates geometry before optical redesign. Four camera angles, explicit pattern texture.",
+  "finalPerformance": {
+    "browser": "153.0.8010.12",
+    "viewport": {
+      "width": 390,
+      "height": 460,
+      "deviceScaleFactor": 1.5
+    },
+    "note": "Software/headless desktop renderer timings, not physical phone FPS. Pattern pixels are renderer test input.",
+    "checks": {
+      "silhouette": true,
+      "rgb": false
+    },
+    "samples": [
+      {
+        "variant": "before",
+        "trial": 0,
+        "profile": "qemu_emery",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 43.79999998211861,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 14.099999994039536,
+        "loadMs": 203.09999999403954,
+        "triangles": 197374,
+        "memoryBytes": 14210928,
+        "mainThreadLongTasks": [
+          {
+            "start": 193.89999997615814,
+            "duration": 79
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 44.89999997615814
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 44.69999998807907
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 45.80000001192093
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 49.099999994039536
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 0,
+        "profile": "qemu_flint",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 27.69999998807907,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 8.699999988079071,
+        "loadMs": 96.40000000596046,
+        "triangles": 99772,
+        "memoryBytes": 7183584,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 27.30000001192093
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 26.5
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 26.900000005960464
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 31.69999998807907
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 0,
+        "profile": "qemu_gabbro",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 6.300000011920929,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 8.300000011920929,
+        "loadMs": 20.799999982118607,
+        "triangles": 11766,
+        "memoryBytes": 847152,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 6.0999999940395355
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 6.0999999940395355
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 6
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 7.4000000059604645
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 0,
+        "profile": "qemu_emery",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 16.400000005960464,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 45.5,
+        "loadMs": 1734,
+        "triangles": 34381,
+        "memoryBytes": 2088420,
+        "mainThreadLongTasks": [
+          {
+            "start": 92.5,
+            "duration": 242
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 24
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 23.099999994039536
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 23.400000005960464
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 26.69999998807907
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 0,
+        "profile": "qemu_flint",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 12.900000005960464,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 28.099999994039536,
+        "loadMs": 1027.4000000059605,
+        "triangles": 12156,
+        "memoryBytes": 648504,
+        "mainThreadLongTasks": [
+          {
+            "start": 5242.9000000059605,
+            "duration": 244
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 20.299999982118607
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 19.900000005960464
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 17
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 18.30000001192093
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 0,
+        "profile": "qemu_gabbro",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 10.400000005960464,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 28.69999998807907,
+        "loadMs": 334.90000000596046,
+        "triangles": 8056,
+        "memoryBytes": 567960,
+        "mainThreadLongTasks": [
+          {
+            "start": 9013,
+            "duration": 233
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 17.200000017881393
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 17
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 13.5
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 14
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 1,
+        "profile": "qemu_emery",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 16.69999998807907,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 41.400000005960464,
+        "loadMs": 1738.5,
+        "triangles": 34381,
+        "memoryBytes": 2088420,
+        "mainThreadLongTasks": [
+          {
+            "start": 90.90000000596046,
+            "duration": 246
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 25.69999998807907
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 23.80000001192093
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 24
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 27.100000023841858
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 1,
+        "profile": "qemu_flint",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 13.099999994039536,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 29.400000005960464,
+        "loadMs": 1040.9000000059605,
+        "triangles": 12156,
+        "memoryBytes": 648504,
+        "mainThreadLongTasks": [
+          {
+            "start": 5028.600000023842,
+            "duration": 245
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 20.69999998807907
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 20.099999994039536
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 17.400000005960464
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 18.900000005960464
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 1,
+        "profile": "qemu_gabbro",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 10.200000017881393,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 28.80000001192093,
+        "loadMs": 351.59999999403954,
+        "triangles": 8056,
+        "memoryBytes": 567960,
+        "mainThreadLongTasks": [
+          {
+            "start": 8564.5,
+            "duration": 249
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 17.30000001192093
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 17
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 13.900000005960464
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 14.200000017881393
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 1,
+        "profile": "qemu_emery",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 45.69999998807907,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 13.800000011920929,
+        "loadMs": 182.30000001192093,
+        "triangles": 197374,
+        "memoryBytes": 14210928,
+        "mainThreadLongTasks": [
+          {
+            "start": 164,
+            "duration": 82
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 45.5
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 45.5
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 46.30000001192093
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 48.900000005960464
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 1,
+        "profile": "qemu_flint",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 27.799999982118607,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 8.300000011920929,
+        "loadMs": 88.30000001192093,
+        "triangles": 99772,
+        "memoryBytes": 7183584,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 28
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 26.69999998807907
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 26.69999998807907
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 31.599999994039536
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 1,
+        "profile": "qemu_gabbro",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 6.4000000059604645,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 8.599999994039536,
+        "loadMs": 22.80000001192093,
+        "triangles": 11766,
+        "memoryBytes": 847152,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 6.5
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 6.300000011920929
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 6.0999999940395355
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 7.5999999940395355
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 2,
+        "profile": "qemu_emery",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 45.19999998807907,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 12.899999976158142,
+        "loadMs": 182.2000000178814,
+        "triangles": 197374,
+        "memoryBytes": 14210928,
+        "mainThreadLongTasks": [
+          {
+            "start": 163.5,
+            "duration": 82
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 44.80000001192093
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 45
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 46.20000001788139
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 49.10000002384186
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 2,
+        "profile": "qemu_flint",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 27.80000001192093,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 8.200000017881393,
+        "loadMs": 90.40000000596046,
+        "triangles": 99772,
+        "memoryBytes": 7183584,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 27.400000005960464
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 27.19999998807907
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 27
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 32.5
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "before",
+        "trial": 2,
+        "profile": "qemu_gabbro",
+        "interactionPixelRatio": 1.5,
+        "interactionRenderMedianMs": 6.5,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 9.199999988079071,
+        "loadMs": 22.80000001192093,
+        "triangles": 11766,
+        "memoryBytes": 847152,
+        "mainThreadLongTasks": [],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 6.300000011920929
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 6.4000000059604645
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 6.0999999940395355
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 7.700000017881393
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 2,
+        "profile": "qemu_emery",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 16.69999998807907,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 43.70000001788139,
+        "loadMs": 1784.2999999821186,
+        "triangles": 34381,
+        "memoryBytes": 2088420,
+        "mainThreadLongTasks": [
+          {
+            "start": 94.2999999821186,
+            "duration": 257
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 24.19999998807907
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 24
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 24.19999998807907
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 27.599999994039536
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 2,
+        "profile": "qemu_flint",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 13.199999988079071,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 31.69999998807907,
+        "loadMs": 1039.9000000059605,
+        "triangles": 12156,
+        "memoryBytes": 648504,
+        "mainThreadLongTasks": [
+          {
+            "start": 5070,
+            "duration": 255
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 20.80000001192093
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 20.30000001192093
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 17.600000023841858
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 18.900000005960464
+          }
+        ],
+        "screenUnchanged": true
+      },
+      {
+        "variant": "after",
+        "trial": 2,
+        "profile": "qemu_gabbro",
+        "interactionPixelRatio": 1,
+        "interactionRenderMedianMs": 10.800000011920929,
+        "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "setupMs": 28.599999994039536,
+        "loadMs": 351.19999998807907,
+        "triangles": 8056,
+        "memoryBytes": 567960,
+        "mainThreadLongTasks": [
+          {
+            "start": 8636.399999976158,
+            "duration": 250
+          }
+        ],
+        "views": [
+          {
+            "name": "front",
+            "renderMedianMs": 17.400000005960464
+          },
+          {
+            "name": "straight",
+            "renderMedianMs": 17.399999976158142
+          },
+          {
+            "name": "side",
+            "renderMedianMs": 14.099999994039536
+          },
+          {
+            "name": "back",
+            "renderMedianMs": 14.599999994039536
+          }
+        ],
+        "screenUnchanged": true
+      }
+    ],
+    "comparisons": [
+      {
+        "profile": "qemu_emery",
+        "view": "front",
+        "silhouetteIoU": 0.9996892050555978,
+        "meanAbsoluteRgbDifference": 54.85691388303568
+      },
+      {
+        "profile": "qemu_emery",
+        "view": "straight",
+        "silhouetteIoU": 0.9997286805526568,
+        "meanAbsoluteRgbDifference": 53.5518418775762
+      },
+      {
+        "profile": "qemu_emery",
+        "view": "side",
+        "silhouetteIoU": 0.9993667177073291,
+        "meanAbsoluteRgbDifference": 69.81483513192283
+      },
+      {
+        "profile": "qemu_emery",
+        "view": "back",
+        "silhouetteIoU": 0.9997504623785339,
+        "meanAbsoluteRgbDifference": 35.127787810715176
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "front",
+        "silhouetteIoU": 0.9996602738839593,
+        "meanAbsoluteRgbDifference": 45.39940554696961
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "straight",
+        "silhouetteIoU": 0.9998681358530374,
+        "meanAbsoluteRgbDifference": 44.88818918406541
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "side",
+        "silhouetteIoU": 0.999344170644648,
+        "meanAbsoluteRgbDifference": 64.15006472944526
+      },
+      {
+        "profile": "qemu_flint",
+        "view": "back",
+        "silhouetteIoU": 0.99965718483451,
+        "meanAbsoluteRgbDifference": 33.72659824342236
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "front",
+        "silhouetteIoU": 0.9999776124415125,
+        "meanAbsoluteRgbDifference": 52.16851492537313
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "straight",
+        "silhouetteIoU": 0.9999624144929715,
+        "meanAbsoluteRgbDifference": 50.64321493453612
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "side",
+        "silhouetteIoU": 0.9999463041120311,
+        "meanAbsoluteRgbDifference": 57.77199501675402
+      },
+      {
+        "profile": "qemu_gabbro",
+        "view": "back",
+        "silhouetteIoU": 0.9999688587510802,
+        "meanAbsoluteRgbDifference": 36.63648466635006
+      }
+    ]
+  },
+  "pwa": {
+    "recordedAt": "2026-09-18T00:53:21.971Z",
+    "results": [
+      {
+        "engine": "chromium",
+        "browser": "153.0.8010.12",
+        "passed": true,
+        "downloadSize": "Ready offline · 16.6 MB",
+        "offlineMode": "browser network offline",
+        "installability": {
+          "installabilityErrors": []
+        },
+        "errors": [],
+        "assertions": [
+          "subdirectory scope",
+          "mobile controls in viewport",
+          "44px watch buttons",
+          "native mobile configuration dialog",
+          "desktop side panel",
+          "offline firmware boot",
+          "offline companion settings",
+          "saved PBW reopen",
+          "explicit update",
+          "other tab guard",
+          "offline choice survives update"
+        ]
+      },
+      {
+        "engine": "webkit",
+        "browser": "26.6",
+        "passed": true,
+        "downloadSize": "Ready offline · 16.6 MB",
+        "offlineMode": "server sockets disabled",
+        "errors": [],
+        "assertions": [
+          "subdirectory scope",
+          "mobile controls in viewport",
+          "44px watch buttons",
+          "native mobile configuration dialog",
+          "desktop side panel",
+          "offline firmware boot",
+          "offline companion settings",
+          "saved PBW reopen",
+          "explicit update",
+          "other tab guard",
+          "offline choice survives update"
+        ]
+      }
+    ]
+  },
+  "nativeNotificationFrameGate": [
+    {
+      "engine": "chromium",
+      "profile": "qemu_gabbro",
+      "launchMs": 12091,
+      "applied": {
+        "type": "demo-applied",
+        "generation": 1,
+        "revision": 2,
+        "popup": false,
+        "notifications": 2,
+        "calendar": 2,
+        "heartRate": false
+      },
+      "buttons": [
+        {
+          "x": 36.5,
+          "y": 255.6875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 200.328125,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 255.6875,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "x": 309.5,
+          "y": 311.03125,
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "limits": [
+    "Optical materials, illumination and display response are uncalibrated.",
+    "Desktop SwiftShader completion/readback timings are not physical-phone FPS.",
+    "Cold simplification adds first-use work; original upstream CAD still downloads once.",
+    "New lighting costs more than the original Round 2 renderer.",
+    "Framebuffer/core unchanged; prepared CAD is a visual approximation."
+  ]
+}

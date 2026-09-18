@@ -111,31 +111,30 @@ test('presentation coalesces screen changes while explicit pause/step snapshots 
   assert.equal(budget.due(290, false), true);
 });
 
-test('palette conversion preserves every input byte under changing optical settings', () => {
+test('optical lighting leaves firmware intact, goes dark without light, and lights 3D only once', () => {
   const source = Uint8Array.from({ length: 256 }, (_, i) => i);
-  for (const [mode, ambient, backlight] of [
-    ['pixels', 1, 0],
-    ['reflective', 0.4, 0.7],
-    ['model', 0, 0],
-    ['pixels', 0, 1],
-  ]) {
-    const expected = new Uint8ClampedArray(1024);
-    for (let p = 0; p < 256; p++) {
-      const channels = [(p >> 4) & 3, (p >> 2) & 3, p & 3];
-      for (let c = 0; c < 3; c++) {
-        const raw = channels[c] / 3;
-        expected[p * 4 + c] =
-          mode === 'pixels'
-            ? raw * 255
-            : ([31, 38, 35][c] + ([212, 218, 199][c] - [31, 38, 35][c]) * raw) *
-                (0.25 + 0.75 * ambient) *
-                (1 - backlight) +
-              raw * 255 * backlight;
-      }
-      expected[p * 4 + 3] = 255;
-    }
-    assert.deepEqual(renderPixels(source, { mode, ambient, backlight }), expected);
-  }
+  const original = source.slice();
+  const render = (mode, ambient, backlight = 0) =>
+    renderPixels(source, { mode, ambient, backlight });
+  const dark = render('reflective', 0);
+  assert.ok(dark.every((value, index) => value === (index % 4 === 3 ? 255 : 0)));
+  const indoor = render('reflective', 0.3),
+    bright = render('reflective', 1),
+    backlit = render('reflective', 0, 1);
+  assert.ok(indoor.every((value, index) => value <= bright[index]));
+  assert.ok(backlit[255 * 4] > backlit[192 * 4] + 100, 'Backlight preserves visible contrast');
+  assert.deepEqual(
+    render('model', 0),
+    bright,
+    '3D receives unlit pigment, including in a dark room',
+  );
+  assert.deepEqual(
+    render('model', 0.1, 1),
+    bright,
+    'Shader applies backlight, not texture conversion',
+  );
+  assert.deepEqual(render('pixels', 0), render('pixels', 1, 1));
+  assert.deepEqual(source, original);
 });
 
 test('one-time firmware setup rejects mixed versions and mismatched boards before reading large files', async () => {

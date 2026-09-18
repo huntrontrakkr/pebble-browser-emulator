@@ -27,7 +27,10 @@ an offline download. Its return stays inside the sandboxed page and requires no 
 callback. Opening the companion module for the first time still requires network or cache.
 
 GitHub imports, external configuration pages, live phone network requests and upstream 3D
-CAD downloads still require a connection. The compiler/SDK and Linux build images have
+CAD downloads still require a connection on first use. After successful loading, each 3D
+model's simplified mesh is saved in device storage for reuse, including offline; a source
+or simplifier version change needs a new download. This cache is separate from the offline
+package. The compiler/SDK and Linux build images have
 separate import and cache requirements and are not included in this offline package.
 Pixels and Reflective views need no downloaded CAD model. Browser storage can be evicted,
 so retain important source files and PBWs separately.

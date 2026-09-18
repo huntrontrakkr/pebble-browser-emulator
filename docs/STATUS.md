@@ -24,6 +24,16 @@ visible notification pixel below the status clock. [Root cause and scope](NOTIFI
 
 ## Preview and phone usability
 
+Watch selection now automatically reopens the active example/project/PBW on the selected
+profile instead of pausing on the old watch. 3D switching retains one WebGL renderer,
+cancels obsolete geometry Workers and disposes inactive GPU buffers. Checksummed official
+CAD is simplified off the UI thread with a bounded error metric and cached on the device;
+Time 2 and 2 Duo use 83% and 88% fewer triangles, while the smaller Round 2 uses 32% fewer.
+Repeated screen frames skip texture uploads. A reflective LCD/clearcoat material, separate
+backlight emission, studio/daylight/warm-room environments and light direction controls
+improve the optical preview. They are uncalibrated approximations; firmware pixels and the
+Rust core remain unchanged. [Scope, root cause, measurements and browser checks](MODEL_RENDERING.md).
+
 Local HTML/Clay settings now return within their sandboxed document, removing an HTTP
 callback that could strand Save on a browser error page if the connection dropped. The
 compiled companion, PKJS and firmware acknowledgment path remain intact. The Clock save
@@ -134,7 +144,7 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
 | Firmware identity          | Exact release tags from public GitHub sources; checksummed, board-specific bundle imports. A file being accepted does not imply firmware compatibility.                                                                                                  |
 | Frame comparison           | PBF/raw reference import, full canonical pixel/hash comparison, difference map and JSON report. Sensor-test frames match native QEMU on all three profiles.                                                                                              |
 | Display                    | 144×168 monochrome, 200×228 color, 260×260 round color; committed guest frames; exact color conversion. Reflective optics remain an approximation.                                                                                                       |
-| 3D model                   | Official current Time 2, 2 Duo and Round 2 CAD geometry with live screens. Materials, screen placement and optical response remain approximate.                                                                                                          |
+| 3D model                   | Simplified official current Time 2, 2 Duo and Round 2 CAD with live native-resolution screens, reflective materials and selectable lighting. Optical response remains uncalibrated. |
 | State                      | Watch restart preserves modified SPI flash and RTC. Phone timers follow watch time with acknowledged 10 ms quanta; timed input scenarios replay from a supplied initial state. Full firmware/phone snapshots and complete session replay remain pending. |
 
 ## New acceptance gates
