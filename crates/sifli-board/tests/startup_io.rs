@@ -30,5 +30,8 @@ fn enable_set_clear_controls_pinmux_access_without_inventing_clock_readiness() {
         io.write(0x50000020, 4, 0x1001),
         Err(FaultKind::UnmodeledMmio)
     );
-    assert!(!StartupIo::owns(0x500c0010)); // Ready status needs oscillator/power model.
+    assert!(StartupIo::owns(0x500c0010));
+    io.clock.advance(48_000);
+    io.write(0x50000020, 4, 0x1001).unwrap();
+    assert_eq!(io.read(0x50000020, 4), Ok(0x1001));
 }

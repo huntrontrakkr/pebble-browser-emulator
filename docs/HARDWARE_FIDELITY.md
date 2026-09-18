@@ -246,13 +246,21 @@ stop explicitly. There is no calibrated bus/cache/oscillator timing or energy mo
 
 The first minimal SoC register subset implements documented RTC backup-register POR
 and storage, RCC pinmux enable/set/clear, initial clock selection and PA21 pad control.
-It does not supply readiness bits for absent devices. After reaching `main`, both
-images stop on the read of `HPSYS_AON.ACR` at `0x500c0010`, PC `0x20002f3a`, in
-`HAL_HPAON_EnableXT48`. This needs the actual oscillator/power state machine and an
-explicit boot-entry clock state. Subsequent `soc_early_init` calls wake/halt LCPU,
-consume EFUSE calibration, start timers/watchdogs, and configure PLLs and clocks.
-Those controllers and dependencies are not yet supplied. A successful `main` checkpoint
-is not a successful watch boot, frame, app install or phone connection.
+The early boot clock model additionally implements HRC/HXT selection, HCLK division and
+HXT request/readiness. Readiness depends on elapsed nominal 48MHz reference ticks, not
+poll count. HRC is assumed ready at application entry; HXT starts requested with an assumed
+48,000-tick settling delay. DWT CYCCNT/CPI counters use estimated engine costs with trace
+enable, secure counter gating and wrapping. Only the assumed reset-disabled SysTick state
+is readable; configuring an unimplemented timer/trace/DLL still faults.
+
+Both unchanged images now execute the crystal switch, LCPU power-domain wake request and
+230us/30us HAL delays. The documented LP_ACTIVE POR bit is power-domain status, not a
+fabricated controller reply or proof of LCPU execution. The next boundary is LPSYS_AON.PMR
+at `0x40040000`, PC `0x200025ea`, inside `HAL_RCC_Reset_and_Halt_LCPU`. Its initial state
+and reset effects, EFUSE calibration, global timers/watchdogs, DLLs, remaining devices and
+full boot are not yet supplied. See [physical measurements](PHYSICAL_MEASUREMENTS.md).
+A successful early clock checkpoint is not a successful watch boot, frame, app install or
+phone connection.
 
 ```sh
 npm run build:wasm
@@ -263,12 +271,16 @@ node scripts/verify-sifli-browser.mjs /path/to/local/images report.json
 
 The runner audits ELF/raw identity, caps each phase at 10 million instructions and
 compares every initializer/BSS byte plus the `main` MPU/cache configuration derived
-from pinned source. Missing inputs exit 2; a failed comparison exits 1. Wasm ABI 2 runs
+from pinned source, then checks the early clock/delay checkpoint. Missing inputs exit 2;
+a failed comparison or exhausted boundary search exits 1. Wasm ABI 3 runs
 at most 100,000 steps per call so Workers can yield or terminate. The module has no
-host imports. It is built with the static app but is not a working preview profile.
+host imports. After loading and before executing, `sifli_configure_hxt(ticks)` accepts a
+nominal 48MHz startup delay (`0xffffffff` injects failure); it rejects changes after execution.
+Reports keep `estimatedCoreCycles`, reference ticks and measured instruction counts separate.
+It is built with the static app but is not a working preview profile.
 No production firmware is modified or published.
 
-Actual Chromium, Firefox and WebKit Workers reproduce both checkpoints and the first
+Actual Chromium, Firefox and WebKit Workers reproduce reset, main and early clock checkpoints and the first
 hardware boundary. [Browser record](evidence/sifli-browser-reset.json),
 [Time 2 execution](evidence/obelix-reset-execution.json),
 [Round 2 execution](evidence/getafix-reset-execution.json),

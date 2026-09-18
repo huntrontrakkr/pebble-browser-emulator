@@ -4,6 +4,8 @@
 //! supplied slot-0 bytes and HCPU SRAM are backed. Every other access faults.
 
 pub mod cache;
+pub mod clock;
+pub mod debug_counter;
 pub mod execution;
 pub mod startup_io;
 pub mod system;

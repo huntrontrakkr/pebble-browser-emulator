@@ -14,7 +14,7 @@ if (!['obelix_pvt', 'getafix_dvt2'].includes(revision) || !elfPath || !imagePath
 }
 const report = {
   format: 'pebble-sifli-reset-execution',
-  version: 2,
+  version: 3,
   revision,
   outcome: 'not-run',
   bootComplete: false,
@@ -36,6 +36,7 @@ try {
   const systemInit = revision === 'obelix_pvt' ? 0x1211521c : 0x12100d9c;
   const { instance } = await WebAssembly.instantiate(wasm, {});
   const e = instance.exports;
+  assert.equal(e.sifli_abi_version(), 3);
   const output = () =>
     JSON.parse(
       new TextDecoder().decode(
@@ -97,7 +98,23 @@ try {
     [0x2007fc01, 0x2007ffe3],
     ...Array.from({ length: 7 }, () => [0, 0]),
   ]);
-  report.outcome = 'system-initialization-matched';
+  // Both pinned ELFs locate HAL_RCC_Reset_and_Halt_LCPU in shared ramfunc.
+  // Reaching it requires the real crystal switch and 230us + 30us DWT waits.
+  const resetLcpu = 0x200025e8;
+  for (let i = 0; i < 100; i++) {
+    e.sifli_run(100000, resetLcpu);
+    state = output();
+    if (state.stop || state.registers[15] === resetLcpu) break;
+  }
+  assert.equal(state.stop, null);
+  assert.equal(state.registers[15], resetLcpu);
+  assert.equal(state.clock.hxtReady, true);
+  assert.equal(state.clock.timingVerified, false);
+  assert.ok(
+    state.clock.estimatedCoreCycles - report.mainEntry.clock.estimatedCoreCycles >= 48 * 260,
+  );
+  report.clockStartup = state;
+  report.outcome = 'early-clock-startup-matched';
   // Continue without inventing the hardware state to identify the next blocker.
   for (let i = 0; i < 100; i++) {
     e.sifli_run(100000, 0);
@@ -105,10 +122,14 @@ try {
     if (state.stop) break;
   }
   report.hardwareBoundary = state;
+  if (!state.stop)
+    throw new Error('Instruction budget exhausted before a classified hardware boundary');
   report.limits = [
     'No verified bootloader handoff state',
     'No physical reference or calibrated timing',
     'Limited architectural registers, MPU, functional caches and early boot register model',
+    'HXT settling defaults to an assumed 48000 reference ticks; DWT uses estimated engine cycles',
+    'LCPU power-active POR status is not evidence of a running Bluetooth controller',
     'No complete SiFli clock/peripheral, ROM, LCPU or coprocessor model',
     'Cache replacement and allocation flags are model assumptions, not silicon measurements',
     'No full firmware boot, display, installation or phone exchange',

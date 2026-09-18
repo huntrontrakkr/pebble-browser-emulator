@@ -1,18 +1,25 @@
 {
   "format": "pebble-sifli-reset-execution",
-  "version": 2,
+  "version": 3,
   "revision": "obelix_pvt",
-  "outcome": "system-initialization-matched",
+  "outcome": "early-clock-startup-matched",
   "bootComplete": false,
   "referenceTarget": "ELF-initializers-and-reset-binary",
   "entryState": "assumed-secure-reset-probe-v2",
   "identity": {
     "elfSha256": "591e715a5dda8bae5a082625c0a1a591740e1b42cca725a63d74b3e2fc950df5",
     "imageSha256": "67b56825d66eaeab97bc1f8a6803c7b689cd42f28c31813379469059b99c49b2",
-    "wasmSha256": "12f9f7f36dee546c8ae668e3dc9372619a9414c2b85698ce1584925b16c49891"
+    "wasmSha256": "65647b35ccfbfa39267095914d28ab5f37961fe3a51e8c840ecae0b7bec3b7f1"
   },
   "startup": {
     "bootComplete": false,
+    "clock": {
+      "estimatedCoreCycles": 573733,
+      "hxtReady": true,
+      "hxtStartupTicks": 48000,
+      "referenceTicks48MHz": 573733,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
     "instructionsCompleted": 328883,
     "msplim": 537086272,
@@ -125,6 +132,13 @@
   },
   "mainEntry": {
     "bootComplete": false,
+    "clock": {
+      "estimatedCoreCycles": 578098,
+      "hxtReady": true,
+      "hxtStartupTicks": 48000,
+      "referenceTicks48MHz": 578098,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
     "instructionsCompleted": 331741,
     "msplim": 537086272,
@@ -213,18 +227,25 @@
       "vtor": 537028864
     }
   },
-  "hardwareBoundary": {
+  "clockStartup": {
     "bootComplete": false,
+    "clock": {
+      "estimatedCoreCycles": 591276,
+      "hxtReady": true,
+      "hxtStartupTicks": 48000,
+      "referenceTicks48MHz": 591276,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
-    "instructionsCompleted": 331887,
+    "instructionsCompleted": 342136,
     "msplim": 537086272,
     "psplim": 0,
-    "registerState": "last-completed-instruction",
+    "registerState": "current",
     "registers": [
+      1,
       0,
-      0,
-      4096,
-      1342963712,
+      537086254,
+      1,
       0,
       0,
       0,
@@ -235,16 +256,113 @@
       0,
       4294966431,
       537087240,
-      302271445,
-      536883002
+      302271473,
+      536880616
     ],
     "revision": "ObelixPvt",
-    "stepsAttempted": 331888,
+    "stepsAttempted": 342136,
+    "stop": null,
+    "system": {
+      "ccr": 197120,
+      "cpacr": 15728703,
+      "mair": [
+        17442,
+        0
+      ],
+      "mpuControl": 7,
+      "mpuRegions": [
+        [
+          301989894,
+          335544289
+        ],
+        [
+          1073741825,
+          1610612709
+        ],
+        [
+          536870916,
+          536888579
+        ],
+        [
+          541048832,
+          542113763
+        ],
+        [
+          537394177,
+          537395171
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "shcsr": 65536,
+      "vtor": 537028864
+    }
+  },
+  "hardwareBoundary": {
+    "bootComplete": false,
+    "clock": {
+      "estimatedCoreCycles": 591279,
+      "hxtReady": true,
+      "hxtStartupTicks": 48000,
+      "referenceTicks48MHz": 591279,
+      "timingVerified": false
+    },
+    "entryState": "assumed-secure-reset-probe-v2",
+    "instructionsCompleted": 342137,
+    "msplim": 537086272,
+    "psplim": 0,
+    "registerState": "last-completed-instruction",
+    "registers": [
+      1,
+      0,
+      1074003968,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      4294966431,
+      537087240,
+      302271473,
+      536880618
+    ],
+    "revision": "ObelixPvt",
+    "stepsAttempted": 342138,
     "stop": {
-      "address": 1342963728,
+      "address": 1074003968,
       "kind": "UnmodeledMmio",
       "operation": "Read",
-      "pc": 536883002,
+      "pc": 536880618,
       "type": "access",
       "width": 4
     },
@@ -314,6 +432,8 @@
     "No verified bootloader handoff state",
     "No physical reference or calibrated timing",
     "Limited architectural registers, MPU, functional caches and early boot register model",
+    "HXT settling defaults to an assumed 48000 reference ticks; DWT uses estimated engine cycles",
+    "LCPU power-active POR status is not evidence of a running Bluetooth controller",
     "No complete SiFli clock/peripheral, ROM, LCPU or coprocessor model",
     "Cache replacement and allocation flags are model assumptions, not silicon measurements",
     "No full firmware boot, display, installation or phone exchange"

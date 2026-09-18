@@ -38,7 +38,7 @@ async function core() {
 test('physical Wasm is self-contained and records the first hardware boundary', async () => {
   for (const revision of [0, 1]) {
     const { e, upload, report } = await core();
-    assert.equal(e.sifli_abi_version(), 2);
+    assert.equal(e.sifli_abi_version(), 3);
     upload(image());
     assert.equal(e.sifli_load(revision), 1);
     assert.equal(e.sifli_run(100, 0), 2);
@@ -91,4 +91,34 @@ test('physical Wasm batches stop before breakpoints and instances are isolated',
   assert.equal(second.e.sifli_run(100, 0), 0);
   first.e.sifli_run(100, 0);
   assert.equal(first.report().stop.address, 0xe000ed00);
+});
+
+test('physical oscillator failure stays in the guest polling loop and is bounded', async () => {
+  const b = image();
+  const v = new DataView(b.buffer);
+  // ldr r0,ACR; ldr r1,[r0]; cmp r1,#0; bpl polling; b .
+  for (const [i, word] of [0x4802, 0x6801, 0x2900, 0xd5fc, 0xe7fe].entries())
+    v.setUint16(0x1100 + i * 2, word, true);
+  v.setUint32(0x110c, 0x500c0010, true);
+  for (const delay of [48000, 800000, 0xffffffff]) {
+    const { e, upload, report } = await core();
+    assert.equal(e.sifli_configure_hxt(delay), 0);
+    upload(b);
+    assert.equal(e.sifli_load(0), 1);
+    assert.equal(e.sifli_configure_hxt(delay), 1);
+    for (let i = 0; i < 10; i++) e.sifli_run(100000, 0x12021108);
+    const r = report();
+    assert.equal(r.stop, null);
+    assert.equal(r.clock.timingVerified, false);
+    assert.ok(r.clock.estimatedCoreCycles >= r.instructionsCompleted);
+    assert.equal(r.clock.hxtReady, delay !== 0xffffffff);
+    if (delay === 0xffffffff) {
+      assert.equal(r.instructionsCompleted, 1000000);
+      assert.notEqual(r.registers[15], 0x12021108);
+    } else {
+      assert.equal(r.registers[15], 0x12021108);
+      assert.ok(r.clock.referenceTicks48MHz >= delay);
+    }
+    assert.equal(e.sifli_configure_hxt(0), 0);
+  }
 });

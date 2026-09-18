@@ -50,16 +50,22 @@ access permissions, memory attributes and enabled instruction/data caches. Cache
 visibility, dirty writeback and maintenance are functional models; replacement and timing
 are not calibrated. Guest code is unchanged. Minimal documented startup registers cover
 RTC backup POR, the RCC pinmux enable and PA21 configuration.
-Execution now stops at the oscillator readiness/control register `HPSYS_AON.ACR`
-(`0x500c0010`) inside `HAL_HPAON_EnableXT48`. The actual clock/power state machine,
-LCPU execution, factory calibration, flash/device controllers and full boot remain unfinished.
+The early clock model now executes the HXT48 switch, LCPU wake request and both HAL
+DWT delay loops. Readiness advances with estimated execution time, not register polling;
+startup delay and crystal failure are configurable before execution. Default crystal settling
+is an explicit 1ms assumption. DWT cycle/CPI counters are estimates, not silicon cycles.
+Both images reach `HAL_RCC_Reset_and_Halt_LCPU`, then stop reading LPSYS_AON.PMR
+(`0x40040000`, PC `0x200025ea`): 342,137 completed instructions for Obelix, 327,134 for
+Getafix. LCPU reset/handoff, factory calibration, remaining clock/device controllers and
+full boot remain unfinished. [Physical measurement steps](PHYSICAL_MEASUREMENTS.md)
+distinguish ordinary app tests from boot-time debug captures.
 This is still a diagnostic module, not a selectable working physical-watch preview.
 [Time 2 evidence](evidence/obelix-reset-execution.json),
 [Round 2 evidence](evidence/getafix-reset-execution.json),
 [model sources and assumptions](evidence/sifli-system-model-sources.json).
 Actual Chromium, Firefox and WebKit Workers match both reset and `main` checkpoints,
-RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
-Validation: 113 Rust tests, 392 JavaScript tests (9 optional skips), Clippy and the full
+clock/delay checkpoints, RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
+Validation: 117 Rust tests, 393 JavaScript tests (9 optional skips), Clippy and the full
 production build pass. The generic Emery Clock regression preserves all five previous
 state/frame/time checkpoints ([record](evidence/sifli-system-generic-regression.json)).
 Physical SiFli implementation, active phone snapshots, native deterministic replay and actual

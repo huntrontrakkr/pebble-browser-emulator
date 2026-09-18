@@ -1,6 +1,6 @@
 {
   "format": "pebble-sifli-system-model-sources",
-  "version": 1,
+  "version": 2,
   "status": "modeled",
   "sources": [
     {
@@ -18,15 +18,34 @@
     {
       "url": "https://downloads.sifli.com/user%20manual/UM5201-SF32LB52x-%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C%20V0p8p5.pdf",
       "sha256": "a5a226fe454f883ebd3ddd14baff0de8eef4a43e96eae84e0adfff3e411f944c"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_hpaon.c",
+      "sha256": "93f60f0230927c9885a7db9673e83361c370ec2bca6b9e2ba57feeb68a065acf"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_rcc.c",
+      "sha256": "edec99ca46d2d265d12166c809dcaa068d86027194a4ac042278ca2c7b5a52de"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal.c",
+      "sha256": "4602e193a6f901f23d074ce2c25c15d1ddedaf0db3b85051d665848e09d29478"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/lpsys_aon.h",
+      "sha256": "bb798330e19dfa6b207fe724da382a5bb30dfbe374360dda36dec817aaea5387"
     }
   ],
   "cacheGeometrySource": "https://downloads.sifli.com/user%20manual/DS5201-SF32LB52x-Datasheet%20V2p5.pdf",
-  "registerTables": "UM5201 internal V0.8.8 (download filename says V0p8p5): 2-6 (RCC enables/initial CSR), 5-4 (PA21), 9-7 (backup).",
+  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC), 4-3 (HPSYS_AON ACR/ISSR), 5-4 (PA21), 9-7 (backup); pinned CMSIS DWT/DEMCR fields.",
   "assumptions": [
     "Explicit secure architectural reset state and fresh backup-domain POR; not captured bootloader handoff.",
     "Functional split cache with deterministic round-robin replacement; timing, allocation flags and replacement not silicon-verified.",
     "Only Device, Normal noncacheable 0x44, write-through 0x22 and write-back 0xff memory attributes are supported.",
-    "Faults terminate the probe; runtime exception dispatch, complete peripheral clocks and board boot are not accepted."
+    "Faults terminate the probe; runtime exception dispatch, complete peripheral clocks and board boot are not accepted.",
+    "HRC ready at application entry; HXT requested and settling for 48000 nominal 48MHz ticks by default. Configurable settling/failure, not calibrated silicon timing.",
+    "DWT cycle/CPI counters use estimated engine costs. Minimal debug feature contract and disabled SysTick at entry are assumptions; other trace/timer programming faults.",
+    "Documented LP_ACTIVE POR status is not LCPU execution or a controller response. Unknown LPSYS_AON.PMR still faults."
   ],
   "gates": {
     "resetRam": "matches unchanged ELF/raw initializers and zero-fill",
@@ -36,6 +55,7 @@
       "firefox",
       "webkit"
     ],
-    "fullBoot": false
+    "fullBoot": false,
+    "earlyClockStartup": "both images reach HAL_RCC_Reset_and_Halt_LCPU after source switch and 230us/30us DWT waits; internal consistency, not measured timing"
   }
 }

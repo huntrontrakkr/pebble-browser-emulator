@@ -169,8 +169,9 @@ configure the MPU/caches and reach PebbleOS `main` in Rust/Wasm. Both pass actua
 Chromium, Firefox and WebKit Worker checks. Architectural register access, MPU checks,
 functional cache visibility and minimal documented boot registers now have regressions.
 
-Plan 3 remains incomplete. The current boundary is the HXT48 oscillator control/readiness
-register in `soc_early_init`; oscillator/power/clock sequencing, LCPU/ROM, EFUSE calibration,
-remaining device controllers, full boot, display, installation and phone exchange still
+Plan 3 remains incomplete. The early HXT48 switch and DWT delay loops now execute with
+explicit estimated timing. The current boundary is LPSYS_AON.PMR in the LCPU reset/halt
+sequence. Remaining oscillator/power/clock sequencing, LCPU/ROM, EFUSE calibration,
+device controllers, full boot, display, installation and phone exchange still
 need implementation and independent acceptance. Initial hardware state and cache replacement
 remain explicit assumptions. [Evidence and reproduction](docs/HARDWARE_FIDELITY.md#physical-reset-execution).

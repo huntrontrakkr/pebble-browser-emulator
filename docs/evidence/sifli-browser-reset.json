@@ -1,7 +1,7 @@
 {
   "format": "pebble-sifli-browser-reset",
   "version": 1,
-  "wasmSha256": "12f9f7f36dee546c8ae668e3dc9372619a9414c2b85698ce1584925b16c49891",
+  "wasmSha256": "65647b35ccfbfa39267095914d28ab5f37961fe3a51e8c840ecae0b7bec3b7f1",
   "results": [
     {
       "browser": "chromium",
@@ -9,6 +9,7 @@
       "revision": "obelix_pvt",
       "ramMatched": true,
       "mainEntryMatched": true,
+      "clockStartupMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -18,6 +19,7 @@
       "revision": "getafix_dvt2",
       "ramMatched": true,
       "mainEntryMatched": true,
+      "clockStartupMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -27,6 +29,7 @@
       "revision": "obelix_pvt",
       "ramMatched": true,
       "mainEntryMatched": true,
+      "clockStartupMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -36,6 +39,7 @@
       "revision": "getafix_dvt2",
       "ramMatched": true,
       "mainEntryMatched": true,
+      "clockStartupMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -45,6 +49,7 @@
       "revision": "obelix_pvt",
       "ramMatched": true,
       "mainEntryMatched": true,
+      "clockStartupMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -54,9 +59,10 @@
       "revision": "getafix_dvt2",
       "ramMatched": true,
       "mainEntryMatched": true,
+      "clockStartupMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     }
   ],
-  "scope": "Actual desktop browser Workers, unchanged local firmware; reset and SystemInit execution. No full boot or physical-phone performance claim."
+  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit and early clock/delay execution. No full boot or physical-phone performance claim."
 }

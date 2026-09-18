@@ -14,7 +14,7 @@ fn output(value: serde_json::Value) {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_abi_version() -> u32 {
-    2
+    3
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_input(size: u32) -> *mut u8 {
@@ -52,6 +52,15 @@ pub extern "C" fn sifli_load(revision: u32) -> u32 {
         }
     }
 }
+/// Configure a loaded but unexecuted probe. u32::MAX injects crystal failure.
+#[unsafe(no_mangle)]
+pub extern "C" fn sifli_configure_hxt(startup_ticks: u32) -> u32 {
+    PROBE.with(|p| {
+        p.borrow_mut().as_mut().is_some_and(|p| {
+            p.configure_hxt((startup_ticks != u32::MAX).then_some(startup_ticks as u64))
+        }) as u32
+    })
+}
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
     PROBE.with(|p| {
@@ -73,8 +82,11 @@ pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
                     "kind": format!("{:?}",f.kind)}),
                 Stop::Exception{pc,cfsr,hfsr} => serde_json::json!({"type":"exception","pc":pc,"cfsr":cfsr,"hfsr":hfsr}),
                 Stop::Coprocessor{pc,opcode} => serde_json::json!({"type":"unsupported-coprocessor","pc":pc,"opcode":opcode}),
-                Stop::Sleeping{pc} => serde_json::json!({"type":"sleeping-without-clock-model","pc":pc}),
+                Stop::Sleeping{pc} => serde_json::json!({"type":"sleeping-without-wake-model","pc":pc}),
             }),
+            "clock": {"estimatedCoreCycles": p.clock().estimated_cycles,
+                "referenceTicks48MHz": p.clock().reference_ticks, "hxtReady": p.clock().hxt_ready(),
+                "hxtStartupTicks": p.clock().hxt_startup_ticks, "timingVerified": false},
             "system": {"vtor":system.vtor, "cpacr":system.cpacr, "shcsr":system.shcsr,
                 "ccr":system.ccr, "mpuControl":system.ctrl, "mpuRegions":system.regions, "mair":system.mair},
             "registerState": if stop.is_some() {"last-completed-instruction"} else {"current"},

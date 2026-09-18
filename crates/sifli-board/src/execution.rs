@@ -59,6 +59,7 @@ struct Bus {
     wait: u32,
     fetch: u32,
     system: SystemControl,
+    debug: crate::debug_counter::DebugCounter,
     icache: Cache,
     dcache: Cache,
     privileged: bool,
@@ -105,6 +106,12 @@ impl Bus {
                 .read(address, width)
                 .map_err(|k| self.error(address, width, op, k));
         }
+        if crate::debug_counter::DebugCounter::owns(address) {
+            return self
+                .debug
+                .read(address, width)
+                .map_err(|k| self.error(address, width, op, k));
+        }
         if (0xe0000000..0xf0000000).contains(&address) {
             return self
                 .system
@@ -148,6 +155,12 @@ impl Bus {
         if crate::startup_io::StartupIo::owns(address) {
             return self
                 .io
+                .write(address, width, value)
+                .map_err(|k| self.error(address, width, op, k));
+        }
+        if crate::debug_counter::DebugCounter::owns(address) {
+            return self
+                .debug
                 .write(address, width, value)
                 .map_err(|k| self.error(address, width, op, k));
         }
@@ -344,6 +357,7 @@ impl ResetProbe {
                 wait: 0,
                 fetch: 0,
                 system: SystemControl::default(),
+                debug: crate::debug_counter::DebugCounter::default(),
                 icache: Cache::instruction(),
                 dcache: Cache::data(),
                 privileged: true,
@@ -357,6 +371,20 @@ impl ResetProbe {
             instructions_completed: 0,
             steps_attempted: 0,
         })
+    }
+
+    /// Configure oscillator startup before execution. None injects crystal failure.
+    /// The ticks are nominal 48MHz reference ticks, not wall-clock or measured cycles.
+    pub fn configure_hxt(&mut self, startup_ticks: Option<u64>) -> bool {
+        if self.steps_attempted != 0 || self.stop.is_some() {
+            return false;
+        }
+        self.bus.io.clock.hxt_startup_ticks = startup_ticks;
+        true
+    }
+
+    pub fn clock(&self) -> &crate::clock::BootClock {
+        &self.bus.io.clock
     }
 
     pub fn system(&self) -> &SystemControl {
@@ -429,6 +457,7 @@ impl ResetProbe {
             self.cpu.ppb.cpacr = self.bus.system.cpacr;
             self.cpu.ppb.shcsr = self.bus.system.shcsr;
             self.cpu.ppb.ccr = self.bus.system.ccr;
+            let cycles_before = self.cpu.cycles();
             self.cpu.step(&mut self.bus);
             if let Some(e) = self.bus.failure.get() {
                 self.fault_registers = Some(before);
@@ -444,6 +473,13 @@ impl ResetProbe {
                 });
                 return;
             }
+            self.bus
+                .debug
+                .advance(self.cpu.cycles().wrapping_sub(cycles_before));
+            self.bus
+                .io
+                .clock
+                .advance(self.cpu.cycles().wrapping_sub(cycles_before));
             self.instructions_completed += 1;
         }
     }
