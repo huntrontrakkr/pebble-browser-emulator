@@ -53,3 +53,11 @@ no raw Rust memory layout or pointers are persisted. Decoding has an allocation 
 rejects invalid scalar values. No instruction execution code is changed by this addition.
 See `docs/evidence/startup-checkpoint-cpu.patch`, the adapter's checkpoint tests, and
 `docs/STARTUP_CHECKPOINTS.md` for complete-state/continuation comparisons and their limits.
+
+`core/bus_trait.rs` and `core/mod.rs`: add an opt-out for internal PPB/SIO
+data-access interception. The physical SiFli reset probe disables it so unknown
+architectural and RP2350-specific registers reach the strict board bus and stop
+execution. The default is enabled, preserving existing generic profiles. All
+three access widths and both read/write directions are covered in
+`crates/sifli-board/tests/execution.rs`; the separate probe rejects coprocessor
+instructions before execution. See `docs/evidence/sifli-strict-bus.patch`.

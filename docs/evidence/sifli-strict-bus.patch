@@ -1,0 +1,49 @@
+diff --git a/vendor/rp2350-emu/src/core/bus_trait.rs b/vendor/rp2350-emu/src/core/bus_trait.rs
+index 547f153..b768e26 100644
+--- a/vendor/rp2350-emu/src/core/bus_trait.rs
++++ b/vendor/rp2350-emu/src/core/bus_trait.rs
+@@ -41,0 +42,4 @@ pub trait CoreBus {
++    /// Embedders can route PPB/SIO accesses to their own strict board model.
++    /// The default preserves the original RP2350 and generic Pebble behavior.
++    fn use_internal_peripherals(&self) -> bool { true }
++
+diff --git a/vendor/rp2350-emu/src/core/mod.rs b/vendor/rp2350-emu/src/core/mod.rs
+index 6112a28..2ca341e 100644
+--- a/vendor/rp2350-emu/src/core/mod.rs
++++ b/vendor/rp2350-emu/src/core/mod.rs
+@@ -800 +800 @@ impl CortexM33 {
+-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
++        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+@@ -806 +806 @@ impl CortexM33 {
+-        } else if Self::is_sio_local(addr) {
++        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
+@@ -823 +823 @@ impl CortexM33 {
+-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
++        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+@@ -829 +829 @@ impl CortexM33 {
+-        } else if Self::is_sio_local(addr) {
++        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
+@@ -841 +841 @@ impl CortexM33 {
+-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
++        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+@@ -858 +858 @@ impl CortexM33 {
+-        } else if Self::is_sio_local(addr) {
++        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
+@@ -880 +880 @@ impl CortexM33 {
+-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
++        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+@@ -896 +896 @@ impl CortexM33 {
+-        } else if Self::is_sio_local(addr) {
++        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
+@@ -911 +911 @@ impl CortexM33 {
+-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
++        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+@@ -926 +926 @@ impl CortexM33 {
+-        } else if Self::is_sio_local(addr) {
++        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
+@@ -945 +945 @@ impl CortexM33 {
+-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
++        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+@@ -958 +958 @@ impl CortexM33 {
+-        } else if Self::is_sio_local(addr) {
++        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {

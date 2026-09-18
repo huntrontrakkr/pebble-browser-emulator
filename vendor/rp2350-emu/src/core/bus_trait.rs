@@ -39,6 +39,10 @@ use std::sync::Arc;
 use crate::threaded::CoreAtomics;
 
 pub trait CoreBus {
+    /// Embedders can route PPB/SIO accesses to their own strict board model.
+    /// The default preserves the original RP2350 and generic Pebble behavior.
+    fn use_internal_peripherals(&self) -> bool { true }
+
     // --- Canonical 13-method surface (LLD V7 §1) ----------------------
 
     fn read8(&mut self, addr: u32, core: u8) -> u8;

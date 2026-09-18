@@ -17,6 +17,8 @@ const result = spawnSync(
     'pebble-emulator-wasm',
     '-p',
     'emulator-qemu',
+    '-p',
+    'pebble-sifli-board',
   ],
   { stdio: 'inherit' },
 );
@@ -33,6 +35,10 @@ copyFileSync(
 copyFileSync(
   'target/wasm32-unknown-unknown/release/emulator_qemu.wasm',
   'public/wasm/qemu-emery.wasm',
+);
+copyFileSync(
+  'target/wasm32-unknown-unknown/release/pebble_sifli_board.wasm',
+  'public/wasm/sifli-probe.wasm',
 );
 copyFileSync(
   'node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm',

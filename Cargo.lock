@@ -105,6 +105,10 @@ dependencies = [
 [[package]]
 name = "pebble-sifli-board"
 version = "0.1.0"
+dependencies = [
+ "rp2350-emu",
+ "serde_json",
+]
 
 [[package]]
 name = "picoem-common"

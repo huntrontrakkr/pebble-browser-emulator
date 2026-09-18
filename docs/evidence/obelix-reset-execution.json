@@ -1,0 +1,107 @@
+{
+  "format": "pebble-sifli-reset-execution",
+  "version": 1,
+  "revision": "obelix_pvt",
+  "outcome": "reset-initialization-matched",
+  "bootComplete": false,
+  "referenceTarget": "ELF-initializers-and-reset-binary",
+  "entryState": "assumed-secure-reset-probe-v1",
+  "identity": {
+    "elfSha256": "591e715a5dda8bae5a082625c0a1a591740e1b42cca725a63d74b3e2fc950df5",
+    "imageSha256": "67b56825d66eaeab97bc1f8a6803c7b689cd42f28c31813379469059b99c49b2",
+    "wasmSha256": "7335d3c2042fd8e7fa76789be15a5cd8baade3a9240bbff0f5b81facaa038cb1"
+  },
+  "startup": {
+    "bootComplete": false,
+    "entryState": "assumed-secure-reset-probe-v1",
+    "instructionsCompleted": 328883,
+    "msplim": 537086272,
+    "psplim": 0,
+    "registerState": "current",
+    "registers": [
+      536911120,
+      0,
+      4,
+      537086262,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      537087296,
+      302279663,
+      303125020
+    ],
+    "revision": "ObelixPvt",
+    "stepsAttempted": 328883,
+    "stop": null
+  },
+  "copies": [
+    {
+      "source": 304120544,
+      "destination": 536888608,
+      "bytes": 22512,
+      "sha256": "02ff02cb6852156de12b861c91f508eef08b82f7d6ce2083e3c2ad3258c0a1e2",
+      "matches": true
+    },
+    {
+      "source": 302125516,
+      "destination": 536870912,
+      "bytes": 17696,
+      "sha256": "07b90488d3063954394c8713650be9e11cefa54c157a1e01af8e5f7cf596f0cd",
+      "matches": true
+    }
+  ],
+  "zeroFill": {
+    "destination": 536911120,
+    "bytes": 175142,
+    "sha256": "4f736e1346dfad4f3bdd61edf6cbd9e5a423e6f110a43dcd3651f3eeb87fa9ea",
+    "matches": true
+  },
+  "hardwareBoundary": {
+    "bootComplete": false,
+    "entryState": "assumed-secure-reset-probe-v1",
+    "instructionsCompleted": 328886,
+    "msplim": 537086272,
+    "psplim": 0,
+    "registerState": "last-completed-instruction",
+    "registers": [
+      536911120,
+      0,
+      537028984,
+      3758157056,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      537087280,
+      302279663,
+      303125026
+    ],
+    "revision": "ObelixPvt",
+    "stepsAttempted": 328887,
+    "stop": {
+      "address": 3758157064,
+      "kind": "Unmapped",
+      "operation": "Write",
+      "pc": 303125026,
+      "type": "access",
+      "width": 4
+    }
+  },
+  "limits": [
+    "No verified bootloader handoff state",
+    "No physical reference or calibrated timing",
+    "No SiFli MMIO, ROM, LCPU, PPB or coprocessor model",
+    "No full firmware boot, display, installation or phone exchange"
+  ]
+}

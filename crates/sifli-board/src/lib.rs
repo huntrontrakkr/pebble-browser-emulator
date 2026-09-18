@@ -1,7 +1,10 @@
 //! Strict HCPU address-space foundation for two SF32LB52J watch revisions.
-//! This is not a CPU, controller model, bootloader, or runnable firmware target.
+//! Includes a bounded reset-execution probe, not a complete firmware runtime.
 //! Memory ranges follow pinned SiFli SDK `sf32lb52x/mem_map.h`; only locally
 //! supplied slot-0 bytes and HCPU SRAM are backed. Every other access faults.
+
+pub mod execution;
+mod wasm;
 
 const HCPU_ROM_END: u64 = 0x0001_0000;
 const QSPI1_BASE: u64 = 0x1000_0000;

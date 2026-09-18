@@ -1,0 +1,94 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const wasm = await readFile('public/wasm/sifli-probe.wasm');
+function image() {
+  const b = new Uint8Array(0x1200);
+  const v = new DataView(b.buffer);
+  v.setUint32(0x1000, 0x20080000, true);
+  v.setUint32(0x1004, 0x12021101, true);
+  // Load CPUID address then attempt LDR. The strict board must reject it.
+  v.setUint16(0x1100, 0x4801, true);
+  v.setUint16(0x1102, 0x6801, true);
+  v.setUint32(0x1108, 0xe000ed00, true);
+  return b;
+}
+async function core() {
+  const { instance, module } = await WebAssembly.instantiate(wasm, {});
+  assert.deepEqual(WebAssembly.Module.imports(module), []);
+  const e = instance.exports;
+  return {
+    e,
+    upload(b) {
+      const p = e.sifli_input(b.length);
+      assert.notEqual(p, 0);
+      new Uint8Array(e.memory.buffer, p, b.length).set(b);
+    },
+    report() {
+      return JSON.parse(
+        new TextDecoder().decode(
+          new Uint8Array(e.memory.buffer, e.sifli_output_ptr(), e.sifli_output_len()),
+        ),
+      );
+    },
+  };
+}
+
+test('physical Wasm is self-contained and records the first hardware boundary', async () => {
+  for (const revision of [0, 1]) {
+    const { e, upload, report } = await core();
+    assert.equal(e.sifli_abi_version(), 1);
+    upload(image());
+    assert.equal(e.sifli_load(revision), 1);
+    assert.equal(e.sifli_run(100, 0), 2);
+    const r = report();
+    assert.equal(r.instructionsCompleted, 1);
+    assert.equal(r.stepsAttempted, 2);
+    assert.equal(r.bootComplete, false);
+    assert.equal(r.registers[15], 0x12021102);
+    assert.deepEqual(r.stop, {
+      type: 'access',
+      pc: 0x12021102,
+      address: 0xe000ed00,
+      width: 4,
+      operation: 'Read',
+      kind: 'Unmapped',
+    });
+    e.sifli_run(100, 0);
+    assert.deepEqual(report(), r);
+    assert.equal(e.sifli_read_byte(0x20000000) >>> 0, 0xffffffff);
+    assert.equal(e.sifli_read_byte(0x12021100), 1);
+  }
+});
+
+test('invalid loads and allocations cannot reuse an earlier physical session or image', async () => {
+  const { e, upload, report } = await core();
+  assert.equal(e.sifli_run(100, 0), 0);
+  upload(image());
+  assert.equal(e.sifli_load(0), 1);
+  assert.equal(e.sifli_load(2), 0);
+  assert.equal(e.sifli_run(100, 0), 0);
+  assert.equal(report().error, 'no probe loaded');
+  upload(image());
+  assert.equal(e.sifli_input(0xffffffff), 0);
+  assert.equal(e.sifli_load(0), 0);
+  const invalid = image();
+  invalid[0x1004] = 0;
+  upload(invalid);
+  assert.equal(e.sifli_load(1), 0);
+  assert.match(report().error, /InvalidVector/);
+});
+
+test('physical Wasm batches stop before breakpoints and instances are isolated', async () => {
+  const first = await core();
+  const second = await core();
+  first.upload(image());
+  assert.equal(first.e.sifli_load(0), 1);
+  first.e.sifli_run(100, 0x12021102);
+  assert.equal(first.report().stop, null);
+  assert.equal(first.report().instructionsCompleted, 1);
+  assert.equal(second.e.sifli_run(100, 0), 0);
+  first.e.sifli_run(100, 0);
+  assert.equal(first.report().stop.address, 0xe000ed00);
+});

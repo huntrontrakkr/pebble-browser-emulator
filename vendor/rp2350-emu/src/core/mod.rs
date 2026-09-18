@@ -797,13 +797,13 @@ impl CortexM33 {
 
     pub(crate) fn bus_read32<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u32 {
         self.counters.classify_access(addr, false);
-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             let val = self.ppb.read32(addr);
             if bus.mmio_trace_enabled() {
                 bus.emit_mmio_trace('R', 4, addr, val, self.core_id);
             }
             val
-        } else if Self::is_sio_local(addr) {
+        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
             let val = self.sio_local.read32(addr & 0xFFF);
             if bus.mmio_trace_enabled() {
                 bus.emit_mmio_trace('R', 4, addr, val, self.core_id);
@@ -820,13 +820,13 @@ impl CortexM33 {
         // exclusive monitor. `Emulator::step` snoops this flag after the
         // core's quantum slice and clears the peer's `exclusive_address`.
         self.did_write_this_quantum = true;
-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             self.ppb.write32(addr, val);
             self.sync_nvic_to_irq_pending(addr, bus);
             if bus.mmio_trace_enabled() {
                 bus.emit_mmio_trace('W', 4, addr, val, self.core_id);
             }
-        } else if Self::is_sio_local(addr) {
+        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
             self.sio_local.write32(addr & 0xFFF, val);
             if bus.mmio_trace_enabled() {
                 bus.emit_mmio_trace('W', 4, addr, val, self.core_id);
@@ -838,7 +838,7 @@ impl CortexM33 {
 
     pub(crate) fn bus_read16<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u16 {
         self.counters.classify_access(addr, false);
-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             // ARMv8-M: halfword PPB accesses are UNPREDICTABLE (word-only
             // registers). We defensively compose the result from the
             // containing 32-bit register rather than faulting, so rogue
@@ -855,7 +855,7 @@ impl CortexM33 {
                 bus.emit_mmio_trace('R', 2, addr, val as u32, self.core_id);
             }
             val
-        } else if Self::is_sio_local(addr) {
+        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
             // Matches the pre-Stage-3 `Bus::read16` 0xD path: read the
             // containing 32-bit SIO register and slice the halfword.
             let word = self.sio_local.read32(addr & 0xFFF & !3);
@@ -877,7 +877,7 @@ impl CortexM33 {
         self.counters.classify_access(addr, true);
         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
         self.did_write_this_quantum = true;
-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             // ARMv8-M: halfword PPB accesses are UNPREDICTABLE. We
             // defensively RMW the matching half of the containing 32-bit
             // register rather than faulting. Contrast bus_write8, which
@@ -893,7 +893,7 @@ impl CortexM33 {
             if bus.mmio_trace_enabled() {
                 bus.emit_mmio_trace('W', 2, addr, val as u32, self.core_id);
             }
-        } else if Self::is_sio_local(addr) {
+        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
             // Pre-Stage-3 `Bus::write16` dropped SIO writes silently
             // (region 0xD had no write16 arm). Preserve that here: drop
             // the write, but still emit the trace line so observability
@@ -908,7 +908,7 @@ impl CortexM33 {
 
     pub(crate) fn bus_read8<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u8 {
         self.counters.classify_access(addr, false);
-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             // NVIC_IPR and SCB_SHPR are byte-accessible priority registers.
             // CMSIS uses uint8_t lanes for NVIC_SetPriority/GetPriority.
             let offset = addr & 0xFFFF;
@@ -923,7 +923,7 @@ impl CortexM33 {
                 bus.emit_mmio_trace('R', 1, addr, value as u32, self.core_id);
             }
             value
-        } else if Self::is_sio_local(addr) {
+        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
             // Matches the pre-Stage-3 `Bus::read8` 0xD path: read the
             // containing 32-bit SIO register and slice the byte.
             let word = self.sio_local.read32(addr & 0xFFF & !3);
@@ -942,7 +942,7 @@ impl CortexM33 {
         self.counters.classify_access(addr, true);
         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
         self.did_write_this_quantum = true;
-        if addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+        if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             // Priority registers explicitly permit byte accesses. Preserve
             // neighboring lanes; write32 applies implemented priority bits.
             let offset = addr & 0xFFFF;
@@ -955,7 +955,7 @@ impl CortexM33 {
             if bus.mmio_trace_enabled() {
                 bus.emit_mmio_trace('W', 1, addr, val as u32, self.core_id);
             }
-        } else if Self::is_sio_local(addr) {
+        } else if bus.use_internal_peripherals() && Self::is_sio_local(addr) {
             // Pre-Stage-3 `Bus::write8` dropped SIO writes silently
             // (region 0xD had no write8 arm). Preserve that; see the
             // matching note in `bus_write16`.

@@ -188,15 +188,63 @@ into the public build.
 
 The separate `pebble-sifli-board` Rust crate now maps a caller-supplied slot-0 image
 at its QSPI2 address and provides 512 KiB of HCPU SRAM for Obelix PVT and Getafix
-DVT2. It does not create a CPU or boot state. ROM, other flash regions, LCPU state,
+DVT2. Its memory constructor does not create a CPU or boot state. ROM, other flash regions, LCPU state,
 unknown MMIO and unmapped accesses return a structured fault containing revision,
 PC, address, width and operation. Flash writes fault, and writes crossing a region
 boundary do not partially commit. Fresh SRAM bytes also fault on read until an explicit
 write initializes them; the constructor does not invent a post-bootloader RAM image.
-This strict address-space contract is a foundation
-for the later SoC implementation, not an executable physical-board profile. The
+This strict address-space contract backs the bounded reset probe below; it is not a
+complete physical-board profile. The
 constructor itself does not authenticate input; the caller must retain the exact
 asset identity and separate ELF/raw audit.
+
+### Physical reset execution
+
+The separate `sifli-probe.wasm` module executes unchanged slot-0 reset instructions
+using the shared Cortex-M33 instruction engine and the strict physical address space.
+It does not reuse generic Pebble MMIO. A reviewed engine hook lets this board route
+PPB/SIO accesses through its strict bus; other profiles retain their existing behavior.
+Unknown accesses latch the first fault and stop. Reports retain the registers before
+the failed instruction; no faulted instruction counts as completed. Coprocessor
+instructions are explicitly unsupported. Executable SRAM writes invalidate decoding.
+
+Entry contract `assumed-secure-reset-probe-v1`: Secure privileged Thumb Thread mode,
+engine initial register defaults, no active interrupts, vector-derived MSP/PC, initial
+VTOR at the slot vector, and unknown SRAM until written. This is an explicit assumption,
+not a reconstruction of a physical bootloader handoff. The engine's initial PPB values
+cannot be read by the guest; all PPB accesses stop pending a physical board model.
+No clock, cycle, battery, radio, display or boot-success claims follow from this probe.
+
+Both official 4.37.0 images reach `SystemInit`. Time 2/Obelix PVT completes 328,883
+instructions, initializes 40,208 copied RAM bytes and clears 175,142 BSS bytes.
+Round 2/Getafix DVT2 completes 313,880 instructions, initializes 39,736 copied RAM
+bytes and clears 150,797 BSS bytes. Every initializer and BSS byte is checked against
+the ELF/raw audit. These are binary consistency checks, not an independent CPU trace
+or physical measurement. The next instruction boundary requiring hardware behavior is
+a word write to SCB VTOR (`0xe000ed08`), at `0x12115222` / `0x12100da2` respectively.
+The destination value points into firmware-initialized SRAM; do not force a flash VTOR.
+
+```sh
+npm run build:wasm
+npm run fidelity:physical-reset -- obelix_pvt /path/to/slot0.elf /path/to/slot0.bin report.json
+npm run fidelity:physical-reset -- getafix_dvt2 /path/to/slot0.elf /path/to/slot0.bin report.json
+```
+
+The runner audits inputs, enforces a 10-million-instruction startup budget and emits
+SHA-256 identities, RAM comparisons and the first hardware boundary. Missing inputs
+exit 2 (`not-run`); comparison failures exit 1. Firmware is never modified or published.
+Each Wasm call is capped at 100,000 steps for Worker yielding/cancellation. The module
+has no host imports, is isolated from the generic runtime and remains a diagnostic
+API rather than a selectable working watch profile. ABI tests run in the normal suite.
+Actual Chromium, Firefox and WebKit Workers also match both reset checkpoints and all
+RAM bytes; see [browser evidence](evidence/sifli-browser-reset.json). Run that optional
+gate with `node scripts/verify-sifli-browser.mjs /path/to/local/images report.json`;
+`PEBBLE_WEBKIT_EXECUTABLE` can select a configured WebKit dependency wrapper.
+
+Next: establish the architectural SCB/MPU configuration and bootloader handoff state,
+then model SiFli clocks/controllers and required ROM/LCPU dependencies. Published
+`SystemInit` configures 12 MPU regions; the generic RP2350 configuration is not evidence
+for this board. Full boot/display/app installation remain separate acceptance gates.
 
 Source declarations distinguish the boards:
 

@@ -1,0 +1,124 @@
+// Optional real-browser Worker gate. Requires the same local images as the reset gate.
+import { chromium, firefox, webkit } from 'playwright';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+import { join } from 'node:path';
+
+const [directory, reportPath] = process.argv.slice(2);
+if (!directory) {
+  console.error('Usage: node scripts/verify-sifli-browser.mjs LOCAL_IMAGE_DIR [report.json]');
+  process.exit(2);
+}
+const wasm = await readFile('public/wasm/sifli-probe.wasm');
+const results = [];
+const fixtures = await Promise.all(
+  ['obelix_pvt', 'getafix_dvt2'].map(async (revision) => {
+    const expected = JSON.parse(
+      await readFile(
+        `docs/evidence/${revision === 'obelix_pvt' ? 'obelix' : 'getafix'}-reset-execution.json`,
+      ),
+    );
+    const image = await readFile(join(directory, `firmware_${revision}_v4.37.0_slot0.bin`));
+    assert.equal(createHash('sha256').update(image).digest('hex'), expected.identity.imageSha256);
+    return { revision, expected, image: image.toString('base64') };
+  }),
+);
+
+for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').split(',')) {
+  const browser = await { chromium, firefox, webkit }[name].launch({
+    ...(name === 'webkit' && process.env.PEBBLE_WEBKIT_EXECUTABLE
+      ? { executablePath: process.env.PEBBLE_WEBKIT_EXECUTABLE }
+      : {}),
+  });
+  try {
+    const page = await browser.newPage();
+    for (const fixture of fixtures) {
+      const result = await page.evaluate(
+        async ({ wasm, fixture }) => {
+          const source = `onmessage = async ({data}) => {
+          try {
+            const {instance} = await WebAssembly.instantiate(data.wasm, {});
+            const e = instance.exports;
+            const p = e.sifli_input(data.image.length);
+            new Uint8Array(e.memory.buffer,p,data.image.length).set(data.image);
+            if (!e.sifli_load(data.revision)) throw new Error('load failed');
+            const report = () => JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer,e.sifli_output_ptr(),e.sifli_output_len())));
+            let state;
+            for (let n=0;n<100;n++) {
+              e.sifli_run(100000,data.expected.startup.registers[15]); state=report();
+              if (state.stop || state.registers[15] === data.expected.startup.registers[15]) break;
+              await new Promise(resolve=>setTimeout(resolve,0));
+            }
+            if (state.stop) throw new Error(JSON.stringify(state.stop));
+            for (const r of data.expected.copies) {
+              for (let i=0;i<r.bytes;i++) {
+                if ((e.sifli_read_byte(r.destination+i)>>>0) !== data.image[r.source-0x12020000+i]) throw new Error('RAM initializer mismatch');
+              }
+            }
+            const z = data.expected.zeroFill;
+            for(let i=0;i<z.bytes;i++) if(e.sifli_read_byte(z.destination+i)!==0) throw new Error('BSS mismatch');
+            e.sifli_run(100000,0);
+            postMessage({startup:state,hardwareBoundary:report(),ramMatched:true});
+          } catch (e) { postMessage({error:String(e)}); }
+        }`;
+          const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+          const worker = new Worker(url);
+          try {
+            return await new Promise((resolve, reject) => {
+              const timer = setTimeout(() => reject(new Error('Worker timeout')), 30000);
+              worker.onmessage = ({ data }) => {
+                clearTimeout(timer);
+                resolve(data);
+              };
+              worker.onerror = (event) => {
+                clearTimeout(timer);
+                reject(new Error(event.message));
+              };
+              const decode = (base64) => Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+              const image = decode(fixture.image),
+                bytes = decode(wasm);
+              worker.postMessage(
+                {
+                  image,
+                  wasm: bytes,
+                  expected: fixture.expected,
+                  revision: fixture.revision === 'obelix_pvt' ? 0 : 1,
+                },
+                [image.buffer, bytes.buffer],
+              );
+            });
+          } finally {
+            worker.terminate();
+            URL.revokeObjectURL(url);
+          }
+        },
+        { wasm: wasm.toString('base64'), fixture },
+      );
+      assert.equal(result.error, undefined);
+      assert.deepEqual(result.startup, fixture.expected.startup);
+      assert.deepEqual(result.hardwareBoundary, fixture.expected.hardwareBoundary);
+      results.push({
+        browser: name,
+        version: browser.version(),
+        revision: fixture.revision,
+        ramMatched: result.ramMatched,
+        instructions: result.startup.instructionsCompleted,
+        hardwareBoundaryMatched: true,
+      });
+    }
+  } finally {
+    await browser.close();
+  }
+}
+const report = {
+  format: 'pebble-sifli-browser-reset',
+  version: 1,
+  wasmSha256: createHash('sha256').update(wasm).digest('hex'),
+  results,
+  scope:
+    'Actual desktop browser Workers, unchanged local firmware; reset-only execution. No full boot or physical-phone performance claim.',
+};
+const text = JSON.stringify(report, null, 2) + '\n';
+if (reportPath) await writeFile(reportPath, text);
+else console.log(text);

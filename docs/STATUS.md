@@ -36,14 +36,27 @@ PCM drain timing and refill backpressure are not yet independently matched.
 Official Obelix PVT and Getafix DVT2 4.37.0 slot-0 ELF/raw pairs now pass a read-only
 segment/vector audit with recorded SHA-256 identities. Both require distinct flash and
 RAM initialization; their ELF entry is not their reset vector. This is an asset-layout
-milestone only: neither physical board executes firmware yet.
+milestone; the bounded reset-execution probe described below now runs their startup code.
 The exact 4.37.0 reset prologues now have a repeatable audit: each copies its own two
 flash-backed SRAM sections and clears kernel BSS, while stack sections remain outside
 that zeroing range. The audit does not supply the post-bootloader clock/controller state.
 An isolated Rust SiFli address space now maps supplied slot-0 bytes and HCPU RAM for
 those two revisions; missing ROM, LCPU, flash and MMIO accesses fail with structured
 context. Uninitialized SRAM also faults instead of manufacturing a zero-filled boot state.
-There is still no physical CPU, bootloader or peripheral execution.
+Both physical revisions now execute unchanged reset instructions in the separate
+`sifli-probe.wasm` module. Obelix completes 328,883 instructions and Getafix 313,880
+before `SystemInit`; all copied RAM sections and BSS bytes match the audited binaries.
+This is a bounded probe with explicit assumed CPU entry state, not a completed firmware
+boot. Both then stop at their first unmodeled SCB VTOR write (`0xe000ed08`); no generic
+QEMU peripherals or default register values substitute for physical hardware. PPB/SIO
+accesses, unknown memory and unsupported coprocessors stop with diagnostic context.
+The module is built with the static app but is not exposed as a working preview profile.
+[Time 2 execution evidence](evidence/obelix-reset-execution.json),
+[Round 2 execution evidence](evidence/getafix-reset-execution.json).
+Actual Chromium, Firefox and WebKit Workers reproduce both complete RAM comparisons,
+register checkpoints and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
+Validation: 103 Rust tests, 392 JavaScript tests (9 optional skips), Clippy and the
+full production build pass. Full physical firmware boot remains incomplete.
 Physical SiFli implementation, active phone snapshots, native deterministic replay and actual
 watch calibration remain open. [Contracts, reproduction and source inventory](HARDWARE_FIDELITY.md).
 
@@ -239,7 +252,7 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
 | Capability                 | Verified scope                                                                                                                                                                                                                                                                                 |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                                                        |
-| Physical and older watches | Firmware package inspection; physical Asterix/Obelix/Getafix and legacy Tintin/Snowy/Spalding/Silk/Robert execution remain unimplemented.                                                                                                                                                      |
+| Physical and older watches | Firmware package inspection; Obelix PVT/Getafix DVT2 have bounded reset execution only; full physical and legacy firmware boots remain unimplemented.                                                                                                                                                      |
 | GitHub source              | Public repositories, commit-pinned downloads, branches/subfolders, local ZIP and folder import; unsupported build behavior reports an error.                                                                                                                                                   |
 | Linux build sandbox        | Local container2wasm WASI image, custom YAML/shell commands, imported dependencies, quotas, cancellation and artifact export. Python + actual ARM GCC object generation verified; full SDK/Waf PBW gate remains open.                                                                          |
 | Native C builds            | SDK 4.33.1 headers/libraries/defines/limits for Aplite, Basalt, Chalk, Diorite, Emery, Flint and Gabbro; modern and legacy SDK 3 metadata.                                                                                                                                                     |
