@@ -1,4 +1,4 @@
-import { FIRMWARE_PROFILES, type FirmwareProfile } from './watch-profiles.ts';
+import { FIRMWARE_PROFILES, LEGACY_APP_CHOICES, type FirmwareProfile } from './watch-profiles.ts';
 import { cachedResource } from './resource-cache.ts';
 
 export const STORE_API = 'https://appstore-api.repebble.com';
@@ -13,6 +13,7 @@ export interface StoreApp {
   source: string;
   listing: string;
   platforms: string[];
+  legacyCandidate: boolean;
 }
 export function storeAppId(value: string): string {
   value = value.trim();
@@ -75,16 +76,33 @@ export function describeStoreApp(value: any, profile: FirmwareProfile): StoreApp
   const platform = FIRMWARE_PROFILES[profile].platform;
   const platforms = Array.isArray(value.hardware_platforms) ? value.hardware_platforms : [];
   const hardware = platforms.find((p: any) => p?.name === platform);
+  const legacyChoice =
+    !hardware &&
+    LEGACY_APP_CHOICES[platform]?.find((candidate) =>
+      platforms.some((p: any) => p?.name === candidate),
+    );
+  const rootLegacy =
+    !hardware &&
+    !legacyChoice &&
+    platform !== 'gabbro' &&
+    platforms.some((p: any) => p?.name === 'root');
+  const legacyCandidate = !!legacyChoice || rootLegacy;
+  const screenshotSource =
+    hardware ??
+    (legacyCandidate
+      ? platforms.find((p: any) => p?.name === (legacyChoice ?? 'root'))
+      : undefined);
   return {
     id: value.id,
     title: value.title.slice(0, 200),
     author: String(value.author ?? '').slice(0, 200),
     version: value.latest_release.version.slice(0, 100),
     packageUrl: storePackageUrl(value.latest_release.pbw_file, value.id),
-    screenshot: webUrl(hardware?.images?.screenshot, 'assets.repebble.com'),
+    screenshot: webUrl(screenshotSource?.images?.screenshot, 'assets.repebble.com'),
     source: webUrl(value.source, 'github.com'),
     listing: `https://apps.repebble.com/app_${value.id}`,
     platforms: platforms.map((p: any) => p?.name).filter((p: unknown) => typeof p === 'string'),
+    legacyCandidate,
   };
 }
 async function metadata(url: string, signal: AbortSignal, request?: typeof fetch) {
@@ -139,14 +157,40 @@ export async function storePage(
   const apps: StoreApp[] = [];
   let unavailable = 0,
     incompatible = 0;
-  for (const item of result.data.data) {
-    try {
-      const app = describeStoreApp(item, profile);
+  // Some archived collection rows omit the release even though the official
+  // per-app endpoint still publishes its PBW. Hydrate only those rows, with a
+  // small cap on concurrent requests so browsing stays responsive on phones.
+  for (let start = 0; start < result.data.data.length; start += 4) {
+    const batch = result.data.data.slice(start, start + 4);
+    const resolved = await Promise.all(
+      batch
+        .map(async (item: any) => {
+          if (
+            typeof item?.latest_release?.version === 'string' &&
+            typeof item.latest_release.pbw_file === 'string'
+          )
+            return describeStoreApp(item, profile);
+          if (typeof item?.id !== 'string' || !/^[a-f0-9]{24}$/.test(item.id))
+            throw new Error('Unexpected store app ID.');
+          return storeApp(item.id, profile, signal, request);
+        })
+        .map((pending: Promise<StoreApp>) =>
+          pending.catch((error: unknown) => {
+            if (signal.aborted) throw signal.reason;
+            return error instanceof Error ? error : new Error(String(error));
+          }),
+        ),
+    );
+    signal.throwIfAborted();
+    for (const app of resolved) {
+      if (app instanceof Error) {
+        unavailable++;
+        continue;
+      }
       // The upstream catalog may ignore its hardware filter, especially for older apps.
-      if (app.platforms.includes(FIRMWARE_PROFILES[profile].platform)) apps.push(app);
+      if (app.platforms.includes(FIRMWARE_PROFILES[profile].platform) || app.legacyCandidate)
+        apps.push(app);
       else incompatible++;
-    } catch {
-      unavailable++;
     }
   }
   return {

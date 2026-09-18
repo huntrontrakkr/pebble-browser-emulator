@@ -21,6 +21,21 @@ export const NETWORK_BOOTSTRAP = String.raw`function(cap) {
     if (/[\r\n\0]/.test(value)) throw new TypeError('Invalid HTTP header value.');
     return value;
   }
+  function binaryBytes(base64) {
+    const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const result=new Uint8Array(base64.length/4*3-(base64.endsWith('==')?2:base64.endsWith('=')?1:0));
+    let bits=0,value=0,offset=0;
+    for(const ch of base64){if(ch==='=')break;value=(value<<6)|alphabet.indexOf(ch);bits+=6;if(bits>=8){bits-=8;result[offset++]=(value>>bits)&255;}}
+    return result;
+  }
+  function utf8Bytes(text) {
+    const out=[];
+    for(const ch of text){let c=ch.codePointAt(0);if(c>=0xd800&&c<=0xdfff)c=0xfffd;
+      if(c<128)out.push(c);else if(c<2048)out.push(192|(c>>6),128|(c&63));
+      else if(c<65536)out.push(224|(c>>12),128|((c>>6)&63),128|(c&63));
+      else out.push(240|(c>>18),128|((c>>12)&63),128|((c>>6)&63),128|(c&63));}
+    return Uint8Array.from(out);
+  }
   class Headers {
     constructor(values = {}) {
       this._values = Object.create(null);
@@ -151,21 +166,23 @@ export const NETWORK_BOOTSTRAP = String.raw`function(cap) {
   class XMLHttpRequest extends EventTarget {
     constructor() {
       super();this._state=0;this._request=null;this._id=0;this._version=0;this._responseType='';this._timeout=0;
-      this._headers=new Headers();this._responseHeaders=new Headers();this._text='';this._status=0;this._statusText='';this._url='';
+      this._headers=new Headers();this._responseHeaders=new Headers();this._text='';this._binary=null;this._status=0;this._statusText='';this._url='';
       this.withCredentials=false;
     }
     get readyState(){return this._state;}get status(){return this._status;}get statusText(){return this._statusText;}get responseURL(){return this._url;}
     get timeout(){return this._timeout;}set timeout(value){value=Number(value);if(!Number.isFinite(value)||value<0)throw new RangeError('Invalid timeout.');if(this._id)throw new Error('Changing timeout during a request is unsupported.');this._timeout=value;}
-    get responseType(){return this._responseType;}set responseType(value){if(this._id)throw new Error('Request has already been sent.');if(!['','text','json'].includes(value))throw new TypeError('Only text and JSON responses are supported.');this._responseType=value;}
-    get responseText(){if(this._responseType==='json')throw new Error('responseText is unavailable for JSON responses.');return this._state>=3?this._text:'';}
-    get response(){if(this._responseType==='json'){if(this._state!==4||!this._status)return null;try{return parse(this._text);}catch{return null;}}return this.responseText;}
+    get responseType(){return this._responseType;}set responseType(value){if(this._id)throw new Error('Request has already been sent.');if(!['','text','json','arraybuffer','blob'].includes(value))throw new TypeError('Unsupported response type.');this._responseType=value;}
+    get responseText(){if(!['','text'].includes(this._responseType))throw new Error('responseText is unavailable for this response type.');return this._state>=3?this._text:'';}
+    get response(){if(this._responseType==='json'){if(this._state!==4||!this._status)return null;try{return parse(this._text);}catch{return null;}}
+      if(this._responseType==='arraybuffer'||this._responseType==='blob')return this._state===4&&this._status?this._binary:null;
+      return this.responseText;}
     _change(state){this._state=state;this._dispatch('readystatechange');}
     open(method,url,async=true,username,password){
       if(async===false)throw new Error('Synchronous XMLHttpRequest is not supported.');
       if(username!==undefined||password!==undefined)throw new Error('Embedded HTTP credentials are not supported.');
       if(this._id){const previous=requests.get(this._id);if(previous)previous.done=()=>{};finish(this._id,failure('abort','Request reopened.'),true);this._id=0;}
       this._version++;this._request=normalize(url,{method});this._headers=new Headers();this._responseHeaders=new Headers();
-      this._text='';this._status=0;this._statusText='';this._url='';this._change(1);
+      this._text='';this._binary=null;this._status=0;this._statusText='';this._url='';this._change(1);
     }
     setRequestHeader(name,value){if(this._state!==1||this._id)throw new Error('Request is not open.');this._headers.append(name,value);}
     getResponseHeader(name){return this._state>=2?this._responseHeaders.get(name):null;}
@@ -176,20 +193,25 @@ export const NETWORK_BOOTSTRAP = String.raw`function(cap) {
       if(this.withCredentials)throw new Error('Credentialed requests are not supported.');
       const request=normalize(this._request.url,{method:this._request.method,headers:this._headers,body:this._request.method==='GET'||this._request.method==='HEAD'?null:body});
       const version=this._version;
+      if(this._responseType==='arraybuffer'||this._responseType==='blob')request.responseType=this._responseType;
       this._id=begin(request,this._timeout,result=>{
         this._id=0;if(version!==this._version)return;
-        if(result.error){this._status=0;this._statusText='';this._url='';this._text='';this._responseHeaders=new Headers();this._change(4);
+        if(result.error){this._status=0;this._statusText='';this._url='';this._text='';this._binary=null;this._responseHeaders=new Headers();this._change(4);
           if(version!==this._version)return;this._dispatch(result.error==='abort'?'abort':result.error==='timeout'?'timeout':'error');
           if(version===this._version)this._dispatch('loadend');return;}
         this._status=result.status;this._statusText=result.statusText??'';this._url=result.url??request.url;this._responseHeaders=new Headers(result.headers);
         this._change(2);if(version!==this._version)return;
-        this._text=result.body??'';this._change(3);if(version!==this._version)return;
-        const size=byteLength(this._text);this._dispatch('progress',{lengthComputable:true,loaded:size,total:size});if(version!==this._version)return;
+        if(result.bodyBase64!==undefined){const bytes=binaryBytes(result.bodyBase64);this._binary=this._responseType==='blob'?new Blob([bytes],{type:result.headers?.['content-type']??''}):bytes.buffer;}
+        else if(this._responseType==='arraybuffer'||this._responseType==='blob'){
+          const bytes=utf8Bytes(result.body??'');this._binary=this._responseType==='blob'?new Blob([bytes],{type:result.headers?.['content-type']??''}):bytes.buffer;
+        } else this._text=result.body??'';
+        this._change(3);if(version!==this._version)return;
+        const size=result.bodyBase64!==undefined?this._binary?.byteLength??this._binary?.size??0:byteLength(this._text);this._dispatch('progress',{lengthComputable:true,loaded:size,total:size});if(version!==this._version)return;
         this._change(4);if(version!==this._version)return;this._dispatch('load');if(version===this._version)this._dispatch('loadend');
       });
       this._dispatch('loadstart');
     }
-    abort(){const version=this._version;if(this._id)finish(this._id,failure('abort','The operation was aborted.'),true);if(version!==this._version)return;this._id=0;this._version++;this._state=0;this._status=0;this._statusText='';this._text='';this._url='';this._responseHeaders=new Headers();}
+    abort(){const version=this._version;if(this._id)finish(this._id,failure('abort','The operation was aborted.'),true);if(version!==this._version)return;this._id=0;this._version++;this._state=0;this._status=0;this._statusText='';this._text='';this._binary=null;this._url='';this._responseHeaders=new Headers();}
   }
   for(const [name,value]of Object.entries({UNSENT:0,OPENED:1,HEADERS_RECEIVED:2,LOADING:3,DONE:4})){
     Object.defineProperty(XMLHttpRequest,name,{value});Object.defineProperty(XMLHttpRequest.prototype,name,{value});

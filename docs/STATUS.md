@@ -41,6 +41,21 @@ checks separately pass Chromium, Firefox and WebKit. Enable live sockets through
 Validation: 410 JavaScript/Wasm tests pass, nine optional skips; TypeScript and production
 build pass. [Phone API contracts and limitations](PHONE.md).
 
+The [legacy/phone follow-up](compatibility/2026-09-18-legacy/README.md) adds byte-accurate
+ArrayBuffer/Blob XHR, more PebbleKit JS callbacks, error containment, and intact older PBW
+selection. Official per-app details recover the 17 missing collection releases for browsing
+and direct links. Across the separately sealed original and recovery batches, **407/600**
+offline profile scenarios completed without recorded errors, **199/200** titles installed
+somewhere, and **149/200** titles completed on at least one profile. All 94 prior completed
+cases retained their final frame hashes. These results are generic 20-second smoke coverage;
+126 cases still record companion errors, eight firmware errors, 51 execution stops, and six
+host timeout/budget outcomes. Root-level legacy builds on Gabbro caused 39 of the observed
+launch timeouts and are now rejected promptly; that last guard postdates the sealed captures.
+Live binary HTTP and WebSocket gates pass Chromium, Firefox, and WebKit. No universal app,
+settings-page, physical-hardware, or full-service compatibility is claimed.
+Validation: 416 JavaScript/Wasm tests pass (nine optional skips), Rust workspace tests,
+TypeScript, static PWA build, and live Chromium legacy-store browsing/installation pass.
+
 
 ## Hardware fidelity work
 

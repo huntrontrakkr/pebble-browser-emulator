@@ -116,6 +116,7 @@ export class VirtualPhone {
       appInfo: options.appInfo ?? { uuid: options.appId },
       accountToken: String(options.accountToken ?? ''),
       watchToken: String(options.watchToken ?? ''),
+      timelineToken: String(options.timelineToken ?? ''),
     };
     this.runtime = module.newRuntime();
     this.runtime.setMemoryLimit(this.limits.memoryBytes);
@@ -250,6 +251,13 @@ export class VirtualPhone {
   }
   dispose(): void {
     if (this.dead) return;
+    if (!this.failed && this.control) {
+      try {
+        this.withBudget(() => this.call('unload'));
+      } catch {
+        /* disposal must finish */
+      }
+    }
     this.dead = true;
     this.control?.dispose();
     this.context.dispose();
@@ -415,6 +423,14 @@ const BOOTSTRAP = String.raw`function(config) {
   // The official PKJS startup script aliases window to its own JS global.
   // This remains the isolated QuickJS global; no browser window/DOM is exposed.
   globalThis.window = globalThis;
+  const windowListeners = new Map();
+  globalThis.addEventListener = (type,callback) => {
+    if(typeof callback!=='function' && typeof callback?.handleEvent!=='function')throw new TypeError('Invalid window listener.');
+    type=String(type);if(!windowListeners.has(type))windowListeners.set(type,new Set());windowListeners.get(type).add(callback);
+  };
+  globalThis.removeEventListener = (type,callback) => windowListeners.get(String(type))?.delete(callback);
+  function windowEvent(type) {const event={type,target:globalThis};for(const callback of [...(windowListeners.get(type)??[])])
+    try{if(typeof callback==='function')callback.call(globalThis,event);else callback.handleEvent(event);}catch(error){reportGuestError(error);}}
   const stringify = JSON.stringify, parse = JSON.parse, keys = Object.keys;
   const NativeDate = Date;
   const limits = config.limits, appId = config.appId;
@@ -445,6 +461,10 @@ const BOOTSTRAP = String.raw`function(config) {
   } else for (const key of keys(messageKeys)) keyMap[key] = messageKeys[key];
   for (const key of keys(keyMap)) reverseKeys[String(keyMap[key])] = key;
   function emit(event) { event.timestamp = now; return emitHost(stringify(event)); }
+  function reportGuestError(error) {
+    if(/interrupted|out of memory/i.test(String(error)))throw error;
+    emit({type:'error',message:(String(error)+'\n'+String(error?.stack??'')).slice(0,4096)});
+  }
   function byteLength(value) {
     let bytes = 0;
     for (let i = 0; i < value.length; i++) {
@@ -509,7 +529,8 @@ const BOOTSTRAP = String.raw`function(config) {
     if (!chosen) {now=target; return false;}
     now = chosen.due;
     if (chosen.repeat) chosen.due += chosen.delay; else timers.delete(chosenId);
-    if (typeof chosen.callback === 'string') (0,eval)(chosen.callback); else chosen.callback(...chosen.args);
+    try {if (typeof chosen.callback === 'string') (0,eval)(chosen.callback); else chosen.callback(...chosen.args);}
+    catch(error) {reportGuestError(error);}
     return true;
   }
   const network = (${NETWORK_BOOTSTRAP})({emit, schedule, cancelTimer:id=>timers.delete(id), byteLength, limits, mode:config.network.mode, fixtures:config.network.fixtures});
@@ -529,7 +550,8 @@ const BOOTSTRAP = String.raw`function(config) {
     emit({type:'log',level,text});
   }
   globalThis.console = Object.freeze({log:(...a)=>log('log',a),info:(...a)=>log('info',a),warn:(...a)=>log('warn',a),error:(...a)=>log('error',a),debug:(...a)=>log('debug',a)});
-  function dispatch(type,event) { event.type = type; for (const callback of [...(listeners.get(type) ?? [])]) callback(event); }
+  function dispatch(type,event) { event.type = type; for (const callback of [...(listeners.get(type) ?? [])])
+    try {callback(event);} catch(error) {reportGuestError(error);} }
   function dictionary(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('AppMessage requires a dictionary.');
     const result = Object.create(null);
@@ -576,6 +598,12 @@ const BOOTSTRAP = String.raw`function(config) {
     getAppInfo() {return parse(stringify(config.appInfo));},
     getWatchToken() {return config.watchToken;},
     getAccountToken() {return config.accountToken;},
+    getTimelineToken(success,failure) {
+      if(typeof success!=='function')throw new TypeError('Timeline success callback is required.');
+      if(failure!==undefined&&typeof failure!=='function')throw new TypeError('Invalid timeline failure callback.');
+      schedule(()=>{if(config.timelineToken)success(config.timelineToken);
+        else if(typeof failure==='function')failure('Timeline token is unavailable in this simulation.');},0,false,[]);
+    },
     openURL(url) {
       url=String(url);
       if (!/^(https?:\/\/|data:text\/html(?:[;,]))/i.test(url)) throw new TypeError('Configuration requires HTTP(S) or an HTML data URL.');
@@ -593,7 +621,8 @@ const BOOTSTRAP = String.raw`function(config) {
     timer,
     location(json) {coordinates=parse(json);locationError=null; for (const [id,callbacks] of watchers) schedule(()=>{if(watchers.has(id))locationResult(callbacks.success,callbacks.error);},0,false,[]);},
     locationError(code,message) {locationError={code,message};for(const [id,callbacks] of watchers)schedule(()=>{if(watchers.has(id))locationResult(callbacks.success,callbacks.error);},0,false,[]);},
-    appmessage(json) {const incoming=parse(json), payload=Object.create(null); for(const key of keys(incoming)) payload[reverseKeys[key] ?? key]=incoming[key]; dispatch('appmessage',{payload});},
+    appmessage(json) {const incoming=parse(json), payload={}; for(const key of keys(incoming)) Object.defineProperty(payload,reverseKeys[key] ?? key,{value:incoming[key],enumerable:true,writable:true,configurable:true}); dispatch('appmessage',{payload});},
+    unload() {windowEvent('beforeunload');windowEvent('unload');},
     configuration() {dispatch('showConfiguration',{});},
     configurationClosed(response,requestId) {if(activeConfiguration===null || (requestId!==null && requestId!==activeConfiguration))return false; activeConfiguration=null;dispatch('webviewclosed',{response});return true;},
     websocketEvent(id,json) {return sockets.receive(id,parse(json));},

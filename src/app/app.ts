@@ -176,6 +176,7 @@ export class App implements AfterViewInit, OnDestroy {
   phoneWatchOverride = '';
   accountToken = '';
   watchToken = '';
+  timelineToken = '';
   phoneHttp = signal<string[]>([]);
   configuration = signal<PhoneConfiguration | null>(null);
   configurationPending = signal(false);
@@ -1054,7 +1055,11 @@ export class App implements AfterViewInit, OnDestroy {
       this.activeAppName.set(
         String(data.appinfo.shortName ?? data.appinfo.displayName ?? data.name),
       );
-      this.installStatus.set('Installed and launched: ' + data.uuid);
+      this.installStatus.set(
+        'Installed and launched: ' +
+          data.uuid +
+          (data.compatibility === 'legacy' ? ` (${data.selectedPlatform} legacy build)` : ''),
+      );
       this.log('INSTALL', this.installStatus());
       this.setScript({
         source: data.script,
@@ -1457,6 +1462,7 @@ export class App implements AfterViewInit, OnDestroy {
         watchInfo,
         accountToken: this.accountToken,
         watchToken: this.watchToken,
+        timelineToken: this.timelineToken,
         network: { mode: this.phoneNetworkMode, fixtures },
         storage,
         coordinates: {

@@ -61,3 +61,38 @@ test('PBW selection validates worker platform, UUID, presence and header before 
   assert.throws(() => appPackage(pack(binary(6, 0), binary(6)), 'flint'), /flag/);
   assert.throws(() => appPackage(pack(binary(6), new Uint8Array(140)), 'flint'), /header/);
 });
+
+test('Emery selects intact legacy Basalt/Aplite builds without rewriting their binary headers', () => {
+  const binary = (flag) => {
+    const bytes = new Uint8Array(140);
+    bytes.set([80, 66, 76, 65, 80, 80, 0, 0]);
+    new DataView(bytes.buffer).setUint32(96, flag << 6, true);
+    return bytes;
+  };
+  const pack = (target, flag, sdk = '3', declared = [target]) => {
+    const app = binary(flag),
+      prefix = target === 'root' ? '' : target + '/';
+    return zipSync({
+      'appinfo.json': strToU8(JSON.stringify({ sdkVersion: sdk, targetPlatforms: declared })),
+      [prefix + 'manifest.json']: strToU8(
+        JSON.stringify({ application: { name: 'app.bin', size: app.length, crc: stm32Crc(app) } }),
+      ),
+      [prefix + 'app.bin']: app,
+    });
+  };
+  const old = pack('basalt', 0);
+  const selected = appPackage(old, 'emery');
+  assert.equal(selected.selectedPlatform, 'basalt');
+  assert.equal(selected.compatibility, 'legacy');
+  assert.deepEqual(selected.app, binary(0));
+  assert.equal(appPackage(pack('basalt', 2), 'emery').selectedPlatform, 'basalt');
+  assert.equal(appPackage(pack('aplite', 1), 'emery').selectedPlatform, 'aplite');
+  assert.equal(appPackage(pack('root', 0, '2', []), 'emery').selectedPlatform, 'root');
+  assert.equal(appPackage(pack('root', 0, '2', []), 'flint').selectedPlatform, 'root');
+  assert.throws(() => appPackage(pack('root', 0, '2', []), 'gabbro'), /no gabbro manifest/);
+  assert.equal(appPackage(old, 'flint').selectedPlatform, 'basalt');
+  assert.throws(() => appPackage(pack('chalk', 3), 'flint'), /no flint manifest/);
+  assert.throws(() => appPackage(pack('basalt', 5), 'emery'), /different watch platform/);
+  assert.throws(() => appPackage(pack('basalt', 0, '4'), 'emery'), /SDK 2\/3/);
+  assert.throws(() => appPackage(pack('basalt', 0, '3', ['aplite']), 'emery'), /conflicts/);
+});

@@ -17,7 +17,12 @@ import {
   repositoryPreview,
 } from '../src/app/preview-links.ts';
 import { bytesHash } from '../src/app/resource-cache.ts';
-import { storePage, storeAppId, storePackageUrl } from '../src/app/store-catalog.ts';
+import {
+  describeStoreApp,
+  storePage,
+  storeAppId,
+  storePackageUrl,
+} from '../src/app/store-catalog.ts';
 
 const origin = 'https://emulator.example';
 const artifact =
@@ -295,6 +300,51 @@ test('store catalog respects selected watch and reports unusable entries without
   assert.equal(page.incompatible, 1);
   assert.equal(page.count, 3, 'pagination advances over unsupported upstream entries too');
   assert.equal(page.more, true);
+});
+test('archived store rows recover their release and legacy builds open from direct links', async () => {
+  const archivedId = '52bb213af9846878c200015b';
+  const archivedPbw =
+    'https://appstore-api.repebble.com/api/assets/pbw/539d23e7138d66c704000077.pbw';
+  const detail = {
+    ...app,
+    id: archivedId,
+    title: 'Modern',
+    latest_release: { version: '3.1.1', pbw_file: archivedPbw },
+    hardware_platforms: [
+      { name: 'aplite', images: { screenshot: 'https://assets.repebble.com/modern.png' } },
+    ],
+  };
+  const calls = [];
+  const fetcher = async (url) => {
+    calls.push(url);
+    if (url === archivedPbw) return new Response('archived package');
+    if (url.includes('/api/v1/apps/id/')) return Response.json({ data: [detail] });
+    return Response.json({ data: [{ id: archivedId, title: 'Modern' }] });
+  };
+  const page = await storePage(
+    'qemu_emery',
+    'most-loved',
+    0,
+    new AbortController().signal,
+    fetcher,
+  );
+  assert.equal(page.apps.length, 1);
+  assert.equal(page.unavailable, 0);
+  assert.equal(page.apps[0].legacyCandidate, true);
+  assert.equal(page.apps[0].screenshot, 'https://assets.repebble.com/modern.png');
+  const result = await storePreview(
+    parsePreviewLink(`#/store/${archivedId}`),
+    new AbortController().signal,
+    () => {},
+    fetcher,
+  );
+  assert.equal(result.title, 'Modern');
+  assert.equal(result.target.pbw, archivedPbw);
+  assert.deepEqual(result.package.bytes, new TextEncoder().encode('archived package'));
+  assert.ok(calls.some((url) => url.includes('/api/v1/apps/id/')));
+  const rootOnly = { ...detail, hardware_platforms: [{ name: 'root' }] };
+  assert.equal(describeStoreApp(rootOnly, 'qemu_emery').legacyCandidate, true);
+  assert.equal(describeStoreApp(rootOnly, 'qemu_gabbro').legacyCandidate, false);
 });
 test('store download validation accepts the current, rebuilt and archived store layouts', () => {
   for (const path of [

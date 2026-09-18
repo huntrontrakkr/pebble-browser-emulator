@@ -17,6 +17,7 @@ Existing fields remain unchanged. Additional optional fields:
   appInfo: { /* package appinfo JSON */ },
   accountToken: string,
   watchToken: string,
+  timelineToken: string, // optional explicit test token; empty by default
   language: 'en-US', // optional phone locale; independent of watchInfo.language
   network: {
     mode: 'disabled' | 'fixtures' | 'cors',
@@ -30,6 +31,7 @@ Existing fields remain unchanged. Additional optional fields:
         headers: { 'content-type': 'application/json' },
         body: '{"temperature":23}'
       }
+      // Binary XHR fixture: { status: 200, bodyBase64: 'AP+ACg==', headers: {'content-type':'image/png'} }
       // Or response: { error: 'network' | 'timeout' | 'abort' | 'disabled' | 'limit', message?: string }
     }]
   }
@@ -39,6 +41,10 @@ Existing fields remain unchanged. Additional optional fields:
 Default network mode is `disabled`. Unmatched fixtures fail; HTTP 4xx/5xx remain HTTP responses, with XHR `load` and fetch `ok === false`. Fixtures are exact URL/method matches, checked in array order, and do not make network calls. CORS mode uses real browser `fetch` with `mode: 'cors'`, `credentials: 'omit'`, `referrerPolicy: 'no-referrer'`; it cannot bypass mixed-content, private-network, CSP, or CORS browser rules.
 
 Default watchInfo is null. Tokens default to empty strings, never fabricated real credentials. Supply stable simulator identities explicitly; watch tokens should be scoped to the simulated watch and app. App metadata defaults to `{uuid: appId}`. `getAppInfo()` is an emulator compatibility extension: it does not appear in the current official Pebble API documentation or mobile startup implementation.
+
+`Pebble.getTimelineToken(onSuccess,onFailure)` calls the failure callback when no token is
+supplied. An explicitly entered test token takes the success path. No timeline account or
+server is synthesized, and a test token does not authorize Pebble's public timeline API.
 
 `navigator.language` and the frozen one-element `navigator.languages` expose the phone locale.
 The browser Worker defaults to its browser locale; standalone/deterministic runs default to
@@ -69,12 +75,30 @@ Worker diagnostics include `websocket-command` and `websocket-result`; the UI tr
 individual displayed network records explicitly at 8 KiB. Direct hosts can route commands
 through `PhoneWebSocketNetwork` and return bounded events through `deliverWebSocketEvent`.
 
+## Binary HTTP and callback errors
+
+XHR supports `responseType = 'arraybuffer'` and `'blob'` with exact binary bytes. Live
+responses are streamed and capped at 256 KiB before base64 transfer into QuickJS; text
+responses retain their 1 MiB limit. Binary fixtures use `bodyBase64`, checked before the
+VM receives it. `responseText` is unavailable for binary/JSON response types. Browser
+fetch is invoked with its proper Worker context. The real browser gate exercises both
+binary response types across the Worker/QuickJS boundary.
+
+Incoming `appmessage` payloads are ordinary objects with `hasOwnProperty`, while each
+received key is defined as an own data property to prevent prototype mutation.
+`window.addEventListener` and `removeEventListener` register listeners on the isolated
+phone global; `beforeunload`/`unload` fire when that VM is disposed. There is no DOM.
+Exceptions in app event handlers and timers are recorded as phone errors, and subsequent
+events can run. Execution-budget and memory failures still stop the VM. An app that parses
+an empty configuration cancellation as JSON therefore remains visibly erroneous without
+freezing the whole simulated phone.
+
 ## Observable messages and cancellation
 
 Worker emits `{type:'event', phoneGeneration, event}`. New runtime events:
 
 ```ts
-{ type:'network-request', timestamp, request:{id,method,url,headers,body,timeoutMs} }
+{ type:'network-request', timestamp, request:{id,method,url,headers,body,timeoutMs,responseType?} }
 { type:'network-cancel', timestamp, requestId }
 { type:'configuration', timestamp, requestId, url }
 ```
@@ -108,13 +132,13 @@ app ID, with legacy session storage as a fallback. WebView storage is scoped sep
 
 ## Limits and explicit gaps
 
-Defaults: 8 pending HTTP requests, 8 KiB serialized requests, 1 MiB decoded response text, 30 s maximum request duration, 128 fixtures and at most 4 MiB aggregate fixture JSON (also capped by half of VM memory), 512 KiB configuration URL/response, 1 MiB queued event output. Existing 16 MiB QuickJS memory, execution deadline, timer, output, and message limits remain enforced. XHR timeouts and fixtures use virtual time; real browser fetch also has a wall-clock timeout.
+Defaults: 8 pending HTTP requests, 8 KiB serialized requests, 1 MiB decoded response text, 256 KiB binary responses, 30 s maximum request duration, 128 fixtures and at most 4 MiB aggregate fixture JSON (also capped by half of VM memory), 512 KiB configuration URL/response, 1 MiB queued event output. Existing 16 MiB QuickJS memory, execution deadline, timer, output, and message limits remain enforced. XHR timeouts and fixtures use virtual time; real browser fetch also has a wall-clock timeout.
 
 SDK array message keys reserve named blocks first from 10000, then single keys in declaration order. `window` aliases only the isolated QuickJS global, matching official mobile startup.
 
-Implemented: asynchronous XHR readyState, property/event-listener handlers, status/headers, text/JSON responses, timeout/abort, progress/completion events; fetch text/JSON response promises, Headers, clone/body consumption, AbortController/Signal; injected watch/app metadata/tokens; configuration request/return correlation.
+Implemented: asynchronous XHR readyState, property/event-listener handlers, status/headers, text/JSON/ArrayBuffer/Blob responses, timeout/abort, progress/completion events; fetch text/JSON response promises, Headers, clone/body consumption, AbortController/Signal; injected watch/app metadata/tokens; configuration request/return correlation and the token failure callback.
 
-Not implemented: complete Android/iOS app emulation, DOM/WebView execution in QuickJS, fetch Request/streams/binary/form data, XHR sync/binary/XML/MIME override/upload progress, credentialed HTTP requests/cookie management, modifying XHR timeout during flight, automatic external configuration interception, real account/timeline/AppGlance/notification services. Unsupported operations reject or throw; they do not report successful physical/network effects. Fetch is a useful compatibility addition, not a guarantee of historical iOS PKJS availability.
+Not implemented: complete Android/iOS app emulation, DOM/WebView execution in QuickJS, fetch Request/streams/binary/form data, XHR sync/XML/MIME override/upload progress, credentialed HTTP requests/cookie management, modifying XHR timeout during flight, automatic external configuration interception, real account/timeline/AppGlance/notification services. Unsupported operations reject or throw; they do not report successful physical/network effects. Fetch is a useful compatibility addition, not a guarantee of historical iOS PKJS availability.
 
 ## Primary sources checked
 
@@ -122,6 +146,7 @@ Not implemented: complete Android/iOS app emulation, DOM/WebView execution in Qu
 - Official retained [internationalization guide](https://developer.rebble.io/guides/tools-and-resources/internationalization/): phone `navigator.language`, separate from watch locale.
 - [WebSocket standard](https://websockets.spec.whatwg.org/): URL/protocol/state, binary payloads, buffering and close contracts. This is a bounded implementation, not a complete conformance claim.
 - Official [PebbleKit JS API](https://developer.repebble.com/docs/pebblekit-js/Pebble/): watch info, tokens, configuration event payloads, and actual watch ACK requirement.
+- Official [advanced communication guide](https://developer.repebble.com/guides/communication/advanced-communication/): binary image downloads require XHR `arraybuffer` and Uint8Array conversion.
 - Official [static configuration guide](https://developer.repebble.com/guides/user-interfaces/app-configuration-static/): encoded close fragments and `return_to`.
 - Official [emulator configuration explanation](https://developer.repebble.com/blog/2015/01/30/Pebble-Emulator-JavaScript-Simulation/): native URL interception versus browser callback convention.
 - Current official mobile source pinned to `d1cffc9e2cfa995ab81487c776cef08d99765997`: [startup API](https://github.com/coredevices/mobileapp/blob/d1cffc9e2cfa995ab81487c776cef08d99765997/libpebble3/src/androidMain/assets/startup.js), [watch-info construction](https://github.com/coredevices/mobileapp/blob/d1cffc9e2cfa995ab81487c776cef08d99765997/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/js/ActivePebbleWatchInfo.kt), [token scoping](https://github.com/coredevices/mobileapp/blob/d1cffc9e2cfa995ab81487c776cef08d99765997/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/js/PKJSInterface.kt), [model strings](https://github.com/coredevices/mobileapp/blob/d1cffc9e2cfa995ab81487c776cef08d99765997/libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/metadata/WatchColor.kt).
@@ -138,6 +163,7 @@ Worker/QuickJS bridge passes a local real-socket fixture in Chromium, Firefox an
 text/binary round trips, negotiated protocol, clean close, offline blocking and restart
 cleanup. Reproduce with `node scripts/verify-phone-websocket-browser.mjs`; set
 `PEBBLE_BROWSERS=chromium` for the CI subset. External app servers are not certified by this fixture.
+The same browser gate now checks exact binary XHR and Blob results in all three engines.
 
 
 ## Shared watch clock and sensor fixtures

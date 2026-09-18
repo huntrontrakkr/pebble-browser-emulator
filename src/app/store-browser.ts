@@ -64,7 +64,9 @@ import type { FirmwareProfile } from './watch-profiles.ts';
             }
             <div>
               <strong>{{ app.title }}</strong
-              ><span>{{ app.author }} · {{ app.version }}</span
+              ><span
+                >{{ app.author }} · {{ app.version
+                }}{{ app.legacyCandidate ? ' · Legacy build' : '' }}</span
               ><a [href]="app.listing" target="_blank" rel="noopener noreferrer">Store details ↗</a>
             </div>
             <button

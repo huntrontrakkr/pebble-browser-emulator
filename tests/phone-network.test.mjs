@@ -195,7 +195,7 @@ test('network limits bound pending, request/response data and timeout; HTTP 404 
   }
 });
 
-test('XHR JSON invalid response becomes null; synchronous/binary/credentialed operations fail explicitly', () => {
+test('XHR JSON invalid response becomes null; synchronous and credentialed operations fail explicitly', () => {
   const vm = make({
     network: fixtures([{ url: weather, response: { status: 200, body: 'invalid json' } }]),
   });
@@ -203,7 +203,117 @@ test('XHR JSON invalid response becomes null; synchronous/binary/credentialed op
     vm.start(
       `var x=new XMLHttpRequest();x.open('GET','${weather}');x.responseType='json';x.onload=()=>console.log(x.response===null);x.send();for(var f of [()=>new XMLHttpRequest().open('GET','${weather}',false),()=>{var q=new XMLHttpRequest();q.responseType='arraybuffer';},()=>{var q=new XMLHttpRequest();q.open('GET','${weather}');q.withCredentials=true;q.send();}])try{f()}catch(e){console.log('unsupported')}`,
     );
-    assert.deepEqual(logs(vm), ['unsupported', 'unsupported', 'unsupported', 'true']);
+    assert.deepEqual(logs(vm), ['unsupported', 'unsupported', 'true']);
+  } finally {
+    vm.dispose();
+  }
+});
+
+test('binary XHR fixtures preserve exact bytes, Blob MIME and responseText restrictions', () => {
+  const bodyBase64 = Buffer.from([0, 255, 128, 10]).toString('base64');
+  const vm = make({
+    network: fixtures([
+      {
+        url: weather,
+        response: { status: 200, headers: { 'Content-Type': 'image/png' }, bodyBase64 },
+      },
+    ]),
+  });
+  try {
+    vm.start(
+      `for(const type of ['arraybuffer','blob']){const x=new XMLHttpRequest();x.open('GET','${weather}');x.responseType=type;x.onload=()=>{console.log(type,x.status,x.response instanceof ArrayBuffer?Array.from(new Uint8Array(x.response)).join(','):x.response.size+':'+x.response.type);try{x.responseText}catch(e){console.log(e.message)}};x.send();}`,
+    );
+    const events = vm.drainEvents();
+    assert.deepEqual(
+      events.filter((e) => e.type === 'network-request').map((e) => e.request.responseType),
+      ['arraybuffer', 'blob'],
+    );
+    assert.deepEqual(
+      events.filter((e) => e.type === 'log').map((e) => e.text),
+      [
+        'arraybuffer 200 0,255,128,10',
+        'responseText is unavailable for this response type.',
+        'blob 200 4:image/png',
+        'responseText is unavailable for this response type.',
+      ],
+    );
+  } finally {
+    vm.dispose();
+  }
+});
+
+test('browser CORS adapter streams binary bytes without text replacement and enforces limits', async () => {
+  const bytes = Uint8Array.from([0, 255, 128, 10]);
+  const vm = make({ network: { mode: 'cors' } });
+  const host = new PhoneCorsNetwork(
+    (id, result) => vm.deliverNetworkResponse(id, result),
+    {},
+    async () =>
+      new Response(bytes, { status: 200, headers: { 'content-type': 'application/octet-stream' } }),
+  );
+  try {
+    vm.start(
+      `var x=new XMLHttpRequest();x.open('GET','${weather}');x.responseType='arraybuffer';x.onload=()=>console.log(Array.from(new Uint8Array(x.response)).join(','));x.send();`,
+    );
+    for (const event of vm.drainEvents()) host.handle(event);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    assert.deepEqual(logs(vm), ['0,255,128,10']);
+  } finally {
+    host.dispose();
+    vm.dispose();
+  }
+  const limited = make({
+    network: fixtures([
+      {
+        url: weather,
+        response: { status: 200, bodyBase64: Buffer.alloc(256 * 1024 + 1).toString('base64') },
+      },
+    ]),
+  });
+  try {
+    limited.start(
+      `var x=new XMLHttpRequest();x.open('GET','${weather}');x.responseType='arraybuffer';x.onerror=()=>console.log('limit');x.send();`,
+    );
+    assert.deepEqual(logs(limited), ['limit']);
+  } finally {
+    limited.dispose();
+  }
+});
+
+test('phone timeline token has an explicit success path and absent-token failure; incoming payload is an ordinary safe object', () => {
+  for (const [token, expected] of [
+    ['', 'failure'],
+    ['test-token', 'success test-token'],
+  ]) {
+    const vm = make({ timelineToken: token, messageKeys: { KIEZELPAY_STATUS_CHECK: 7 } });
+    try {
+      vm.start(
+        `window.addEventListener('beforeunload',()=>console.log('unload'));Pebble.addEventListener('ready',()=>Pebble.getTimelineToken(t=>console.log('success',t),()=>console.log('failure')));Pebble.addEventListener('appmessage',e=>console.log(e.payload.hasOwnProperty('KIEZELPAY_STATUS_CHECK'),Object.getPrototypeOf(e.payload)===Object.prototype));`,
+      );
+      vm.injectAppMessage({ 7: 1 });
+      assert.deepEqual(logs(vm), [expected, 'true true']);
+      vm.dispose();
+      assert.deepEqual(logs(vm), ['unload']);
+    } finally {
+      vm.dispose();
+    }
+  }
+});
+
+test('an app configuration callback error is reported while the phone keeps handling later messages', () => {
+  const vm = make();
+  try {
+    vm.start(
+      `Pebble.addEventListener('showConfiguration',()=>Pebble.openURL('https://example.com/settings'));Pebble.addEventListener('webviewclosed',e=>JSON.parse(e.response));Pebble.addEventListener('appmessage',e=>console.log('later',e.payload['7']));`,
+    );
+    vm.showConfiguration();
+    vm.drainEvents();
+    assert.equal(vm.closeConfiguration(null), true);
+    const errors = vm.drainEvents().filter((e) => e.type === 'error');
+    assert.equal(errors.length, 1);
+    assert.match(errors[0].message, /Unexpected end of JSON input/);
+    vm.injectAppMessage({ 7: 3 });
+    assert.deepEqual(logs(vm), ['later 3']);
   } finally {
     vm.dispose();
   }

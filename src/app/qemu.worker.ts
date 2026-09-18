@@ -868,13 +868,18 @@ self.onmessage = async ({ data }) => {
               message: `${progress.phase}: ${progress.sentBytes} / ${progress.totalBytes} bytes`,
             }),
           );
-          outcome = 'Installed and launched: ' + result.uuid;
+          outcome =
+            'Installed and launched: ' +
+            result.uuid +
+            (parts.compatibility === 'legacy' ? ` (${parts.selectedPlatform} legacy build)` : '');
           if (current === generation)
             postMessage({
               type: 'installed',
               ...result,
               script: parts.script,
               appinfo: parts.appinfo,
+              selectedPlatform: parts.selectedPlatform,
+              compatibility: parts.compatibility,
               name: data.name,
             });
         } catch (e) {

@@ -266,7 +266,7 @@ export async function storePreview(
   if (!url) {
     progress('Finding watchface…');
     const app = await storeApp(target.appId, target.profile, signal, request);
-    if (!app.platforms.includes(FIRMWARE_PROFILES[target.profile].platform))
+    if (!app.platforms.includes(FIRMWARE_PROFILES[target.profile].platform) && !app.legacyCandidate)
       throw new Error('This watchface has no package for the selected watch.');
     url = app.packageUrl;
     version = app.version;

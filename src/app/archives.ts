@@ -1,4 +1,4 @@
-import { APP_PLATFORMS, type AppPlatform } from './watch-profiles.ts';
+import { APP_PLATFORMS, LEGACY_APP_CHOICES, type AppPlatform } from './watch-profiles.ts';
 import { Gunzip, Unzip, UnzipInflate } from 'fflate';
 import { stm32Crc } from './pebble-transport.ts';
 import { crc32, zipDirectory } from './integrity.ts';
@@ -190,14 +190,44 @@ export function appPackage(
   worker?: Uint8Array;
   script: string;
   appinfo: Record<string, any>;
+  selectedPlatform: AppPlatform | 'root';
+  compatibility: 'native' | 'legacy';
 } {
   const info = inspectPackage(bytes);
   if (info.kind !== 'app') throw new Error('Select an app PBW, not a firmware PBZ.');
-  const files = info.files,
-    prefix = files[platform + '/manifest.json'] ? platform + '/' : '';
+  const files = info.files;
   if (!Object.hasOwn(APP_PLATFORMS, platform)) throw new Error('Unknown app platform.');
+  // Current generic firmware can install older builds unchanged. Prefer the
+  // closest display family, while keeping the actual source platform visible.
+  const native = !!files[platform + '/manifest.json'];
+  const legacyChoice = LEGACY_APP_CHOICES[platform]?.find(
+    (candidate) => !!files[candidate + '/manifest.json'],
+  );
+  const selectedPlatform: AppPlatform | 'root' = native
+    ? platform
+    : (legacyChoice ??
+      (platform !== 'gabbro' && LEGACY_APP_CHOICES[platform] && files['manifest.json']
+        ? 'root'
+        : platform));
+  const prefix = selectedPlatform === 'root' ? '' : selectedPlatform + '/';
   if (!files[prefix + 'manifest.json'])
     throw new Error('This PBW has no ' + platform + ' manifest.');
+  const legacy = selectedPlatform !== platform;
+  const appinfo = files['appinfo.json']
+    ? JSON.parse(new TextDecoder().decode(files['appinfo.json']))
+    : {};
+  if (legacy) {
+    const declared = appinfo.targetPlatforms;
+    if (
+      declared !== undefined &&
+      (!Array.isArray(declared) ||
+        (selectedPlatform !== 'root' && !declared.includes(selectedPlatform)))
+    )
+      throw new Error('Legacy PBW manifest conflicts with its declared target platforms.');
+    const sdk = appinfo.sdkVersion;
+    if (sdk !== undefined && !['2', '3'].includes(String(sdk)))
+      throw new Error('Legacy PBW requires an SDK 2/3 source package.');
+  }
   const manifest = JSON.parse(new TextDecoder().decode(files[prefix + 'manifest.json']));
   const part = (key: string, required = false): Uint8Array | undefined => {
     const descriptor = manifest[key];
@@ -218,9 +248,15 @@ export function appPackage(
       throw new Error('Invalid PBW ' + label + ' header.');
     const view = new DataView(binary.buffer, binary.byteOffset, binary.byteLength);
     const flags = view.getUint32(96, true);
-    if (((flags >> 6) & 15) !== APP_PLATFORMS[platform].id)
+    const encodedPlatform = (flags >> 6) & 15;
+    const expected = selectedPlatform === 'root' ? 1 : APP_PLATFORMS[selectedPlatform].id;
+    if (encodedPlatform !== expected && !(encodedPlatform === 0 && legacy))
       throw new Error(
-        'This ' + label + ' targets a different watch platform; ' + platform + ' is required.',
+        'This ' +
+          label +
+          ' targets a different watch platform; ' +
+          selectedPlatform +
+          ' is required.',
       );
     return flags;
   };
@@ -238,9 +274,9 @@ export function appPackage(
     resources: part('resources'),
     worker,
     script: files['pebble-js-app.js'] ? new TextDecoder().decode(files['pebble-js-app.js']) : '',
-    appinfo: files['appinfo.json']
-      ? JSON.parse(new TextDecoder().decode(files['appinfo.json']))
-      : {},
+    appinfo,
+    selectedPlatform,
+    compatibility: legacy ? 'legacy' : 'native',
   };
 }
 

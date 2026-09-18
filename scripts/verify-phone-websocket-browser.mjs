@@ -19,6 +19,7 @@ await build({
 const assets = new Map([
   ['/worker.mjs', [await readFile(resolve(out, 'worker.mjs')), 'text/javascript']],
   ['/quickjs.wasm', [await readFile('public/wasm/quickjs.wasm'), 'application/wasm']],
+  ['/binary', [Buffer.from([0, 255, 128, 10]), 'application/octet-stream']],
   ['/', [Buffer.from('<!doctype html><title>Phone WebSocket integration</title>'), 'text/html']],
 ]);
 let connections = 0;
@@ -120,6 +121,32 @@ try {
         ['OPEN phone-test', 'echo', '3,5,8', 'CLOSE 4001 done true'],
       );
       assert.equal(captured.filter((m) => m.type === 'error').length, 0);
+      await page.evaluate(
+        ({ base }) =>
+          phone.postMessage({
+            type: 'start',
+            appId: 'binary-fixture',
+            name: 'binary.js',
+            wasmUrl: base + '/quickjs.wasm',
+            network: { mode: 'cors' },
+            source: `for(const type of ['arraybuffer','blob']){const x=new XMLHttpRequest();x.open('GET','${base}/binary');x.responseType=type;x.onload=()=>{if(type==='arraybuffer')console.log('BINARY',Array.from(new Uint8Array(x.response)).join(','));else x.response.arrayBuffer().then(b=>console.log('BLOB',Array.from(new Uint8Array(b)).join(','),x.response.type));};x.send();}`,
+          }),
+        { base },
+      );
+      try {
+        await page.waitForFunction(
+          () => events.some((m) => m.event?.text === 'BLOB 0,255,128,10 application/octet-stream'),
+          {},
+          { timeout: 30000 },
+        );
+      } catch (error) {
+        console.error(JSON.stringify(await page.evaluate(() => events.slice(-20))));
+        throw error;
+      }
+      assert.equal(
+        await page.evaluate(() => events.some((m) => m.event?.text === 'BINARY 0,255,128,10')),
+        true,
+      );
       const mark = captured.length;
       await page.evaluate(
         ({ base }) =>
@@ -172,6 +199,7 @@ try {
       results.push({
         engine,
         liveTextAndBinary: true,
+        binaryHttp: true,
         cleanClose: true,
         offlineBlocked: true,
         restartQuarantined: true,

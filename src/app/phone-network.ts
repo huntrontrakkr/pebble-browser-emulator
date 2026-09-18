@@ -23,8 +23,22 @@ export function normalizeNetworkResult(
   }
   if (!Number.isInteger(result.status) || result.status < 200 || result.status > 599)
     throw new TypeError('Invalid HTTP response status.');
-  if (typeof result.body !== 'string') throw new TypeError('Network responses must contain text.');
-  if (byteLength(result.body) > maxBytes)
+  if (
+    (typeof result.body !== 'string' && typeof result.bodyBase64 !== 'string') ||
+    (result.body !== undefined && result.bodyBase64 !== undefined)
+  )
+    throw new TypeError('Network responses must contain text or base64 bytes.');
+  if (
+    result.bodyBase64 !== undefined &&
+    (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(result.bodyBase64) ||
+      result.bodyBase64.length > Math.ceil(Math.min(maxBytes, 256 * 1024) / 3) * 4 ||
+      atob(result.bodyBase64).length > Math.min(maxBytes, 256 * 1024))
+  )
+    return {
+      error: 'limit',
+      message: 'Network binary response limit exceeded or encoding invalid.',
+    };
+  if (result.body !== undefined && byteLength(result.body) > maxBytes)
     return { error: 'limit', message: 'Network response size limit exceeded.' };
   const headers: Record<string, string> = Object.create(null);
   for (const [key, value] of Object.entries(result.headers ?? {})) {
@@ -39,7 +53,8 @@ export function normalizeNetworkResult(
     status: result.status,
     statusText: String(result.statusText ?? '').slice(0, 256),
     headers,
-    body: result.body,
+    ...(result.body === undefined ? {} : { body: result.body }),
+    ...(result.bodyBase64 === undefined ? {} : { bodyBase64: result.bodyBase64 }),
     ...(result.url === undefined ? {} : { url: String(result.url).slice(0, 4096) }),
     redirected: !!result.redirected,
   };
@@ -106,7 +121,7 @@ export class PhoneCorsNetwork {
   constructor(
     deliver: (requestId: number, result: PhoneNetworkResult) => void,
     options: CorsNetworkLimits = {},
-    fetcher: typeof fetch = globalThis.fetch,
+    fetcher: typeof fetch = (input, init) => globalThis.fetch(input, init),
   ) {
     this.deliver = deliver;
     this.fetcher = fetcher;
@@ -196,8 +211,12 @@ export class PhoneCorsNetwork {
       });
       if (response.type === 'opaque' || response.type === 'opaqueredirect' || response.status === 0)
         throw new Error('The response is unavailable through browser CORS.');
+      const binary = request.responseType === 'arraybuffer' || request.responseType === 'blob';
+      const maximum = binary
+        ? Math.min(this.limits.responseBytes, 256 * 1024)
+        : this.limits.responseBytes;
       const advertised = Number(response.headers.get('content-length'));
-      if (Number.isFinite(advertised) && advertised > this.limits.responseBytes) {
+      if (Number.isFinite(advertised) && advertised > maximum) {
         finish({
           error: 'limit',
           message: 'Network response size limit exceeded.',
@@ -208,6 +227,7 @@ export class PhoneCorsNetwork {
       const decoder = new TextDecoder();
       let bytes = 0,
         body = '';
+      const chunks: Uint8Array[] = [];
       if (reader) {
         try {
           while (true) {
@@ -218,7 +238,7 @@ export class PhoneCorsNetwork {
             }
             if (part.done) break;
             bytes += part.value.byteLength;
-            if (bytes > this.limits.responseBytes) {
+            if (bytes > maximum) {
               await reader.cancel();
               finish({
                 error: 'limit',
@@ -226,12 +246,26 @@ export class PhoneCorsNetwork {
               });
               return;
             }
-            body += decoder.decode(part.value, { stream: true });
+            if (binary) chunks.push(part.value.slice());
+            else body += decoder.decode(part.value, { stream: true });
           }
-          body += decoder.decode();
+          if (!binary) body += decoder.decode();
         } finally {
           reader.releaseLock();
         }
+      }
+      let bodyBase64: string | undefined;
+      if (binary) {
+        const all = new Uint8Array(bytes);
+        let offset = 0;
+        for (const chunk of chunks) {
+          all.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+        let encoded = '';
+        for (let i = 0; i < all.length; i += 8192)
+          encoded += String.fromCharCode(...all.subarray(i, i + 8192));
+        bodyBase64 = btoa(encoded);
       }
       finish(
         normalizeNetworkResult(
@@ -239,7 +273,7 @@ export class PhoneCorsNetwork {
             status: response.status,
             statusText: response.statusText,
             headers: Object.fromEntries(response.headers.entries()),
-            body,
+            ...(binary ? { bodyBase64 } : { body }),
             url: response.url || url.href,
             redirected: response.redirected,
           },

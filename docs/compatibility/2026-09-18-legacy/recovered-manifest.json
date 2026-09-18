@@ -1,0 +1,486 @@
+{
+  "format": "pebble-compatibility-corpus",
+  "version": 1,
+  "createdAt": "2026-09-18T22:47:18.802Z",
+  "ranking": "Official Most Loved collection; public hearts, NOT measured usage or installs; emery discovery filter retained verbatim. This follow-up contains only the 17 originally missing releases, at their original ranks.",
+  "sources": [
+    {
+      "category": "watchapps-and-companions",
+      "url": "https://appstore-api.repebble.com/api/v1/apps/collection/most-loved/watchapps-and-companions?hardware=emery&limit=100&offset=0",
+      "retrievedAt": "2026-09-18T20:54:49.007Z",
+      "sha256": "1c18dba8ab3271f5ded631de5215b16e3ecb9e27d7fc035a930b8b46e7af8369"
+    },
+    {
+      "category": "watchfaces",
+      "url": "https://appstore-api.repebble.com/api/v1/apps/collection/most-loved/watchfaces?hardware=emery&limit=100&offset=0",
+      "retrievedAt": "2026-09-18T20:54:49.012Z",
+      "sha256": "e1dcfe35daaf03495d73b649e51f2456874615fb1b35bd8009bd54096585bd32"
+    }
+  ],
+  "profiles": [
+    "qemu_emery",
+    "qemu_flint",
+    "qemu_gabbro"
+  ],
+  "entries": [
+    {
+      "id": "52bb213af9846878c200015b",
+      "category": "watchfaces",
+      "rank": 4,
+      "title": "Modern",
+      "hearts": 14656,
+      "listing": "https://apps.repebble.com/app_52bb213af9846878c200015b",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.801Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52bb213af9846878c200015b?hardware=emery",
+        "path": "packages/52bb213af9846878c200015b.pbw",
+        "bytes": 52415,
+        "sha256": "ed128c7af8b6710adf0acbfdc7da4cb9b85a98d64dc26cf57ae289e86df5ff5c",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/539d23e7138d66c704000077.pbw",
+      "version": "3.1.1"
+    },
+    {
+      "id": "52d313a912ea3dcf84000024",
+      "category": "watchfaces",
+      "rank": 12,
+      "title": "Futura Weather",
+      "hearts": 5209,
+      "listing": "https://apps.repebble.com/app_52d313a912ea3dcf84000024",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52d313a912ea3dcf84000024?hardware=emery",
+        "path": "packages/52d313a912ea3dcf84000024.pbw",
+        "bytes": 32035,
+        "sha256": "a21ef1054fb062c4b74a3299b2e1eef21376c252e6b9bb55684ce7c1101b0996",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53a896738a8972a681000003.pbw",
+      "version": "2.1.0"
+    },
+    {
+      "id": "53d9650e4b87266dc9000082",
+      "category": "watchfaces",
+      "rank": 14,
+      "title": "Weather - powered by The Weather Channel",
+      "hearts": 4311,
+      "listing": "https://apps.repebble.com/app_53d9650e4b87266dc9000082",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/53d9650e4b87266dc9000082?hardware=emery",
+        "path": "packages/53d9650e4b87266dc9000082.pbw",
+        "bytes": 81642,
+        "sha256": "713c8888187eeeac8069675a73099a463170b3b6b4a0b2ca76f0bf5f2d63d292",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53e162c8aab27136ee000205.pbw",
+      "version": "1.0.1"
+    },
+    {
+      "id": "52b1e8b2c8363d5ecd000012",
+      "category": "watchfaces",
+      "rank": 23,
+      "title": "Revolution",
+      "hearts": 2625,
+      "listing": "https://apps.repebble.com/app_52b1e8b2c8363d5ecd000012",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52b1e8b2c8363d5ecd000012?hardware=emery",
+        "path": "packages/52b1e8b2c8363d5ecd000012.pbw",
+        "bytes": 22453,
+        "sha256": "884523f2765fb4ac7d489df50ecf961f93d085a02bb0260f1e47c51873bfc80a",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52d2a26bcc1d0d43e4000049.pbw",
+      "version": "2.0.1"
+    },
+    {
+      "id": "52cb29b36e5f7044c7000065",
+      "category": "watchfaces",
+      "rank": 27,
+      "title": "Retro Clock",
+      "hearts": 2430,
+      "listing": "https://apps.repebble.com/app_52cb29b36e5f7044c7000065",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52cb29b36e5f7044c7000065?hardware=emery",
+        "path": "packages/52cb29b36e5f7044c7000065.pbw",
+        "bytes": 13896,
+        "sha256": "2851bee6b96aaa527f5993c96b764818d570bcf3bfd6b29eaf1d6340b9cb04d1",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52e59867561013e64d0007fd.pbw",
+      "version": "2.0.1"
+    },
+    {
+      "id": "5429c7b7dfdebeb8dd000021",
+      "category": "watchfaces",
+      "rank": 28,
+      "title": "UP for Pebble",
+      "hearts": 2419,
+      "listing": "https://apps.repebble.com/app_5429c7b7dfdebeb8dd000021",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/5429c7b7dfdebeb8dd000021?hardware=emery",
+        "path": "packages/5429c7b7dfdebeb8dd000021.pbw",
+        "bytes": 47790,
+        "sha256": "5ff8bf1058a1dbb508736035fc2fc6143d349fafa42930b37e56abe7f94083c8",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/542adfb27352297c170000c5.pbw",
+      "version": "2.0"
+    },
+    {
+      "id": "5299e91ee627ce56e70000b5",
+      "category": "watchfaces",
+      "rank": 30,
+      "title": "Dotz",
+      "hearts": 2299,
+      "listing": "https://apps.repebble.com/app_5299e91ee627ce56e70000b5",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/5299e91ee627ce56e70000b5?hardware=emery",
+        "path": "packages/5299e91ee627ce56e70000b5.pbw",
+        "bytes": 13038,
+        "sha256": "7610b122174608f29aee6b4b09dbd54b9c6d9a463400bf4b0f653520716730e8",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5299e980129af7c02a000097.pbw",
+      "version": "1.0.0"
+    },
+    {
+      "id": "55558c2a44dad6b80f000088",
+      "category": "watchfaces",
+      "rank": 34,
+      "title": "Enigma",
+      "hearts": 2139,
+      "listing": "https://apps.repebble.com/app_55558c2a44dad6b80f000088",
+      "advertisedPlatforms": [
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/55558c2a44dad6b80f000088?hardware=emery",
+        "path": "packages/55558c2a44dad6b80f000088.pbw",
+        "bytes": 10328,
+        "sha256": "da99f076b039ec444d9d5cf1616bbff8a089cd1d8f1cba1276555f672abdad95",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/555c330defc72feb4100006e.pbw",
+      "version": "1.1"
+    },
+    {
+      "id": "52d4239b9260fee2a200002a",
+      "category": "watchfaces",
+      "rank": 46,
+      "title": "Mario",
+      "hearts": 1925,
+      "listing": "https://apps.repebble.com/app_52d4239b9260fee2a200002a",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52d4239b9260fee2a200002a?hardware=emery",
+        "path": "packages/52d4239b9260fee2a200002a.pbw",
+        "bytes": 14082,
+        "sha256": "e0d6de54e8a48fa6e9e0cb570b3042dcb4f68cd4f898eb130981dfe9fcccb634",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52e988b9ca97922178000006.pbw",
+      "version": "2.1.0"
+    },
+    {
+      "id": "52da8234227cbe482b000120",
+      "category": "watchfaces",
+      "rank": 47,
+      "title": "Perspective",
+      "hearts": 1916,
+      "listing": "https://apps.repebble.com/app_52da8234227cbe482b000120",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52da8234227cbe482b000120?hardware=emery",
+        "path": "packages/52da8234227cbe482b000120.pbw",
+        "bytes": 14508,
+        "sha256": "a0b204ef1027a53249bbd5f3a3ceb326f690c365537d4b951391a1fb39bbe94e",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/apps/52da8234227cbe482b000120/releases/1.1.3.pbw",
+      "version": "1.1.3"
+    },
+    {
+      "id": "52cc32f86e5f706530000178",
+      "category": "watchfaces",
+      "rank": 62,
+      "title": "Super Watchface",
+      "hearts": 1486,
+      "listing": "https://apps.repebble.com/app_52cc32f86e5f706530000178",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52cc32f86e5f706530000178?hardware=emery",
+        "path": "packages/52cc32f86e5f706530000178.pbw",
+        "bytes": 70592,
+        "sha256": "7205fdbf35c2a7907cf5a3bab5fc82def584f5cbcc7efb32a979345a8141dc0f",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/531eaeee654e2a77d3000624.pbw",
+      "version": "1.8.1"
+    },
+    {
+      "id": "52ef7ab0c503c88bdf00001a",
+      "category": "watchfaces",
+      "rank": 70,
+      "title": "Fuzzy Text International",
+      "hearts": 1406,
+      "listing": "https://apps.repebble.com/app_52ef7ab0c503c88bdf00001a",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52ef7ab0c503c88bdf00001a?hardware=emery",
+        "path": "packages/52ef7ab0c503c88bdf00001a.pbw",
+        "bytes": 15185,
+        "sha256": "42fd6fef2892a7869c40e9254c3ed0172830afe4667c66199f3220e7a7d440f7",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/530a9c09fc62a56e5100006d.pbw",
+      "version": "1.2.1"
+    },
+    {
+      "id": "545a816804c3122d02000075",
+      "category": "watchfaces",
+      "rank": 73,
+      "title": "Pixwag (Black)",
+      "hearts": 1348,
+      "listing": "https://apps.repebble.com/app_545a816804c3122d02000075",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/545a816804c3122d02000075?hardware=emery",
+        "path": "packages/545a816804c3122d02000075.pbw",
+        "bytes": 18120,
+        "sha256": "ee855071bd8e382e4731134311fa1e16ab205c5d90c656b3901ae2774d1cb562",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/545a81783ee6120b7c000001.pbw",
+      "version": "1.0"
+    },
+    {
+      "id": "546b75b8bef790baf90000bb",
+      "category": "watchfaces",
+      "rank": 76,
+      "title": "Velocity",
+      "hearts": 1254,
+      "listing": "https://apps.repebble.com/app_546b75b8bef790baf90000bb",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/546b75b8bef790baf90000bb?hardware=emery",
+        "path": "packages/546b75b8bef790baf90000bb.pbw",
+        "bytes": 47734,
+        "sha256": "b3448bc13b0e3f601d8428fa912382f3c465bba9c489a6ea0e9bb4785d6361b6",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/apps/546b75b8bef790baf90000bb/releases/4.3.pbw",
+      "version": "4.3"
+    },
+    {
+      "id": "5303d8bc7097ac4d3e000359",
+      "category": "watchfaces",
+      "rank": 82,
+      "title": "Metro Watch",
+      "hearts": 1181,
+      "listing": "https://apps.repebble.com/app_5303d8bc7097ac4d3e000359",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/5303d8bc7097ac4d3e000359?hardware=emery",
+        "path": "packages/5303d8bc7097ac4d3e000359.pbw",
+        "bytes": 12971,
+        "sha256": "a617124a051d9afaf5304c2c63569290da79dd2016c97cd7b756942993db31e7",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/549839b7835244be3c0000e0.pbw",
+      "version": "1.1"
+    },
+    {
+      "id": "52fb0de14c38ce7afc000302",
+      "category": "watchfaces",
+      "rank": 83,
+      "title": "Rolex Steel",
+      "hearts": 1174,
+      "listing": "https://apps.repebble.com/app_52fb0de14c38ce7afc000302",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/52fb0de14c38ce7afc000302?hardware=emery",
+        "path": "packages/52fb0de14c38ce7afc000302.pbw",
+        "bytes": 21567,
+        "sha256": "88caf7a4eb2286a8d0e60fbb4d74c6abc9c40c40c7f3d39ebea212af6d101f80",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52fb0df332b71669290002ff.pbw",
+      "version": "1.0.0"
+    },
+    {
+      "id": "530907d5ab1ae2f1290005ec",
+      "category": "watchfaces",
+      "rank": 98,
+      "title": "Periodic",
+      "hearts": 1031,
+      "listing": "https://apps.repebble.com/app_530907d5ab1ae2f1290005ec",
+      "advertisedPlatforms": [
+        "root"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T22:47:18.802Z",
+        "source": "official app detail endpoint; original collection release absent",
+        "detailUrl": "https://appstore-api.repebble.com/api/v1/apps/id/530907d5ab1ae2f1290005ec?hardware=emery",
+        "path": "packages/530907d5ab1ae2f1290005ec.pbw",
+        "bytes": 13468,
+        "sha256": "191b94d54ddde277826ede84e714a5d85804f4650ef61202b3bec60ba28aa1bb",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T22:47:18.802Z"
+          }
+        ]
+      },
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53c5f6223750136b90000079.pbw",
+      "version": "1.0.4"
+    }
+  ]
+}

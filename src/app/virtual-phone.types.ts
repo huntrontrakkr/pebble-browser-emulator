@@ -51,6 +51,8 @@ export interface VirtualPhoneOptions {
   /** Explicit simulator identity, not a real Pebble account/device credential. */
   accountToken?: string;
   watchToken?: string;
+  /** Explicit test token; absent tokens follow the documented failure callback. */
+  timelineToken?: string;
   network?: PhoneNetworkOptions;
 }
 export type VirtualPhoneEvent =
@@ -93,13 +95,16 @@ export interface PhoneNetworkRequest {
   headers: Record<string, string>;
   body: string | null;
   timeoutMs: number;
+  responseType?: 'arraybuffer' | 'blob';
 }
 export type PhoneNetworkResult =
   | {
       status: number;
       statusText?: string;
       headers?: Record<string, string>;
-      body: string;
+      body?: string;
+      /** Base64 encoded response bytes for a binary XHR. */
+      bodyBase64?: string;
       url?: string;
       redirected?: boolean;
     }

@@ -156,6 +156,7 @@ async function handleMessage(data: any, fromClockPort = false) {
         appInfo: data.appInfo,
         watchToken: data.watchToken,
         accountToken: data.accountToken,
+        timelineToken: data.timelineToken,
         network: data.network,
       });
       if (data.network?.mode === 'cors') {

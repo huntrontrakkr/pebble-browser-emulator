@@ -20,6 +20,12 @@ export const APP_PLATFORMS: Record<
   flint: { id: 6, width: 144, height: 168, colors: 2, round: false },
   gabbro: { id: 7, width: 260, height: 260, colors: 64, round: true },
 };
+/** Package selection order for generic firmware's older app compatibility path. */
+export const LEGACY_APP_CHOICES: Partial<Record<AppPlatform, readonly AppPlatform[]>> = {
+  emery: ['basalt', 'aplite', 'diorite'],
+  flint: ['diorite', 'aplite', 'basalt'],
+  gabbro: ['chalk', 'basalt', 'aplite', 'diorite'],
+};
 export const FIRMWARE_PROFILES: Record<
   FirmwareProfile,
   { id: number; platform: AppPlatform; label: string; model: string }

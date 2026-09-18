@@ -1,0 +1,25 @@
+{
+  "format": "pebble-legacy-store-browser-smoke",
+  "version": 1,
+  "capturedAt": "2026-09-18T23:09:40.254Z",
+  "engine": "chromium",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "profile": "qemu_emery",
+  "appId": "52bb213af9846878c200015b",
+  "listing": "Modern\nŁukasz Zalewski · 3.1.1 · Legacy build\nStore details ↗\nTry",
+  "title": "Modern",
+  "requests": [
+    "https://appstore-api.repebble.com/api/v1/apps/collection/most-loved/watchfaces?hardware=emery&limit=20&offset=0",
+    "https://appstore-api.repebble.com/api/v1/apps/id/52bb213af9846878c200015b?hardware=emery",
+    "https://appstore-api.repebble.com/api/assets/pbw/539d23e7138d66c704000077.pbw"
+  ],
+  "frame": {
+    "width": 200,
+    "height": 228,
+    "sha256": "1ad185c0312ef9b1d7a355e1bfd884a3649b3442d7a076bf1e3e3e273feb1193"
+  },
+  "pageErrors": []
+}

@@ -111,6 +111,13 @@ within a CPU batch.
 
 ## Evaluation and acceptance limits
 
+The [legacy PBW/phone follow-up](compatibility/2026-09-18-legacy/README.md) reruns the
+unchanged 200-title corpus and separately captures 17 formerly missing collection PBWs
+from official per-app details. Each batch was sealed before its evaluation; combined counts
+substitute those 17 recovery rows by the same title/profile IDs. Its 407 completed scenarios
+and 149 completing titles are bounded offline smoke results. The sealed reports retain errors
+and predate the subsequent explicit rejection of root-level legacy builds on Gabbro.
+
 After all planned terminal records exist, capture writes a SHA-256 inventory and seal.
 Evaluation verifies these before reading results, then writes `evaluation/report.json`,
 `cases.csv`, `SUMMARY.md`, and a filterable screenshot gallery `index.html`. HTML escapes
