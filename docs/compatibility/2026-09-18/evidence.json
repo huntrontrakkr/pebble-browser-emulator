@@ -1,0 +1,432 @@
+{
+  "format": "pebble-census-evidence-index",
+  "version": 1,
+  "rawDirectory": "tmp/compatibility-census-2026-09-18-ticks",
+  "baselineRawDirectory": "tmp/compatibility-census-2026-09-18-v2",
+  "rawSealSha256": "d418df58a7e78ec77e64eb3285d585d6c0821e2bf8a83992402131ed28cbfcfd",
+  "baselineSealSha256": "50ac6945096e0045edacf72798653ce180dd191bb61a8a12a5b16f9a2d9ab116",
+  "manifestSha256": "b034d619062591b9297f01ec45ebf8c3ba48d04bd8edecfbb5bf32bc151bb1af",
+  "baselineManifestSha256": "b034d619062591b9297f01ec45ebf8c3ba48d04bd8edecfbb5bf32bc151bb1af",
+  "wasmSha256": "5d572e09431e1447b43e64c52d240af3dcdd18e9f6811651d1a3ea193981148a",
+  "firmwareHashes": {
+    "qemu_emery_v4.37.0_micro_flash.bin": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+    "qemu_emery_v4.37.0_spi_flash.bin": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5",
+    "qemu_flint_v4.37.0_micro_flash.bin": "d4c9094ddc750393e61cdab1fbdb5cd8ace5eeb4a149f76c9ee780c10e0bd1ee",
+    "qemu_flint_v4.37.0_spi_flash.bin": "ff32ba50ba869bc02130910a4f399437e7b2a2708d43f2eb2f0739edcfd7f315",
+    "qemu_gabbro_v4.37.0_micro_flash.bin": "c58e3670cd7cd0a80788761d80274c3684a59e17fef28c3c3706280edae1cd2c",
+    "qemu_gabbro_v4.37.0_spi_flash.bin": "0e25a15062465a33470be6136c85a9ac39429c8277db30b28f34a02db57273ed"
+  },
+  "captureSource": [
+    {
+      "path": "benchmark.mjs",
+      "bytes": 1937,
+      "sha256": "35d58dcee1c26a7a1338a3d0f0fdaa8988ab8b2409336fd922f94b7a9c50fc56"
+    },
+    {
+      "path": "capture-case.mjs",
+      "bytes": 16865,
+      "sha256": "ccf96cfbc1b81ed5ee41801cbfa5ecc1b6b22745572346d7f7761518e3cec112"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 4945,
+      "sha256": "3d9ace97c885639fa06cc17c3f6b0515d63623f486f8a3e29900c3c812ca3f6f"
+    },
+    {
+      "path": "corpus.mjs",
+      "bytes": 4518,
+      "sha256": "4bea6b7874954328f5b2a73564e78cb5c822e4d475fa880c3e8528139b51a76e"
+    },
+    {
+      "path": "evaluate.mjs",
+      "bytes": 14216,
+      "sha256": "be2338b1e3a9620aaa04c100b9ead4e3a346f763e0409d7972df4862252d2162"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 6610,
+      "sha256": "b27a5d1374831839a6c457e29fab31f4849333e7f7bb9a2f0eaa2e9e84e526ef"
+    }
+  ],
+  "runtimeSource": [
+    {
+      "path": "app-message-router.ts",
+      "bytes": 1596,
+      "sha256": "cf6e60aaf9723dc0fb8dd4b11ea4f13bb311d1a3c38789354ea52516f18750af"
+    },
+    {
+      "path": "app.config.ts",
+      "bytes": 190,
+      "sha256": "0d89d2482b81f6aa9605d8480e7797b8ab24229194e012eeb38f204ffb6080cd"
+    },
+    {
+      "path": "app.html",
+      "bytes": 31533,
+      "sha256": "bd455bafab576049ecd4dde6b980070aea7f1fc23a196193809eb600184dc6e9"
+    },
+    {
+      "path": "app.ts",
+      "bytes": 56760,
+      "sha256": "045a4224931dc2bec87fde1be4176ca8d8676553dfee12514c827c2d4011f109"
+    },
+    {
+      "path": "archive.worker.ts",
+      "bytes": 686,
+      "sha256": "3dd68bcbc70c5493a4d24cf60ee691e031e5f58924421ad8d6a67c51782c58d7"
+    },
+    {
+      "path": "archives.ts",
+      "bytes": 9643,
+      "sha256": "23580410a2efdad3369872fdd2fb3046251b5908db81d9ee142c84575eb5a43e"
+    },
+    {
+      "path": "board-registry.ts",
+      "bytes": 3303,
+      "sha256": "0f8ac0a81675ec240ec9160f24c39bf3f2ab3c9dab89bef0147b2b4e58102a46"
+    },
+    {
+      "path": "buffered-history.ts",
+      "bytes": 866,
+      "sha256": "6d7121f95211e91682ae3110a64cbd812d2de614f47cae4529c78745d3d82760"
+    },
+    {
+      "path": "build-recipe.ts",
+      "bytes": 3841,
+      "sha256": "47788421cfeacfb4242c9eb29ff300e01faea62017d45840b518b468dc5fa3e8"
+    },
+    {
+      "path": "clock-barrier.ts",
+      "bytes": 695,
+      "sha256": "02726bcd18852cd05a5da653948a311eec7e7cb3c44327ecb6b9eb1d8d7517ac"
+    },
+    {
+      "path": "demo-settings-panel.html",
+      "bytes": 8116,
+      "sha256": "d47079b54b0d0091e119f22c679f13c1c10c0e0e4e4b2f23334a557a3fcf2dbd"
+    },
+    {
+      "path": "demo-settings-panel.ts",
+      "bytes": 2668,
+      "sha256": "4ec02ae508ceaa0262adb030ebdbae0a77791c57afc3b59ffe54ac2a7ff5a207"
+    },
+    {
+      "path": "demo-settings.ts",
+      "bytes": 7461,
+      "sha256": "e9254ed79e130b5e554f6772d3db65025a603e1aac399061cfab304f77c29d8b"
+    },
+    {
+      "path": "demo-timeline.ts",
+      "bytes": 3687,
+      "sha256": "230633db18fc8835c1a0ce54900fc0cc9bf90048d71268869380aaaa2d69d4a6"
+    },
+    {
+      "path": "display.ts",
+      "bytes": 2123,
+      "sha256": "13b221342c8fabecf53080ed9913c8569e00defd60811df8042963305684677f"
+    },
+    {
+      "path": "emulator.types.ts",
+      "bytes": 1089,
+      "sha256": "d90fb0297016624ffe6e912a0fa8516c40fce186c30e418ef44e55d72b5d54a4"
+    },
+    {
+      "path": "emulator.worker.ts",
+      "bytes": 4887,
+      "sha256": "1339bcdcca78fc1cbc33394b9851e7b2bd7abec7d0dc33b706c39db50e7f210f"
+    },
+    {
+      "path": "fidelity-evidence.ts",
+      "bytes": 9975,
+      "sha256": "a4628bd1db29c314b5dd4560a2b5a3c6c1677486ff186c474da95b0f621d20d6"
+    },
+    {
+      "path": "firmware-bundle.ts",
+      "bytes": 3358,
+      "sha256": "c0222de7fb247b968afd22960053ac611cba321b0db644b2aaaaf2136371fbf4"
+    },
+    {
+      "path": "firmware-catalog.ts",
+      "bytes": 2699,
+      "sha256": "eead23215333aecd25395f53ad0bc59b2f65fa809b6a28c572690d4bf72b7384"
+    },
+    {
+      "path": "firmware-downloads.ts",
+      "bytes": 2397,
+      "sha256": "c0ba66ba2257906bb68030393321b971bf2c3d782537529dd97f842ed8d96482"
+    },
+    {
+      "path": "firmware-image.ts",
+      "bytes": 1822,
+      "sha256": "6d39a7cef2e20fd27c98463fe044bd06594203cccb02a963eedea60c760724ba"
+    },
+    {
+      "path": "firmware-panel.ts",
+      "bytes": 15456,
+      "sha256": "5ae112df789f3d813aa4884a568af9f0b792f0f53e4d253eef5a0fa7327fb988"
+    },
+    {
+      "path": "frame-comparison.ts",
+      "bytes": 3140,
+      "sha256": "bba996e3abcea57eed4ea01e686834599c63f94bee17ae7c9d3f273f544f117a"
+    },
+    {
+      "path": "frame-panel.ts",
+      "bytes": 4747,
+      "sha256": "892e34af8c7258bec8785503b50c157f3fa5a920fd92d712bf88acd463aeca0d"
+    },
+    {
+      "path": "inspector-tools.ts",
+      "bytes": 1804,
+      "sha256": "2bfebfb644352af5e6fd75b340bf08a0c0c782c5874f1724f4998f5276a59f5c"
+    },
+    {
+      "path": "integrity.ts",
+      "bytes": 4268,
+      "sha256": "00c03aba80743099080f66b57e4e76ff6beac0d5cad5a4cc2da3735663cc94af"
+    },
+    {
+      "path": "linux-build-panel.ts",
+      "bytes": 10210,
+      "sha256": "a79b300bea5fa4119e2f586129dd4976891544569e9a791679444effd37f7a6e"
+    },
+    {
+      "path": "linux-build-runtime.ts",
+      "bytes": 11924,
+      "sha256": "3498cf7951ac16f155ea2506d65c1af38f333dcfe434de4c972dde1dc0ef12e4"
+    },
+    {
+      "path": "linux-build.worker.ts",
+      "bytes": 526,
+      "sha256": "e485795b2fbe5a26d3c75c770956b21ab941d06c65f961e5ac4fc5a0f809503b"
+    },
+    {
+      "path": "local-store.ts",
+      "bytes": 2681,
+      "sha256": "1347de65303810caffef72abb35cb95e3268d91701aefcc275a80491f3bf7571"
+    },
+    {
+      "path": "network-bootstrap.ts",
+      "bytes": 13801,
+      "sha256": "96b45a9c11e89053800a8c69b49e0e109be444ef3278aa6e753e7f1f74baab37"
+    },
+    {
+      "path": "pebble-transport.ts",
+      "bytes": 24107,
+      "sha256": "80c52949302e941e9fc18ec8fdf0767b834efdb28ab653a8cca8e7b1b61a8884"
+    },
+    {
+      "path": "phone-app-panel.ts",
+      "bytes": 6382,
+      "sha256": "3800c9e8f2704a62a06477fdf6e429a20322d5b18bc5cdf1965a5ab3c2d5e500"
+    },
+    {
+      "path": "phone-network.ts",
+      "bytes": 9267,
+      "sha256": "a7cabc44eaaf5e13f1225021214d3ec29b1ec36fe0a2cc0e9eea6f3655857f8d"
+    },
+    {
+      "path": "phone.worker.ts",
+      "bytes": 9988,
+      "sha256": "3f40fbe39678f696217429214fcc8abe103cc4513ac5f1c9360344fd317699f2"
+    },
+    {
+      "path": "preferences-panel.ts",
+      "bytes": 16395,
+      "sha256": "9823a2bd7bb88cf88bcabc855ab22769e01dac53dc853c0a15429fc11d0cd70a"
+    },
+    {
+      "path": "preview-firmware.ts",
+      "bytes": 8490,
+      "sha256": "0e90511b90c44da76cd359fd5510c0493ed2f01bb8bde381c11d126806cd92ad"
+    },
+    {
+      "path": "preview-links.ts",
+      "bytes": 11542,
+      "sha256": "c48c1e813567b4de5d3c58dfef38122515cae7ba51d6cc6e6dc5cef7144b4fd3"
+    },
+    {
+      "path": "preview-panel.ts",
+      "bytes": 20822,
+      "sha256": "46bf748e82f1679a09cb015eb72304d9f69f64e6a2614b904bb5a43e29ec914c"
+    },
+    {
+      "path": "project-panel.ts",
+      "bytes": 17619,
+      "sha256": "3d89c7cddaf40d4d25879dee273a2bf87a6894aced9bbff50fe1b4bb52f0319e"
+    },
+    {
+      "path": "projects.ts",
+      "bytes": 9546,
+      "sha256": "38c771452488568dea2471d5c0214a7ef034aafaf288dc362ad7d3dece74f8c8"
+    },
+    {
+      "path": "qemu.worker.ts",
+      "bytes": 31439,
+      "sha256": "7dc9d36d0d9b61aea8324d5d3ab2456200cd1bb2fd6318aa9fe56455689c6b2c"
+    },
+    {
+      "path": "resource-cache.ts",
+      "bytes": 3701,
+      "sha256": "f8ef29d5754b3ccd69a8de9840c5c1aecd9774b62881e4681606cad2e9c273f9"
+    },
+    {
+      "path": "resource-fetch.ts",
+      "bytes": 4647,
+      "sha256": "e3847ce25f94d0f5e3fd121de7506d98e7eceb8c2f520b303154fe29898494c2"
+    },
+    {
+      "path": "scheduled-inputs.ts",
+      "bytes": 711,
+      "sha256": "5cc73a96ad287acefb2c9e28fadeeb4405c5d1b4b0a4ce06ec47e64be5b97b9d"
+    },
+    {
+      "path": "sdk-files.ts",
+      "bytes": 694,
+      "sha256": "d01eb1992193f2ca51f2dfa31135f3030faaca094fe1515d88fc896870678400"
+    },
+    {
+      "path": "sensor-panel.html",
+      "bytes": 8329,
+      "sha256": "66cef1d7883c8a64e17420534add072129cc730874b1c6b0a7df5c4da33f18c6"
+    },
+    {
+      "path": "sensor-panel.ts",
+      "bytes": 5373,
+      "sha256": "8fc09617c92aedce73e617c2b548260d91a460bd6f4ac1ac97a7da8f0c6f543f"
+    },
+    {
+      "path": "sifli-image-audit.ts",
+      "bytes": 10386,
+      "sha256": "5baf0863d680c8581c7a2405e21d08e5c0a6b89ea21dafcc1a71acbaeb769e47"
+    },
+    {
+      "path": "signals.ts",
+      "bytes": 11377,
+      "sha256": "c907d0628e754bd2a2f71b9f263518a87707526eddce6ceb49fe651699235102"
+    },
+    {
+      "path": "startup-checkpoint.ts",
+      "bytes": 6214,
+      "sha256": "0cc6706086d527364462ea3a5de4c8c8599ce0f00c58d59291150deb9e0e2cfd"
+    },
+    {
+      "path": "store-browser.ts",
+      "bytes": 7229,
+      "sha256": "07d31b4a22034d8a4fe83895fee0c5998e681348f935c6c513a3886b7380ddee"
+    },
+    {
+      "path": "store-catalog.ts",
+      "bytes": 5374,
+      "sha256": "0cdae9da4cf35ca2831d09e09b93ad011e32c228f98e77ef77a23785f186d9f3"
+    },
+    {
+      "path": "uart-writer.ts",
+      "bytes": 1287,
+      "sha256": "67731f95c00d81b630c65056e8fabb23c6f8485bff8b877c114feec33e4c24e8"
+    },
+    {
+      "path": "virtual-phone.ts",
+      "bytes": 27248,
+      "sha256": "973927706b3caf9b7c11623a0ab6a4a588a84ae82c5f763c0ffd0323b2cc6e7c"
+    },
+    {
+      "path": "virtual-phone.types.ts",
+      "bytes": 3434,
+      "sha256": "ace0d31510abca4575cc3d15bd472c622be17733455b7dc62fd205bce2bd625a"
+    },
+    {
+      "path": "wasm-memory-limit.ts",
+      "bytes": 2291,
+      "sha256": "7e7f7ba44999f3053738d2e394ea3682f44e1f6472c2432029cb54dc0761b1c1"
+    },
+    {
+      "path": "watch-gestures.ts",
+      "bytes": 1389,
+      "sha256": "bfadb8550a054cf02fae89cb054fac9d7b93988adc7f7ed4c246650704fa3df0"
+    },
+    {
+      "path": "watch-lighting.ts",
+      "bytes": 2192,
+      "sha256": "094224a33f39807ba33b2e4350e7e47dc71f481bb33de733e84ba14e9c971cbb"
+    },
+    {
+      "path": "watch-model-geometry.ts",
+      "bytes": 2496,
+      "sha256": "81788e7f54ee6d33430802ee957731a86d66a8d23ddc00dbf06e372a153d9867"
+    },
+    {
+      "path": "watch-model-loader.ts",
+      "bytes": 1999,
+      "sha256": "ba8f7f0fcbf1cf9a7d5febb3bfd4b4dea7c5034c6d4695b121ba544b048b61f9"
+    },
+    {
+      "path": "watch-model-specs.ts",
+      "bytes": 3133,
+      "sha256": "611f66a82867d1c65091aef422e8247913a5e79d0beb6e6c9f0da126539c03b6"
+    },
+    {
+      "path": "watch-model.ts",
+      "bytes": 14951,
+      "sha256": "29e7643111a4c7ceedaf97d99739db1831af8b60b01c6f2732767851a15c0c9c"
+    },
+    {
+      "path": "watch-model.worker.ts",
+      "bytes": 3072,
+      "sha256": "ed1c11661d7552490321195ed777799d253ae66dfd153c7e2e0218234ec5af7d"
+    },
+    {
+      "path": "watch-optics-profile.ts",
+      "bytes": 496,
+      "sha256": "f6c0206064d82c34dd5f82ef7e8780a0e3e019779426d093d1e53ef40ce3e101"
+    },
+    {
+      "path": "watch-optics.ts",
+      "bytes": 8403,
+      "sha256": "b3d2ccbb71651844f7b5222dc15ffa835ded21460e9e60fc675c838308b79d37"
+    },
+    {
+      "path": "watch-preferences.ts",
+      "bytes": 893,
+      "sha256": "3fb93a567fe317e47e8b84b1b30ba350cd91f14e01ed9ac790eee1faf6c19a4f"
+    },
+    {
+      "path": "watch-profiles.ts",
+      "bytes": 3889,
+      "sha256": "0be56ae00f5e8d543910db14236b49896e3131cedec5acabce6ab85f128d8355"
+    },
+    {
+      "path": "worker-scheduler.ts",
+      "bytes": 755,
+      "sha256": "a553a04e8f39e03a825d6edf8dda3fdfacf7a9979dcf1b8b1bd48acdc22aa25f"
+    }
+  ],
+  "evaluationSha256": "28ec2aa224e36310eff86d1f5c8b54352568550dff4e998c25dc78b47ff2648f",
+  "node": "v24.21.0",
+  "machine": {
+    "cpus": 24,
+    "availableMemoryBytes": 99608129536,
+    "totalMemoryBytes": 101246410752,
+    "model": "12th Gen Intel(R) Core(TM) i9-12900KF",
+    "workers": 20
+  },
+  "workers": 20,
+  "durationMs": 20000,
+  "timeoutMs": 300000,
+  "execution": {
+    "workers": 20,
+    "hostMs": 223370.717696,
+    "casesPerMinute": 161.16705166786807,
+    "recordedProcessCpuUs": 4205448433,
+    "peakWorkerRssKiB": 220976,
+    "artifactBytes": 1201299444
+  },
+  "limitations": [
+    "Execution budgets use host wall time. Budget overruns are inconclusive and can reflect load or expensive guest code; they are not independently proven emulator defects.",
+    "Popularity is the official Most Loved collection (hearts), not measured usage; the emery query filter is part of the snapshot.",
+    "Unmodified PBWs only; older platform binaries are not remapped or rebuilt. Physical targets remain paused.",
+    "20-second generic-core scenario with real sandboxed PKJS, seeded inputs and offline networking. No settings-page DOM/save, Android/iOS companion, live service, notification/calendar or full UI acceptance in this census.",
+    "Scenario completion means only bounded execution without the recorded error patterns; it does not establish correct rendering, hardware fidelity, cycles, long-term stability or every app feature.",
+    "Frame comparisons are within-run pixel changes, with no physical/reference correctness oracle. Frames are sampled at CPU boundaries; transient guest frames may be missed.",
+    "Instruction/MMIO traces are bounded 1000-step windows once per virtual second; serial/event caps and trace drop counts are explicit. UART captures are bytes available from the core; hardware overflow cannot be reconstructed."
+  ]
+}

@@ -7,6 +7,27 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Generic release and compatibility census
+
+Physical-device bring-up is paused at its existing evidence gates. The three generic
+profiles remain the usable release target; no new physical compatibility is claimed.
+A separate [batch census](COMPATIBILITY_CENSUS.md) snapshots 100 Most Loved apps and
+100 Most Loved watchfaces, captures all three generic profiles in isolated parallel
+processes, seals raw artifacts, and only then evaluates the entire batch. Public hearts
+are a popularity proxy, not usage counts. Missing downloads and incompatible native
+binaries remain explicit corpus entries. The census includes real offline QuickJS
+companions, bounded traces, UART/packet logs, core snapshots and framebuffer comparisons;
+full browser/configuration-page and live-service acceptance remain separate gates.
+The [2026-09-18 census](compatibility/2026-09-18/README.md) completed all 600 planned case
+records before evaluation: 62/200 titles installed on at least one generic profile and
+37/200 completed the bounded offline scenario. Across profiles, 77 cases completed and
+41 stopped with companion errors; 431 lacked compatible binaries and 51 represented the
+17 titles without download URLs. A harness float-deadline bug found after the initial
+batch was fixed and the entire identical corpus rerun: zero timeouts, with all 46 prior
+completed-case final frames unchanged. The corrected capture took 3m43s with 20 workers
+and retained 1.2 GB of raw evidence. These are smoke results, not universal compatibility.
+
+
 ## Hardware fidelity work
 
 The [five-stage implementation plan](../HARDWARE_FIDELITY_PLAN.md) is saved in the repository

@@ -1,0 +1,390 @@
+{
+  "summary": {
+    "execution": {
+      "workers": 20,
+      "hostMs": 223370.717696,
+      "casesPerMinute": 161.16705166786807,
+      "recordedProcessCpuUs": 4205448433,
+      "peakWorkerRssKiB": 220976,
+      "artifactBytes": 1201299444
+    },
+    "categories": {
+      "watchapps-and-companions": {
+        "total": 100,
+        "installed": 28,
+        "completed": 20,
+        "unavailable": 0
+      },
+      "watchfaces": {
+        "total": 100,
+        "installed": 34,
+        "completed": 17,
+        "unavailable": 17
+      }
+    },
+    "platforms": {
+      "qemu_emery": {
+        "no-compatible-binary": 121,
+        "scenario-completed": 37,
+        "execution-stopped": 25,
+        "download-unavailable": 17
+      },
+      "qemu_flint": {
+        "no-compatible-binary": 158,
+        "scenario-completed": 18,
+        "execution-stopped": 7,
+        "download-unavailable": 17
+      },
+      "qemu_gabbro": {
+        "no-compatible-binary": 152,
+        "scenario-completed": 22,
+        "execution-stopped": 9,
+        "download-unavailable": 17
+      }
+    },
+    "companionErrorGroups": {
+      "earlier companion execution error": 4,
+      "configuration cancel": 23,
+      "other companion error": 4,
+      "undefined value during initialization": 4,
+      "missing WebSocket": 6
+    },
+    "phoneStarted": 88,
+    "frameComparisons": 118,
+    "traceDrops": 0,
+    "transitions": {
+      "no-compatible-binary → no-compatible-binary": 431,
+      "scenario-completed → scenario-completed": 46,
+      "host-timeout → scenario-completed": 31,
+      "execution-stopped → execution-stopped": 30,
+      "host-timeout → execution-stopped": 11,
+      "download-unavailable → download-unavailable": 51
+    },
+    "previouslyCompletedFramesMatching": 46,
+    "previouslyCompleted": 46
+  },
+  "comparisons": [
+    {
+      "id": "686578b965207500093d5a94-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "686578b965207500093d5a94-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "54a1ba1afc5f23e4c000012d-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "540f7cafbc27450164000157-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "540f7cafbc27450164000157-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "55b6cd955e0716cd6b0000a1-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "55b6cd955e0716cd6b0000a1-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "55b6c2c3e68f5acdfc00008d-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "52b77e12dfa4228e8200000a-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "52b77e12dfa4228e8200000a-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5620e876768e7ada4e00007a-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "54551598997cdfddaa000043-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "692b3821d7dcba000a809ba5-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "692b3821d7dcba000a809ba5-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "692b3821d7dcba000a809ba5-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "60ec78db1342ae0152f9a409-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "60ec78db1342ae0152f9a409-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "553aaf29bf1a5965020000c8-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5387b383f60819963900000e-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "10966bb2d22145c4b428dfd7-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "e4f66f24bb0a440b9f6aad69-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "e4f66f24bb0a440b9f6aad69-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "532286232c5d4dc499b5918c-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "532286232c5d4dc499b5918c-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "533966299820be90ed0000c5-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "533966299820be90ed0000c5-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "53381b17d1719b42b800028b-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "53381b17d1719b42b800028b-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "53381b17d1719b42b800028b-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "535cf7f618c570bf05000023-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "550ccb556caaed4e0100006d-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5616de1d7bc7a6ef0a000026-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "54f791b593d5fbffb1000090-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "52db68da227cbe482b000313-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "31cfe29ecd814df4b5ca8bb4-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "559f0fffe2b45a3231000098-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "555a3ce1c2afa28d5800000f-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5299d4da129af7d723000079-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5299d4da129af7d723000079-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5472c040c13ebf3ddf000045-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5472c040c13ebf3ddf000045-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "5787d959ff7be04f750001b9-qemu_emery",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "577527d3ba2fe5a0c1000599-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "577527d3ba2fe5a0c1000599-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "57719ccc6c2104ad170001c8-qemu_flint",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    },
+    {
+      "id": "57719ccc6c2104ad170001c8-qemu_gabbro",
+      "before": "scenario-completed",
+      "after": "scenario-completed",
+      "finalFrameMatches": true,
+      "virtualTimeMatches": true
+    }
+  ]
+}

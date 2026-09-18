@@ -1,0 +1,793 @@
+"title","category","rank","profile","outcome","reason","hostMs","uniqueFrames"
+"Misfit","watchapps-and-companions","1","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","259.724341","0"
+"Misfit","watchapps-and-companions","1","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","301.59777399999996","0"
+"Misfit","watchapps-and-companions","1","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","307.41733400000004","0"
+"Music Boss","watchapps-and-companions","2","qemu_emery","scenario-completed","","90384.102537","75"
+"Music Boss","watchapps-and-companions","2","qemu_flint","scenario-completed","","72665.212482","107"
+"Music Boss","watchapps-and-companions","2","qemu_gabbro","scenario-completed","","90733.960622","70"
+"Pixel Miner","watchapps-and-companions","3","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","322.10993600000006","0"
+"Pixel Miner","watchapps-and-companions","3","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","296.04546000000005","0"
+"Pixel Miner","watchapps-and-companions","3","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","294.43302199999994","0"
+"Morpheuz","watchapps-and-companions","4","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","303.384197","0"
+"Morpheuz","watchapps-and-companions","4","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","325.21141000000006","0"
+"Morpheuz","watchapps-and-companions","4","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","265.03221299999996","0"
+"Battery+","watchapps-and-companions","5","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","262.312458","0"
+"Battery+","watchapps-and-companions","5","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","285.53608299999996","0"
+"Battery+","watchapps-and-companions","5","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","284.24489500000004","0"
+"Timer+","watchapps-and-companions","6","qemu_emery","scenario-completed","","29697.294006","87"
+"Timer+","watchapps-and-companions","6","qemu_flint","scenario-completed","","22848.686331","94"
+"Timer+","watchapps-and-companions","6","qemu_gabbro","scenario-completed","","28127.498812","63"
+"Compass","watchapps-and-companions","7","qemu_emery","scenario-completed","","75126.642077","118"
+"Compass","watchapps-and-companions","7","qemu_flint","scenario-completed","","52799.200854","161"
+"Compass","watchapps-and-companions","7","qemu_gabbro","scenario-completed","","77216.38555","114"
+"Cards for Pebble","watchapps-and-companions","8","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","293.4385920000001","0"
+"Cards for Pebble","watchapps-and-companions","8","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","281.334032","0"
+"Cards for Pebble","watchapps-and-companions","8","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","264.615864","0"
+"Tiny Bird","watchapps-and-companions","9","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","248.064387","0"
+"Tiny Bird","watchapps-and-companions","9","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","249.67293299999994","0"
+"Tiny Bird","watchapps-and-companions","9","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","272.3394400000001","0"
+"Dialer for Pebble","watchapps-and-companions","10","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","256.467039","0"
+"Dialer for Pebble","watchapps-and-companions","10","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","246.333524","0"
+"Dialer for Pebble","watchapps-and-companions","10","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","228.00741100000005","0"
+"Timer","watchapps-and-companions","11","qemu_emery","scenario-completed","","30243.823407000003","110"
+"Timer","watchapps-and-companions","11","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","270.38433299999997","0"
+"Timer","watchapps-and-companions","11","qemu_gabbro","scenario-completed","","30861.598412","69"
+"Stopwatch","watchapps-and-companions","12","qemu_emery","scenario-completed","","34256.613444","103"
+"Stopwatch","watchapps-and-companions","12","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","231.92804999999998","0"
+"Stopwatch","watchapps-and-companions","12","qemu_gabbro","scenario-completed","","37622.54073","65"
+"Sports","watchapps-and-companions","13","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","214.00537199999997","0"
+"Sports","watchapps-and-companions","13","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","211.40941499999997","0"
+"Sports","watchapps-and-companions","13","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","205.04823299999998","0"
+"Sleep as Android","watchapps-and-companions","14","qemu_emery","scenario-completed","","30971.792257","108"
+"Sleep as Android","watchapps-and-companions","14","qemu_flint","scenario-completed","","27139.409343","87"
+"Sleep as Android","watchapps-and-companions","14","qemu_gabbro","scenario-completed","","26874.726565","60"
+"Snowy","watchapps-and-companions","15","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","209.42922099999987","0"
+"Snowy","watchapps-and-companions","15","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","214.93499799999995","0"
+"Snowy","watchapps-and-companions","15","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","210.89311900000007","0"
+"Maptastic","watchapps-and-companions","16","qemu_emery","execution-stopped","Error: Virtual phone stopped after an execution error.","19128.47036","44"
+"Maptastic","watchapps-and-companions","16","qemu_flint","execution-stopped","Error: Virtual phone stopped after an execution error.","17226.084952999998","35"
+"Maptastic","watchapps-and-companions","16","qemu_gabbro","execution-stopped","Error: Virtual phone stopped after an execution error.","19443.495529","40"
+"Glance","watchapps-and-companions","17","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","156.37737300000003","0"
+"Glance","watchapps-and-companions","17","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","160.13681199999996","0"
+"Glance","watchapps-and-companions","17","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","135.909993","0"
+"FitCat","watchapps-and-companions","18","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","134.00348899999995","0"
+"FitCat","watchapps-and-companions","18","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","133.930611","0"
+"FitCat","watchapps-and-companions","18","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","142.64321300000006","0"
+"PinyWings","watchapps-and-companions","19","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","134.41707300000007","0"
+"PinyWings","watchapps-and-companions","19","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","143.12965200000008","0"
+"PinyWings","watchapps-and-companions","19","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","145.6949450000002","0"
+"Swarm by Foursquare","watchapps-and-companions","20","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","122.05131699999993","0"
+"Swarm by Foursquare","watchapps-and-companions","20","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","124.45812800000022","0"
+"Swarm by Foursquare","watchapps-and-companions","20","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","141.23771799999986","0"
+"Weather","watchapps-and-companions","21","qemu_emery","scenario-completed","","27745.306366","109"
+"Weather","watchapps-and-companions","21","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","145.24462200000198","0"
+"Weather","watchapps-and-companions","21","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","135.82448300000033","0"
+"Steps - stopwatch with step counter (pedometer) that works without phone","watchapps-and-companions","22","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","156.2261980000003","0"
+"Steps - stopwatch with step counter (pedometer) that works without phone","watchapps-and-companions","22","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","145.08682600000247","0"
+"Steps - stopwatch with step counter (pedometer) that works without phone","watchapps-and-companions","22","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","149.26872899999944","0"
+"Checklist","watchapps-and-companions","23","qemu_emery","scenario-completed","","28163.445841999997","110"
+"Checklist","watchapps-and-companions","23","qemu_flint","scenario-completed","","24107.590578000003","90"
+"Checklist","watchapps-and-companions","23","qemu_gabbro","scenario-completed","","25806.788025","82"
+"Pedometer","watchapps-and-companions","24","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","145.17251599999872","0"
+"Pedometer","watchapps-and-companions","24","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","143.35782200000176","0"
+"Pedometer","watchapps-and-companions","24","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","150.91395399999965","0"
+"Battery lifetime (color)","watchapps-and-companions","25","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","147.16327099999762","0"
+"Battery lifetime (color)","watchapps-and-companions","25","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","149.4032359999983","0"
+"Battery lifetime (color)","watchapps-and-companions","25","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","139.98994799999855","0"
+"Dashboard","watchapps-and-companions","26","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","140.236283000002","0"
+"Dashboard","watchapps-and-companions","26","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","139.32577500000116","0"
+"Dashboard","watchapps-and-companions","26","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","141.14993500000128","0"
+"GoPro","watchapps-and-companions","27","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","147.96849199999997","0"
+"GoPro","watchapps-and-companions","27","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","140.75760000000082","0"
+"GoPro","watchapps-and-companions","27","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","141.29893699999957","0"
+"Multi Timer","watchapps-and-companions","28","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","145.15511600000173","0"
+"Multi Timer","watchapps-and-companions","28","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","144.68856900000173","0"
+"Multi Timer","watchapps-and-companions","28","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","138.33273800000097","0"
+"Obelisk","watchapps-and-companions","29","qemu_emery","scenario-completed","","78572.14555799999","50"
+"Obelisk","watchapps-and-companions","29","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","190.141936","0"
+"Obelisk","watchapps-and-companions","29","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","191.93378100000336","0"
+"7-Minute+","watchapps-and-companions","30","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","165.81415800000104","0"
+"7-Minute+","watchapps-and-companions","30","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","152.315891000002","0"
+"7-Minute+","watchapps-and-companions","30","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","139.6462759999995","0"
+"Mr. Runner","watchapps-and-companions","31","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","150.4396889999989","0"
+"Mr. Runner","watchapps-and-companions","31","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.28683499999897","0"
+"Mr. Runner","watchapps-and-companions","31","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","174.08401199999935","0"
+"Gentle Wake (Daily Smart Alarm Clock with Sleep Monitoring)","watchapps-and-companions","32","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","152.2829750000019","0"
+"Gentle Wake (Daily Smart Alarm Clock with Sleep Monitoring)","watchapps-and-companions","32","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","146.89127900000312","0"
+"Gentle Wake (Daily Smart Alarm Clock with Sleep Monitoring)","watchapps-and-companions","32","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","163.58125999999902","0"
+"Football Pal","watchapps-and-companions","33","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","200.24040799999784","0"
+"Football Pal","watchapps-and-companions","33","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","183.3589060000013","0"
+"Football Pal","watchapps-and-companions","33","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","175.1560079999981","0"
+"Authenticator","watchapps-and-companions","34","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","159.86081999999806","0"
+"Authenticator","watchapps-and-companions","34","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","155.00192600000082","0"
+"Authenticator","watchapps-and-companions","34","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","176.67521900000065","0"
+"JavaPay","watchapps-and-companions","35","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","167.7268929999991","0"
+"JavaPay","watchapps-and-companions","35","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","161.64240900000004","0"
+"JavaPay","watchapps-and-companions","35","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","158.2985570000019","0"
+"Note To Self","watchapps-and-companions","36","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'charAt' of null
+    at <anonymous> (pebble-js-app.js:63:9)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","25943.936912999998","104"
+"Note To Self","watchapps-and-companions","36","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","157.65672099999938","0"
+"Note To Self","watchapps-and-companions","36","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","157.85577900000135","0"
+"MiniDungeon","watchapps-and-companions","37","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","156.49280599999838","0"
+"MiniDungeon","watchapps-and-companions","37","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","160.9106329999995","0"
+"MiniDungeon","watchapps-and-companions","37","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","155.89303999999902","0"
+"Watchie-Talkie","watchapps-and-companions","38","qemu_emery","execution-stopped","Error: TypeError: not a function
+    at <anonymous> (<input>:87:26)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","16635.003475999998","30"
+"Watchie-Talkie","watchapps-and-companions","38","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","161.93873200000235","0"
+"Watchie-Talkie","watchapps-and-companions","38","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","131.65810599999895","0"
+"WW - Weather Watch","watchapps-and-companions","39","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","154.1544580000009","0"
+"WW - Weather Watch","watchapps-and-companions","39","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","138.60518700000102","0"
+"WW - Weather Watch","watchapps-and-companions","39","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","160.16941700000098","0"
+"Alarms++","watchapps-and-companions","40","qemu_emery","scenario-completed","","34956.123944000006","97"
+"Alarms++","watchapps-and-companions","40","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","177.7578450000001","0"
+"Alarms++","watchapps-and-companions","40","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.79840899999908","0"
+"Notes","watchapps-and-companions","41","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","177.75573000000077","0"
+"Notes","watchapps-and-companions","41","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","160.71853399999964","0"
+"Notes","watchapps-and-companions","41","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","169.76541799999904","0"
+"Watchfaces+ Color","watchapps-and-companions","42","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","164.22428500000024","0"
+"Watchfaces+ Color","watchapps-and-companions","42","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","149.76233200000206","0"
+"Watchfaces+ Color","watchapps-and-companions","42","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","177.02897500000108","0"
+"7-Minute Workout","watchapps-and-companions","43","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","178.2630969999991","0"
+"7-Minute Workout","watchapps-and-companions","43","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","147.0801050000009","0"
+"7-Minute Workout","watchapps-and-companions","43","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","150.99787600000127","0"
+"Voice2Timeline","watchapps-and-companions","44","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","166.32776999999987","0"
+"Voice2Timeline","watchapps-and-companions","44","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","161.67248599999948","0"
+"Voice2Timeline","watchapps-and-companions","44","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","166.3678629999995","0"
+"Blocks","watchapps-and-companions","45","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","163.75852999999915","0"
+"Blocks","watchapps-and-companions","45","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","142.82821900000272","0"
+"Blocks","watchapps-and-companions","45","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.48533400000088","0"
+"Hatchi - A retro virtual pet","watchapps-and-companions","46","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","179.7028369999971","0"
+"Hatchi - A retro virtual pet","watchapps-and-companions","46","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","177.87802700000248","0"
+"Hatchi - A retro virtual pet","watchapps-and-companions","46","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","155.83848600000056","0"
+"Rain","watchapps-and-companions","47","qemu_emery","execution-stopped","Error: Virtual phone stopped after an execution error.","20106.493906","37"
+"Rain","watchapps-and-companions","47","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","177.76920400000017","0"
+"Rain","watchapps-and-companions","47","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","186.71057799999835","0"
+"LAST SIGNAL","watchapps-and-companions","48","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","161.48003000000244","0"
+"LAST SIGNAL","watchapps-and-companions","48","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","149.67762700000094","0"
+"LAST SIGNAL","watchapps-and-companions","48","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","177.22195199999987","0"
+"My Steps","watchapps-and-companions","49","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","178.08690800000113","0"
+"My Steps","watchapps-and-companions","49","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.10833600000115","0"
+"My Steps","watchapps-and-companions","49","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","142.65184000000227","0"
+"PebbCN","watchapps-and-companions","50","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","158.11052299999938","0"
+"PebbCN","watchapps-and-companions","50","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","154.72601999999824","0"
+"PebbCN","watchapps-and-companions","50","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","156.09408199999962","0"
+"Ventoo - GPS sports tracker","watchapps-and-companions","51","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","169.52452500000072","0"
+"Ventoo - GPS sports tracker","watchapps-and-companions","51","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","192.2926469999984","0"
+"Ventoo - GPS sports tracker","watchapps-and-companions","51","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","174.94661500000075","0"
+"Directions","watchapps-and-companions","52","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","155.08168999999907","0"
+"Directions","watchapps-and-companions","52","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","174.07077700000082","0"
+"Directions","watchapps-and-companions","52","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","174.7638279999992","0"
+"QR Generator","watchapps-and-companions","53","qemu_emery","scenario-completed","","28503.783734","103"
+"QR Generator","watchapps-and-companions","53","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","161.50966899999912","0"
+"QR Generator","watchapps-and-companions","53","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","171.0282249999982","0"
+"Swim.com","watchapps-and-companions","54","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","169.73357399999804","0"
+"Swim.com","watchapps-and-companions","54","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","153.8571520000005","0"
+"Swim.com","watchapps-and-companions","54","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.97432400000253","0"
+"Games for Pebble","watchapps-and-companions","55","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","145.6912640000046","0"
+"Games for Pebble","watchapps-and-companions","55","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","165.11264099999607","0"
+"Games for Pebble","watchapps-and-companions","55","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","140.88293800000247","0"
+"Pokémon GO Radar (BETA)","watchapps-and-companions","56","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","193.92255200000363","0"
+"Pokémon GO Radar (BETA)","watchapps-and-companions","56","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","181.41150899999775","0"
+"Pokémon GO Radar (BETA)","watchapps-and-companions","56","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","164.87403900000209","0"
+"Rosewright Chronograph","watchapps-and-companions","57","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'replace' of undefined
+    at initialize (pebble-js-app.js:242:52)
+    at <anonymous> (pebble-js-app.js:339:15)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","26512.019556","47"
+"Rosewright Chronograph","watchapps-and-companions","57","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","191.08507599999575","0"
+"Rosewright Chronograph","watchapps-and-companions","57","qemu_gabbro","execution-stopped","Error: TypeError: cannot read property 'replace' of undefined
+    at initialize (pebble-js-app.js:242:52)
+    at <anonymous> (pebble-js-app.js:339:15)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","28102.976965","46"
+"Pebtris","watchapps-and-companions","58","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","148.16524099999515","0"
+"Pebtris","watchapps-and-companions","58","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","140.70597300000372","0"
+"Pebtris","watchapps-and-companions","58","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","143.51871199999732","0"
+"Twebble","watchapps-and-companions","59","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","129.41466700000456","0"
+"Twebble","watchapps-and-companions","59","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","138.93943500000023","0"
+"Twebble","watchapps-and-companions","59","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","133.9024900000004","0"
+"Huebble","watchapps-and-companions","60","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","142.76058500000363","0"
+"Huebble","watchapps-and-companions","60","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","143.44400600000517","0"
+"Huebble","watchapps-and-companions","60","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","146.0806969999976","0"
+"World Cup 2014","watchapps-and-companions","61","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","143.57537500000035","0"
+"World Cup 2014","watchapps-and-companions","61","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","140.24189900000056","0"
+"World Cup 2014","watchapps-and-companions","61","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","133.79073400000198","0"
+"Muninn - Battery Wisdom","watchapps-and-companions","62","qemu_emery","scenario-completed","","29937.422808000003","111"
+"Muninn - Battery Wisdom","watchapps-and-companions","62","qemu_flint","scenario-completed","","24834.914047","92"
+"Muninn - Battery Wisdom","watchapps-and-companions","62","qemu_gabbro","scenario-completed","","27533.362194","72"
+"My World","watchapps-and-companions","63","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","146.4051150000014","0"
+"My World","watchapps-and-companions","63","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","145.1451270000034","0"
+"My World","watchapps-and-companions","63","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","138.02047799999855","0"
+"Notify","watchapps-and-companions","64","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","150.10951200000272","0"
+"Notify","watchapps-and-companions","64","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","147.3979859999963","0"
+"Notify","watchapps-and-companions","64","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","152.00488100000075","0"
+"Pebblemon","watchapps-and-companions","65","qemu_emery","scenario-completed","","93088.56521000002","67"
+"Pebblemon","watchapps-and-companions","65","qemu_flint","scenario-completed","","85805.045086","83"
+"Pebblemon","watchapps-and-companions","65","qemu_gabbro","scenario-completed","","92909.440616","63"
+"skunk","watchapps-and-companions","66","qemu_emery","scenario-completed","","26219.203016999993","106"
+"skunk","watchapps-and-companions","66","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","156.88001399999484","0"
+"skunk","watchapps-and-companions","66","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","146.79453300000023","0"
+"Qibla - Prayer Times & Compass","watchapps-and-companions","67","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","146.6110770000014","0"
+"Qibla - Prayer Times & Compass","watchapps-and-companions","67","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","154.13935199999833","0"
+"Qibla - Prayer Times & Compass","watchapps-and-companions","67","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","142.90596099999675","0"
+"News Headlines","watchapps-and-companions","68","qemu_emery","scenario-completed","","26614.141945000003","108"
+"News Headlines","watchapps-and-companions","68","qemu_flint","scenario-completed","","22563.504015","89"
+"News Headlines","watchapps-and-companions","68","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","137.1444210000045","0"
+"Solanum","watchapps-and-companions","69","qemu_emery","scenario-completed","","32992.864449999994","112"
+"Solanum","watchapps-and-companions","69","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","221.62506700000085","0"
+"Solanum","watchapps-and-companions","69","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","196.6344270000045","0"
+"Sleeper","watchapps-and-companions","70","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","154.0613200000007","0"
+"Sleeper","watchapps-and-companions","70","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","158.98067000000447","0"
+"Sleeper","watchapps-and-companions","70","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","148.05812599999626","0"
+"Translate (Vox Populi)","watchapps-and-companions","71","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","167.26475100000243","0"
+"Translate (Vox Populi)","watchapps-and-companions","71","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.45692500000587","0"
+"Translate (Vox Populi)","watchapps-and-companions","71","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","155.45840099999623","0"
+"Habits","watchapps-and-companions","72","qemu_emery","execution-stopped","Error: TypeError: not a function
+    at <anonymous> (pebble-js-app.js:92:29)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","16451.326576999993","29"
+"Habits","watchapps-and-companions","72","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","148.80344999999943","0"
+"Habits","watchapps-and-companions","72","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.88460900000064","0"
+"PblCamera","watchapps-and-companions","73","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","147.05671699999948","0"
+"PblCamera","watchapps-and-companions","73","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","160.8826409999965","0"
+"PblCamera","watchapps-and-companions","73","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","148.54579000000376","0"
+"Get Back - directions to a set location","watchapps-and-companions","74","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","166.4668210000018","0"
+"Get Back - directions to a set location","watchapps-and-companions","74","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","153.65322999999626","0"
+"Get Back - directions to a set location","watchapps-and-companions","74","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","171.0381819999966","0"
+"Calculator","watchapps-and-companions","75","qemu_emery","scenario-completed","","33108.514439","105"
+"Calculator","watchapps-and-companions","75","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","179.5460979999989","0"
+"Calculator","watchapps-and-companions","75","qemu_gabbro","scenario-completed","","28867.714715999995","66"
+"UK Transport","watchapps-and-companions","76","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","153.31497500000114","0"
+"UK Transport","watchapps-and-companions","76","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","146.49339699999837","0"
+"UK Transport","watchapps-and-companions","76","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","141.60676899999817","0"
+"Voice Note","watchapps-and-companions","77","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","146.77184899999702","0"
+"Voice Note","watchapps-and-companions","77","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","136.24524699999893","0"
+"Voice Note","watchapps-and-companions","77","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","144.17569599999842","0"
+"Travel","watchapps-and-companions","78","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","140.508345000002","0"
+"Travel","watchapps-and-companions","78","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","124.34675699999934","0"
+"Travel","watchapps-and-companions","78","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","141.2308669999984","0"
+"Playback for Spotify","watchapps-and-companions","79","qemu_emery","scenario-completed","","26925.970398000005","84"
+"Playback for Spotify","watchapps-and-companions","79","qemu_flint","scenario-completed","","23653.456249999996","91"
+"Playback for Spotify","watchapps-and-companions","79","qemu_gabbro","scenario-completed","","26164.41819599999","83"
+"Pokedex Challenge","watchapps-and-companions","80","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","149.18333299999358","0"
+"Pokedex Challenge","watchapps-and-companions","80","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","141.6076330000069","0"
+"Pokedex Challenge","watchapps-and-companions","80","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","147.0901520000043","0"
+"Destiny Strap","watchapps-and-companions","81","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","134.553482000003","0"
+"Destiny Strap","watchapps-and-companions","81","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","151.01065599999856","0"
+"Destiny Strap","watchapps-and-companions","81","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","138.5142499999929","0"
+"Brain Dump (index01 for your pebble)","watchapps-and-companions","82","qemu_emery","scenario-completed","","28764.525834999993","111"
+"Brain Dump (index01 for your pebble)","watchapps-and-companions","82","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.6288920000079","0"
+"Brain Dump (index01 for your pebble)","watchapps-and-companions","82","qemu_gabbro","scenario-completed","","26396.813676000005","77"
+"Get Back To","watchapps-and-companions","83","qemu_emery","execution-stopped","Error: TypeError: Unsupported AppMessage value.
+    at dictionary (virtual-phone-bootstrap.js:329:90)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at sendMessage (pebble-js-app.js:235:24)
+    at sendToWatch (pebble-js-app.js:476:14)
+    at locationSuccess (pebble-js-app.js:305:16)
+    at locationResult (virtual-phone-bootstrap.js:305:182)
+    at <anonymous> (virtual-phone-bootstrap.js:310:115)
+    at timer (virtual-phone-bootstrap.js:102:93)
+","18146.79247799999","33"
+"Get Back To","watchapps-and-companions","83","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","137.09469700000773","0"
+"Get Back To","watchapps-and-companions","83","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","150.642737999995","0"
+"Find My Phone","watchapps-and-companions","84","qemu_emery","execution-stopped","Error: TypeError: not a function
+    at <anonymous> (pebble-js-app.js:180:25)
+    at call (native)
+    at __webpack_require__ (pebble-js-app.js:20:34)
+    at <anonymous> (pebble-js-app.js:48:38)
+    at call (native)
+    at __webpack_require__ (pebble-js-app.js:20:34)
+    at <anonymous> (pebble-js-app.js:40:11)
+    at <eval> (pebble-js-app.js:43:10)
+","17099.379639000006","29"
+"Find My Phone","watchapps-and-companions","84","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.59021199999552","0"
+"Find My Phone","watchapps-and-companions","84","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","148.02468000000226","0"
+"QuickAuth","watchapps-and-companions","85","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","163.72457400000712","0"
+"QuickAuth","watchapps-and-companions","85","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","166.28188500000397","0"
+"QuickAuth","watchapps-and-companions","85","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","167.56006999999227","0"
+"Mr. Runner - UP","watchapps-and-companions","86","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","160.88053199999558","0"
+"Mr. Runner - UP","watchapps-and-companions","86","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","150.35226200000034","0"
+"Mr. Runner - UP","watchapps-and-companions","86","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.82532499999797","0"
+"Touchy Weather - Weather App","watchapps-and-companions","87","qemu_emery","scenario-completed","","87191.133746","67"
+"Touchy Weather - Weather App","watchapps-and-companions","87","qemu_flint","scenario-completed","","50345.669781000004","101"
+"Touchy Weather - Weather App","watchapps-and-companions","87","qemu_gabbro","scenario-completed","","87449.081097","60"
+"Custom Workout Timer ","watchapps-and-companions","88","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","144.09661600000982","0"
+"Custom Workout Timer ","watchapps-and-companions","88","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","155.1376719999971","0"
+"Custom Workout Timer ","watchapps-and-companions","88","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","134.56230700000015","0"
+"Commute","watchapps-and-companions","89","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","145.22148300000117","0"
+"Commute","watchapps-and-companions","89","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","148.28040599999076","0"
+"Commute","watchapps-and-companions","89","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","136.86452700001246","0"
+"Slate","watchapps-and-companions","90","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","154.0421209999913","0"
+"Slate","watchapps-and-companions","90","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.78063799999654","0"
+"Slate","watchapps-and-companions","90","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","151.76283599999442","0"
+"MF'n Weather","watchapps-and-companions","91","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","137.3720570000005","0"
+"MF'n Weather","watchapps-and-companions","91","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","157.90129900000466","0"
+"MF'n Weather","watchapps-and-companions","91","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","162.26552900001116","0"
+"Playlists Remote for Spotify","watchapps-and-companions","92","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","153.61823100000038","0"
+"Playlists Remote for Spotify","watchapps-and-companions","92","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","145.5835720000032","0"
+"Playlists Remote for Spotify","watchapps-and-companions","92","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","145.28076399999554","0"
+"Facebook [Pebble Rocker]","watchapps-and-companions","93","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","149.7481540000008","0"
+"Facebook [Pebble Rocker]","watchapps-and-companions","93","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","141.10202700000082","0"
+"Facebook [Pebble Rocker]","watchapps-and-companions","93","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","155.33582300000126","0"
+"Tilt Calc","watchapps-and-companions","94","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","152.3373980000033","0"
+"Tilt Calc","watchapps-and-companions","94","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","154.438341999994","0"
+"Tilt Calc","watchapps-and-companions","94","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","155.35322799999267","0"
+"Forecast Weather App","watchapps-and-companions","95","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","146.45491799998854","0"
+"Forecast Weather App","watchapps-and-companions","95","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","175.33965700000408","0"
+"Forecast Weather App","watchapps-and-companions","95","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","149.29978300000948","0"
+"Rebble","watchapps-and-companions","96","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","132.96463600000425","0"
+"Rebble","watchapps-and-companions","96","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","149.99079899999197","0"
+"Rebble","watchapps-and-companions","96","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","136.80778099999588","0"
+"Arena3D","watchapps-and-companions","97","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","150.97180499999376","0"
+"Arena3D","watchapps-and-companions","97","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","144.72685000000638","0"
+"Arena3D","watchapps-and-companions","97","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","162.89481199999864","0"
+"Skipstone","watchapps-and-companions","98","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","152.62656699999934","0"
+"Skipstone","watchapps-and-companions","98","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","203.15124800000922","0"
+"Skipstone","watchapps-and-companions","98","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","136.85687099999632","0"
+"Weather","watchapps-and-companions","99","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","143.047882999992","0"
+"Weather","watchapps-and-companions","99","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","133.25004199999967","0"
+"Weather","watchapps-and-companions","99","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","159.4570470000035","0"
+"SmartStatus-op","watchapps-and-companions","100","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","150.5763580000057","0"
+"SmartStatus-op","watchapps-and-companions","100","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","150.35096599999815","0"
+"SmartStatus-op","watchapps-and-companions","100","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","150.76135000000068","0"
+"YWeather","watchfaces","1","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","152.4885740000027","0"
+"YWeather","watchfaces","1","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","142.67151699999522","0"
+"YWeather","watchfaces","1","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","159.6544670000003","0"
+"Real Weather","watchfaces","2","qemu_emery","scenario-completed","","35364.016716","123"
+"Real Weather","watchfaces","2","qemu_flint","scenario-completed","","24641.457614","95"
+"Real Weather","watchfaces","2","qemu_gabbro","scenario-completed","","33343.754508","94"
+"TimeStyle","watchfaces","3","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'color_bg' of null
+    at <anonymous> (pebble-js-app.js:181:20)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","30090.033413000012","113"
+"TimeStyle","watchfaces","3","qemu_flint","execution-stopped","Error: TypeError: cannot read property 'color_bg' of null
+    at <anonymous> (pebble-js-app.js:181:20)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","24490.678798000008","93"
+"TimeStyle","watchfaces","3","qemu_gabbro","execution-stopped","Error: TypeError: cannot read property 'color_bg' of null
+    at <anonymous> (pebble-js-app.js:181:20)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","33373.449389999994","85"
+"Modern","watchfaces","4","qemu_emery","download-unavailable","TypeError: Invalid URL","143.79051700000127","0"
+"Modern","watchfaces","4","qemu_flint","download-unavailable","TypeError: Invalid URL","159.34485100000165","0"
+"Modern","watchfaces","4","qemu_gabbro","download-unavailable","TypeError: Invalid URL","144.89724199999182","0"
+"Weather Land","watchfaces","5","qemu_emery","scenario-completed","","30538.090433999998","93"
+"Weather Land","watchfaces","5","qemu_flint","scenario-completed","","23940.935417999994","95"
+"Weather Land","watchfaces","5","qemu_gabbro","scenario-completed","","31880.20865","91"
+"91 Dub v4.0","watchfaces","6","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","151.49524499999825","0"
+"91 Dub v4.0","watchfaces","6","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","145.10808199999155","0"
+"91 Dub v4.0","watchfaces","6","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","149.73802299999807","0"
+"Mario Time Watchface","watchfaces","7","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","174.82988699999987","0"
+"Mario Time Watchface","watchfaces","7","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","162.54029699999955","0"
+"Mario Time Watchface","watchfaces","7","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.25258800000302","0"
+"Studio Clock","watchfaces","8","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","154.2110859999957","0"
+"Studio Clock","watchfaces","8","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","146.86178999999538","0"
+"Studio Clock","watchfaces","8","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","138.10547100000258","0"
+"Slides of Time","watchfaces","9","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","162.79453299999295","0"
+"Slides of Time","watchfaces","9","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","168.95265199999267","0"
+"Slides of Time","watchfaces","9","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","167.32958099999814","0"
+"Timely","watchfaces","10","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","151.91662100001122","0"
+"Timely","watchfaces","10","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","154.83215499999642","0"
+"Timely","watchfaces","10","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","162.8098389999941","0"
+"DIN Time","watchfaces","11","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","173.35622299999523","0"
+"DIN Time","watchfaces","11","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","168.42398700000194","0"
+"DIN Time","watchfaces","11","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","174.57425400000648","0"
+"Futura Weather","watchfaces","12","qemu_emery","download-unavailable","TypeError: Invalid URL","157.63337000001047","0"
+"Futura Weather","watchfaces","12","qemu_flint","download-unavailable","TypeError: Invalid URL","148.22559300001012","0"
+"Futura Weather","watchfaces","12","qemu_gabbro","download-unavailable","TypeError: Invalid URL","147.35549699999683","0"
+"Love Weather","watchfaces","13","qemu_emery","scenario-completed","","39538.10432700001","127"
+"Love Weather","watchfaces","13","qemu_flint","scenario-completed","","25207.700131999998","95"
+"Love Weather","watchfaces","13","qemu_gabbro","scenario-completed","","42724.58710999999","84"
+"Weather - powered by The Weather Channel","watchfaces","14","qemu_emery","download-unavailable","TypeError: Invalid URL","143.77729699999327","0"
+"Weather - powered by The Weather Channel","watchfaces","14","qemu_flint","download-unavailable","TypeError: Invalid URL","157.10246799999732","0"
+"Weather - powered by The Weather Channel","watchfaces","14","qemu_gabbro","download-unavailable","TypeError: Invalid URL","157.34729900000093","0"
+"Thin","watchfaces","15","qemu_emery","scenario-completed","","45204.286023999986","131"
+"Thin","watchfaces","15","qemu_flint","scenario-completed","","32865.728814999995","121"
+"Thin","watchfaces","15","qemu_gabbro","scenario-completed","","44492.789967000004","72"
+"Clean & Smart","watchfaces","16","qemu_emery","scenario-completed","","37941.456628","98"
+"Clean & Smart","watchfaces","16","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","187.279515000002","0"
+"Clean & Smart","watchfaces","16","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","174.97445300000254","0"
+"Drunk O' Clock","watchfaces","17","qemu_emery","execution-stopped","Error: ReferenceError: 'WebSocket' is not defined
+    at connect (pebble-js-app.js:1674:15)
+    at connectToPebbleSocket (pebble-js-app.js:274:26)
+    at init (pebble-js-app.js:175:29)
+    at <anonymous> (pebble-js-app.js:124:16)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","30457.24244399999","51"
+"Drunk O' Clock","watchfaces","17","qemu_flint","execution-stopped","Error: ReferenceError: 'WebSocket' is not defined
+    at connect (pebble-js-app.js:1674:15)
+    at connectToPebbleSocket (pebble-js-app.js:274:26)
+    at init (pebble-js-app.js:175:29)
+    at <anonymous> (pebble-js-app.js:124:16)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","25761.21959800001","39"
+"Drunk O' Clock","watchfaces","17","qemu_gabbro","execution-stopped","Error: ReferenceError: 'WebSocket' is not defined
+    at connect (pebble-js-app.js:1674:15)
+    at connectToPebbleSocket (pebble-js-app.js:274:26)
+    at init (pebble-js-app.js:175:29)
+    at <anonymous> (pebble-js-app.js:124:16)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","32029.160271999994","51"
+"Sketchy Weather","watchfaces","18","qemu_emery","scenario-completed","","32259.391892","116"
+"Sketchy Weather","watchfaces","18","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","173.24307599999884","0"
+"Sketchy Weather","watchfaces","18","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","156.69300899999507","0"
+"xTime","watchfaces","19","qemu_emery","scenario-completed","","26524.404171999995","83"
+"xTime","watchfaces","19","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","174.125086","0"
+"xTime","watchfaces","19","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.41466599999694","0"
+"TrekV2","watchfaces","20","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","152.79045600000245","0"
+"TrekV2","watchfaces","20","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","137.87274599999364","0"
+"TrekV2","watchfaces","20","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","140.32009500000277","0"
+"Taller","watchfaces","21","qemu_emery","scenario-completed","","29981.41500899999","108"
+"Taller","watchfaces","21","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","158.48721900000237","0"
+"Taller","watchfaces","21","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","163.10305800000788","0"
+"Minimalist Weather","watchfaces","22","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","177.59505000000354","0"
+"Minimalist Weather","watchfaces","22","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","150.47368899999128","0"
+"Minimalist Weather","watchfaces","22","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","139.7076059999963","0"
+"Revolution","watchfaces","23","qemu_emery","download-unavailable","TypeError: Invalid URL","164.95014499999525","0"
+"Revolution","watchfaces","23","qemu_flint","download-unavailable","TypeError: Invalid URL","163.60150799999246","0"
+"Revolution","watchfaces","23","qemu_gabbro","download-unavailable","TypeError: Invalid URL","135.15468999999575","0"
+"PEBILL","watchfaces","24","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","159.1751430000004","0"
+"PEBILL","watchfaces","24","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","161.70316400000593","0"
+"PEBILL","watchfaces","24","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","174.39829099999042","0"
+"TrekV3","watchfaces","25","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","153.93795600000885","0"
+"TrekV3","watchfaces","25","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","168.81913200000417","0"
+"TrekV3","watchfaces","25","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","156.78788799999165","0"
+"Squared 4.0","watchfaces","26","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","154.81073599999945","0"
+"Squared 4.0","watchfaces","26","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","164.07414700000663","0"
+"Squared 4.0","watchfaces","26","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","171.39841700000397","0"
+"Retro Clock","watchfaces","27","qemu_emery","download-unavailable","TypeError: Invalid URL","161.3127999999997","0"
+"Retro Clock","watchfaces","27","qemu_flint","download-unavailable","TypeError: Invalid URL","166.00713800000085","0"
+"Retro Clock","watchfaces","27","qemu_gabbro","download-unavailable","TypeError: Invalid URL","151.3252230000071","0"
+"UP for Pebble","watchfaces","28","qemu_emery","download-unavailable","TypeError: Invalid URL","151.49949300001026","0"
+"UP for Pebble","watchfaces","28","qemu_flint","download-unavailable","TypeError: Invalid URL","158.31544799999392","0"
+"UP for Pebble","watchfaces","28","qemu_gabbro","download-unavailable","TypeError: Invalid URL","161.49170800000138","0"
+"Draw by Dalpek","watchfaces","29","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","154.6308260000078","0"
+"Draw by Dalpek","watchfaces","29","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","164.5994580000115","0"
+"Draw by Dalpek","watchfaces","29","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","152.4380669999955","0"
+"Dotz","watchfaces","30","qemu_emery","download-unavailable","TypeError: Invalid URL","162.01186199999938","0"
+"Dotz","watchfaces","30","qemu_flint","download-unavailable","TypeError: Invalid URL","144.09533199999714","0"
+"Dotz","watchfaces","30","qemu_gabbro","download-unavailable","TypeError: Invalid URL","155.33183599999757","0"
+"Multifunctional 7 Segment","watchfaces","31","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","158.35096900000644","0"
+"Multifunctional 7 Segment","watchfaces","31","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","174.25852299999679","0"
+"Multifunctional 7 Segment","watchfaces","31","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","165.02268199999526","0"
+"Rosewright A","watchfaces","32","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'replace' of undefined
+    at initialize (pebble-js-app.js:242:52)
+    at <anonymous> (pebble-js-app.js:339:15)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","28173.372854999994","49"
+"Rosewright A","watchfaces","32","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","208.38333900000725","0"
+"Rosewright A","watchfaces","32","qemu_gabbro","execution-stopped","Error: TypeError: cannot read property 'replace' of undefined
+    at initialize (pebble-js-app.js:242:52)
+    at <anonymous> (pebble-js-app.js:339:15)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","28956.11045400001","49"
+"BlockSlide","watchfaces","33","qemu_emery","execution-stopped","Error: TypeError: AppMessage requires a dictionary.
+    at dictionary (virtual-phone-bootstrap.js:320:89)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at <anonymous> (pebble-js-app.js:154:23)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","35275.61354100001","143"
+"BlockSlide","watchfaces","33","qemu_flint","execution-stopped","Error: TypeError: AppMessage requires a dictionary.
+    at dictionary (virtual-phone-bootstrap.js:320:89)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at <anonymous> (pebble-js-app.js:154:23)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","25579.96936300001","143"
+"BlockSlide","watchfaces","33","qemu_gabbro","execution-stopped","Error: TypeError: AppMessage requires a dictionary.
+    at dictionary (virtual-phone-bootstrap.js:320:89)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at <anonymous> (pebble-js-app.js:154:23)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","29547.943616999983","88"
+"Enigma","watchfaces","34","qemu_emery","download-unavailable","TypeError: Invalid URL","150.47657199998503","0"
+"Enigma","watchfaces","34","qemu_flint","download-unavailable","TypeError: Invalid URL","149.97100499999942","0"
+"Enigma","watchfaces","34","qemu_gabbro","download-unavailable","TypeError: Invalid URL","152.253698000015","0"
+"Quartz by Dalpek","watchfaces","35","qemu_emery","scenario-completed","","32486.117782999994","128"
+"Quartz by Dalpek","watchfaces","35","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.3410900000017","0"
+"Quartz by Dalpek","watchfaces","35","qemu_gabbro","scenario-completed","","29525.995208999986","101"
+"Pip Boy 100","watchfaces","36","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","159.57700200000545","0"
+"Pip Boy 100","watchfaces","36","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","163.43945500001428","0"
+"Pip Boy 100","watchfaces","36","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","151.8536230000027","0"
+"Time&Weather","watchfaces","37","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","147.69323599999188","0"
+"Time&Weather","watchfaces","37","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.7909010000003","0"
+"Time&Weather","watchfaces","37","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.86946700001135","0"
+"Square","watchfaces","38","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","165.6101969999727","0"
+"Square","watchfaces","38","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","163.52464200000395","0"
+"Square","watchfaces","38","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","187.32557899999665","0"
+"Essential","watchfaces","39","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","155.7240940000047","0"
+"Essential","watchfaces","39","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","158.8560830000206","0"
+"Essential","watchfaces","39","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.78893799998332","0"
+"TH3","watchfaces","40","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'd' of null
+    at <anonymous> (pebble-js-app.js:66:26)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","31772.571777000005","115"
+"TH3","watchfaces","40","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","177.30153200001223","0"
+"TH3","watchfaces","40","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","145.68087099998957","0"
+"Nyan Cat","watchfaces","41","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","167.06306600000244","0"
+"Nyan Cat","watchfaces","41","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.80474199997843","0"
+"Nyan Cat","watchfaces","41","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","158.65832200000295","0"
+"WUnderful Analog (Weather)","watchfaces","42","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","167.17660000000615","0"
+"WUnderful Analog (Weather)","watchfaces","42","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","162.1663000000117","0"
+"WUnderful Analog (Weather)","watchfaces","42","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.07801900000777","0"
+"PAC•TIME","watchfaces","43","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","137.6072920000006","0"
+"PAC•TIME","watchfaces","43","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","148.40386800002307","0"
+"PAC•TIME","watchfaces","43","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","141.21025900001405","0"
+"Straight","watchfaces","44","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'temp_unit' of null
+    at <anonymous> (pebble-js-app.js:241:56)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","32694.848139999987","118"
+"Straight","watchfaces","44","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","144.18786000000546","0"
+"Straight","watchfaces","44","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","166.3237139999983","0"
+"BCD minimalist (binary watch)","watchfaces","45","qemu_emery","execution-stopped","Error: TypeError: cannot set property 'storage_version' of null
+    at <anonymous> (pebble-js-app.js:183:38)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","26124.570390000008","91"
+"BCD minimalist (binary watch)","watchfaces","45","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","163.68684599999688","0"
+"BCD minimalist (binary watch)","watchfaces","45","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","153.62667699999292","0"
+"Mario","watchfaces","46","qemu_emery","download-unavailable","TypeError: Invalid URL","149.41890899999999","0"
+"Mario","watchfaces","46","qemu_flint","download-unavailable","TypeError: Invalid URL","153.5051290000265","0"
+"Mario","watchfaces","46","qemu_gabbro","download-unavailable","TypeError: Invalid URL","154.3177840000135","0"
+"Perspective","watchfaces","47","qemu_emery","download-unavailable","TypeError: Invalid URL","156.2507489999989","0"
+"Perspective","watchfaces","47","qemu_flint","download-unavailable","TypeError: Invalid URL","155.89667099999497","0"
+"Perspective","watchfaces","47","qemu_gabbro","download-unavailable","TypeError: Invalid URL","157.76923299999908","0"
+"Timeboxed","watchfaces","48","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","190.73388299997896","0"
+"Timeboxed","watchfaces","48","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","181.53666299997712","0"
+"Timeboxed","watchfaces","48","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","186.6084269999992","0"
+"Simple Weather","watchfaces","49","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","139.889113000012","0"
+"Simple Weather","watchfaces","49","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","168.49873799999477","0"
+"Simple Weather","watchfaces","49","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","157.1080780000193","0"
+"Make Me Smile","watchfaces","50","qemu_emery","scenario-completed","","28380.07631599999","112"
+"Make Me Smile","watchfaces","50","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","152.06799000001047","0"
+"Make Me Smile","watchfaces","50","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","148.28106200002367","0"
+"On11","watchfaces","51","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","164.09811900000204","0"
+"On11","watchfaces","51","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","159.9356909999915","0"
+"On11","watchfaces","51","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","157.79835599998478","0"
+"Smile","watchfaces","52","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","174.52658999999403","0"
+"Smile","watchfaces","52","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","171.5465630000108","0"
+"Smile","watchfaces","52","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","151.9368849999737","0"
+"Implode","watchfaces","53","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","146.85568899998907","0"
+"Implode","watchfaces","53","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.82299899999634","0"
+"Implode","watchfaces","53","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","148.2706649999891","0"
+"Big Shadow","watchfaces","54","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'c1' of null
+    at <anonymous> (pebble-js-app.js:43:56)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","54223.898883000016","110"
+"Big Shadow","watchfaces","54","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","159.3354699999909","0"
+"Big Shadow","watchfaces","54","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.21325500000967","0"
+"Weathergraph - weather forecast, hourly and beautiful, with step counter, health and heartrate (hrm)","watchfaces","55","qemu_emery","scenario-completed","","30520.18273900001","114"
+"Weathergraph - weather forecast, hourly and beautiful, with step counter, health and heartrate (hrm)","watchfaces","55","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.31136299998616","0"
+"Weathergraph - weather forecast, hourly and beautiful, with step counter, health and heartrate (hrm)","watchfaces","55","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","163.4050489999936","0"
+"Sliding Text","watchfaces","56","qemu_emery","scenario-completed","","35223.86829500002","107"
+"Sliding Text","watchfaces","56","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","168.70433899998898","0"
+"Sliding Text","watchfaces","56","qemu_gabbro","scenario-completed","","32647.28220799999","80"
+"Darth Time","watchfaces","57","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","136.55535899999086","0"
+"Darth Time","watchfaces","57","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","165.53744799998822","0"
+"Darth Time","watchfaces","57","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","157.91180400000303","0"
+"Fair Weather","watchfaces","58","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","166.90963499998907","0"
+"Fair Weather","watchfaces","58","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","147.22792199999094","0"
+"Fair Weather","watchfaces","58","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","170.12546199999633","0"
+"TetrisTime","watchfaces","59","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","156.63011900000856","0"
+"TetrisTime","watchfaces","59","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.1422259999963","0"
+"TetrisTime","watchfaces","59","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","152.87900499999523","0"
+"Big Mickey","watchfaces","60","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","161.9230159999861","0"
+"Big Mickey","watchfaces","60","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","150.29287499998463","0"
+"Big Mickey","watchfaces","60","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","160.83856400000514","0"
+"Crush 'Em","watchfaces","61","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","153.36712300000363","0"
+"Crush 'Em","watchfaces","61","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","150.20418199998676","0"
+"Crush 'Em","watchfaces","61","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","145.0931870000204","0"
+"Super Watchface","watchfaces","62","qemu_emery","download-unavailable","TypeError: Invalid URL","161.0356759999995","0"
+"Super Watchface","watchfaces","62","qemu_flint","download-unavailable","TypeError: Invalid URL","155.8514070000092","0"
+"Super Watchface","watchfaces","62","qemu_gabbro","download-unavailable","TypeError: Invalid URL","153.54573700000765","0"
+"Consensus","watchfaces","63","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'location_type' of null
+    at <anonymous> (pebble-js-app.js:97:4013)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","37466.83498799999","119"
+"Consensus","watchfaces","63","qemu_flint","execution-stopped","Error: TypeError: cannot read property 'location_type' of null
+    at <anonymous> (pebble-js-app.js:97:4013)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","30183.07921699999","104"
+"Consensus","watchfaces","63","qemu_gabbro","execution-stopped","Error: TypeError: cannot read property 'location_type' of null
+    at <anonymous> (pebble-js-app.js:97:4013)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","35296.22630000001","92"
+"Beam Up","watchfaces","64","qemu_emery","scenario-completed","","29333.602998000017","112"
+"Beam Up","watchfaces","64","qemu_flint","scenario-completed","","23616.84601899999","83"
+"Beam Up","watchfaces","64","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","175.90681700001005","0"
+"BB8's FACE","watchfaces","65","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","148.61726400000043","0"
+"BB8's FACE","watchfaces","65","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","152.43935899998178","0"
+"BB8's FACE","watchfaces","65","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","146.5204049999884","0"
+"CLEAR","watchfaces","66","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'temp_unit' of null
+    at <anonymous> (pebble-js-app.js:241:56)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","32120.106451","116"
+"CLEAR","watchfaces","66","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.14845400000922","0"
+"CLEAR","watchfaces","66","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.293731999991","0"
+"YWeather Health","watchfaces","67","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","161.85253499998362","0"
+"YWeather Health","watchfaces","67","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","152.05771799999638","0"
+"YWeather Health","watchfaces","67","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","155.8574550000194","0"
+"Fourier","watchfaces","68","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'd' of null
+    at <anonymous> (pebble-js-app.js:50:26)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","33449.11572999999","116"
+"Fourier","watchfaces","68","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","148.1901080000098","0"
+"Fourier","watchfaces","68","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","145.07775699999183","0"
+"Street by Dalpek","watchfaces","69","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","156.31644199998118","0"
+"Street by Dalpek","watchfaces","69","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","158.3582119999919","0"
+"Street by Dalpek","watchfaces","69","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","150.4199840000074","0"
+"Fuzzy Text International","watchfaces","70","qemu_emery","download-unavailable","TypeError: Invalid URL","161.41429399998742","0"
+"Fuzzy Text International","watchfaces","70","qemu_flint","download-unavailable","TypeError: Invalid URL","145.10357300000032","0"
+"Fuzzy Text International","watchfaces","70","qemu_gabbro","download-unavailable","TypeError: Invalid URL","154.76886599999852","0"
+"Happy","watchfaces","71","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","142.834411000018","0"
+"Happy","watchfaces","71","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","142.8116410000075","0"
+"Happy","watchfaces","71","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","151.1693110000051","0"
+"R2D2's FACE","watchfaces","72","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","172.94988400000148","0"
+"R2D2's FACE","watchfaces","72","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","142.813914999977","0"
+"R2D2's FACE","watchfaces","72","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","169.279011000006","0"
+"Pixwag (Black)","watchfaces","73","qemu_emery","download-unavailable","TypeError: Invalid URL","184.4351869999955","0"
+"Pixwag (Black)","watchfaces","73","qemu_flint","download-unavailable","TypeError: Invalid URL","164.66005700000096","0"
+"Pixwag (Black)","watchfaces","73","qemu_gabbro","download-unavailable","TypeError: Invalid URL","151.37207099999068","0"
+"Simply Light","watchfaces","74","qemu_emery","scenario-completed","","31730.797545999987","116"
+"Simply Light","watchfaces","74","qemu_flint","scenario-completed","","27277.828423","97"
+"Simply Light","watchfaces","74","qemu_gabbro","scenario-completed","","28147.90202499999","69"
+" Analog Hodinky","watchfaces","75","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'language' of null
+    at <anonymous> (pebble-js-app.js:289:17)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","29704.605114999984","111"
+" Analog Hodinky","watchfaces","75","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","152.091837999993","0"
+" Analog Hodinky","watchfaces","75","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","161.00995800000965","0"
+"Velocity","watchfaces","76","qemu_emery","download-unavailable","TypeError: Invalid URL","154.97280700001284","0"
+"Velocity","watchfaces","76","qemu_flint","download-unavailable","TypeError: Invalid URL","144.46944900002563","0"
+"Velocity","watchfaces","76","qemu_gabbro","download-unavailable","TypeError: Invalid URL","151.95320299998275","0"
+"Motiv8","watchfaces","77","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","149.40624000001117","0"
+"Motiv8","watchfaces","77","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","135.71343699999852","0"
+"Motiv8","watchfaces","77","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","141.01829599999473","0"
+"LCARS","watchfaces","78","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'invert' of null
+    at <anonymous> (pebble-js-app.js:188:52)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","31494.71259099999","115"
+"LCARS","watchfaces","78","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","165.65922800000408","0"
+"LCARS","watchfaces","78","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","178.28102399999625","0"
+"Clipped","watchfaces","79","qemu_emery","execution-stopped","Error: TypeError: AppMessage requires a dictionary.
+    at dictionary (virtual-phone-bootstrap.js:320:89)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at <anonymous> (pebble-js-app.js:119:23)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","29071.384236000013","112"
+"Clipped","watchfaces","79","qemu_flint","execution-stopped","Error: TypeError: AppMessage requires a dictionary.
+    at dictionary (virtual-phone-bootstrap.js:320:89)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at <anonymous> (pebble-js-app.js:119:23)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","24713.443295000005","95"
+"Clipped","watchfaces","79","qemu_gabbro","execution-stopped","Error: TypeError: AppMessage requires a dictionary.
+    at dictionary (virtual-phone-bootstrap.js:320:89)
+    at sendAppMessage (virtual-phone-bootstrap.js:350:33)
+    at <anonymous> (pebble-js-app.js:119:23)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","26248.145644999982","83"
+"PebbleEye 007","watchfaces","80","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","140.26633199999924","0"
+"PebbleEye 007","watchfaces","80","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","154.39373300000443","0"
+"PebbleEye 007","watchfaces","80","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","156.95208600000478","0"
+"PokeBattle","watchfaces","81","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","146.09597100000246","0"
+"PokeBattle","watchfaces","81","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","154.70617299998412","0"
+"PokeBattle","watchfaces","81","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","158.38146199999028","0"
+"Metro Watch","watchfaces","82","qemu_emery","download-unavailable","TypeError: Invalid URL","129.80870600001072","0"
+"Metro Watch","watchfaces","82","qemu_flint","download-unavailable","TypeError: Invalid URL","138.33475399998133","0"
+"Metro Watch","watchfaces","82","qemu_gabbro","download-unavailable","TypeError: Invalid URL","151.47147300001234","0"
+"Rolex Steel","watchfaces","83","qemu_emery","download-unavailable","TypeError: Invalid URL","156.04017299998668","0"
+"Rolex Steel","watchfaces","83","qemu_flint","download-unavailable","TypeError: Invalid URL","144.80283800000325","0"
+"Rolex Steel","watchfaces","83","qemu_gabbro","download-unavailable","TypeError: Invalid URL","163.75492599999416","0"
+"Aspire","watchfaces","84","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","168.3496199999936","0"
+"Aspire","watchfaces","84","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","165.31511799999862","0"
+"Aspire","watchfaces","84","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","166.2602360000019","0"
+"Small Lake House","watchfaces","85","qemu_emery","scenario-completed","","31902.541292999987","101"
+"Small Lake House","watchfaces","85","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","151.21380800000043","0"
+"Small Lake House","watchfaces","85","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","167.00543799999286","0"
+"Ecliptic","watchfaces","86","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","147.07445899999584","0"
+"Ecliptic","watchfaces","86","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","161.79422999999952","0"
+"Ecliptic","watchfaces","86","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","156.31920300002093","0"
+"Pebble Fighter 2","watchfaces","87","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","172.83304800000042","0"
+"Pebble Fighter 2","watchfaces","87","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","158.08875200001057","0"
+"Pebble Fighter 2","watchfaces","87","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","143.55450699999346","0"
+"KS Original","watchfaces","88","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","140.65074799998547","0"
+"KS Original","watchfaces","88","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","149.4962499999965","0"
+"KS Original","watchfaces","88","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","162.93739500001539","0"
+"Negative","watchfaces","89","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","175.5602460000082","0"
+"Negative","watchfaces","89","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","156.8231059999962","0"
+"Negative","watchfaces","89","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","159.2668030000059","0"
+"Christmas Time","watchfaces","90","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'tempUnits' of null
+    at <anonymous> (pebble-js-app.js:229:54)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","25978.59398799998","115"
+"Christmas Time","watchfaces","90","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","148.63726400001906","0"
+"Christmas Time","watchfaces","90","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","149.28125900001032","0"
+"90degrees A","watchfaces","91","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","146.3137609999976","0"
+"90degrees A","watchfaces","91","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","154.60052300000098","0"
+"90degrees A","watchfaces","91","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","146.11448099999689","0"
+"Chunk Weather","watchfaces","92","qemu_emery","no-compatible-binary","Error: This PBW has no emery manifest.","156.9358460000076","0"
+"Chunk Weather","watchfaces","92","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","169.69712600001367","0"
+"Chunk Weather","watchfaces","92","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","154.79040700002224","0"
+"Modulite 2.0","watchfaces","93","qemu_emery","execution-stopped","Error: ReferenceError: 'WebSocket' is not defined
+    at connect (pebble-js-app.js:1678:15)
+    at connectToPebbleSocket (pebble-js-app.js:278:26)
+    at init (pebble-js-app.js:179:29)
+    at <anonymous> (pebble-js-app.js:128:16)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","31404.92757099998","51"
+"Modulite 2.0","watchfaces","93","qemu_flint","execution-stopped","Error: ReferenceError: 'WebSocket' is not defined
+    at connect (pebble-js-app.js:1678:15)
+    at connectToPebbleSocket (pebble-js-app.js:278:26)
+    at init (pebble-js-app.js:179:29)
+    at <anonymous> (pebble-js-app.js:128:16)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","22602.441554999998","38"
+"Modulite 2.0","watchfaces","93","qemu_gabbro","execution-stopped","Error: ReferenceError: 'WebSocket' is not defined
+    at connect (pebble-js-app.js:1678:15)
+    at connectToPebbleSocket (pebble-js-app.js:278:26)
+    at init (pebble-js-app.js:179:29)
+    at <anonymous> (pebble-js-app.js:128:16)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at ready (virtual-phone-bootstrap.js:378:47)
+","27477.15092700001","48"
+"HealthView","watchfaces","94","qemu_emery","scenario-completed","","25372.862993999996","111"
+"HealthView","watchfaces","94","qemu_flint","scenario-completed","","21103.237706999993","94"
+"HealthView","watchfaces","94","qemu_gabbro","scenario-completed","","21691.364731999987","83"
+"Titan","watchfaces","95","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","168.7409650000045","0"
+"Titan","watchfaces","95","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","163.69102499997825","0"
+"Titan","watchfaces","95","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","181.69059199999901","0"
+"CobbleStyle 2","watchfaces","96","qemu_emery","scenario-completed","","23062.824250000005","113"
+"CobbleStyle 2","watchfaces","96","qemu_flint","scenario-completed","","19875.12993300002","96"
+"CobbleStyle 2","watchfaces","96","qemu_gabbro","scenario-completed","","22014.875554","88"
+"Creepy by Dalpek","watchfaces","97","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","159.72433699999237","0"
+"Creepy by Dalpek","watchfaces","97","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","188.43326100002741","0"
+"Creepy by Dalpek","watchfaces","97","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","159.38619700001436","0"
+"Periodic","watchfaces","98","qemu_emery","download-unavailable","TypeError: Invalid URL","138.89249800000107","0"
+"Periodic","watchfaces","98","qemu_flint","download-unavailable","TypeError: Invalid URL","140.72401800000807","0"
+"Periodic","watchfaces","98","qemu_gabbro","download-unavailable","TypeError: Invalid URL","146.2163640000217","0"
+"Brick Neon","watchfaces","99","qemu_emery","execution-stopped","Error: TypeError: cannot read property 'hoursMinutesSeparator' of null
+    at <anonymous> (pebble-js-app.js:132:63)
+    at dispatch (virtual-phone-bootstrap.js:318:119)
+    at configurationClosed (virtual-phone-bootstrap.js:384:180)
+","29075.15591599999","118"
+"Brick Neon","watchfaces","99","qemu_flint","no-compatible-binary","Error: This PBW has no flint manifest.","145.07386800000677","0"
+"Brick Neon","watchfaces","99","qemu_gabbro","no-compatible-binary","Error: This PBW has no gabbro manifest.","158.99676400001044","0"
+"Mondaine","watchfaces","100","qemu_emery","no-compatible-binary","Error: This application targets a different watch platform; emery is required.","146.0229180000024","0"
+"Mondaine","watchfaces","100","qemu_flint","no-compatible-binary","Error: This application targets a different watch platform; flint is required.","165.12424999999348","0"
+"Mondaine","watchfaces","100","qemu_gabbro","no-compatible-binary","Error: This application targets a different watch platform; gabbro is required.","139.71121400000993","0"

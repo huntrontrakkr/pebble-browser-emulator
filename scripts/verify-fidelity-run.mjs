@@ -223,7 +223,11 @@ async function capture() {
     await yieldTask();
   }
   async function waitUntil(ms) {
-    while (clockMs() < ms) await advance(50000, Math.min(ms * 64000, api.spike_ticks() + 640000));
+    // The Wasm deadline is an integer tick. Comparing rounded millisecond values
+    // can otherwise spin forever one tick below, or even at, that deadline.
+    const deadlineTicks = Math.round(ms * 64000);
+    while (api.spike_ticks() < deadlineTicks)
+      await advance(50000, Math.min(deadlineTicks, api.spike_ticks() + 640000));
   }
   async function probeOperation(phase, operation) {
     activeProbe = {

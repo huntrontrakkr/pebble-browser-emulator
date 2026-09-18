@@ -1,0 +1,5621 @@
+{
+  "format": "pebble-compatibility-corpus",
+  "version": 1,
+  "createdAt": "2026-09-18T20:54:58.386Z",
+  "ranking": "Official Most Loved collection; public hearts, NOT measured usage or installs; emery discovery filter retained verbatim.",
+  "sources": [
+    {
+      "category": "watchapps-and-companions",
+      "url": "https://appstore-api.repebble.com/api/v1/apps/collection/most-loved/watchapps-and-companions?hardware=emery&limit=100&offset=0",
+      "retrievedAt": "2026-09-18T20:54:49.007Z",
+      "sha256": "1c18dba8ab3271f5ded631de5215b16e3ecb9e27d7fc035a930b8b46e7af8369"
+    },
+    {
+      "category": "watchfaces",
+      "url": "https://appstore-api.repebble.com/api/v1/apps/collection/most-loved/watchfaces?hardware=emery&limit=100&offset=0",
+      "retrievedAt": "2026-09-18T20:54:49.012Z",
+      "sha256": "e1dcfe35daaf03495d73b649e51f2456874615fb1b35bd8009bd54096585bd32"
+    }
+  ],
+  "profiles": [
+    "qemu_emery",
+    "qemu_flint",
+    "qemu_gabbro"
+  ],
+  "entries": [
+    {
+      "id": "53a898a2cfee2a02c900006c",
+      "category": "watchapps-and-companions",
+      "rank": 1,
+      "title": "Misfit",
+      "hearts": 18765,
+      "version": "3.7",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/53a898a2cfee2a02c900006c/releases/3.7.pbw",
+      "listing": "https://apps.repebble.com/app_53a898a2cfee2a02c900006c",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.012Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.821Z"
+          }
+        ],
+        "path": "packages/53a898a2cfee2a02c900006c.pbw",
+        "bytes": 114645,
+        "sha256": "ba649d580f5da9a035c0c324d5a19263a81e104dfa47865e49678b94e3167e98"
+      }
+    },
+    {
+      "id": "686578b965207500093d5a94",
+      "category": "watchapps-and-companions",
+      "rank": 2,
+      "title": "Music Boss",
+      "hearts": 9237,
+      "version": "7.59",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/686578b965207500093d5a94/7.59/a8c62ec4-6232-4785-afc0-118ade11e762.pbw",
+      "listing": "https://apps.repebble.com/app_686578b965207500093d5a94",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.013Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.844Z"
+          }
+        ],
+        "path": "packages/686578b965207500093d5a94.pbw",
+        "bytes": 492249,
+        "sha256": "27b821bdf51766e0984b6bd8ffb8c0f3c660c37cef3ba717fbeec1b13d9ff25e"
+      }
+    },
+    {
+      "id": "539e18f21a19dec6ca0000aa",
+      "category": "watchapps-and-companions",
+      "rank": 3,
+      "title": "Pixel Miner",
+      "hearts": 8036,
+      "version": "2.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55b6528b5e07169e81000069.pbw",
+      "listing": "https://apps.repebble.com/app_539e18f21a19dec6ca0000aa",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.013Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.771Z"
+          }
+        ],
+        "path": "packages/539e18f21a19dec6ca0000aa.pbw",
+        "bytes": 99895,
+        "sha256": "2b36f712b2716824c70f086076df497e8635477184532c38ab52562dea57400f"
+      }
+    },
+    {
+      "id": "52b20a9b05c04688bf000058",
+      "category": "watchapps-and-companions",
+      "rank": 4,
+      "title": "Morpheuz",
+      "hearts": 6820,
+      "version": "4.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/578fe9e102f6d8dd8f0001db.pbw",
+      "listing": "https://apps.repebble.com/app_52b20a9b05c04688bf000058",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.014Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.132Z"
+          }
+        ],
+        "path": "packages/52b20a9b05c04688bf000058.pbw",
+        "bytes": 211155,
+        "sha256": "703b70359c11f271aa6e71d9ffde6e04082c3262c070b35e4af5b94bbae00b73"
+      }
+    },
+    {
+      "id": "55197642d6fa6f2633000092",
+      "category": "watchapps-and-companions",
+      "rank": 5,
+      "title": "Battery+",
+      "hearts": 6456,
+      "version": "2.1-rbl1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55197642d6fa6f2633000092/releases/2.1-rbl1.pbw",
+      "listing": "https://apps.repebble.com/app_55197642d6fa6f2633000092",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.015Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.798Z"
+          }
+        ],
+        "path": "packages/55197642d6fa6f2633000092.pbw",
+        "bytes": 188344,
+        "sha256": "0617f05d919a2915c5de1c49c1fc22d3113f27ca65b5197e4550d7da4cc22117"
+      }
+    },
+    {
+      "id": "54a1ba1afc5f23e4c000012d",
+      "category": "watchapps-and-companions",
+      "rank": 6,
+      "title": "Timer+",
+      "hearts": 6224,
+      "version": "4.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54a1ba1afc5f23e4c000012d/4.3/77b45092-1bc2-4319-a33b-87f1225522d6.pbw",
+      "listing": "https://apps.repebble.com/app_54a1ba1afc5f23e4c000012d",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "flint",
+        "chalk",
+        "diorite",
+        "gabbro",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.015Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.792Z"
+          }
+        ],
+        "path": "packages/54a1ba1afc5f23e4c000012d.pbw",
+        "bytes": 119077,
+        "sha256": "e35413b613fceaf77ed320c8d7778ad301d1c03333a15c71510babb86ffbef45"
+      }
+    },
+    {
+      "id": "540f7cafbc27450164000157",
+      "category": "watchapps-and-companions",
+      "rank": 7,
+      "title": "Compass",
+      "hearts": 5897,
+      "version": "1.31",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/540f7cafbc27450164000157/1.31/5b006b82-2e2b-4464-ab00-58edb7c907ad.pbw",
+      "listing": "https://apps.repebble.com/app_540f7cafbc27450164000157",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.771Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.962Z"
+          }
+        ],
+        "path": "packages/540f7cafbc27450164000157.pbw",
+        "bytes": 97892,
+        "sha256": "9a17d37554b7d257dfa42e01a704b0dad8c6c7268179adf395bcfbb74e7d243e"
+      }
+    },
+    {
+      "id": "529bb3eef33e76aaf6000004",
+      "category": "watchapps-and-companions",
+      "rank": 8,
+      "title": "Cards for Pebble",
+      "hearts": 4247,
+      "version": "2.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54e13d0e7f774f391c00001a.pbw",
+      "listing": "https://apps.repebble.com/app_529bb3eef33e76aaf6000004",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.792Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.122Z"
+          }
+        ],
+        "path": "packages/529bb3eef33e76aaf6000004.pbw",
+        "bytes": 22120,
+        "sha256": "a8305e2bf538a45859fc22bcb62016ab957eeae7cb8e03ade4c82e0fcd9ed4db"
+      }
+    },
+    {
+      "id": "52f7a04b777f7eee6d000258",
+      "category": "watchapps-and-companions",
+      "rank": 9,
+      "title": "Tiny Bird",
+      "hearts": 3790,
+      "version": "2.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/566cf8c9d129bdd44f0000a0.pbw",
+      "listing": "https://apps.repebble.com/app_52f7a04b777f7eee6d000258",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.798Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.986Z"
+          }
+        ],
+        "path": "packages/52f7a04b777f7eee6d000258.pbw",
+        "bytes": 37410,
+        "sha256": "da7e89b88a1cfcc60777c3b5e3306058b8b7b772ed97fc5a57ba5c39e47f073a"
+      }
+    },
+    {
+      "id": "532323bf60c773c1420000a8",
+      "category": "watchapps-and-companions",
+      "rank": 10,
+      "title": "Dialer for Pebble",
+      "hearts": 3653,
+      "version": "3.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5838ac91ca309491ab000283.pbw",
+      "listing": "https://apps.repebble.com/app_532323bf60c773c1420000a8",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.821Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:49.994Z"
+          }
+        ],
+        "path": "packages/532323bf60c773c1420000a8.pbw",
+        "bytes": 77953,
+        "sha256": "f4f996204e0fc2535b8d088cb5c9cad43455043e97badccc4e6e62c1e4f4b885"
+      }
+    },
+    {
+      "id": "55b6cd955e0716cd6b0000a1",
+      "category": "watchapps-and-companions",
+      "rank": 11,
+      "title": "Timer",
+      "hearts": 3472,
+      "version": "1.2.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55b6cd955e0716cd6b0000a1/1.2.6/89f8c024-486f-48f0-b854-29b9a4b3cc42.pbw",
+      "listing": "https://apps.repebble.com/app_55b6cd955e0716cd6b0000a1",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.844Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.069Z"
+          }
+        ],
+        "path": "packages/55b6cd955e0716cd6b0000a1.pbw",
+        "bytes": 343208,
+        "sha256": "bf8bbb4257cc8fbc3ae7c0252d42e4ce7eb0bf4d5220fad20c959094a562e1cc"
+      }
+    },
+    {
+      "id": "55b6c2c3e68f5acdfc00008d",
+      "category": "watchapps-and-companions",
+      "rank": 12,
+      "title": "Stopwatch",
+      "hearts": 2998,
+      "version": "1.3.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55b6c2c3e68f5acdfc00008d/1.3.0/f6ee3506-cb3e-4b3d-a3d1-20ff20b35877.pbw",
+      "listing": "https://apps.repebble.com/app_55b6c2c3e68f5acdfc00008d",
+      "advertisedPlatforms": [
+        "chalk",
+        "gabbro",
+        "aplite",
+        "basalt",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.963Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.147Z"
+          }
+        ],
+        "path": "packages/55b6c2c3e68f5acdfc00008d.pbw",
+        "bytes": 86943,
+        "sha256": "780e86545f54a1d2a2bdd3fe4b5ad4e7c6b47b0da6ae92fdb836bc758d4272fa"
+      }
+    },
+    {
+      "id": "52e04d79d8561de30700002e",
+      "category": "watchapps-and-companions",
+      "rank": 13,
+      "title": "Sports",
+      "hearts": 2864,
+      "version": "2.12",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57ae63e6f01b53f82d0002ab.pbw",
+      "listing": "https://apps.repebble.com/app_52e04d79d8561de30700002e",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.986Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.220Z"
+          }
+        ],
+        "path": "packages/52e04d79d8561de30700002e.pbw",
+        "bytes": 135345,
+        "sha256": "f79a65ebd8fc41f15c611803d3f17ab5b46f04b364fa2c19dfbc4471e98ac3eb"
+      }
+    },
+    {
+      "id": "52b77e12dfa4228e8200000a",
+      "category": "watchapps-and-companions",
+      "rank": 14,
+      "title": "Sleep as Android",
+      "hearts": 2655,
+      "version": "4.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52b77e12dfa4228e8200000a/4.6/c850482b-b9b8-4a68-9428-a74e5963e914.pbw",
+      "listing": "https://apps.repebble.com/app_52b77e12dfa4228e8200000a",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:49.994Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.184Z"
+          }
+        ],
+        "path": "packages/52b77e12dfa4228e8200000a.pbw",
+        "bytes": 101485,
+        "sha256": "940deacb5dbdaf106b92b6155564ceebeaa7256ce38634af75547a9e43b30d12"
+      }
+    },
+    {
+      "id": "561960c8a1dd2652af00000d",
+      "category": "watchapps-and-companions",
+      "rank": 15,
+      "title": "Snowy",
+      "hearts": 2443,
+      "version": "4.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5808c5bb53c08f79bf000068.pbw",
+      "listing": "https://apps.repebble.com/app_561960c8a1dd2652af00000d",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.069Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.340Z"
+          }
+        ],
+        "path": "packages/561960c8a1dd2652af00000d.pbw",
+        "bytes": 1083007,
+        "sha256": "97db7f67ca6c68079c6ab54d784a0c24dc00e289c73de493490d00abe64b8a9e"
+      }
+    },
+    {
+      "id": "52e7521679f937c182000004",
+      "category": "watchapps-and-companions",
+      "rank": 16,
+      "title": "Maptastic",
+      "hearts": 2296,
+      "version": "5.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52e7521679f937c182000004/5.1/7b25e8da-9d07-4a37-8755-13d15da066d9.pbw",
+      "listing": "https://apps.repebble.com/app_52e7521679f937c182000004",
+      "advertisedPlatforms": [
+        "flint",
+        "chalk",
+        "basalt",
+        "aplite",
+        "gabbro",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.122Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.347Z"
+          }
+        ],
+        "path": "packages/52e7521679f937c182000004.pbw",
+        "bytes": 468727,
+        "sha256": "fe7e2f3dc4824ac7fa4ef3c1def20ffc8e890c1d39ebfe9c918594b953842859"
+      }
+    },
+    {
+      "id": "52bf3d3af31c3282200000af",
+      "category": "watchapps-and-companions",
+      "rank": 17,
+      "title": "Glance",
+      "hearts": 2167,
+      "version": "2.14",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57f164c405e4b13338000099.pbw",
+      "listing": "https://apps.repebble.com/app_52bf3d3af31c3282200000af",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.132Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.657Z"
+          }
+        ],
+        "path": "packages/52bf3d3af31c3282200000af.pbw",
+        "bytes": 439402,
+        "sha256": "b5beaa4b2ca6921c43ae57b54f8806762481f5c1ed88aac30637fdfed7d48e96"
+      }
+    },
+    {
+      "id": "552f63b406bedce1700000bb",
+      "category": "watchapps-and-companions",
+      "rank": 18,
+      "title": "FitCat",
+      "hearts": 2160,
+      "version": "4.2",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/552f63b406bedce1700000bb/releases/4.2.pbw",
+      "listing": "https://apps.repebble.com/app_552f63b406bedce1700000bb",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.147Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.615Z"
+          }
+        ],
+        "path": "packages/552f63b406bedce1700000bb.pbw",
+        "bytes": 299640,
+        "sha256": "77320d4223ab2a5bf77b0a371df059c36b81ab586b293d87448b6e1cd6d6d11d"
+      }
+    },
+    {
+      "id": "54e69569ad38b6399f000017",
+      "category": "watchapps-and-companions",
+      "rank": 19,
+      "title": "PinyWings",
+      "hearts": 2103,
+      "version": "3.28",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57d97ed012cf101041000126.pbw",
+      "listing": "https://apps.repebble.com/app_54e69569ad38b6399f000017",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "aplite",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.184Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.588Z"
+          }
+        ],
+        "path": "packages/54e69569ad38b6399f000017.pbw",
+        "bytes": 461688,
+        "sha256": "0f73f0536c0cf9efdc415a80a616feb4f1f98d41aff486b45cc30b2ffd330e6a"
+      }
+    },
+    {
+      "id": "52e0380f7f68b384ee000010",
+      "category": "watchapps-and-companions",
+      "rank": 20,
+      "title": "Swarm by Foursquare",
+      "hearts": 2069,
+      "version": "1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56311f23c1d28221db000060.pbw",
+      "listing": "https://apps.repebble.com/app_52e0380f7f68b384ee000010",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.220Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.572Z"
+          }
+        ],
+        "path": "packages/52e0380f7f68b384ee000010.pbw",
+        "bytes": 56575,
+        "sha256": "ab375027bddbdaa132360340c73ca99124a49c9d40104b4c986221e9287aef52"
+      }
+    },
+    {
+      "id": "529eaee7d7894b8324000022",
+      "category": "watchapps-and-companions",
+      "rank": 21,
+      "title": "Weather",
+      "hearts": 1890,
+      "version": "5.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/581ea03e1c0888b9c3000250.pbw",
+      "listing": "https://apps.repebble.com/app_529eaee7d7894b8324000022",
+      "advertisedPlatforms": [
+        "diorite",
+        "emery",
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.340Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.569Z"
+          }
+        ],
+        "path": "packages/529eaee7d7894b8324000022.pbw",
+        "bytes": 117353,
+        "sha256": "edfc65546f64816acf32fb47f79c841c6210faa28308c0ac423f068040c91db9"
+      }
+    },
+    {
+      "id": "54a20301fc5f2379c60001b2",
+      "category": "watchapps-and-companions",
+      "rank": 22,
+      "title": "Steps - stopwatch with step counter (pedometer) that works without phone",
+      "hearts": 1807,
+      "version": "0.27",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56df5dda25e795d725000035.pbw",
+      "listing": "https://apps.repebble.com/app_54a20301fc5f2379c60001b2",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.347Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.539Z"
+          }
+        ],
+        "path": "packages/54a20301fc5f2379c60001b2.pbw",
+        "bytes": 58844,
+        "sha256": "8859864dbad958063306e1e0d860e104ae7076c54be9faade3f29bf52dc503b9"
+      }
+    },
+    {
+      "id": "5620e876768e7ada4e00007a",
+      "category": "watchapps-and-companions",
+      "rank": 23,
+      "title": "Checklist",
+      "hearts": 1782,
+      "version": "2.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5620e876768e7ada4e00007a/2.3/1637d2a5-ac79-4eb5-86f6-c2e3c82f8073.pbw",
+      "listing": "https://apps.repebble.com/app_5620e876768e7ada4e00007a",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.539Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.784Z"
+          }
+        ],
+        "path": "packages/5620e876768e7ada4e00007a.pbw",
+        "bytes": 252380,
+        "sha256": "23bee1edb324fa25cc38ecf3894851c158d8d7807a490593f0e0595893587b84"
+      }
+    },
+    {
+      "id": "5313c2f943d9606d1d0000ef",
+      "category": "watchapps-and-companions",
+      "rank": 24,
+      "title": "Pedometer",
+      "hearts": 1769,
+      "version": "1.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5340970decb6cc47800000e9.pbw",
+      "listing": "https://apps.repebble.com/app_5313c2f943d9606d1d0000ef",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.569Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.976Z"
+          }
+        ],
+        "path": "packages/5313c2f943d9606d1d0000ef.pbw",
+        "bytes": 71515,
+        "sha256": "000ba950e4b6c4dec7b105f63284f79e72c7e8c150539d9f5d7e8a824961fd72"
+      }
+    },
+    {
+      "id": "52da85fce798b9c8c9000127",
+      "category": "watchapps-and-companions",
+      "rank": 25,
+      "title": "Battery lifetime (color)",
+      "hearts": 1725,
+      "version": "8.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/566ae813b9d8979e38000035.pbw",
+      "listing": "https://apps.repebble.com/app_52da85fce798b9c8c9000127",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.572Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.997Z"
+          }
+        ],
+        "path": "packages/52da85fce798b9c8c9000127.pbw",
+        "bytes": 103251,
+        "sha256": "901d3e6e5a18db01f3b1a2c07708631491aacab6aa225b53b6f2b037bf30c39b"
+      }
+    },
+    {
+      "id": "53ec8d840c3036447e000109",
+      "category": "watchapps-and-companions",
+      "rank": 26,
+      "title": "Dashboard",
+      "hearts": 1700,
+      "version": "4.8",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/53ec8d840c3036447e000109/releases/4.8.pbw",
+      "listing": "https://apps.repebble.com/app_53ec8d840c3036447e000109",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.588Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.787Z"
+          }
+        ],
+        "path": "packages/53ec8d840c3036447e000109.pbw",
+        "bytes": 100410,
+        "sha256": "912fe7bd83e69567c4e85d6d1390fb073e933a16e4cd5ed4e80a9362a4908f35"
+      }
+    },
+    {
+      "id": "52e045d97487e52352000021",
+      "category": "watchapps-and-companions",
+      "rank": 27,
+      "title": "GoPro",
+      "hearts": 1605,
+      "version": "2.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/555cf9898b37d96dbc000038.pbw",
+      "listing": "https://apps.repebble.com/app_52e045d97487e52352000021",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.615Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.076Z"
+          }
+        ],
+        "path": "packages/52e045d97487e52352000021.pbw",
+        "bytes": 180899,
+        "sha256": "2c2dafe05c2a36884ad34fb669c743710a4fda4a7442b479f97b8fcb6625f2cd"
+      }
+    },
+    {
+      "id": "52d30a1d19412b4d84000025",
+      "category": "watchapps-and-companions",
+      "rank": 28,
+      "title": "Multi Timer",
+      "hearts": 1561,
+      "version": "3.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54a72e724517d033b3000120.pbw",
+      "listing": "https://apps.repebble.com/app_52d30a1d19412b4d84000025",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.657Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.982Z"
+          }
+        ],
+        "path": "packages/52d30a1d19412b4d84000025.pbw",
+        "bytes": 26815,
+        "sha256": "ce64858c6ad48d7756c43980d8f806a3ec70d8bcb2c3c7bd9087753330ca7aeb"
+      }
+    },
+    {
+      "id": "56d74906153e89502d000024",
+      "category": "watchapps-and-companions",
+      "rank": 29,
+      "title": "Obelisk",
+      "hearts": 1441,
+      "version": "1.6.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56d74906153e89502d000024/1.6.4/3694792b-bd2a-4b34-a0cf-b2ba0468de14.pbw",
+      "listing": "https://apps.repebble.com/app_56d74906153e89502d000024",
+      "advertisedPlatforms": [
+        "aplite",
+        "emery",
+        "chalk",
+        "diorite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.784Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.977Z"
+          }
+        ],
+        "path": "packages/56d74906153e89502d000024.pbw",
+        "bytes": 87305,
+        "sha256": "e3e34151572245e5598eeebf8b528856ff84f769034520049d003af1ca6872ab"
+      }
+    },
+    {
+      "id": "55c6658f65af420a55000043",
+      "category": "watchapps-and-companions",
+      "rank": 30,
+      "title": "7-Minute+",
+      "hearts": 1419,
+      "version": "1.1-rbl1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55c6658f65af420a55000043/releases/1.1-rbl1.pbw",
+      "listing": "https://apps.repebble.com/app_55c6658f65af420a55000043",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.787Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:50.973Z"
+          }
+        ],
+        "path": "packages/55c6658f65af420a55000043.pbw",
+        "bytes": 63437,
+        "sha256": "6e65932c1f03a3ec4e7034d5404982e5938c29cce7cb44bb5e5ecebe0c0cebb6"
+      }
+    },
+    {
+      "id": "53207d5cef6e7708c700017c",
+      "category": "watchapps-and-companions",
+      "rank": 31,
+      "title": "Mr. Runner",
+      "hearts": 1379,
+      "version": "1.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/567a080c1606196932000075.pbw",
+      "listing": "https://apps.repebble.com/app_53207d5cef6e7708c700017c",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.973Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.184Z"
+          }
+        ],
+        "path": "packages/53207d5cef6e7708c700017c.pbw",
+        "bytes": 100488,
+        "sha256": "30a77ff0ccb04dde27e918b84c67b59dcee3273eb89bbe523b622428ef00feb0"
+      }
+    },
+    {
+      "id": "546047390db50db6e100002b",
+      "category": "watchapps-and-companions",
+      "rank": 32,
+      "title": "Gentle Wake (Daily Smart Alarm Clock with Sleep Monitoring)",
+      "hearts": 1342,
+      "version": "3.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57f8799498b2fcc17b000055.pbw",
+      "listing": "https://apps.repebble.com/app_546047390db50db6e100002b",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.976Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.304Z"
+          }
+        ],
+        "path": "packages/546047390db50db6e100002b.pbw",
+        "bytes": 116806,
+        "sha256": "0c1f62bd20b59c6b25694774cd005260fb2786f6db62fae6aa7373505224847f"
+      }
+    },
+    {
+      "id": "53997be075649393060000dc",
+      "category": "watchapps-and-companions",
+      "rank": 33,
+      "title": "Football Pal",
+      "hearts": 1295,
+      "version": "3.7",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57b1f57fbb85ed0c850004fa.pbw",
+      "listing": "https://apps.repebble.com/app_53997be075649393060000dc",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.977Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.388Z"
+          }
+        ],
+        "path": "packages/53997be075649393060000dc.pbw",
+        "bytes": 682891,
+        "sha256": "074d5404c2fd5833cdb712217bef609510c6aec74dae0da0c1836fd3b2f1ad13"
+      }
+    },
+    {
+      "id": "52f1a4c3c4117252f9000bb8",
+      "category": "watchapps-and-companions",
+      "rank": 34,
+      "title": "Authenticator",
+      "hearts": 1229,
+      "version": "1.11",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/52f1a4c3c4117252f9000bb8/releases/1.11.pbw",
+      "listing": "https://apps.repebble.com/app_52f1a4c3c4117252f9000bb8",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.982Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.200Z"
+          }
+        ],
+        "path": "packages/52f1a4c3c4117252f9000bb8.pbw",
+        "bytes": 65841,
+        "sha256": "625d973c9a86c27102b81332ecccb2e23f65c4c7f8a277e0303e5b3b9dbda065"
+      }
+    },
+    {
+      "id": "54527bf9d692a12cfa000081",
+      "category": "watchapps-and-companions",
+      "rank": 35,
+      "title": "JavaPay",
+      "hearts": 1193,
+      "version": "1.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56360d11dfd22814bc000050.pbw",
+      "listing": "https://apps.repebble.com/app_54527bf9d692a12cfa000081",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:50.997Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.195Z"
+          }
+        ],
+        "path": "packages/54527bf9d692a12cfa000081.pbw",
+        "bytes": 69015,
+        "sha256": "d974ef5c89cd5a952452f6d8722d29f3c55b38fdcf7cd0587de6a7981d51d19e"
+      }
+    },
+    {
+      "id": "56231c63ade802b29d00002b",
+      "category": "watchapps-and-companions",
+      "rank": 36,
+      "title": "Note To Self",
+      "hearts": 1174,
+      "version": "1.11",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/581abbe044d606c91500009c.pbw",
+      "listing": "https://apps.repebble.com/app_56231c63ade802b29d00002b",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.076Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.277Z"
+          }
+        ],
+        "path": "packages/56231c63ade802b29d00002b.pbw",
+        "bytes": 44201,
+        "sha256": "5b4d14437740fe3a2cd7483c549e60ffe7c2f88caa953fac704179f9a3ad274f"
+      }
+    },
+    {
+      "id": "52ee8b9294cc96542400002c",
+      "category": "watchapps-and-companions",
+      "rank": 37,
+      "title": "MiniDungeon",
+      "hearts": 1153,
+      "version": "3.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57e1a99f4fac5cb5fb0001b8.pbw",
+      "listing": "https://apps.repebble.com/app_52ee8b9294cc96542400002c",
+      "advertisedPlatforms": [
+        "chalk",
+        "diorite",
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.184Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.424Z"
+          }
+        ],
+        "path": "packages/52ee8b9294cc96542400002c.pbw",
+        "bytes": 156538,
+        "sha256": "f7bbe686a2b1ffb8a13d83ac99a7e3a0d7c86b13faf29ee3755a2c8d4f50d213"
+      }
+    },
+    {
+      "id": "55de02ca4374cb08ff000055",
+      "category": "watchapps-and-companions",
+      "rank": 38,
+      "title": "Watchie-Talkie",
+      "hearts": 1128,
+      "version": "6.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/580788d2c3b2a1fc970000a6.pbw",
+      "listing": "https://apps.repebble.com/app_55de02ca4374cb08ff000055",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.195Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.362Z"
+          }
+        ],
+        "path": "packages/55de02ca4374cb08ff000055.pbw",
+        "bytes": 53062,
+        "sha256": "463337a4d5c552d436407b2885aaecd155e7e7ebd339ccec8686c3d1810ffe11"
+      }
+    },
+    {
+      "id": "53135a5343d96008dd0000a1",
+      "category": "watchapps-and-companions",
+      "rank": 39,
+      "title": "WW - Weather Watch",
+      "hearts": 1106,
+      "version": "4.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5656bf527ffb06aef2000050.pbw",
+      "listing": "https://apps.repebble.com/app_53135a5343d96008dd0000a1",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.200Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.659Z"
+          }
+        ],
+        "path": "packages/53135a5343d96008dd0000a1.pbw",
+        "bytes": 82692,
+        "sha256": "4c33afa91a8e6bea67638b8787c2951741d1a2e1ba7c6e419f571b8e11a5c886"
+      }
+    },
+    {
+      "id": "54551598997cdfddaa000043",
+      "category": "watchapps-and-companions",
+      "rank": 40,
+      "title": "Alarms++",
+      "hearts": 1093,
+      "version": "7.7-rbl1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/54551598997cdfddaa000043/releases/7.7-rbl1.pbw",
+      "listing": "https://apps.repebble.com/app_54551598997cdfddaa000043",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "diorite",
+        "emery",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.277Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.583Z"
+          }
+        ],
+        "path": "packages/54551598997cdfddaa000043.pbw",
+        "bytes": 188127,
+        "sha256": "3e67355f326590fccf2ae5b5948fc85a6251ff614ea1f7814a45b5d597240fdd"
+      }
+    },
+    {
+      "id": "562eb6ebd2c136c34a00000b",
+      "category": "watchapps-and-companions",
+      "rank": 41,
+      "title": "Notes",
+      "hearts": 1070,
+      "version": "0.1-rbl2",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/562eb6ebd2c136c34a00000b/releases/0.1-rbl2.pbw",
+      "listing": "https://apps.repebble.com/app_562eb6ebd2c136c34a00000b",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.304Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.509Z"
+          }
+        ],
+        "path": "packages/562eb6ebd2c136c34a00000b.pbw",
+        "bytes": 13066,
+        "sha256": "65d6914cc36744ff6fe5c3e709f40c0f49daa8159e22c163c498b6579007ca5c"
+      }
+    },
+    {
+      "id": "52dc9314f9d8ec5633000058",
+      "category": "watchapps-and-companions",
+      "rank": 42,
+      "title": "Watchfaces+ Color",
+      "hearts": 1066,
+      "version": "1.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57dee07a2d0cc8922f0003de.pbw",
+      "listing": "https://apps.repebble.com/app_52dc9314f9d8ec5633000058",
+      "advertisedPlatforms": [
+        "chalk",
+        "aplite",
+        "basalt",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.362Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.810Z"
+          }
+        ],
+        "path": "packages/52dc9314f9d8ec5633000058.pbw",
+        "bytes": 139355,
+        "sha256": "245e707ff401a485268477fa9d3316a4359efe1e75baa87761f4527473f41b9c"
+      }
+    },
+    {
+      "id": "528fc371a92e1fb023000015",
+      "category": "watchapps-and-companions",
+      "rank": 43,
+      "title": "7-Minute Workout",
+      "hearts": 1063,
+      "version": "2.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5685915b5bcfd88ec9000055.pbw",
+      "listing": "https://apps.repebble.com/app_528fc371a92e1fb023000015",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.388Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.658Z"
+          }
+        ],
+        "path": "packages/528fc371a92e1fb023000015.pbw",
+        "bytes": 80657,
+        "sha256": "0a1c0df04805fe633595a86d3f059f2edd9e41f279c17cc61f58fc5a9fc38da3"
+      }
+    },
+    {
+      "id": "561f9188bcb7ac903a00005b",
+      "category": "watchapps-and-companions",
+      "rank": 44,
+      "title": "Voice2Timeline",
+      "hearts": 1053,
+      "version": "1.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56f3e976065dfdc70b000031.pbw",
+      "listing": "https://apps.repebble.com/app_561f9188bcb7ac903a00005b",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.424Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.622Z"
+          }
+        ],
+        "path": "packages/561f9188bcb7ac903a00005b.pbw",
+        "bytes": 145874,
+        "sha256": "c1e35ee61ad2f7c51cbb75790f9e16b5a6b78059f1a6d132a1edcd93ff169b12"
+      }
+    },
+    {
+      "id": "5299fe33129af75c010000a2",
+      "category": "watchapps-and-companions",
+      "rank": 45,
+      "title": "Blocks",
+      "hearts": 1043,
+      "version": "4.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56a0f974b090583f69000038.pbw",
+      "listing": "https://apps.repebble.com/app_5299fe33129af75c010000a2",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.509Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.697Z"
+          }
+        ],
+        "path": "packages/5299fe33129af75c010000a2.pbw",
+        "bytes": 139329,
+        "sha256": "847587310f70feaf8eb99c41e6d3a3ff7841d010ebc06b3cf80ed22e02792de4"
+      }
+    },
+    {
+      "id": "53246e7adbe04d3cfe0002ce",
+      "category": "watchapps-and-companions",
+      "rank": 46,
+      "title": "Hatchi - A retro virtual pet",
+      "hearts": 1034,
+      "version": "1.0.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/532cab4342be7e92b1000007.pbw",
+      "listing": "https://apps.repebble.com/app_53246e7adbe04d3cfe0002ce",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.583Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.788Z"
+          }
+        ],
+        "path": "packages/53246e7adbe04d3cfe0002ce.pbw",
+        "bytes": 108971,
+        "sha256": "7feab12ac7462bc699d56bd8a7e939b94a91947229440b54c30e5d0fe1a5ea8c"
+      }
+    },
+    {
+      "id": "56852cf18d316f6e0a000093",
+      "category": "watchapps-and-companions",
+      "rank": 47,
+      "title": "Rain",
+      "hearts": 972,
+      "version": "3.1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/56852cf18d316f6e0a000093/releases/3.1.pbw",
+      "listing": "https://apps.repebble.com/app_56852cf18d316f6e0a000093",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.622Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.859Z"
+          }
+        ],
+        "path": "packages/56852cf18d316f6e0a000093.pbw",
+        "bytes": 342058,
+        "sha256": "4af18d67962053a7a46abc0312da015752b28ddb43019799550f695105d2f4de"
+      }
+    },
+    {
+      "id": "572763c3ded357ee9400000a",
+      "category": "watchapps-and-companions",
+      "rank": 48,
+      "title": "LAST SIGNAL",
+      "hearts": 965,
+      "version": "0.95",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/58248b26b62cef60b50000b0.pbw",
+      "listing": "https://apps.repebble.com/app_572763c3ded357ee9400000a",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.658Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.919Z"
+          }
+        ],
+        "path": "packages/572763c3ded357ee9400000a.pbw",
+        "bytes": 85726,
+        "sha256": "1c89b999b9473d096e7c680c8509c0af6f695c928a4cb828fe538472647a59ae"
+      }
+    },
+    {
+      "id": "5350c74edfb164d5bc0000fa",
+      "category": "watchapps-and-companions",
+      "rank": 49,
+      "title": "My Steps",
+      "hearts": 961,
+      "version": "1.41",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56787065b688ebc51f00003c.pbw",
+      "listing": "https://apps.repebble.com/app_5350c74edfb164d5bc0000fa",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.659Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:51.991Z"
+          }
+        ],
+        "path": "packages/5350c74edfb164d5bc0000fa.pbw",
+        "bytes": 33168,
+        "sha256": "17593ff2830fa536071334e7317b108237c54f387cc7de7a98c7f2b1599a3b24"
+      }
+    },
+    {
+      "id": "5346d5c9ca71cf9feb0003a1",
+      "category": "watchapps-and-companions",
+      "rank": 50,
+      "title": "PebbCN",
+      "hearts": 883,
+      "version": "1.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/541d3d92c1fde850aa000035.pbw",
+      "listing": "https://apps.repebble.com/app_5346d5c9ca71cf9feb0003a1",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.697Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.061Z"
+          }
+        ],
+        "path": "packages/5346d5c9ca71cf9feb0003a1.pbw",
+        "bytes": 17568,
+        "sha256": "2f3976fa18254cd270a643337dc26c8cd6152f8e7a0ab449021866441502a250"
+      }
+    },
+    {
+      "id": "529289cee07df1fa76000009",
+      "category": "watchapps-and-companions",
+      "rank": 51,
+      "title": "Ventoo - GPS sports tracker",
+      "hearts": 869,
+      "version": "2.91",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57e36b2c87d6bb27300000f1.pbw",
+      "listing": "https://apps.repebble.com/app_529289cee07df1fa76000009",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.788Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.234Z"
+          }
+        ],
+        "path": "packages/529289cee07df1fa76000009.pbw",
+        "bytes": 238580,
+        "sha256": "fc3c2a05df98d85e9a1307b784d9ca82e3c3599901b033c3c9bf50ddb3408ba6"
+      }
+    },
+    {
+      "id": "54c79e1a73f0aa3dbc00000f",
+      "category": "watchapps-and-companions",
+      "rank": 52,
+      "title": "Directions",
+      "hearts": 840,
+      "version": "2.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56645c5d71fa347388000065.pbw",
+      "listing": "https://apps.repebble.com/app_54c79e1a73f0aa3dbc00000f",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.810Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.089Z"
+          }
+        ],
+        "path": "packages/54c79e1a73f0aa3dbc00000f.pbw",
+        "bytes": 428701,
+        "sha256": "15c774a10cc6aea8f280fe96676eaa20326dcc4bcd4c3c526aced5d878cb8c6d"
+      }
+    },
+    {
+      "id": "535e84d0af59179a46000088",
+      "category": "watchapps-and-companions",
+      "rank": 53,
+      "title": "QR Generator",
+      "hearts": 839,
+      "version": "2.3",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/535e84d0af59179a46000088/releases/2.3.pbw",
+      "listing": "https://apps.repebble.com/app_535e84d0af59179a46000088",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.859Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.127Z"
+          }
+        ],
+        "path": "packages/535e84d0af59179a46000088.pbw",
+        "bytes": 268268,
+        "sha256": "c789f19acb01113ecd39a8ce055c70c326b34f51a0129ca3545b36beb684cedd"
+      }
+    },
+    {
+      "id": "542240be5f927199fd00003e",
+      "category": "watchapps-and-companions",
+      "rank": 54,
+      "title": "Swim.com",
+      "hearts": 832,
+      "version": "2.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/568a2b3d64bdb8955000002d.pbw",
+      "listing": "https://apps.repebble.com/app_542240be5f927199fd00003e",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.919Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.391Z"
+          }
+        ],
+        "path": "packages/542240be5f927199fd00003e.pbw",
+        "bytes": 49957,
+        "sha256": "a641f6961b99ebed4bba8ba18652cec494a1f575e63e6fcffbd743e16316bbb7"
+      }
+    },
+    {
+      "id": "54f65e8a13cdff61490000b6",
+      "category": "watchapps-and-companions",
+      "rank": 55,
+      "title": "Games for Pebble",
+      "hearts": 830,
+      "version": "6.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5814eb97204470e1350001bc.pbw",
+      "listing": "https://apps.repebble.com/app_54f65e8a13cdff61490000b6",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:51.991Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.176Z"
+          }
+        ],
+        "path": "packages/54f65e8a13cdff61490000b6.pbw",
+        "bytes": 154609,
+        "sha256": "fe7f83d01c0520160279335663b5b3ec3dc99c47d347464295796d769470e80e"
+      }
+    },
+    {
+      "id": "579841731482cdda2b000061",
+      "category": "watchapps-and-companions",
+      "rank": 56,
+      "title": "Pokémon GO Radar (BETA)",
+      "hearts": 813,
+      "version": "0.9",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57be4f365e3c3d1854000024.pbw",
+      "listing": "https://apps.repebble.com/app_579841731482cdda2b000061",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.061Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.263Z"
+          }
+        ],
+        "path": "packages/579841731482cdda2b000061.pbw",
+        "bytes": 455988,
+        "sha256": "33baa534057e1ee383eacff2ee10999d2b2c24402ce723d07f2f88e217377fe8"
+      }
+    },
+    {
+      "id": "529993a5e627cef6e100004b",
+      "category": "watchapps-and-companions",
+      "rank": 57,
+      "title": "Rosewright Chronograph",
+      "hearts": 808,
+      "version": "5.1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/529993a5e627cef6e100004b/5.1.0/9b74b7cf-b5c3-42c2-9719-3c947dad326a.pbw",
+      "listing": "https://apps.repebble.com/app_529993a5e627cef6e100004b",
+      "advertisedPlatforms": [
+        "aplite",
+        "gabbro",
+        "chalk",
+        "emery",
+        "diorite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.089Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.346Z"
+          }
+        ],
+        "path": "packages/529993a5e627cef6e100004b.pbw",
+        "bytes": 970101,
+        "sha256": "88df3f7675ca167cb8c575f0a8ce57a018df318d74fca2ee30e9a5f5cc37816e"
+      }
+    },
+    {
+      "id": "52f9b7cd57e7c27b290000d7",
+      "category": "watchapps-and-companions",
+      "rank": 58,
+      "title": "Pebtris",
+      "hearts": 801,
+      "version": "2.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54cea3d26d23f8474f000042.pbw",
+      "listing": "https://apps.repebble.com/app_52f9b7cd57e7c27b290000d7",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.127Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.371Z"
+          }
+        ],
+        "path": "packages/52f9b7cd57e7c27b290000d7.pbw",
+        "bytes": 13451,
+        "sha256": "5bd7f6bb7b5e50d343f03edddb1e0c890826369b7a4e1cabfb91cc56cc43fb2c"
+      }
+    },
+    {
+      "id": "52cd93cd53760f442d00000b",
+      "category": "watchapps-and-companions",
+      "rank": 59,
+      "title": "Twebble",
+      "hearts": 764,
+      "version": "1.1.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53e7c6b53d283eb52b000128.pbw",
+      "listing": "https://apps.repebble.com/app_52cd93cd53760f442d00000b",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.176Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.564Z"
+          }
+        ],
+        "path": "packages/52cd93cd53760f442d00000b.pbw",
+        "bytes": 31289,
+        "sha256": "e3a49c89a41d191d0b1835e2a6de38f8863f6f73cfb666ce8befdf86682397a7"
+      }
+    },
+    {
+      "id": "529f6dbdd7894bb069000056",
+      "category": "watchapps-and-companions",
+      "rank": 60,
+      "title": "Huebble",
+      "hearts": 752,
+      "version": "1.29",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5438cd34cf07ca59d2000143.pbw",
+      "listing": "https://apps.repebble.com/app_529f6dbdd7894bb069000056",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.234Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.442Z"
+          }
+        ],
+        "path": "packages/529f6dbdd7894bb069000056.pbw",
+        "bytes": 60406,
+        "sha256": "0637324412ce06d3fdb09f898783005392b1b32eea9e6cbd219a527cf5b72bc2"
+      }
+    },
+    {
+      "id": "53a1ef96d13e9c7729000002",
+      "category": "watchapps-and-companions",
+      "rank": 61,
+      "title": "World Cup 2014",
+      "hearts": 747,
+      "version": "1.0.05",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/53a1ef96d13e9c7729000002/releases/1.0.05.pbw",
+      "listing": "https://apps.repebble.com/app_53a1ef96d13e9c7729000002",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.263Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.557Z"
+          }
+        ],
+        "path": "packages/53a1ef96d13e9c7729000002.pbw",
+        "bytes": 48250,
+        "sha256": "0c82cc63321d693f84bd51ad65aafc1f255b141e5d8ef165d704998e326a1c21"
+      }
+    },
+    {
+      "id": "692b3821d7dcba000a809ba5",
+      "category": "watchapps-and-companions",
+      "rank": 62,
+      "title": "Muninn - Battery Wisdom",
+      "hearts": 743,
+      "version": "1.50.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/692b3821d7dcba000a809ba5/1.50.0/37867793-61dc-4222-8299-add530af8ee9.pbw",
+      "listing": "https://apps.repebble.com/app_692b3821d7dcba000a809ba5",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.346Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.536Z"
+          }
+        ],
+        "path": "packages/692b3821d7dcba000a809ba5.pbw",
+        "bytes": 401779,
+        "sha256": "982a69588dd29ff71e44e5190807e57ae53fc8ae450db4b7c860900154cde989"
+      }
+    },
+    {
+      "id": "53bea77b8fc93cd6dc00020b",
+      "category": "watchapps-and-companions",
+      "rank": 63,
+      "title": "My World",
+      "hearts": 727,
+      "version": "1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53bea7c3a2270722c2000226.pbw",
+      "listing": "https://apps.repebble.com/app_53bea77b8fc93cd6dc00020b",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.371Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.835Z"
+          }
+        ],
+        "path": "packages/53bea77b8fc93cd6dc00020b.pbw",
+        "bytes": 14118,
+        "sha256": "4c081edfdddd146715d683511948eea869f0480f64086f2f134e55b8c4cf2f7c"
+      }
+    },
+    {
+      "id": "532a7899e1a5945f0c000035",
+      "category": "watchapps-and-companions",
+      "rank": 64,
+      "title": "Notify",
+      "hearts": 710,
+      "version": "61",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/564eb94b71fb61c3f400002a.pbw",
+      "listing": "https://apps.repebble.com/app_532a7899e1a5945f0c000035",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.391Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.687Z"
+          }
+        ],
+        "path": "packages/532a7899e1a5945f0c000035.pbw",
+        "bytes": 27027,
+        "sha256": "bb2237a3c531f7fd8266778060a8f1064e14d294176e1252b33e3e2587753916"
+      }
+    },
+    {
+      "id": "60ec78db1342ae0152f9a409",
+      "category": "watchapps-and-companions",
+      "rank": 65,
+      "title": "Pebblemon",
+      "hearts": 701,
+      "version": "2.1.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/60ec78db1342ae0152f9a409/2.1.2/df370b6b-5a67-4c8b-a89e-a75b666805a9.pbw",
+      "listing": "https://apps.repebble.com/app_60ec78db1342ae0152f9a409",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.442Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.695Z"
+          }
+        ],
+        "path": "packages/60ec78db1342ae0152f9a409.pbw",
+        "bytes": 1220299,
+        "sha256": "09030848fb2c55b8500a6e78ddbd67aef6ecbcd215feb88ed69fb4bb73208ea3"
+      }
+    },
+    {
+      "id": "553aaf29bf1a5965020000c8",
+      "category": "watchapps-and-companions",
+      "rank": 66,
+      "title": "skunk",
+      "hearts": 697,
+      "version": "1.9",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/553aaf29bf1a5965020000c8/releases/1.9.pbw",
+      "listing": "https://apps.repebble.com/app_553aaf29bf1a5965020000c8",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.536Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.760Z"
+          }
+        ],
+        "path": "packages/553aaf29bf1a5965020000c8.pbw",
+        "bytes": 56436,
+        "sha256": "414437aa1f60075a44f513a48e2ff6253f15c7e4c30ada3b2d7bd4aef0c02039"
+      }
+    },
+    {
+      "id": "53ab84141d576ea3c30000d6",
+      "category": "watchapps-and-companions",
+      "rank": 67,
+      "title": "Qibla - Prayer Times & Compass",
+      "hearts": 660,
+      "version": "2.7",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/53ab84141d576ea3c30000d6/releases/2.7.pbw",
+      "listing": "https://apps.repebble.com/app_53ab84141d576ea3c30000d6",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.557Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.761Z"
+          }
+        ],
+        "path": "packages/53ab84141d576ea3c30000d6.pbw",
+        "bytes": 41820,
+        "sha256": "cd9115696a59f10f6977c788a820cc90257e1f6a028b81ff9497b646ad2010e1"
+      }
+    },
+    {
+      "id": "5387b383f60819963900000e",
+      "category": "watchapps-and-companions",
+      "rank": 68,
+      "title": "News Headlines",
+      "hearts": 640,
+      "version": "4.12",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5387b383f60819963900000e/4.12/691d8723-e33e-472a-99a2-e925b0824818.pbw",
+      "listing": "https://apps.repebble.com/app_5387b383f60819963900000e",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.564Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.742Z"
+          }
+        ],
+        "path": "packages/5387b383f60819963900000e.pbw",
+        "bytes": 135918,
+        "sha256": "fb37e0f9c36b0d31b2eceb0e4e8f9202b20934d53a418194b4032e688da101b3"
+      }
+    },
+    {
+      "id": "5639b1a377b75e5dfd000030",
+      "category": "watchapps-and-companions",
+      "rank": 69,
+      "title": "Solanum",
+      "hearts": 637,
+      "version": "3.3.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5639b1a377b75e5dfd000030/3.3.3/7d7c741f-cf48-4c16-915f-1be9bf35ae7f.pbw",
+      "listing": "https://apps.repebble.com/app_5639b1a377b75e5dfd000030",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.687Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.994Z"
+          }
+        ],
+        "path": "packages/5639b1a377b75e5dfd000030.pbw",
+        "bytes": 112647,
+        "sha256": "dd324024adedf272bccc0568e3520bed98d58bd6b964c91b8c935569b70fc6a2"
+      }
+    },
+    {
+      "id": "549e2870fefc1d351e000058",
+      "category": "watchapps-and-companions",
+      "rank": 70,
+      "title": "Sleeper",
+      "hearts": 625,
+      "version": "1.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54a1f0700fb15c634800016d.pbw",
+      "listing": "https://apps.repebble.com/app_549e2870fefc1d351e000058",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.695Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.022Z"
+          }
+        ],
+        "path": "packages/549e2870fefc1d351e000058.pbw",
+        "bytes": 16836,
+        "sha256": "f1f1f847bdfc374899ef4303e5741e13937cb56b1e1efe515ed160d1f30a3d2a"
+      }
+    },
+    {
+      "id": "561ff3cbbcb7aca6250000a3",
+      "category": "watchapps-and-companions",
+      "rank": 71,
+      "title": "Translate (Vox Populi)",
+      "hearts": 622,
+      "version": "1.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5627e48ac361c98c07000079.pbw",
+      "listing": "https://apps.repebble.com/app_561ff3cbbcb7aca6250000a3",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.742Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.958Z"
+          }
+        ],
+        "path": "packages/561ff3cbbcb7aca6250000a3.pbw",
+        "bytes": 35267,
+        "sha256": "7a0cd4645a3475d1a4516fa9aa8ca1476c414128117f1d651f52144c693490cf"
+      }
+    },
+    {
+      "id": "55ed3a06e6ce57442a0000a9",
+      "category": "watchapps-and-companions",
+      "rank": 72,
+      "title": "Habits",
+      "hearts": 622,
+      "version": "2.10",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5817201d46041fb22f0002d0.pbw",
+      "listing": "https://apps.repebble.com/app_55ed3a06e6ce57442a0000a9",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "emery",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.760Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.964Z"
+          }
+        ],
+        "path": "packages/55ed3a06e6ce57442a0000a9.pbw",
+        "bytes": 47377,
+        "sha256": "84918386b94182d005c752f066747795e56f59e526c6d438cbbd04f2ebb80822"
+      }
+    },
+    {
+      "id": "532ac6a8817a41d2c7000252",
+      "category": "watchapps-and-companions",
+      "rank": 73,
+      "title": "PblCamera",
+      "hearts": 615,
+      "version": "41",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56618b6b8f27a55867000045.pbw",
+      "listing": "https://apps.repebble.com/app_532ac6a8817a41d2c7000252",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.761Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:52.983Z"
+          }
+        ],
+        "path": "packages/532ac6a8817a41d2c7000252.pbw",
+        "bytes": 40310,
+        "sha256": "4abde4504dfbf57441f199a563f94e0cbf21c98f2905b9baacaf86456598af45"
+      }
+    },
+    {
+      "id": "52cae46a6126ce093f000064",
+      "category": "watchapps-and-companions",
+      "rank": 74,
+      "title": "Get Back - directions to a set location",
+      "hearts": 614,
+      "version": "2.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54ddaf4aadaf1de5a400006e.pbw",
+      "listing": "https://apps.repebble.com/app_52cae46a6126ce093f000064",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.835Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.006Z"
+          }
+        ],
+        "path": "packages/52cae46a6126ce093f000064.pbw",
+        "bytes": 18492,
+        "sha256": "c909d5180d8240aec8a6e2bdbe98edd5d40d3c0f2643d29117271bc5b280118a"
+      }
+    },
+    {
+      "id": "10966bb2d22145c4b428dfd7",
+      "category": "watchapps-and-companions",
+      "rank": 75,
+      "title": "Calculator",
+      "hearts": 592,
+      "version": "2.0.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/10966bb2d22145c4b428dfd7/2.0.0/0490b2b4-cb76-40f2-a8bd-6515b1e3e98e.pbw",
+      "listing": "https://apps.repebble.com/app_10966bb2d22145c4b428dfd7",
+      "advertisedPlatforms": [
+        "emery",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.958Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.203Z"
+          }
+        ],
+        "path": "packages/10966bb2d22145c4b428dfd7.pbw",
+        "bytes": 351809,
+        "sha256": "78525333a8ea9eb9e399c3da0f4560942d4474fc8f5102e485d04a8f80e5ed0e"
+      }
+    },
+    {
+      "id": "52d3086712ea3dec7e00001b",
+      "category": "watchapps-and-companions",
+      "rank": 76,
+      "title": "UK Transport",
+      "hearts": 590,
+      "version": "1.8",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55b638cde68f5ae5da00003c.pbw",
+      "listing": "https://apps.repebble.com/app_52d3086712ea3dec7e00001b",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.964Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.172Z"
+          }
+        ],
+        "path": "packages/52d3086712ea3dec7e00001b.pbw",
+        "bytes": 51813,
+        "sha256": "7b1f52eeb4195c4179267ccad43eb4f8f700723c1aa5a90f6598d72aecc78359"
+      }
+    },
+    {
+      "id": "56205296ece6340e2f00001d",
+      "category": "watchapps-and-companions",
+      "rank": 77,
+      "title": "Voice Note",
+      "hearts": 573,
+      "version": "1.7",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/56205296ece6340e2f00001d/releases/1.7.pbw",
+      "listing": "https://apps.repebble.com/app_56205296ece6340e2f00001d",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.983Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.203Z"
+          }
+        ],
+        "path": "packages/56205296ece6340e2f00001d.pbw",
+        "bytes": 37022,
+        "sha256": "bdc4680940f8c601c2bb2c20e0189cb0219c047bca1cbaaa7b306ed59ca27388"
+      }
+    },
+    {
+      "id": "555a8efcae067d58f800004d",
+      "category": "watchapps-and-companions",
+      "rank": 78,
+      "title": "Travel",
+      "hearts": 564,
+      "version": "3.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56c2595d8e68a99f21000021.pbw",
+      "listing": "https://apps.repebble.com/app_555a8efcae067d58f800004d",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:52.994Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.375Z"
+          }
+        ],
+        "path": "packages/555a8efcae067d58f800004d.pbw",
+        "bytes": 47723,
+        "sha256": "634c7e90982fc1332182a11921a8674ad344b7a3694dfea3bc4f445db6ffdd2e"
+      }
+    },
+    {
+      "id": "cd7c4d5fe7ec4989a64976c6",
+      "category": "watchapps-and-companions",
+      "rank": 79,
+      "title": "Playback for Spotify",
+      "hearts": 564,
+      "version": "1.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/cd7c4d5fe7ec4989a64976c6/1.3/e6d63780-4caa-499a-a1dc-d2981ec20355.pbw",
+      "listing": "https://apps.repebble.com/app_cd7c4d5fe7ec4989a64976c6",
+      "advertisedPlatforms": [
+        "gabbro",
+        "basalt",
+        "diorite",
+        "chalk",
+        "aplite",
+        "flint",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.006Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.179Z"
+          }
+        ],
+        "path": "packages/cd7c4d5fe7ec4989a64976c6.pbw",
+        "bytes": 402103,
+        "sha256": "fe52ecf8ec53039e06ab793c8120f081b26c5202d27a43fcbd993983c651e00c"
+      }
+    },
+    {
+      "id": "5570838dddc5cc8060000012",
+      "category": "watchapps-and-companions",
+      "rank": 80,
+      "title": "Pokedex Challenge",
+      "hearts": 560,
+      "version": "3.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5584d54b7726b7158400006b.pbw",
+      "listing": "https://apps.repebble.com/app_5570838dddc5cc8060000012",
+      "advertisedPlatforms": [
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.022Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.324Z"
+          }
+        ],
+        "path": "packages/5570838dddc5cc8060000012.pbw",
+        "bytes": 161705,
+        "sha256": "b0f491fc394cbbf5aca6c30b12ff50cdedebbe287f8d39ffc2474027b657e28a"
+      }
+    },
+    {
+      "id": "54ecf75b99a35d3fe70000f2",
+      "category": "watchapps-and-companions",
+      "rank": 81,
+      "title": "Destiny Strap",
+      "hearts": 558,
+      "version": "1.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54fe81a2807d27c37b000081.pbw",
+      "listing": "https://apps.repebble.com/app_54ecf75b99a35d3fe70000f2",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.172Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.354Z"
+          }
+        ],
+        "path": "packages/54ecf75b99a35d3fe70000f2.pbw",
+        "bytes": 18748,
+        "sha256": "e840595b14e9804f5b1027c8ad88cb0b2bfb3c7ce818688909709b8d793d0fab"
+      }
+    },
+    {
+      "id": "e4f66f24bb0a440b9f6aad69",
+      "category": "watchapps-and-companions",
+      "rank": 82,
+      "title": "Brain Dump (index01 for your pebble)",
+      "hearts": 540,
+      "version": "2.5.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/e4f66f24bb0a440b9f6aad69/2.5.0/14db9485-ef7c-4093-97dc-84281402dfb4.pbw",
+      "listing": "https://apps.repebble.com/app_e4f66f24bb0a440b9f6aad69",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.179Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.436Z"
+          }
+        ],
+        "path": "packages/e4f66f24bb0a440b9f6aad69.pbw",
+        "bytes": 434942,
+        "sha256": "2a3273928ab51a8b3ebddb23142a65686cc72755b1238afed2483ea409529453"
+      }
+    },
+    {
+      "id": "550bf37f1e540c856300005e",
+      "category": "watchapps-and-companions",
+      "rank": 83,
+      "title": "Get Back To",
+      "hearts": 534,
+      "version": "5.18",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5831fd2f00355a8e27000101.pbw",
+      "listing": "https://apps.repebble.com/app_550bf37f1e540c856300005e",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.203Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.402Z"
+          }
+        ],
+        "path": "packages/550bf37f1e540c856300005e.pbw",
+        "bytes": 102124,
+        "sha256": "5e9a28d7cab64c6abd0224aae4649874bae7de46125c2866521873a91f3a8a7f"
+      }
+    },
+    {
+      "id": "695da4c3fbfdde0009f99799",
+      "category": "watchapps-and-companions",
+      "rank": 84,
+      "title": "Find My Phone",
+      "hearts": 526,
+      "version": "1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/695da4c3fbfdde0009f99799/releases/1.0.pbw",
+      "listing": "https://apps.repebble.com/app_695da4c3fbfdde0009f99799",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.203Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.386Z"
+          }
+        ],
+        "path": "packages/695da4c3fbfdde0009f99799.pbw",
+        "bytes": 88180,
+        "sha256": "aff07fcec225b2cf7586520817112f0247aa3be134908fa62c87e711c13d5e8c"
+      }
+    },
+    {
+      "id": "53131df8bb31cf87cd00019a",
+      "category": "watchapps-and-companions",
+      "rank": 85,
+      "title": "QuickAuth",
+      "hearts": 510,
+      "version": "3.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/583e85c8ca3094d3b000066a.pbw",
+      "listing": "https://apps.repebble.com/app_53131df8bb31cf87cd00019a",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.324Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.608Z"
+          }
+        ],
+        "path": "packages/53131df8bb31cf87cd00019a.pbw",
+        "bytes": 545432,
+        "sha256": "19622e5470a7ca121902ac24e54b5a2596f6b196ab7a42c6d978dcf618619457"
+      }
+    },
+    {
+      "id": "546cf38371d611fe8a0000bc",
+      "category": "watchapps-and-companions",
+      "rank": 86,
+      "title": "Mr. Runner - UP",
+      "hearts": 503,
+      "version": "1.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/567a082af574cec02b00008b.pbw",
+      "listing": "https://apps.repebble.com/app_546cf38371d611fe8a0000bc",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.354Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.665Z"
+          }
+        ],
+        "path": "packages/546cf38371d611fe8a0000bc.pbw",
+        "bytes": 56784,
+        "sha256": "fa929fc3839b061a91af8e863f64389cd538066c1206654e867c997f7ddf40da"
+      }
+    },
+    {
+      "id": "532286232c5d4dc499b5918c",
+      "category": "watchapps-and-companions",
+      "rank": 87,
+      "title": "Touchy Weather - Weather App",
+      "hearts": 501,
+      "version": "2.3.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/532286232c5d4dc499b5918c/2.3.1/383f9891-0dca-4f98-a298-749b51d0f836.pbw",
+      "listing": "https://apps.repebble.com/app_532286232c5d4dc499b5918c",
+      "advertisedPlatforms": [
+        "basalt",
+        "emery",
+        "chalk",
+        "flint",
+        "diorite",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.375Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.597Z"
+          }
+        ],
+        "path": "packages/532286232c5d4dc499b5918c.pbw",
+        "bytes": 855670,
+        "sha256": "17b2f72bcdc147b0fba4299e0abba6f3982130215ccc04e56e290fec8a9c785d"
+      }
+    },
+    {
+      "id": "53b8f8d4c09b06bcc7000007",
+      "category": "watchapps-and-companions",
+      "rank": 88,
+      "title": "Custom Workout Timer ",
+      "hearts": 494,
+      "version": "4.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56deeb7d68994f7737000016.pbw",
+      "listing": "https://apps.repebble.com/app_53b8f8d4c09b06bcc7000007",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.386Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.659Z"
+          }
+        ],
+        "path": "packages/53b8f8d4c09b06bcc7000007.pbw",
+        "bytes": 44532,
+        "sha256": "cb42ae0b98cb220f1ab0312b0a3e347a055e257f732c742feaa25c09b12e3646"
+      }
+    },
+    {
+      "id": "564f706e86b141be60000081",
+      "category": "watchapps-and-companions",
+      "rank": 89,
+      "title": "Commute",
+      "hearts": 492,
+      "version": "1.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/570addda5ea1b7e2f9000004.pbw",
+      "listing": "https://apps.repebble.com/app_564f706e86b141be60000081",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.402Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.646Z"
+          }
+        ],
+        "path": "packages/564f706e86b141be60000081.pbw",
+        "bytes": 56931,
+        "sha256": "e804ff7430d546a1d936552067c01ebf5da2af4d41f6d148083cfbe1992efc49"
+      }
+    },
+    {
+      "id": "5620a39525ef793651000045",
+      "category": "watchapps-and-companions",
+      "rank": 90,
+      "title": "Slate",
+      "hearts": 492,
+      "version": "1.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/565bb8854f26752832000027.pbw",
+      "listing": "https://apps.repebble.com/app_5620a39525ef793651000045",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.436Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.765Z"
+          }
+        ],
+        "path": "packages/5620a39525ef793651000045.pbw",
+        "bytes": 42378,
+        "sha256": "d34907bbc88b3d01466c1f819308c19ae76bebee73b39f704b26232bddb20499"
+      }
+    },
+    {
+      "id": "53b6e0eb5ad92e9a2600020f",
+      "category": "watchapps-and-companions",
+      "rank": 91,
+      "title": "MF'n Weather",
+      "hearts": 490,
+      "version": "2.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/561a23d41a1d897467000063.pbw",
+      "listing": "https://apps.repebble.com/app_53b6e0eb5ad92e9a2600020f",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.597Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.799Z"
+          }
+        ],
+        "path": "packages/53b6e0eb5ad92e9a2600020f.pbw",
+        "bytes": 250224,
+        "sha256": "04917ba1cc89bf0853ef2bbfb977a8cbf4024933e5db4434b718880fac2d6d53"
+      }
+    },
+    {
+      "id": "53d88b3c909b059949000146",
+      "category": "watchapps-and-companions",
+      "rank": 92,
+      "title": "Playlists Remote for Spotify",
+      "hearts": 488,
+      "version": "1.0.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53e4e687d9e8913bd30000bf.pbw",
+      "listing": "https://apps.repebble.com/app_53d88b3c909b059949000146",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.608Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.890Z"
+          }
+        ],
+        "path": "packages/53d88b3c909b059949000146.pbw",
+        "bytes": 9311,
+        "sha256": "d14fcb6300a7c2f8a531d7e091ed94255ff26a78aa9c8e1c06f0e996adcd8b33"
+      }
+    },
+    {
+      "id": "52dc123675436be7420000a6",
+      "category": "watchapps-and-companions",
+      "rank": 93,
+      "title": "Facebook [Pebble Rocker]",
+      "hearts": 480,
+      "version": "2.0.9",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53363f87c4a7291b93000050.pbw",
+      "listing": "https://apps.repebble.com/app_52dc123675436be7420000a6",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.646Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.818Z"
+          }
+        ],
+        "path": "packages/52dc123675436be7420000a6.pbw",
+        "bytes": 15426,
+        "sha256": "eb917c36468cad63894ad42e1c64434193c0bd4b58d615c1e362f20d8b65b7b1"
+      }
+    },
+    {
+      "id": "551b623723234dcc10000039",
+      "category": "watchapps-and-companions",
+      "rank": 94,
+      "title": "Tilt Calc",
+      "hearts": 473,
+      "version": "1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/551b625b498e3f7c8a000053.pbw",
+      "listing": "https://apps.repebble.com/app_551b623723234dcc10000039",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.659Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.866Z"
+          }
+        ],
+        "path": "packages/551b623723234dcc10000039.pbw",
+        "bytes": 21433,
+        "sha256": "7bd526da0209beb112d749de7bef417d455838655e14462fa71bc0d929328cfa"
+      }
+    },
+    {
+      "id": "533b5f0fe52a8d3f990000dd",
+      "category": "watchapps-and-companions",
+      "rank": 95,
+      "title": "Forecast Weather App",
+      "hearts": 471,
+      "version": "2.21",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/583a086600355a9f110006ab.pbw",
+      "listing": "https://apps.repebble.com/app_533b5f0fe52a8d3f990000dd",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.665Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.254Z"
+          }
+        ],
+        "path": "packages/533b5f0fe52a8d3f990000dd.pbw",
+        "bytes": 384837,
+        "sha256": "00dadab58f1be2a515cefd4da9945e6bcf273667a08d6f2fd11de6b6c39cb6f4"
+      }
+    },
+    {
+      "id": "5300e4029810e0a8940000e8",
+      "category": "watchapps-and-companions",
+      "rank": 96,
+      "title": "Rebble",
+      "hearts": 464,
+      "version": "1.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/553efa0e71a4ca0064000024.pbw",
+      "listing": "https://apps.repebble.com/app_5300e4029810e0a8940000e8",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.765Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.376Z"
+          }
+        ],
+        "path": "packages/5300e4029810e0a8940000e8.pbw",
+        "bytes": 64645,
+        "sha256": "0cd0b4feaa1484ae6df33921c8a281f2c01e67cbf700806dd80096274f3ac422"
+      }
+    },
+    {
+      "id": "557ed8733c562e76c5000021",
+      "category": "watchapps-and-companions",
+      "rank": 97,
+      "title": "Arena3D",
+      "hearts": 464,
+      "version": "0.12",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55957df97f82439c93000061.pbw",
+      "listing": "https://apps.repebble.com/app_557ed8733c562e76c5000021",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.799Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:53.963Z"
+          }
+        ],
+        "path": "packages/557ed8733c562e76c5000021.pbw",
+        "bytes": 30620,
+        "sha256": "c93d97a6091596712802e0ae3b0689dec067f3e65c1615b0fff235ab82d87a78"
+      }
+    },
+    {
+      "id": "52f1095ba0cb6abe6d002f05",
+      "category": "watchapps-and-companions",
+      "rank": 98,
+      "title": "Skipstone",
+      "hearts": 461,
+      "version": "2.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54d81ed0514b4841dc000032.pbw",
+      "listing": "https://apps.repebble.com/app_52f1095ba0cb6abe6d002f05",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.818Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.166Z"
+          }
+        ],
+        "path": "packages/52f1095ba0cb6abe6d002f05.pbw",
+        "bytes": 52267,
+        "sha256": "f014224bb5a2a162ae77e68f8285a8d794109697f3521047e914dbbee5124cc3"
+      }
+    },
+    {
+      "id": "552c188aad5d8b7d8100004e",
+      "category": "watchapps-and-companions",
+      "rank": 99,
+      "title": "Weather",
+      "hearts": 457,
+      "version": "2.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/565ba323de80b6bd87000015.pbw",
+      "listing": "https://apps.repebble.com/app_552c188aad5d8b7d8100004e",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.866Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.248Z"
+          }
+        ],
+        "path": "packages/552c188aad5d8b7d8100004e.pbw",
+        "bytes": 86332,
+        "sha256": "6f9e8bf38ff49f88e4525ed0c393cf02acd4eaf8db5c4a546144c1accdc90dbd"
+      }
+    },
+    {
+      "id": "52cded255c88b9059700000e",
+      "category": "watchapps-and-companions",
+      "rank": 100,
+      "title": "SmartStatus-op",
+      "hearts": 455,
+      "version": "1.01",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53acf120c2fd1545840001bd.pbw",
+      "listing": "https://apps.repebble.com/app_52cded255c88b9059700000e",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.890Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.476Z"
+          }
+        ],
+        "path": "packages/52cded255c88b9059700000e.pbw",
+        "bytes": 27516,
+        "sha256": "08bfa21671be0c39f24171ebc2f1bf24142423db49079295082ae7c5bdb82b46"
+      }
+    },
+    {
+      "id": "52cc44e045ffdd31dd000180",
+      "category": "watchfaces",
+      "rank": 1,
+      "title": "YWeather",
+      "hearts": 22490,
+      "version": "3.8-rbl1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/52cc44e045ffdd31dd000180/releases/3.8-rbl1.pbw",
+      "listing": "https://apps.repebble.com/app_52cc44e045ffdd31dd000180",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:53.963Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.160Z"
+          }
+        ],
+        "path": "packages/52cc44e045ffdd31dd000180.pbw",
+        "bytes": 278987,
+        "sha256": "1c7b260b8259bc30af7b23672b6353faa048244788a085eb0514e866cd935115"
+      }
+    },
+    {
+      "id": "533966299820be90ed0000c5",
+      "category": "watchfaces",
+      "rank": 2,
+      "title": "Real Weather",
+      "hearts": 16013,
+      "version": "5.0.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/533966299820be90ed0000c5/5.0.2/5bce5298-6329-4621-b7bf-eb077273c9f6.pbw",
+      "listing": "https://apps.repebble.com/app_533966299820be90ed0000c5",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.160Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.334Z"
+          }
+        ],
+        "path": "packages/533966299820be90ed0000c5.pbw",
+        "bytes": 446570,
+        "sha256": "26a84b22ffdae0e9511036a71a78627b244fabc868ab549244045d13eaa3f517"
+      }
+    },
+    {
+      "id": "55a5c024f4510f794c000071",
+      "category": "watchfaces",
+      "rank": 3,
+      "title": "TimeStyle",
+      "hearts": 15908,
+      "version": "7.11.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55a5c024f4510f794c000071/7.11.2/2063a539-edc3-4a9e-ae8f-d30f71ee1cc8.pbw",
+      "listing": "https://apps.repebble.com/app_55a5c024f4510f794c000071",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.166Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.373Z"
+          }
+        ],
+        "path": "packages/55a5c024f4510f794c000071.pbw",
+        "bytes": 321727,
+        "sha256": "18f82a26de097aaaddabbd98d1ec8e776a76975021b74c2ef14cd4dfe639bd79"
+      }
+    },
+    {
+      "id": "52bb213af9846878c200015b",
+      "category": "watchfaces",
+      "rank": 4,
+      "title": "Modern",
+      "hearts": 14656,
+      "listing": "https://apps.repebble.com/app_52bb213af9846878c200015b",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.248Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.248Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:54.248Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:54.248Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "53381b17d1719b42b800028b",
+      "category": "watchfaces",
+      "rank": 5,
+      "title": "Weather Land",
+      "hearts": 11511,
+      "version": "5.0.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/53381b17d1719b42b800028b/5.0.2/654bda65-4c65-4135-9aad-43792bdc8d29.pbw",
+      "listing": "https://apps.repebble.com/app_53381b17d1719b42b800028b",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.248Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.429Z"
+          }
+        ],
+        "path": "packages/53381b17d1719b42b800028b.pbw",
+        "bytes": 364115,
+        "sha256": "a3b40e87549cde0b55a3450903c88e2a4c5320e54ca5203daa0218ef6730e6d1"
+      }
+    },
+    {
+      "id": "52b231c2b70e1c159500009b",
+      "category": "watchfaces",
+      "rank": 6,
+      "title": "91 Dub v4.0",
+      "hearts": 9953,
+      "version": "4.21",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57c6c67e5e3c3d64fe000600.pbw",
+      "listing": "https://apps.repebble.com/app_52b231c2b70e1c159500009b",
+      "advertisedPlatforms": [
+        "diorite",
+        "basalt",
+        "aplite",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.254Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.471Z"
+          }
+        ],
+        "path": "packages/52b231c2b70e1c159500009b.pbw",
+        "bytes": 121017,
+        "sha256": "70704f3e53265ebda5a78a4c7f9f98ee1d50521a9dde19731da7954c876038d4"
+      }
+    },
+    {
+      "id": "55431083b7d4a71c0000003b",
+      "category": "watchfaces",
+      "rank": 7,
+      "title": "Mario Time Watchface",
+      "hearts": 8204,
+      "version": "3.41",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55431083b7d4a71c0000003b/releases/3.41.pbw",
+      "listing": "https://apps.repebble.com/app_55431083b7d4a71c0000003b",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.334Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.541Z"
+          }
+        ],
+        "path": "packages/55431083b7d4a71c0000003b.pbw",
+        "bytes": 384570,
+        "sha256": "d3855f1a6eaa32f3d72a8e0580438699b737b42d2ffab17b81922b77827a179d"
+      }
+    },
+    {
+      "id": "5299db40129af76761000087",
+      "category": "watchfaces",
+      "rank": 8,
+      "title": "Studio Clock",
+      "hearts": 6605,
+      "version": "6.03",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57164f77cd92a350c000000e.pbw",
+      "listing": "https://apps.repebble.com/app_5299db40129af76761000087",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.373Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.786Z"
+          }
+        ],
+        "path": "packages/5299db40129af76761000087.pbw",
+        "bytes": 140947,
+        "sha256": "d4e21c2f2a4efef3aa62d604364d46724403314da4072fb68f5681d2e4f8657f"
+      }
+    },
+    {
+      "id": "555283c7efff0cc8e50000b0",
+      "category": "watchfaces",
+      "rank": 9,
+      "title": "Slides of Time",
+      "hearts": 6226,
+      "version": "1.20",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57e2f3d563ae1318ce0000a2.pbw",
+      "listing": "https://apps.repebble.com/app_555283c7efff0cc8e50000b0",
+      "advertisedPlatforms": [
+        "chalk",
+        "diorite",
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.376Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.674Z"
+          }
+        ],
+        "path": "packages/555283c7efff0cc8e50000b0.pbw",
+        "bytes": 204848,
+        "sha256": "49e2fefd5ba050683d3c8d6d858b8201f3a5b8f0a0ea7702c878f5a9dfb99514"
+      }
+    },
+    {
+      "id": "52978a53bbd0862701000002",
+      "category": "watchfaces",
+      "rank": 10,
+      "title": "Timely",
+      "hearts": 5731,
+      "version": "2.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/562da58ae307d01e5600003b.pbw",
+      "listing": "https://apps.repebble.com/app_52978a53bbd0862701000002",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.429Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.822Z"
+          }
+        ],
+        "path": "packages/52978a53bbd0862701000002.pbw",
+        "bytes": 114432,
+        "sha256": "5e718d0746c7cb34809cb456e66009286d588c01a70822e63e1eb409af633284"
+      }
+    },
+    {
+      "id": "54f9cb9ecf945829e8000048",
+      "category": "watchfaces",
+      "rank": 11,
+      "title": "DIN Time",
+      "hearts": 5463,
+      "version": "2.63",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5800a1882cde6585e50002e2.pbw",
+      "listing": "https://apps.repebble.com/app_54f9cb9ecf945829e8000048",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.471Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.673Z"
+          }
+        ],
+        "path": "packages/54f9cb9ecf945829e8000048.pbw",
+        "bytes": 251674,
+        "sha256": "a17048d8753e58a2b664f1709547ad35f73f71f4e9ab918dee73f733f828a6e2"
+      }
+    },
+    {
+      "id": "52d313a912ea3dcf84000024",
+      "category": "watchfaces",
+      "rank": 12,
+      "title": "Futura Weather",
+      "hearts": 5209,
+      "listing": "https://apps.repebble.com/app_52d313a912ea3dcf84000024",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.476Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.476Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:54.476Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:54.476Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "535cf7f618c570bf05000023",
+      "category": "watchfaces",
+      "rank": 13,
+      "title": "Love Weather",
+      "hearts": 4567,
+      "version": "5.0.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/535cf7f618c570bf05000023/5.0.2/8b5e90e4-0efd-4103-82a6-6e35eee9c0ce.pbw",
+      "listing": "https://apps.repebble.com/app_535cf7f618c570bf05000023",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.476Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.753Z"
+          }
+        ],
+        "path": "packages/535cf7f618c570bf05000023.pbw",
+        "bytes": 726596,
+        "sha256": "af563f9f3b55a080f10975405def1b1e8aa14960b8fce4909b6541ae8cd7f3e0"
+      }
+    },
+    {
+      "id": "53d9650e4b87266dc9000082",
+      "category": "watchfaces",
+      "rank": 14,
+      "title": "Weather - powered by The Weather Channel",
+      "hearts": 4311,
+      "listing": "https://apps.repebble.com/app_53d9650e4b87266dc9000082",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.541Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.541Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:54.541Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:54.541Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "550ccb556caaed4e0100006d",
+      "category": "watchfaces",
+      "rank": 15,
+      "title": "Thin",
+      "hearts": 3651,
+      "version": "1.20.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/550ccb556caaed4e0100006d/1.20.0/ec7dcf6e-e9be-4614-9d21-7f16c0a4383c.pbw",
+      "listing": "https://apps.repebble.com/app_550ccb556caaed4e0100006d",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.541Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.753Z"
+          }
+        ],
+        "path": "packages/550ccb556caaed4e0100006d.pbw",
+        "bytes": 495434,
+        "sha256": "9d9ac5e96137c47ee70fea1daa38bca13bbb3ecafece243ab4106f26f3193b0a"
+      }
+    },
+    {
+      "id": "5616de1d7bc7a6ef0a000026",
+      "category": "watchfaces",
+      "rank": 16,
+      "title": "Clean & Smart",
+      "hearts": 3607,
+      "version": "2.53.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5616de1d7bc7a6ef0a000026/2.53.0/e17bacba-6ee6-4243-a792-d3235bc89ebf.pbw",
+      "listing": "https://apps.repebble.com/app_5616de1d7bc7a6ef0a000026",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.673Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.019Z"
+          }
+        ],
+        "path": "packages/5616de1d7bc7a6ef0a000026.pbw",
+        "bytes": 991158,
+        "sha256": "3dada49f8779112bbb7c4e3798fecd90744f2353dd1f6f43a7c2f82b54b6aee7"
+      }
+    },
+    {
+      "id": "537d17e007dd651cce00000c",
+      "category": "watchfaces",
+      "rank": 17,
+      "title": "Drunk O' Clock",
+      "hearts": 3325,
+      "version": "4.6.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/537d17e007dd651cce00000c/4.6.0/c1867a51-d669-4bd9-9921-bf5d5a86f608.pbw",
+      "listing": "https://apps.repebble.com/app_537d17e007dd651cce00000c",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.674Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.917Z"
+          }
+        ],
+        "path": "packages/537d17e007dd651cce00000c.pbw",
+        "bytes": 932208,
+        "sha256": "f6a6f6cf4d3c63827d5bb2f30be251cc6d78310550545d1ddc7ecf4eeb67a823"
+      }
+    },
+    {
+      "id": "54f791b593d5fbffb1000090",
+      "category": "watchfaces",
+      "rank": 18,
+      "title": "Sketchy Weather",
+      "hearts": 3119,
+      "version": "6.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5815a94e46041ffafb0001bb.pbw",
+      "listing": "https://apps.repebble.com/app_54f791b593d5fbffb1000090",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.753Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.275Z"
+          }
+        ],
+        "path": "packages/54f791b593d5fbffb1000090.pbw",
+        "bytes": 347712,
+        "sha256": "b6f4c4dde189c6a6accc8f2aa48bdd8154c629a386dbf792bfff4057d6cbf3ac"
+      }
+    },
+    {
+      "id": "52db68da227cbe482b000313",
+      "category": "watchfaces",
+      "rank": 19,
+      "title": "xTime",
+      "hearts": 3010,
+      "version": "4.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/583764e600355a3b5100048e.pbw",
+      "listing": "https://apps.repebble.com/app_52db68da227cbe482b000313",
+      "advertisedPlatforms": [
+        "emery",
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.753Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.952Z"
+          }
+        ],
+        "path": "packages/52db68da227cbe482b000313.pbw",
+        "bytes": 386437,
+        "sha256": "a0ed011f161f9c2e31099a97e3990dba455e67620cab6de5f10a4e5ac663459b"
+      }
+    },
+    {
+      "id": "52d7cc781acbf3738d000004",
+      "category": "watchfaces",
+      "rank": 20,
+      "title": "TrekV2",
+      "hearts": 2989,
+      "version": "2.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56c43f902dbbe0d753000054.pbw",
+      "listing": "https://apps.repebble.com/app_52d7cc781acbf3738d000004",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.786Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.057Z"
+          }
+        ],
+        "path": "packages/52d7cc781acbf3738d000004.pbw",
+        "bytes": 51690,
+        "sha256": "46eb50ed4adefdfdde0d34cc85d54a6df6b25c31afb94edbd91ac2a6c3ada200"
+      }
+    },
+    {
+      "id": "53118426c6c18ea5af00011a",
+      "category": "watchfaces",
+      "rank": 21,
+      "title": "Taller",
+      "hearts": 2795,
+      "version": "5.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/58271ce036ac5a946d00004c.pbw",
+      "listing": "https://apps.repebble.com/app_53118426c6c18ea5af00011a",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.822Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.117Z"
+          }
+        ],
+        "path": "packages/53118426c6c18ea5af00011a.pbw",
+        "bytes": 234111,
+        "sha256": "2fd8e1719371cad57bb23d5d72ba72a58d0e3cd23738f3c8228e9f6116778325"
+      }
+    },
+    {
+      "id": "547bd7a0fb079720950000a7",
+      "category": "watchfaces",
+      "rank": 22,
+      "title": "Minimalist Weather",
+      "hearts": 2729,
+      "version": "2.20",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56aaea5e022206ba09000008.pbw",
+      "listing": "https://apps.repebble.com/app_547bd7a0fb079720950000a7",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.917Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.334Z"
+          }
+        ],
+        "path": "packages/547bd7a0fb079720950000a7.pbw",
+        "bytes": 250832,
+        "sha256": "34401da5e8cee1185fb382698728d444dfbde5753b6e8a75b414b8f0c784a396"
+      }
+    },
+    {
+      "id": "52b1e8b2c8363d5ecd000012",
+      "category": "watchfaces",
+      "rank": 23,
+      "title": "Revolution",
+      "hearts": 2625,
+      "listing": "https://apps.repebble.com/app_52b1e8b2c8363d5ecd000012",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.952Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:54.952Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:54.952Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:54.952Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "555c00114231f46619000064",
+      "category": "watchfaces",
+      "rank": 24,
+      "title": "PEBILL",
+      "hearts": 2617,
+      "version": "2.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57da07192d0cc8673f000037.pbw",
+      "listing": "https://apps.repebble.com/app_555c00114231f46619000064",
+      "advertisedPlatforms": [
+        "diorite",
+        "chalk",
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:54.952Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.171Z"
+          }
+        ],
+        "path": "packages/555c00114231f46619000064.pbw",
+        "bytes": 189846,
+        "sha256": "9256b11f9847a43d575ae3ee5db3ad303a2679c5f43959f1dc3ae4d79079c9f9"
+      }
+    },
+    {
+      "id": "555c1924ac15b6f992000076",
+      "category": "watchfaces",
+      "rank": 25,
+      "title": "TrekV3",
+      "hearts": 2551,
+      "version": "3.7",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/572887798bfb846ffd000025.pbw",
+      "listing": "https://apps.repebble.com/app_555c1924ac15b6f992000076",
+      "advertisedPlatforms": [
+        "chalk",
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.019Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.275Z"
+          }
+        ],
+        "path": "packages/555c1924ac15b6f992000076.pbw",
+        "bytes": 196165,
+        "sha256": "0889d7958bd279747a80e1f82bee4a967d8656acf332e21acd7e430706edf4a0"
+      }
+    },
+    {
+      "id": "52f014d342937dc4430000ee",
+      "category": "watchfaces",
+      "rank": 26,
+      "title": "Squared 4.0",
+      "hearts": 2446,
+      "version": "4.15",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5834c8a3a3f2804b34000001.pbw",
+      "listing": "https://apps.repebble.com/app_52f014d342937dc4430000ee",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.057Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.250Z"
+          }
+        ],
+        "path": "packages/52f014d342937dc4430000ee.pbw",
+        "bytes": 71842,
+        "sha256": "bc8f0da7c89a69fe722e6932901343afa18bb6f4f750524ef055d3732856fbac"
+      }
+    },
+    {
+      "id": "52cb29b36e5f7044c7000065",
+      "category": "watchfaces",
+      "rank": 27,
+      "title": "Retro Clock",
+      "hearts": 2430,
+      "listing": "https://apps.repebble.com/app_52cb29b36e5f7044c7000065",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.117Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.117Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:55.117Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:55.117Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "5429c7b7dfdebeb8dd000021",
+      "category": "watchfaces",
+      "rank": 28,
+      "title": "UP for Pebble",
+      "hearts": 2419,
+      "listing": "https://apps.repebble.com/app_5429c7b7dfdebeb8dd000021",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.117Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.117Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:55.117Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:55.117Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "5640a31b50034351d2000040",
+      "category": "watchfaces",
+      "rank": 29,
+      "title": "Draw by Dalpek",
+      "hearts": 2350,
+      "version": "1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5640aaedae3ac6e85300005a.pbw",
+      "listing": "https://apps.repebble.com/app_5640a31b50034351d2000040",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.117Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.361Z"
+          }
+        ],
+        "path": "packages/5640a31b50034351d2000040.pbw",
+        "bytes": 355489,
+        "sha256": "171b2275af7f17db7416e1325b09276db77aa75b2136395d14e28763b8fe9e2c"
+      }
+    },
+    {
+      "id": "5299e91ee627ce56e70000b5",
+      "category": "watchfaces",
+      "rank": 30,
+      "title": "Dotz",
+      "hearts": 2299,
+      "listing": "https://apps.repebble.com/app_5299e91ee627ce56e70000b5",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.171Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.171Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:55.171Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:55.171Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "5569c2084bebd0b90400000e",
+      "category": "watchfaces",
+      "rank": 31,
+      "title": "Multifunctional 7 Segment",
+      "hearts": 2269,
+      "version": "16.1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/5569c2084bebd0b90400000e/releases/16.1.pbw",
+      "listing": "https://apps.repebble.com/app_5569c2084bebd0b90400000e",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.171Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.908Z"
+          }
+        ],
+        "path": "packages/5569c2084bebd0b90400000e.pbw",
+        "bytes": 302582,
+        "sha256": "0224bae42704ec77c2b37c2a877a72a46738cf2a4aa7b943935584386024d9f5"
+      }
+    },
+    {
+      "id": "52997231129af73409000033",
+      "category": "watchfaces",
+      "rank": 32,
+      "title": "Rosewright A",
+      "hearts": 2236,
+      "version": "5.1.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52997231129af73409000033/5.1.0/13fc19c9-5e71-44a6-be3d-0ed06d51a756.pbw",
+      "listing": "https://apps.repebble.com/app_52997231129af73409000033",
+      "advertisedPlatforms": [
+        "aplite",
+        "emery",
+        "basalt",
+        "chalk",
+        "diorite",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.250Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.510Z"
+          }
+        ],
+        "path": "packages/52997231129af73409000033.pbw",
+        "bytes": 1097589,
+        "sha256": "5310ed3837eedeb87d1a6a20e14a44f6ed40aac879e28870182c1f57fd8892c0"
+      }
+    },
+    {
+      "id": "52999773129af794a2000052",
+      "category": "watchfaces",
+      "rank": 33,
+      "title": "BlockSlide",
+      "hearts": 2175,
+      "version": "3.20",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52999773129af794a2000052/3.20/c0a8d7da-5593-4f94-a6eb-b19f9f6e7d7e.pbw",
+      "listing": "https://apps.repebble.com/app_52999773129af794a2000052",
+      "advertisedPlatforms": [
+        "aplite",
+        "flint",
+        "basalt",
+        "chalk",
+        "emery",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.275Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.435Z"
+          }
+        ],
+        "path": "packages/52999773129af794a2000052.pbw",
+        "bytes": 85957,
+        "sha256": "d7ea65af06834c642c7d1f7dcff90424b33c00ad6ad62a4dc346ed07d2d80a80"
+      }
+    },
+    {
+      "id": "55558c2a44dad6b80f000088",
+      "category": "watchfaces",
+      "rank": 34,
+      "title": "Enigma",
+      "hearts": 2139,
+      "listing": "https://apps.repebble.com/app_55558c2a44dad6b80f000088",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.276Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.276Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:55.276Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:55.276Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "31cfe29ecd814df4b5ca8bb4",
+      "category": "watchfaces",
+      "rank": 35,
+      "title": "Quartz by Dalpek",
+      "hearts": 2099,
+      "version": "1.81",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/31cfe29ecd814df4b5ca8bb4/1.81/d6d7a5e5-385a-492f-8a57-6c3f891ec41e.pbw",
+      "listing": "https://apps.repebble.com/app_31cfe29ecd814df4b5ca8bb4",
+      "advertisedPlatforms": [
+        "emery",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.276Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.445Z"
+          }
+        ],
+        "path": "packages/31cfe29ecd814df4b5ca8bb4.pbw",
+        "bytes": 354403,
+        "sha256": "c87766224bbc03ed6c94da0975fab5b3d35c247e0a0e6555bde0b5f60f35b502"
+      }
+    },
+    {
+      "id": "529efe551a66383057000051",
+      "category": "watchfaces",
+      "rank": 36,
+      "title": "Pip Boy 100",
+      "hearts": 2091,
+      "version": "5.4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56372a994096612b5c000044.pbw",
+      "listing": "https://apps.repebble.com/app_529efe551a66383057000051",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.334Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.511Z"
+          }
+        ],
+        "path": "packages/529efe551a66383057000051.pbw",
+        "bytes": 52322,
+        "sha256": "2421ac2ae2554cab2e473be199f8b727c67474fb7618709d6dd3cadcaaf55e63"
+      }
+    },
+    {
+      "id": "52dca032f9d8ec5031000068",
+      "category": "watchfaces",
+      "rank": 37,
+      "title": "Time&Weather",
+      "hearts": 2075,
+      "version": "3.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57e0314816a22998f1000004.pbw",
+      "listing": "https://apps.repebble.com/app_52dca032f9d8ec5031000068",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.361Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.872Z"
+          }
+        ],
+        "path": "packages/52dca032f9d8ec5031000068.pbw",
+        "bytes": 229954,
+        "sha256": "6da71df297044c0bbdd4b8be3590a827a6e55ecbf43eaa3d5140f5e07d7c4fab"
+      }
+    },
+    {
+      "id": "552597c506e80c0a4b00007f",
+      "category": "watchfaces",
+      "rank": 38,
+      "title": "Square",
+      "hearts": 2069,
+      "version": "5.7",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/552597c506e80c0a4b00007f/releases/5.7.pbw",
+      "listing": "https://apps.repebble.com/app_552597c506e80c0a4b00007f",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.435Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.735Z"
+          }
+        ],
+        "path": "packages/552597c506e80c0a4b00007f.pbw",
+        "bytes": 528797,
+        "sha256": "d1a5379945321657a048ff5d14e9bb4e1d570ce16a969c18ad22866648814b31"
+      }
+    },
+    {
+      "id": "55cf75fc61e031bb4b000025",
+      "category": "watchfaces",
+      "rank": 39,
+      "title": "Essential",
+      "hearts": 2046,
+      "version": "2.9",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57f24df205e4b12dea000148.pbw",
+      "listing": "https://apps.repebble.com/app_55cf75fc61e031bb4b000025",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.445Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.677Z"
+          }
+        ],
+        "path": "packages/55cf75fc61e031bb4b000025.pbw",
+        "bytes": 189265,
+        "sha256": "b0dc253d72adcf1adb838245c678bce88a4fd0a22d5c835567dffa9689a56cd8"
+      }
+    },
+    {
+      "id": "5551c4a91113bc93a00000de",
+      "category": "watchfaces",
+      "rank": 40,
+      "title": "TH3",
+      "hearts": 2045,
+      "version": "1.22",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/583e73b4ca3094d3b0000662.pbw",
+      "listing": "https://apps.repebble.com/app_5551c4a91113bc93a00000de",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.510Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.777Z"
+          }
+        ],
+        "path": "packages/5551c4a91113bc93a00000de.pbw",
+        "bytes": 114112,
+        "sha256": "18fe901c0032d42b3e9653e54883b130099bdf345a53ea2e4c2b92a30535018e"
+      }
+    },
+    {
+      "id": "54f972b93dd477b391000017",
+      "category": "watchfaces",
+      "rank": 41,
+      "title": "Nyan Cat",
+      "hearts": 2038,
+      "version": "8.9",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5838c92200355abe66000550.pbw",
+      "listing": "https://apps.repebble.com/app_54f972b93dd477b391000017",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.511Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.720Z"
+          }
+        ],
+        "path": "packages/54f972b93dd477b391000017.pbw",
+        "bytes": 413610,
+        "sha256": "fc0d9717c7691b7d389c930af569cf5e0481ea8cac9c80219e0823992d248588"
+      }
+    },
+    {
+      "id": "566dc3ab7929075b2e000042",
+      "category": "watchfaces",
+      "rank": 42,
+      "title": "WUnderful Analog (Weather)",
+      "hearts": 2013,
+      "version": "3.2",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/566dc3ab7929075b2e000042/releases/3.2.pbw",
+      "listing": "https://apps.repebble.com/app_566dc3ab7929075b2e000042",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.677Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.054Z"
+          }
+        ],
+        "path": "packages/566dc3ab7929075b2e000042.pbw",
+        "bytes": 393615,
+        "sha256": "f4aab3997553ee47e2befb961fe9efe27f914221dd9ab3b43ac1f1b0ca6217e3"
+      }
+    },
+    {
+      "id": "560b75e9d96cadb48b000049",
+      "category": "watchfaces",
+      "rank": 43,
+      "title": "PAC•TIME",
+      "hearts": 2012,
+      "version": "2.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5820a0bf34da213da500009b.pbw",
+      "listing": "https://apps.repebble.com/app_560b75e9d96cadb48b000049",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.720Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.941Z"
+          }
+        ],
+        "path": "packages/560b75e9d96cadb48b000049.pbw",
+        "bytes": 86625,
+        "sha256": "4bf1b74fa65af22bb488f88cfc27f76ad9ea1eb6dfe9214b4468af4629ad9c3f"
+      }
+    },
+    {
+      "id": "5500981184edec8e3100000c",
+      "category": "watchfaces",
+      "rank": 44,
+      "title": "Straight",
+      "hearts": 1992,
+      "version": "7.1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/5500981184edec8e3100000c/releases/7.1.pbw",
+      "listing": "https://apps.repebble.com/app_5500981184edec8e3100000c",
+      "advertisedPlatforms": [
+        "chalk",
+        "emery",
+        "basalt",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.735Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.937Z"
+          }
+        ],
+        "path": "packages/5500981184edec8e3100000c.pbw",
+        "bytes": 368720,
+        "sha256": "e8f689384741e056cbabeb09faa9ec47a93ba08537eafc25e0b6d8027412ef3d"
+      }
+    },
+    {
+      "id": "5546abfc47bb344acb0000d2",
+      "category": "watchfaces",
+      "rank": 45,
+      "title": "BCD minimalist (binary watch)",
+      "hearts": 1970,
+      "version": "2.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5838389e00355a8e270004c3.pbw",
+      "listing": "https://apps.repebble.com/app_5546abfc47bb344acb0000d2",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "aplite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.777Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.157Z"
+          }
+        ],
+        "path": "packages/5546abfc47bb344acb0000d2.pbw",
+        "bytes": 148154,
+        "sha256": "39ba8c42125f82aefb6ea487e5775a8749ab77343b6fb6dd36442987e8004c2b"
+      }
+    },
+    {
+      "id": "52d4239b9260fee2a200002a",
+      "category": "watchfaces",
+      "rank": 46,
+      "title": "Mario",
+      "hearts": 1925,
+      "listing": "https://apps.repebble.com/app_52d4239b9260fee2a200002a",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.872Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.872Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:55.872Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:55.872Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "52da8234227cbe482b000120",
+      "category": "watchfaces",
+      "rank": 47,
+      "title": "Perspective",
+      "hearts": 1916,
+      "listing": "https://apps.repebble.com/app_52da8234227cbe482b000120",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.872Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:55.872Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:55.872Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:55.872Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "56b7c014ff7746c5af00003a",
+      "category": "watchfaces",
+      "rank": 48,
+      "title": "Timeboxed",
+      "hearts": 1871,
+      "version": "5.9",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/56b7c014ff7746c5af00003a/releases/5.9.pbw",
+      "listing": "https://apps.repebble.com/app_56b7c014ff7746c5af00003a",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.872Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.130Z"
+          }
+        ],
+        "path": "packages/56b7c014ff7746c5af00003a.pbw",
+        "bytes": 976620,
+        "sha256": "f9481286a5c0d0af0f6705779a7700f5cf9e08309a18c8dc6adf70135d026578"
+      }
+    },
+    {
+      "id": "5599a73fe47bb388a7000056",
+      "category": "watchfaces",
+      "rank": 49,
+      "title": "Simple Weather",
+      "hearts": 1851,
+      "version": "1.7",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57f77f4056629a6799000003.pbw",
+      "listing": "https://apps.repebble.com/app_5599a73fe47bb388a7000056",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.908Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.344Z"
+          }
+        ],
+        "path": "packages/5599a73fe47bb388a7000056.pbw",
+        "bytes": 108426,
+        "sha256": "1638d0633afe34d16b0cc69a0e4da5fddb4a6e90ee57d06c84bc62339020af52"
+      }
+    },
+    {
+      "id": "559f0fffe2b45a3231000098",
+      "category": "watchfaces",
+      "rank": 50,
+      "title": "Make Me Smile",
+      "hearts": 1844,
+      "version": "3.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5815357146041f42f60001a2.pbw",
+      "listing": "https://apps.repebble.com/app_559f0fffe2b45a3231000098",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.937Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.107Z"
+          }
+        ],
+        "path": "packages/559f0fffe2b45a3231000098.pbw",
+        "bytes": 138359,
+        "sha256": "d4e923d805edce41a31f986bb481c48e597abdabcfa29af603a69a17b7ea876a"
+      }
+    },
+    {
+      "id": "52cb5f5f6e5f7079c80000c6",
+      "category": "watchfaces",
+      "rank": 51,
+      "title": "On11",
+      "hearts": 1815,
+      "version": "4.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55c23517269c828def00001a.pbw",
+      "listing": "https://apps.repebble.com/app_52cb5f5f6e5f7079c80000c6",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:55.941Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.335Z"
+          }
+        ],
+        "path": "packages/52cb5f5f6e5f7079c80000c6.pbw",
+        "bytes": 39387,
+        "sha256": "bf0d90f7981b94f1dfc2780b8774fbccd06dd097af7f02528df94a176cafbdb3"
+      }
+    },
+    {
+      "id": "55014a037ed24ae745000004",
+      "category": "watchfaces",
+      "rank": 52,
+      "title": "Smile",
+      "hearts": 1794,
+      "version": "9.1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55014a037ed24ae745000004/releases/9.1.pbw",
+      "listing": "https://apps.repebble.com/app_55014a037ed24ae745000004",
+      "advertisedPlatforms": [
+        "diorite",
+        "chalk",
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.054Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.643Z"
+          }
+        ],
+        "path": "packages/55014a037ed24ae745000004.pbw",
+        "bytes": 357061,
+        "sha256": "87ead50c953760ce17605bc25b2f119dde9658cacf82a0032cd09354ad803ebb"
+      }
+    },
+    {
+      "id": "54dc6777525ecbb0b1000070",
+      "category": "watchfaces",
+      "rank": 53,
+      "title": "Implode",
+      "hearts": 1791,
+      "version": "3.86",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/577b424d6c2104a704000081.pbw",
+      "listing": "https://apps.repebble.com/app_54dc6777525ecbb0b1000070",
+      "advertisedPlatforms": [
+        "aplite",
+        "chalk",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.107Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.359Z"
+          }
+        ],
+        "path": "packages/54dc6777525ecbb0b1000070.pbw",
+        "bytes": 154444,
+        "sha256": "45a53c6dddb066338527cb362e041a03cfd5139139ab0d9687b1d6a3abfa369f"
+      }
+    },
+    {
+      "id": "54fc76072bf1bfe03500002a",
+      "category": "watchfaces",
+      "rank": 54,
+      "title": "Big Shadow",
+      "hearts": 1773,
+      "version": "2.00.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54fc76072bf1bfe03500002a/2.00.5/4bb252af-5eb5-4759-b84d-ca4674d93673.pbw",
+      "listing": "https://apps.repebble.com/app_54fc76072bf1bfe03500002a",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.130Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.389Z"
+          }
+        ],
+        "path": "packages/54fc76072bf1bfe03500002a.pbw",
+        "bytes": 113544,
+        "sha256": "55e8930ea87be349c1b78f56a5f1e634ad837f405374db488a762795093cfbaf"
+      }
+    },
+    {
+      "id": "56aeaa675fc3f1c4c700005b",
+      "category": "watchfaces",
+      "rank": 55,
+      "title": "Weathergraph - weather forecast, hourly and beautiful, with step counter, health and heartrate (hrm)",
+      "hearts": 1734,
+      "version": "0.103.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56aeaa675fc3f1c4c700005b/0.103.0/0ae03833-a18d-49f7-ba9f-c090067b49cd.pbw",
+      "listing": "https://apps.repebble.com/app_56aeaa675fc3f1c4c700005b",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.157Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.325Z"
+          }
+        ],
+        "path": "packages/56aeaa675fc3f1c4c700005b.pbw",
+        "bytes": 219759,
+        "sha256": "42c49a061ad4133eb512d01db96f15acb759dfaa823d3483b3cb7cb62efe80cf"
+      }
+    },
+    {
+      "id": "555a3ce1c2afa28d5800000f",
+      "category": "watchfaces",
+      "rank": 56,
+      "title": "Sliding Text",
+      "hearts": 1710,
+      "version": "1.2.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/555a3ce1c2afa28d5800000f/1.2.1/3cd032ab-6934-475f-a8c9-28c5e9fbd44d.pbw",
+      "listing": "https://apps.repebble.com/app_555a3ce1c2afa28d5800000f",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite",
+        "chalk",
+        "emery",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.325Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.545Z"
+          }
+        ],
+        "path": "packages/555a3ce1c2afa28d5800000f.pbw",
+        "bytes": 54759,
+        "sha256": "f18ab342b9755f28e19b322dbafff0ede2eacfb9f9e56f48c6b1d5e4ced102ad"
+      }
+    },
+    {
+      "id": "55e9493720f24c8f2e0000b5",
+      "category": "watchfaces",
+      "rank": 57,
+      "title": "Darth Time",
+      "hearts": 1689,
+      "version": "4.0",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55e9493720f24c8f2e0000b5/releases/4.0.pbw",
+      "listing": "https://apps.repebble.com/app_55e9493720f24c8f2e0000b5",
+      "advertisedPlatforms": [
+        "aplite",
+        "chalk",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.335Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.584Z"
+          }
+        ],
+        "path": "packages/55e9493720f24c8f2e0000b5.pbw",
+        "bytes": 83936,
+        "sha256": "851aecf86caee72499de819782d96b32ce1568541359a2890c95300869ce08cd"
+      }
+    },
+    {
+      "id": "529a3d2ae627ceed98000107",
+      "category": "watchfaces",
+      "rank": 58,
+      "title": "Fair Weather",
+      "hearts": 1647,
+      "version": "7.5-rbl1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/529a3d2ae627ceed98000107/releases/7.5-rbl1.pbw",
+      "listing": "https://apps.repebble.com/app_529a3d2ae627ceed98000107",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "diorite",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.344Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.644Z"
+          }
+        ],
+        "path": "packages/529a3d2ae627ceed98000107.pbw",
+        "bytes": 257338,
+        "sha256": "62be758fd9c588329ee6ef7a838ef6680d679ed9f67099c3b93ea1441c3f29f6"
+      }
+    },
+    {
+      "id": "54f872d5d66ea86e5a000042",
+      "category": "watchfaces",
+      "rank": 59,
+      "title": "TetrisTime",
+      "hearts": 1625,
+      "version": "3.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57f11b6344581e324c000098.pbw",
+      "listing": "https://apps.repebble.com/app_54f872d5d66ea86e5a000042",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.359Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.562Z"
+          }
+        ],
+        "path": "packages/54f872d5d66ea86e5a000042.pbw",
+        "bytes": 40419,
+        "sha256": "1a1cc14c8edc4813fb2c6b0710d83146dceb58edcaebdffd7e11589c367541a8"
+      }
+    },
+    {
+      "id": "556f0038354a41090c0000ca",
+      "category": "watchfaces",
+      "rank": 60,
+      "title": "Big Mickey",
+      "hearts": 1565,
+      "version": "3.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57cb69b7f69d1da5f5000471.pbw",
+      "listing": "https://apps.repebble.com/app_556f0038354a41090c0000ca",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.389Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.684Z"
+          }
+        ],
+        "path": "packages/556f0038354a41090c0000ca.pbw",
+        "bytes": 208835,
+        "sha256": "ba92553b9c5992c43376a7af1390b0e5deca93fe6d1bfbf0a57a2247c449ec22"
+      }
+    },
+    {
+      "id": "56c4b313a0278724da000021",
+      "category": "watchfaces",
+      "rank": 61,
+      "title": "Crush 'Em",
+      "hearts": 1538,
+      "version": "1.5",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56cd65a5c091bd086c000015.pbw",
+      "listing": "https://apps.repebble.com/app_56c4b313a0278724da000021",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.545Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.823Z"
+          }
+        ],
+        "path": "packages/56c4b313a0278724da000021.pbw",
+        "bytes": 31522,
+        "sha256": "5047b8dae3045d1fa414fde1057b1234559741c54afdeb4cd47f9728cc1ca5c3"
+      }
+    },
+    {
+      "id": "52cc32f86e5f706530000178",
+      "category": "watchfaces",
+      "rank": 62,
+      "title": "Super Watchface",
+      "hearts": 1486,
+      "listing": "https://apps.repebble.com/app_52cc32f86e5f706530000178",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.562Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.562Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:56.562Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:56.562Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "567312691a9a82d62800003d",
+      "category": "watchfaces",
+      "rank": 63,
+      "title": "Consensus",
+      "hearts": 1485,
+      "version": "11.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/567312691a9a82d62800003d/11.0/bd0558a9-ae42-4941-b475-95ae9178651e.pbw",
+      "listing": "https://apps.repebble.com/app_567312691a9a82d62800003d",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.562Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.757Z"
+          }
+        ],
+        "path": "packages/567312691a9a82d62800003d.pbw",
+        "bytes": 205441,
+        "sha256": "a0fe6f17b61da862573819aa433f7e69236f05f110505dcefee8c318d683240b"
+      }
+    },
+    {
+      "id": "5299d4da129af7d723000079",
+      "category": "watchfaces",
+      "rank": 64,
+      "title": "Beam Up",
+      "hearts": 1478,
+      "version": "3.9",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5299d4da129af7d723000079/3.9/d083900b-9577-476b-afac-f50a1bf86390.pbw",
+      "listing": "https://apps.repebble.com/app_5299d4da129af7d723000079",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.584Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.829Z"
+          }
+        ],
+        "path": "packages/5299d4da129af7d723000079.pbw",
+        "bytes": 498234,
+        "sha256": "825bb23bba8e7d49b5007613142dace64953472268401a5b414106b4b205ec8b"
+      }
+    },
+    {
+      "id": "564017d2ae3ac67e34000015",
+      "category": "watchfaces",
+      "rank": 65,
+      "title": "BB8's FACE",
+      "hearts": 1451,
+      "version": "4",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5664adba4ff7aa0ff700005e.pbw",
+      "listing": "https://apps.repebble.com/app_564017d2ae3ac67e34000015",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.643Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.308Z"
+          }
+        ],
+        "path": "packages/564017d2ae3ac67e34000015.pbw",
+        "bytes": 175316,
+        "sha256": "58a63639045665b5ca1297f0c3ee1d65fbb9e812cccb5454d3d486f4dbd4205e"
+      }
+    },
+    {
+      "id": "5520fd91f99b2a612c00000d",
+      "category": "watchfaces",
+      "rank": 66,
+      "title": "CLEAR",
+      "hearts": 1447,
+      "version": "4.46",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5520fd91f99b2a612c00000d/4.46/1a103547-04e9-402a-a367-ff6335a0cd52.pbw",
+      "listing": "https://apps.repebble.com/app_5520fd91f99b2a612c00000d",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.644Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.828Z"
+          }
+        ],
+        "path": "packages/5520fd91f99b2a612c00000d.pbw",
+        "bytes": 309424,
+        "sha256": "16da0835af675b208b2b0954e7348c032774ab01d805c3517a5acd96ec3cf55c"
+      }
+    },
+    {
+      "id": "5871306e5de8500cce00062f",
+      "category": "watchfaces",
+      "rank": 67,
+      "title": "YWeather Health",
+      "hearts": 1433,
+      "version": "3.9-rbl1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/5871306e5de8500cce00062f/releases/3.9-rbl1.pbw",
+      "listing": "https://apps.repebble.com/app_5871306e5de8500cce00062f",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.684Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.907Z"
+          }
+        ],
+        "path": "packages/5871306e5de8500cce00062f.pbw",
+        "bytes": 212335,
+        "sha256": "ae5f593ef5166afa9e9218a3371c7884bbced8d2e5ce77cbdfad6c106cb83f76"
+      }
+    },
+    {
+      "id": "56efc6a7b07e357aef00004f",
+      "category": "watchfaces",
+      "rank": 68,
+      "title": "Fourier",
+      "hearts": 1431,
+      "version": "1.12",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/583942ef00355a4bea00011d.pbw",
+      "listing": "https://apps.repebble.com/app_56efc6a7b07e357aef00004f",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "emery",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.757Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.115Z"
+          }
+        ],
+        "path": "packages/56efc6a7b07e357aef00004f.pbw",
+        "bytes": 121220,
+        "sha256": "334244e4ba93f5765c423f0566e259534dbf8556d7dd69740b9633964d7507a9"
+      }
+    },
+    {
+      "id": "55e642672a9d0317b7000085",
+      "category": "watchfaces",
+      "rank": 69,
+      "title": "Street by Dalpek",
+      "hearts": 1424,
+      "version": "2.8",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55e642672a9d0317b7000085/releases/2.8.pbw",
+      "listing": "https://apps.repebble.com/app_55e642672a9d0317b7000085",
+      "advertisedPlatforms": [
+        "aplite",
+        "chalk",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.823Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.093Z"
+          }
+        ],
+        "path": "packages/55e642672a9d0317b7000085.pbw",
+        "bytes": 142131,
+        "sha256": "7a9445e52d9ce8c3bbdf8e8a0e5ef7e3d5901ef38f81877bd5cf8fb20acaf7cc"
+      }
+    },
+    {
+      "id": "52ef7ab0c503c88bdf00001a",
+      "category": "watchfaces",
+      "rank": 70,
+      "title": "Fuzzy Text International",
+      "hearts": 1406,
+      "listing": "https://apps.repebble.com/app_52ef7ab0c503c88bdf00001a",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.828Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.828Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:56.828Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:56.828Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "5538cd26045301d3ed000045",
+      "category": "watchfaces",
+      "rank": 71,
+      "title": "Happy",
+      "hearts": 1397,
+      "version": "1.11",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/5538cd26045301d3ed000045/releases/1.11.pbw",
+      "listing": "https://apps.repebble.com/app_5538cd26045301d3ed000045",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "diorite",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.828Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.077Z"
+          }
+        ],
+        "path": "packages/5538cd26045301d3ed000045.pbw",
+        "bytes": 59872,
+        "sha256": "92cd566e67fe2edf06d6ceca7af3f25e086408b40bd89c8e5cea9c335fcc24d1"
+      }
+    },
+    {
+      "id": "561efefd36c6e83eaf000023",
+      "category": "watchfaces",
+      "rank": 72,
+      "title": "R2D2's FACE",
+      "hearts": 1360,
+      "version": "11",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5664ae34f7c6e0d9a8000064.pbw",
+      "listing": "https://apps.repebble.com/app_561efefd36c6e83eaf000023",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.829Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.153Z"
+          }
+        ],
+        "path": "packages/561efefd36c6e83eaf000023.pbw",
+        "bytes": 153646,
+        "sha256": "a28bc003296d082ad42d752bbb84cfa8e0fca493d420328e13361b2a60150d13"
+      }
+    },
+    {
+      "id": "545a816804c3122d02000075",
+      "category": "watchfaces",
+      "rank": 73,
+      "title": "Pixwag (Black)",
+      "hearts": 1348,
+      "listing": "https://apps.repebble.com/app_545a816804c3122d02000075",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.907Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:56.907Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:56.907Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:56.907Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "5472c040c13ebf3ddf000045",
+      "category": "watchfaces",
+      "rank": 74,
+      "title": "Simply Light",
+      "hearts": 1346,
+      "version": "6.33",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5472c040c13ebf3ddf000045/6.33/d84a1e0b-f46f-4d64-a9a0-baf9c1294466.pbw",
+      "listing": "https://apps.repebble.com/app_5472c040c13ebf3ddf000045",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "gabbro",
+        "flint"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:56.907Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.216Z"
+          }
+        ],
+        "path": "packages/5472c040c13ebf3ddf000045.pbw",
+        "bytes": 818916,
+        "sha256": "71bbe25372a42413aa7244bc055d13971e7979bed8c17464d25747003505cf0c"
+      }
+    },
+    {
+      "id": "555147c5095d4f7c75000087",
+      "category": "watchfaces",
+      "rank": 75,
+      "title": " Analog Hodinky",
+      "hearts": 1293,
+      "version": "5.0.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/555147c5095d4f7c75000087/5.0.0/3d5ab61c-9499-4bc8-ac0a-d822e4096364.pbw",
+      "listing": "https://apps.repebble.com/app_555147c5095d4f7c75000087",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.077Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.285Z"
+          }
+        ],
+        "path": "packages/555147c5095d4f7c75000087.pbw",
+        "bytes": 194779,
+        "sha256": "1b0d275f5b1cfabd08a8122ab6d70a0b3e8324a420310f0405b46afd0d983450"
+      }
+    },
+    {
+      "id": "546b75b8bef790baf90000bb",
+      "category": "watchfaces",
+      "rank": 76,
+      "title": "Velocity",
+      "hearts": 1254,
+      "listing": "https://apps.repebble.com/app_546b75b8bef790baf90000bb",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.093Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.093Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:57.093Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:57.093Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "52eb878fd33882090f000007",
+      "category": "watchfaces",
+      "rank": 77,
+      "title": "Motiv8",
+      "hearts": 1243,
+      "version": "1.7",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55d118f58e4ef52e1b000046.pbw",
+      "listing": "https://apps.repebble.com/app_52eb878fd33882090f000007",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.093Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.441Z"
+          }
+        ],
+        "path": "packages/52eb878fd33882090f000007.pbw",
+        "bytes": 38307,
+        "sha256": "1222070bb6a856bd53ce9316a826dd4ad3b4ca5dd44e4eb6aea07fca97de3f8c"
+      }
+    },
+    {
+      "id": "54730439c13ebf214f000052",
+      "category": "watchfaces",
+      "rank": 78,
+      "title": "LCARS",
+      "hearts": 1237,
+      "version": "1.90.10",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/54730439c13ebf214f000052/1.90.10/428f63c7-7913-40b5-8ee7-3dfdb58e9f62.pbw",
+      "listing": "https://apps.repebble.com/app_54730439c13ebf214f000052",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.115Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.297Z"
+          }
+        ],
+        "path": "packages/54730439c13ebf214f000052.pbw",
+        "bytes": 184753,
+        "sha256": "cfb23c37b8eda232f8528075db2f9387dd711cbb50b690eec9a65e0e4e65cfa7"
+      }
+    },
+    {
+      "id": "52a207a0a38509f36600003c",
+      "category": "watchfaces",
+      "rank": 79,
+      "title": "Clipped",
+      "hearts": 1194,
+      "version": "3.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/52a207a0a38509f36600003c/3.2/df4324e3-55d0-4809-8eaa-db7f16bedb19.pbw",
+      "listing": "https://apps.repebble.com/app_52a207a0a38509f36600003c",
+      "advertisedPlatforms": [
+        "aplite",
+        "diorite",
+        "basalt",
+        "flint",
+        "chalk",
+        "gabbro",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.153Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.519Z"
+          }
+        ],
+        "path": "packages/52a207a0a38509f36600003c.pbw",
+        "bytes": 273770,
+        "sha256": "71164d4f635730d30379e3cd8c311db04d6e4d3176a34adb21374ed3e9f67d67"
+      }
+    },
+    {
+      "id": "556f3a53f51afea7c3000028",
+      "category": "watchfaces",
+      "rank": 80,
+      "title": "PebbleEye 007",
+      "hearts": 1188,
+      "version": "1.9",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/556f3a53f51afea7c3000028/releases/1.9.pbw",
+      "listing": "https://apps.repebble.com/app_556f3a53f51afea7c3000028",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.216Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.474Z"
+          }
+        ],
+        "path": "packages/556f3a53f51afea7c3000028.pbw",
+        "bytes": 106970,
+        "sha256": "6873f3f14d2bc897f6781969ac1cb88d7dc99a03dc0013b07f71dc1bda43ed84"
+      }
+    },
+    {
+      "id": "5390676b9e48a5d169000004",
+      "category": "watchfaces",
+      "rank": 81,
+      "title": "PokeBattle",
+      "hearts": 1184,
+      "version": "3.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5703c6bf3bc6cdb96200004a.pbw",
+      "listing": "https://apps.repebble.com/app_5390676b9e48a5d169000004",
+      "advertisedPlatforms": [
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.285Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.538Z"
+          }
+        ],
+        "path": "packages/5390676b9e48a5d169000004.pbw",
+        "bytes": 59080,
+        "sha256": "86ddc0f55077221eebf58ac0eb15ba025b0998b0998d4f95298b67003458351f"
+      }
+    },
+    {
+      "id": "5303d8bc7097ac4d3e000359",
+      "category": "watchfaces",
+      "rank": 82,
+      "title": "Metro Watch",
+      "hearts": 1181,
+      "listing": "https://apps.repebble.com/app_5303d8bc7097ac4d3e000359",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.297Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.297Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:57.297Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:57.297Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "52fb0de14c38ce7afc000302",
+      "category": "watchfaces",
+      "rank": 83,
+      "title": "Rolex Steel",
+      "hearts": 1174,
+      "listing": "https://apps.repebble.com/app_52fb0de14c38ce7afc000302",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.297Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.297Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:57.297Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:57.297Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "5798b1b81482cd673b0000a2",
+      "category": "watchfaces",
+      "rank": 84,
+      "title": "Aspire",
+      "hearts": 1170,
+      "version": "1.96",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5837d76700355abe660004c7.pbw",
+      "listing": "https://apps.repebble.com/app_5798b1b81482cd673b0000a2",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.297Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.697Z"
+          }
+        ],
+        "path": "packages/5798b1b81482cd673b0000a2.pbw",
+        "bytes": 592241,
+        "sha256": "d401396b82a38616786fa5b3c5ce5f2eee017e37ab56f63cffa9f6df40a0837c"
+      }
+    },
+    {
+      "id": "5787d959ff7be04f750001b9",
+      "category": "watchfaces",
+      "rank": 85,
+      "title": "Small Lake House",
+      "hearts": 1162,
+      "version": "6.0.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5787d959ff7be04f750001b9/6.0.0/c3731cd6-1619-4721-aa3d-44d4deb30d84.pbw",
+      "listing": "https://apps.repebble.com/app_5787d959ff7be04f750001b9",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.308Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.519Z"
+          }
+        ],
+        "path": "packages/5787d959ff7be04f750001b9.pbw",
+        "bytes": 649228,
+        "sha256": "68a6ac8df60eb78d06bb5e766cba16d7641fabed91b720642e056cc3294baad0"
+      }
+    },
+    {
+      "id": "54250a8d5394589fee0000d3",
+      "category": "watchfaces",
+      "rank": 86,
+      "title": "Ecliptic",
+      "hearts": 1156,
+      "version": "3.1",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/5629c75c853a3cf0bb000041.pbw",
+      "listing": "https://apps.repebble.com/app_54250a8d5394589fee0000d3",
+      "advertisedPlatforms": [
+        "chalk",
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.441Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.690Z"
+          }
+        ],
+        "path": "packages/54250a8d5394589fee0000d3.pbw",
+        "bytes": 102017,
+        "sha256": "d3c864edf920d80e61af78d67bd8b501ed6af51ec594066a249baba06f4b623f"
+      }
+    },
+    {
+      "id": "55524d18ec8de776ea000064",
+      "category": "watchfaces",
+      "rank": 87,
+      "title": "Pebble Fighter 2",
+      "hearts": 1147,
+      "version": "1.6",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57da052dac56ea7b5f00002b.pbw",
+      "listing": "https://apps.repebble.com/app_55524d18ec8de776ea000064",
+      "advertisedPlatforms": [
+        "diorite",
+        "aplite",
+        "basalt",
+        "chalk"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.474Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.800Z"
+          }
+        ],
+        "path": "packages/55524d18ec8de776ea000064.pbw",
+        "bytes": 282702,
+        "sha256": "f6bbd5579b4da2d3a15ef9c8138da3933feb9ca034ef6350ef47b718eae8070c"
+      }
+    },
+    {
+      "id": "55457fd43bbdc6cb800000ae",
+      "category": "watchfaces",
+      "rank": 88,
+      "title": "KS Original",
+      "hearts": 1144,
+      "version": "1.3",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/55457fd43bbdc6cb800000ae/releases/1.3.pbw",
+      "listing": "https://apps.repebble.com/app_55457fd43bbdc6cb800000ae",
+      "advertisedPlatforms": [
+        "chalk",
+        "aplite",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.519Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.723Z"
+          }
+        ],
+        "path": "packages/55457fd43bbdc6cb800000ae.pbw",
+        "bytes": 24805,
+        "sha256": "f9a3bae9694af34a16386ee677909ed2b6491ee5295983cf4b61ba49c12e532a"
+      }
+    },
+    {
+      "id": "559228086a07c892b800000a",
+      "category": "watchfaces",
+      "rank": 89,
+      "title": "Negative",
+      "hearts": 1137,
+      "version": "1.1",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/559228086a07c892b800000a/releases/1.1.pbw",
+      "listing": "https://apps.repebble.com/app_559228086a07c892b800000a",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.519Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.718Z"
+          }
+        ],
+        "path": "packages/559228086a07c892b800000a.pbw",
+        "bytes": 13839,
+        "sha256": "0a57b5b6ec589e47726be9e09f8094874502c8fa1ae72311ad5d2d9f853aa4cf"
+      }
+    },
+    {
+      "id": "547da528bca84bd06b000002",
+      "category": "watchfaces",
+      "rank": 90,
+      "title": "Christmas Time",
+      "hearts": 1126,
+      "version": "1.8",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/547da528bca84bd06b000002/releases/1.8.pbw",
+      "listing": "https://apps.repebble.com/app_547da528bca84bd06b000002",
+      "advertisedPlatforms": [
+        "aplite",
+        "chalk",
+        "diorite",
+        "emery",
+        "basalt"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.538Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.935Z"
+          }
+        ],
+        "path": "packages/547da528bca84bd06b000002.pbw",
+        "bytes": 118529,
+        "sha256": "70673ee0c267a6aa6be2637657450d8916feae38187b0ca3a7f112b7e93927d3"
+      }
+    },
+    {
+      "id": "53567bdf3a327510d600016e",
+      "category": "watchfaces",
+      "rank": 91,
+      "title": "90degrees A",
+      "hearts": 1124,
+      "version": "1.9",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56c40ef2f3dab7a466000044.pbw",
+      "listing": "https://apps.repebble.com/app_53567bdf3a327510d600016e",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.690Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.034Z"
+          }
+        ],
+        "path": "packages/53567bdf3a327510d600016e.pbw",
+        "bytes": 76523,
+        "sha256": "1f192244f898f92293b9671a36a36680a13d5891857b1aa2d9bc5db53db1348b"
+      }
+    },
+    {
+      "id": "52d7e8d71acbf3ff09000008",
+      "category": "watchfaces",
+      "rank": 92,
+      "title": "Chunk Weather",
+      "hearts": 1118,
+      "version": "4.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57e5c4ba3095e38a890001c3.pbw",
+      "listing": "https://apps.repebble.com/app_52d7e8d71acbf3ff09000008",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.697Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.201Z"
+          }
+        ],
+        "path": "packages/52d7e8d71acbf3ff09000008.pbw",
+        "bytes": 261462,
+        "sha256": "f138567f011386beb75fa3f0f522679fa918973c75faa58b95bcee72843bfb14"
+      }
+    },
+    {
+      "id": "56b1494a9c4b2008b9000047",
+      "category": "watchfaces",
+      "rank": 93,
+      "title": "Modulite 2.0",
+      "hearts": 1101,
+      "version": "2.5.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/56b1494a9c4b2008b9000047/2.5.0/744735cf-9979-4459-9fa3-80037ae7093a.pbw",
+      "listing": "https://apps.repebble.com/app_56b1494a9c4b2008b9000047",
+      "advertisedPlatforms": [
+        "basalt",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.718Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.914Z"
+          }
+        ],
+        "path": "packages/56b1494a9c4b2008b9000047.pbw",
+        "bytes": 754871,
+        "sha256": "b604e400f470ed3f93d12643a89f7f5b9a2653dc684bc41bddf7bb01a2db7e1f"
+      }
+    },
+    {
+      "id": "577527d3ba2fe5a0c1000599",
+      "category": "watchfaces",
+      "rank": 94,
+      "title": "HealthView",
+      "hearts": 1098,
+      "version": "4.3",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/577527d3ba2fe5a0c1000599/4.3/f1c9c61d-fc71-4f91-9032-613f82e70059.pbw",
+      "listing": "https://apps.repebble.com/app_577527d3ba2fe5a0c1000599",
+      "advertisedPlatforms": [
+        "flint",
+        "basalt",
+        "chalk",
+        "diorite",
+        "gabbro",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.723Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.929Z"
+          }
+        ],
+        "path": "packages/577527d3ba2fe5a0c1000599.pbw",
+        "bytes": 430210,
+        "sha256": "b76a26eff7e515d409bb56550005b5c690ed424e52fedcb6cfc3bdd05fe0d287"
+      }
+    },
+    {
+      "id": "55009e88b5bebe256900003a",
+      "category": "watchfaces",
+      "rank": 95,
+      "title": "Titan",
+      "hearts": 1086,
+      "version": "8.23",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/562927eaa2f567025500005c.pbw",
+      "listing": "https://apps.repebble.com/app_55009e88b5bebe256900003a",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.800Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.269Z"
+          }
+        ],
+        "path": "packages/55009e88b5bebe256900003a.pbw",
+        "bytes": 448447,
+        "sha256": "184467e8d22674a8aa27478d0d5ac9b092a3366f9ae060ef1ba4791d686d69ad"
+      }
+    },
+    {
+      "id": "57719ccc6c2104ad170001c8",
+      "category": "watchfaces",
+      "rank": 96,
+      "title": "CobbleStyle 2",
+      "hearts": 1054,
+      "version": "1.52.0",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/57719ccc6c2104ad170001c8/1.52.0/b589e66e-f01f-4110-9edd-729f542f34fb.pbw",
+      "listing": "https://apps.repebble.com/app_57719ccc6c2104ad170001c8",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery",
+        "flint",
+        "gabbro"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.914Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.184Z"
+          }
+        ],
+        "path": "packages/57719ccc6c2104ad170001c8.pbw",
+        "bytes": 763159,
+        "sha256": "7a1fcea2d19046f9b0b7eac193b6f1cf3f69873ef16d05e3dd708732688b428d"
+      }
+    },
+    {
+      "id": "5624ee14e7a714f70a000040",
+      "category": "watchfaces",
+      "rank": 97,
+      "title": "Creepy by Dalpek",
+      "hearts": 1044,
+      "version": "1.6",
+      "url": "https://appstore-api.repebble.com/api/assets/apps/5624ee14e7a714f70a000040/releases/1.6.pbw",
+      "listing": "https://apps.repebble.com/app_5624ee14e7a714f70a000040",
+      "advertisedPlatforms": [
+        "basalt",
+        "chalk",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.929Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.220Z"
+          }
+        ],
+        "path": "packages/5624ee14e7a714f70a000040.pbw",
+        "bytes": 179796,
+        "sha256": "f3f0bb1bc0c72bb8914e12c0e34d4dd4602f113b43913f801bcae10c4b4841a2"
+      }
+    },
+    {
+      "id": "530907d5ab1ae2f1290005ec",
+      "category": "watchfaces",
+      "rank": 98,
+      "title": "Periodic",
+      "hearts": 1031,
+      "listing": "https://apps.repebble.com/app_530907d5ab1ae2f1290005ec",
+      "advertisedPlatforms": [],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.935Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:57.935Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 2,
+            "finishedAt": "2026-09-18T20:54:57.935Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          },
+          {
+            "attempt": 3,
+            "finishedAt": "2026-09-18T20:54:57.935Z",
+            "error": "TypeError: Invalid URL",
+            "cause": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "562a4e4dfd5d7220db00006c",
+      "category": "watchfaces",
+      "rank": 99,
+      "title": "Brick Neon",
+      "hearts": 1029,
+      "version": "1.30",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/562a4e4dfd5d7220db00006c/1.30/6c9aa7ac-4604-492e-abb4-d9d6715851b3.pbw",
+      "listing": "https://apps.repebble.com/app_562a4e4dfd5d7220db00006c",
+      "advertisedPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk",
+        "diorite",
+        "emery"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:57.935Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.189Z"
+          }
+        ],
+        "path": "packages/562a4e4dfd5d7220db00006c.pbw",
+        "bytes": 232661,
+        "sha256": "63c140b33bf34ff45a02714d85abe3b249eaa86f16c3c40ea9589e8083d4cc1c"
+      }
+    },
+    {
+      "id": "55864b36661134ee5700008c",
+      "category": "watchfaces",
+      "rank": 100,
+      "title": "Mondaine",
+      "hearts": 1004,
+      "version": "1.2",
+      "url": "https://appstore-api.repebble.com/api/assets/pbw/55c899c96175d4a83700008e.pbw",
+      "listing": "https://apps.repebble.com/app_55864b36661134ee5700008c",
+      "advertisedPlatforms": [
+        "basalt",
+        "aplite"
+      ],
+      "acquisition": {
+        "startedAt": "2026-09-18T20:54:58.034Z",
+        "attempts": [
+          {
+            "attempt": 1,
+            "finishedAt": "2026-09-18T20:54:58.382Z"
+          }
+        ],
+        "path": "packages/55864b36661134ee5700008c.pbw",
+        "bytes": 55601,
+        "sha256": "afe76e2f08de32aa78470999b2140b767f9cc823996e45acf5351be933883248"
+      }
+    }
+  ]
+}
