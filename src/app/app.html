@@ -49,7 +49,7 @@
   <div
     class="workspace"
     [class.preview-workspace]="!workbench()"
-    [class.preview-active]="loaded() || previewBusy()"
+    [class.preview-active]="loaded() || previewBusy() || canRestartPreview()"
   >
     <section
       class="preview-launcher panel"
@@ -62,7 +62,7 @@
       <preview-panel
         [hidden]="!!configuration()"
         [currentProfile]="profile()"
-        [watchLoaded]="isFirmware() && loaded()"
+        [watchLoaded]="isFirmware() && loaded() && !restartRequired()"
         [sessionBusy]="previewBusy()"
         [sessionStatus]="previewStatus()"
         (launch)="startPreview($event)"
@@ -81,7 +81,15 @@
           <h1>{{ activeAppName() }}</h1>
         </div>
         <span class="session-state">{{
-          previewBusy() ? 'Loading' : running() ? 'Running' : loaded() ? 'Paused' : 'Ready'
+          previewBusy()
+            ? 'Loading'
+            : restartRequired()
+              ? 'Stopped'
+              : running()
+                ? 'Running'
+                : loaded()
+                  ? 'Paused'
+                  : 'Ready'
         }}</span>
       </div>
       @if (!workbench() && previewBusy()) {
@@ -133,7 +141,16 @@
         (keyup)="watchKey($event, false)"
         (focusout)="releaseKeys()"
       >
-        <div #modelHost class="model-host" [hidden]="displayMode() !== 'model'"></div>
+        <div
+          #modelHost
+          class="model-host"
+          [hidden]="displayMode() !== 'model'"
+          (pointerdown)="screenTouch($event, 'down', true)"
+          (pointermove)="screenTouch($event, 'move', true)"
+          (pointerup)="screenTouch($event, 'up', true)"
+          (pointercancel)="screenTouch($event, 'up', true)"
+          (lostpointercapture)="screenTouch($event, 'up', true)"
+        ></div>
         <div
           class="watch-layout"
           [class.round-watch]="display().round"
@@ -147,7 +164,18 @@
             [class.round-screen]="display().round"
             [style.aspect-ratio]="display().width + ' / ' + display().height"
           >
-            <canvas #screen width="200" height="228" aria-label="Live watch framebuffer"></canvas>
+            <canvas
+              #screen
+              width="200"
+              height="228"
+              aria-label="Live watch framebuffer"
+              [class.touch-enabled]="touchAvailable() && quickInputReady()"
+              (pointerdown)="screenTouch($event, 'down')"
+              (pointermove)="screenTouch($event, 'move')"
+              (pointerup)="screenTouch($event, 'up')"
+              (pointercancel)="screenTouch($event, 'up')"
+              (lostpointercapture)="screenTouch($event, 'up')"
+            ></canvas>
             @if (!loaded()) {
               <div class="empty-display">
                 {{ workbench() ? 'No firmware loaded' : 'Choose a watchface to start' }}
@@ -210,6 +238,38 @@
       }
       @if (configurationNotice()) {
         <p class="help" role="status">{{ configurationNotice() }}</p>
+      }
+      @if (isFirmware() && loaded()) {
+        <div class="quick-inputs" aria-label="Quick sensor inputs">
+          <button
+            (click)="shakeWrist()"
+            [disabled]="!quickInputReady()"
+            title="Send a short synthetic acceleration sequence and wrist tap"
+          >
+            Shake wrist
+          </button>
+          <button
+            (click)="sendSignal({ kind: 'tap', axis: 2, direction: 1 })"
+            [disabled]="!quickInputReady()"
+            title="Send one accelerometer tap event"
+          >
+            Wrist tap
+          </button>
+          @if (touchAvailable() && displayMode() === 'model') {
+            <button (click)="toggleScreenTouch()">
+              {{ touchMode() ? 'Rotate watch' : 'Touch screen' }}
+            </button>
+          }
+        </div>
+        @if (touchAvailable()) {
+          <p class="touch-hint">
+            {{
+              displayMode() !== 'model' || touchMode()
+                ? 'Tap or drag the watch screen to send touch input.'
+                : 'Drag to rotate. Select Touch screen to interact with the display.'
+            }}
+          </p>
+        }
       }
       @if (displayMode() !== 'pixels') {
         <div class="display-options">
@@ -281,7 +341,13 @@
       <div class="execution-controls">
         <button
           class="primary"
-          [disabled]="!loaded() || !ready() || !!state()?.halted || installing()"
+          [disabled]="
+            !loaded() ||
+            !ready() ||
+            !!state()?.halted ||
+            installing() ||
+            (!workbench() && restartRequired())
+          "
           (click)="running() ? pause() : run()"
         >
           {{ running() ? 'Pause' : 'Run' }}</button
@@ -294,6 +360,7 @@
         ><button
           [disabled]="!loaded() || !ready()"
           (click)="reset()"
+          [hidden]="!workbench()"
           [title]="
             isFirmware()
               ? 'Restart the watch; keep installed apps and clock'
@@ -302,6 +369,15 @@
         >
           Reset
         </button>
+        @if (!workbench()) {
+          <button
+            (click)="restartPreview()"
+            [disabled]="!canRestartPreview()"
+            title="Start this app in a fresh watch session using the selected firmware and saved demo settings"
+          >
+            Restart preview
+          </button>
+        }
         <div class="execution-stats" [hidden]="!workbench()">
           <strong>{{ state()?.instructions || 0 | number }}</strong
           ><span>{{ isFirmware() ? 'Scheduler steps' : 'Instructions' }}</span>

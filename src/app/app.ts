@@ -34,6 +34,8 @@ import type { SourceSnapshot } from './projects.ts';
 import { SensorPanel, type SignalObservation } from './sensor-panel.ts';
 import { FramePanel } from './frame-panel.ts';
 import type { DeviceSignal, SignalScenario } from './signals.ts';
+import { boardDescriptor } from './board-registry.ts';
+import { screenPoint } from './watch-gestures.ts';
 import { renderPixels, type DisplayMode } from './display.ts';
 import type { WatchModel } from './watch-model.ts';
 import type { LightingEnvironment } from './watch-lighting.ts';
@@ -79,12 +81,16 @@ export class App implements AfterViewInit, OnDestroy {
   private demoRevision = 0;
   private demoStorageNotice = '';
   private releaseButtons = () => {
+    this.releaseTouch();
     this.pointerButtons.clear();
     this.keyButtons.clear();
     if (this.buttons) this.handleButton(15, false);
   };
   private pointerButtons = new Map<number, number>();
   private keyButtons = new Map<string, number>();
+  touchMode = signal(false);
+  private touchPointer?: number;
+  private touchPosition?: { x: number; y: number };
   private resumeVisible = false;
   private visibility = () => {
     if (document.hidden) this.releaseButtons();
@@ -194,6 +200,8 @@ export class App implements AfterViewInit, OnDestroy {
   watchReady = signal(false);
   linked = signal(false);
   installing = signal(false);
+  restartRequired = signal(false);
+  private installWatchdog?: ReturnType<typeof setTimeout>;
   installStatus = signal('');
   charging = false;
   packets = signal<
@@ -305,6 +313,7 @@ export class App implements AfterViewInit, OnDestroy {
   }
   ngOnDestroy() {
     this.destroyed = true;
+    this.clearInstallWatchdog();
     this.traceUpdates.dispose();
     this.packetUpdates.dispose();
     this.clearConfiguration();
@@ -415,7 +424,7 @@ export class App implements AfterViewInit, OnDestroy {
     const pkg = this.pendingPreview;
     if (!pkg) return;
     this.pendingPreview = undefined;
-    this.previewStatus.set('Installing watchface…');
+    this.previewStatus.set('Installing app…');
     this.installPackage(pkg);
     if (!this.running()) this.run();
   }
@@ -432,7 +441,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.previewBusy.set(false);
     this.previewStatus.set('Preview canceled.');
     this.resumeVisible = false;
-    if (cancelInstall && this.isFirmware()) this.reset();
+    if (cancelInstall && this.isFirmware()) this.discardEmulator();
     else if (this.isFirmware()) {
       this.qemuWorker?.postMessage({ type: 'pause' });
       this.running.set(false);
@@ -488,10 +497,13 @@ export class App implements AfterViewInit, OnDestroy {
     this.send({ type: 'run' });
   }
   pause() {
+    this.releaseTouch();
     this.running.set(false);
     this.send({ type: 'pause' });
   }
   reset() {
+    this.clearInstallWatchdog();
+    this.releaseTouch();
     this.buttons = 0;
     this.error.set('');
     this.running.set(false);
@@ -502,6 +514,56 @@ export class App implements AfterViewInit, OnDestroy {
         ? 'Watch restarted; installed apps and RTC retained'
         : 'Machine reset to image vector table',
     );
+  }
+  private clearInstallWatchdog() {
+    clearTimeout(this.installWatchdog);
+    this.installWatchdog = undefined;
+  }
+  private trackInstallProgress() {
+    this.clearInstallWatchdog();
+    this.installWatchdog = setTimeout(() => {
+      this.discardEmulator();
+      this.error.set(
+        'The app made no installation progress for 45 seconds. Restart the preview or choose another app.',
+      );
+      this.previewStatus.set('Installation stopped. You can restart the preview.');
+    }, 45000);
+  }
+  private discardEmulator() {
+    this.clearInstallWatchdog();
+    this.loadRevision++;
+    this.stopPhone();
+    this.qemuWorker?.terminate();
+    this.qemuWorker = undefined;
+    this.qemuReady = undefined;
+    this.running.set(false);
+    this.installing.set(false);
+    this.previewBusy.set(false);
+    this.demoBusy.set(false);
+    this.demoPrepared = false;
+    this.pendingPreview = undefined;
+    this.watchReady.set(false);
+    this.firmwareToSave = undefined;
+    this.autoRunFirmware = false;
+    this.loaded.set(false);
+    this.ready.set(false);
+    this.restartRequired.set(true);
+    this.resumeVisible = false;
+    this.touchPointer = undefined;
+    this.touchPosition = undefined;
+    this.pointerButtons.clear();
+    this.keyButtons.clear();
+    this.buttons = 0;
+    this.linked.set(false);
+  }
+  canRestartPreview() {
+    return !!this.preview?.package();
+  }
+  restartPreview() {
+    if (!this.preview?.package()) return;
+    this.discardEmulator();
+    this.error.set('');
+    void this.preview.restart();
   }
   setBattery(value: number) {
     if (!Number.isFinite(value)) return;
@@ -676,8 +738,10 @@ export class App implements AfterViewInit, OnDestroy {
   }
   async setDisplay(mode: DisplayMode) {
     if (mode === 'model' && !this.hasModel()) return;
+    this.releaseTouch();
     this.displayMode.set(mode);
     this.model?.setActive(mode === 'model' && !document.hidden);
+    this.model?.setTouchMode(this.touchMode() && this.touchAvailable());
     if (mode !== 'model') {
       this.redraw();
       return;
@@ -706,6 +770,7 @@ export class App implements AfterViewInit, OnDestroy {
         });
       }
       const model = this.model;
+      model.setTouchMode(this.touchMode() && this.touchAvailable());
       model.setActive(this.displayMode() === 'model' && !document.hidden);
       this.redraw();
       await model.load(controller.signal);
@@ -752,6 +817,11 @@ export class App implements AfterViewInit, OnDestroy {
               return;
             }
             if (data.type === 'error') {
+              if (data.command === 'install') {
+                this.clearInstallWatchdog();
+                this.installing.set(false);
+                this.restartRequired.set(true);
+              }
               if (data.command?.startsWith('demo-') && data.generation === this.watchGeneration) {
                 this.demoBusy.set(false);
                 this.demoStatus.set('Demo setup failed: ' + data.message);
@@ -796,8 +866,11 @@ export class App implements AfterViewInit, OnDestroy {
           };
           this.qemuWorker!.onerror = (e) => {
             if (this.qemuWorker !== watch) return;
-            this.error.set(e.message);
-            this.running.set(false);
+            this.error.set(
+              e.message || 'The emulator stopped unexpectedly. Open the app again to restart it.',
+            );
+            this.discardEmulator();
+            this.previewStatus.set('Emulator stopped. Restart the preview to retry.');
             reject(new Error(e.message));
           };
           this.qemuWorker!.postMessage({
@@ -830,6 +903,12 @@ export class App implements AfterViewInit, OnDestroy {
     }
   }
   installPackage(data: { bytes: Uint8Array; name: string }) {
+    if (this.installing() || this.demoBusy()) {
+      this.error.set(
+        'Wait for the current installation or setup to finish, or cancel the preview.',
+      );
+      return;
+    }
     if (!this.isFirmware() || !this.watchReady()) {
       this.error.set(
         'Load and run matching emulator firmware until boot completes, then install the app.',
@@ -837,6 +916,10 @@ export class App implements AfterViewInit, OnDestroy {
       return;
     }
     this.error.set('');
+    this.releaseTouch();
+    this.stopPhone();
+    this.installing.set(true);
+    this.trackInstallProgress();
     this.qemuWorker?.postMessage({ type: 'install', ...data });
   }
   handleQemuEvent(data: any) {
@@ -903,6 +986,7 @@ export class App implements AfterViewInit, OnDestroy {
       );
     }
     if (data.type === 'firmware-loaded' && isFirmwareProfile(data.profile)) {
+      this.restartRequired.set(false);
       const saved = this.firmwareToSave;
       this.firmwareToSave = undefined;
       if (saved && saved.profile === data.profile && saved.name === data.name)
@@ -922,6 +1006,9 @@ export class App implements AfterViewInit, OnDestroy {
       return;
     }
     if (data.type === 'session') {
+      this.clearInstallWatchdog();
+      this.touchPointer = undefined;
+      this.touchPosition = undefined;
       this.pointerButtons.clear();
       this.keyButtons.clear();
       this.buttons = 0;
@@ -953,8 +1040,12 @@ export class App implements AfterViewInit, OnDestroy {
     if (data.type === 'install-status') {
       this.installing.set(data.busy);
       this.installStatus.set(data.message);
+      if (data.busy) this.trackInstallProgress();
+      else this.clearInstallWatchdog();
+      if (this.previewBusy() && data.busy) this.previewStatus.set(data.message);
     }
     if (data.type === 'installed') {
+      this.clearInstallWatchdog();
       this.activeAppName.set(
         String(data.appinfo.shortName ?? data.appinfo.displayName ?? data.name),
       );
@@ -1019,6 +1110,69 @@ export class App implements AfterViewInit, OnDestroy {
   }
   sendSignal(signal: DeviceSignal) {
     this.qemuWorker?.postMessage({ type: 'signal', signal });
+  }
+  quickInputReady() {
+    return (
+      this.isFirmware() &&
+      this.watchReady() &&
+      this.running() &&
+      !this.previewBusy() &&
+      !this.installing() &&
+      !this.demoBusy()
+    );
+  }
+  touchAvailable() {
+    const profile = this.profile();
+    return (
+      isFirmwareProfile(profile) && boardDescriptor(profile).inputs['touch'] === 'touch-controller'
+    );
+  }
+  shakeWrist() {
+    if (this.quickInputReady()) this.qemuWorker?.postMessage({ type: 'wrist-shake' });
+  }
+  toggleScreenTouch() {
+    this.releaseTouch();
+    this.touchMode.update((value) => !value);
+    this.model?.setTouchMode(this.touchMode() && this.touchAvailable());
+  }
+  screenTouch(event: PointerEvent, phase: 'down' | 'move' | 'up', model = false) {
+    if (phase === 'up') {
+      if (event.pointerId === this.touchPointer) this.releaseTouch();
+      return;
+    }
+    if (!this.quickInputReady() || !this.touchAvailable() || (model && !this.touchMode())) return;
+    if (
+      phase === 'down' &&
+      (event.button !== 0 || !event.isPrimary || this.touchPointer !== undefined)
+    )
+      return;
+    if (phase === 'move' && event.pointerId !== this.touchPointer) return;
+    const target = event.currentTarget as HTMLElement;
+    const box = target.getBoundingClientRect();
+    const point = model
+      ? this.model?.touchPoint(event.clientX, event.clientY)
+      : screenPoint(
+          (event.clientX - box.left) / box.width,
+          (event.clientY - box.top) / box.height,
+          this.display(),
+        );
+    if (!point) {
+      if (event.pointerId === this.touchPointer) this.releaseTouch();
+      return;
+    }
+    event.preventDefault();
+    if (phase === 'down') {
+      this.touchPointer = event.pointerId;
+      target.setPointerCapture(event.pointerId);
+    } else if (point.x === this.touchPosition?.x && point.y === this.touchPosition?.y) return;
+    this.touchPosition = point;
+    this.sendSignal({ kind: 'touch', down: true, ...point });
+  }
+  private releaseTouch() {
+    if (this.touchPointer !== undefined && this.touchPosition)
+      this.sendSignal({ kind: 'touch', down: false, ...this.touchPosition });
+    this.touchPointer = undefined;
+    this.touchPosition = undefined;
   }
   healthStatus = signal('');
   applyHealthSettings(values: { enabled: boolean; heartRate: boolean }) {

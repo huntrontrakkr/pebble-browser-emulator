@@ -13,6 +13,8 @@ import {
   DEMO_STORAGE_KEY,
 } from '../src/app/demo-settings.ts';
 import { watchModelSpec, modelSource } from '../src/app/watch-model-specs.ts';
+import { boardDescriptor } from '../src/app/board-registry.ts';
+import { screenPoint } from '../src/app/watch-gestures.ts';
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
 const { default: ts } = await import(
   pathToFileURL(resolve(repo, 'node_modules/typescript/lib/typescript.js'))
@@ -97,6 +99,8 @@ function makeApp() {
     modelSource,
     profileDisplay,
     isFirmwareProfile,
+    boardDescriptor,
+    screenPoint,
     saveFirmware: async (firmware) => {
       savedFirmwares.push(firmware);
     },
@@ -167,9 +171,12 @@ test('a queued preview installs once after firmware boot; cancel removes the que
   app.handleQemuEvent({ type: 'firmware-ready' });
   assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
   app.pendingPreview = { bytes: new Uint8Array([2]), name: 'Canceled.pbw' };
+  const watch = app.qemuWorker;
   app.cancelPreview();
   app.handleQemuEvent({ type: 'firmware-ready' });
-  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
+  assert.equal(watch.messages.filter((m) => m.type === 'install').length, 1);
+  assert.ok(watch.terminated);
+  assert.equal(app.qemuWorker, undefined);
 });
 
 test('phone clock barriers keep acknowledgments without scheduling UI clock redraws', () => {
@@ -385,6 +392,7 @@ test('preview defaults apply once before installation, and stale setup ACKs cann
   });
   assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
   app.pendingPreview = { bytes: new Uint8Array([2]), name: 'Canceled.pbw' };
+  const watch = app.qemuWorker;
   app.cancelPreview();
   app.handleQemuEvent({
     type: 'demo-applied',
@@ -393,7 +401,8 @@ test('preview defaults apply once before installation, and stale setup ACKs cann
     notifications: 2,
     calendar: 2,
   });
-  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 1);
+  assert.equal(watch.messages.filter((m) => m.type === 'install').length, 1);
+  assert.ok(watch.terminated);
 });
 
 test('watch controls preserve chords, suppress key repeat, and release on focus loss', () => {
@@ -451,6 +460,7 @@ test('changing 3D profile resizes before redraw, retains the renderer and cancel
     events = [];
   const model = {
     setActive() {},
+    setTouchMode() {},
     finish() {},
     setSpec(spec) {
       events.push('spec:' + spec.profile);
@@ -485,4 +495,31 @@ test('changing 3D profile resizes before redraw, retains the renderer and cancel
   assert.equal(app.modelStatus(), '');
   await app.setDisplay('model');
   assert.equal(loads.length, 2, 'Already loaded geometry is not reloaded');
+});
+
+test('install progress watchdog survives a frozen virtual clock, resets on progress and clears on success', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const app = makeApp(),
+    watch = app.qemuWorker;
+  app.watchReady.set(true);
+  app.installPackage({ bytes: new Uint8Array([1]), name: 'App.pbw' });
+  t.mock.timers.tick(44000);
+  assert.equal(watch.terminated, false);
+  app.handleQemuEvent({ type: 'install-status', busy: true, message: 'app: 2000 / 4000 bytes' });
+  t.mock.timers.tick(44000);
+  assert.equal(watch.terminated, false);
+  t.mock.timers.tick(1000);
+  assert.equal(watch.terminated, true);
+  assert.equal(app.installing(), false);
+  assert.equal(app.previewBusy(), false);
+  assert.equal(app.loaded(), false);
+  assert.ok(app.restartRequired());
+  assert.match(app.error(), /no installation progress/);
+  const replacement = new Port();
+  app.qemuWorker = replacement;
+  app.watchReady.set(true);
+  app.installPackage({ bytes: new Uint8Array([1]), name: 'Next.pbw' });
+  app.handleQemuEvent({ type: 'install-status', busy: false, message: 'Launched' });
+  t.mock.timers.tick(90000);
+  assert.equal(replacement.terminated, false, 'The previous watchdog cannot kill the new app');
 });

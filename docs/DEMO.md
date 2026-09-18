@@ -86,6 +86,14 @@ capture, pressed state and keyboard support. Arrow keys work while the watch are
 Window blur/visibility changes release held buttons. The default pixel view preserves all
 rectangular framebuffer pixels, and the round screen clips its actual round display.
 
+**Shake wrist** and **Wrist tap** are available below the watch. Time 2 and Round 2 accept
+direct screen taps/drags; in 3D, switch between **Touch screen** and **Rotate watch**.
+[Signal timing and contact behavior](SENSORS.md) remain separate from app compatibility.
+**Restart preview** reloads the current package into a fresh watch using saved/default
+firmware and the saved demo settings. It clears the current emulated watch's volatile and
+app-installed state. Developer tools retain **Reset**, which restarts the existing watch
+while retaining its flash and RTC. [Loading failures and recovery](APP_LOADING.md).
+
 All three current products have their own simplified official CAD geometry, loaded only when 3D watch
 is selected. Controls are projected from case-space anchors and move when the watch rotates;
 they hide on the back. WebGL stops while hidden, uses an on-demand render loop and caps its

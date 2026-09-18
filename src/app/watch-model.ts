@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { loadModelGeometry } from './watch-model-loader.ts';
 import { modelDisplay, type WatchModelSpec } from './watch-model-specs.ts';
+import { screenPoint } from './watch-gestures.ts';
 import {
   createWatchEnvironment,
   LIGHTING_ENVIRONMENTS,
@@ -23,6 +24,7 @@ export class WatchModel {
   private buttonsDirty = true;
   private projection = new THREE.Vector3();
   private viewport = new THREE.Vector2();
+  private raycaster = new THREE.Raycaster();
   private finishValue = '';
   private lightingKey = '';
   private readonly pixelRatio = Math.min(devicePixelRatio, 1.5);
@@ -145,6 +147,27 @@ export class WatchModel {
       cancelAnimationFrame(this.frame);
       this.frame = 0;
     }
+  }
+  setTouchMode(enabled: boolean) {
+    this.controls.enabled = !enabled;
+    this.controls.enableDamping = !enabled;
+    this.controls.update();
+    this.invalidate();
+  }
+  touchPoint(clientX: number, clientY: number) {
+    if (!this.display) return null;
+    const box = this.renderer.domElement.getBoundingClientRect();
+    if (!box.width || !box.height) return null;
+    this.raycaster.setFromCamera(
+      new THREE.Vector2(
+        ((clientX - box.left) / box.width) * 2 - 1,
+        1 - ((clientY - box.top) / box.height) * 2,
+      ),
+      this.camera,
+    );
+    const hit = this.raycaster.intersectObject(this.display)[0];
+    if (!hit?.uv) return null;
+    return screenPoint(hit.uv.x, hit.uv.y, modelDisplay(this.spec));
   }
   private resizeToHost() {
     const width = this.host.clientWidth,

@@ -17,6 +17,7 @@ import { ClockBarrier } from './clock-barrier.ts';
 import { signalRoute } from './board-registry.ts';
 import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
 import { DemoSignalStream, normalizeDemoSettings } from './demo-settings.ts';
+import { wristShake } from './watch-gestures.ts';
 import { demoRecords, type DemoRecord } from './demo-timeline.ts';
 import { bytesHash } from './resource-cache.ts';
 import {
@@ -60,6 +61,7 @@ let cpuMs = 1;
 let realtime = false;
 let paceStart: { wall: number; virtual: number } | undefined;
 const timeline = new SignalTimeline();
+const gesture = new SignalTimeline();
 const demoStream = new DemoSignalStream();
 let demoApplying = false;
 const demoOwned = new Map<string, Pick<DemoRecord, 'database' | 'key'>>();
@@ -176,14 +178,18 @@ async function tickOnce(count: number) {
         : Number.MAX_SAFE_INTEGER - api.spike_ticks());
   while (remaining > 0) {
     for (const event of demoStream.takeDue(api.spike_ticks() / 64))
-      applySignal(event.signal, event.atUs);
+      if (!gesture.pending || event.signal.kind !== 'acceleration')
+        applySignal(event.signal, event.atUs);
     for (const event of timeline.takeDue(api.spike_ticks() / 64))
+      applySignal(event.signal, event.atUs);
+    for (const event of gesture.takeDue(api.spike_ticks() / 64))
       applySignal(event.signal, event.atUs);
     flushUart();
     const deadline = Math.min(
       quantumEnd,
       Math.round(timeline.nextUs * 64),
       Math.round(demoStream.nextUs * 64),
+      Math.round(gesture.nextUs * 64),
     );
     // Service pending UART envelopes promptly without interleaving their bytes.
     const done = api.spike_run_until(
@@ -196,11 +202,18 @@ async function tickOnce(count: number) {
     remaining -= done;
     serial();
     if (api.spike_ticks() >= quantumEnd) break;
-    if (!done && Math.min(timeline.nextUs, demoStream.nextUs) > api.spike_ticks() / 64) break;
+    if (
+      !done &&
+      Math.min(timeline.nextUs, demoStream.nextUs, gesture.nextUs) > api.spike_ticks() / 64
+    )
+      break;
   }
   for (const event of timeline.takeDue(api.spike_ticks() / 64))
     applySignal(event.signal, event.atUs);
   for (const event of demoStream.takeDue(api.spike_ticks() / 64))
+    if (!gesture.pending || event.signal.kind !== 'acceleration')
+      applySignal(event.signal, event.atUs);
+  for (const event of gesture.takeDue(api.spike_ticks() / 64))
     applySignal(event.signal, event.atUs);
   flushUart();
   if (announceReady) {
@@ -447,6 +460,7 @@ function resetSession() {
   paceStart = undefined;
   cpuPump = Promise.resolve();
   timeline.clear();
+  gesture.clear();
   demoStream.stop();
   demoApplying = false;
   uartWriter.clear();
@@ -650,6 +664,11 @@ self.onmessage = async ({ data }) => {
         applySignal(normalizeSignal(data.signal));
         state();
         break;
+      case 'wrist-shake':
+        if (!firmwareReady || installing || demoApplying)
+          throw new Error('Wait for the app to finish loading before shaking the wrist.');
+        gesture.load(wristShake(), Math.round(api.spike_ticks() / 64));
+        break;
       case 'health-settings':
         if (!firmwareReady)
           throw new Error('Wait for firmware boot before changing health settings.');
@@ -838,7 +857,7 @@ self.onmessage = async ({ data }) => {
         let outcome = 'Installation failed';
         postMessage({ type: 'install-status', busy: true, message: 'Connecting virtual phone…' });
         try {
-          await transport!.setBluetooth(true);
+          if (!linked) await transport!.setBluetooth(true);
           linked = true;
           phoneNeedsUi = true;
           postMessage({ type: 'connection', connected: true });
@@ -859,7 +878,11 @@ self.onmessage = async ({ data }) => {
               name: data.name,
             });
         } catch (e) {
-          if (current === generation) postMessage({ type: 'error', message: String(e) });
+          if (current === generation) {
+            stop();
+            outcome = String(e);
+            postMessage({ type: 'error', message: outcome, command: 'install', generation });
+          }
         } finally {
           if (current === generation) {
             installing = false;
@@ -880,6 +903,7 @@ self.onmessage = async ({ data }) => {
     }
   } catch (e) {
     if (commandGeneration !== generation) return;
+    if (data.type === 'install' && !installing) stop();
     postMessage({ type: 'error', message: String(e), command: data.type, generation });
     if (loaded) state();
   }

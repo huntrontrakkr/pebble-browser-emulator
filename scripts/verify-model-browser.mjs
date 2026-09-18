@@ -42,13 +42,15 @@ try {
     page.setDefaultTimeout(90000);
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.addInitScript(() => {
-      window.modelQa = { profiles: [], geometries: [] };
+      window.modelQa = { profiles: [], geometries: [], touches: [] };
       const Original = Worker;
       window.Worker = class extends Original {
         constructor(...args) {
           super(...args);
           this.addEventListener('message', ({ data }) => {
             if (data.type === 'firmware-loaded') window.modelQa.profiles.push(data.profile);
+            if (data.type === 'signal' && data.signal.kind === 'touch')
+              window.modelQa.touches.push(data.signal);
             if (data.geometry) {
               const g = data.geometry;
               window.modelQa.geometries.push({
@@ -96,6 +98,26 @@ try {
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           true,
         );
+        if (profile !== 'qemu_flint') {
+          const start = await page.evaluate(() => window.modelQa.touches.length);
+          await page.getByRole('button', { name: 'Touch screen', exact: true }).click();
+          await page.locator('.model-host canvas').scrollIntoViewIfNeeded();
+          const box = await page.locator('.model-host canvas').boundingBox();
+          await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+          await page.waitForFunction((n) => window.modelQa.touches.length >= n + 2, start);
+          const contact = await page.evaluate((n) => window.modelQa.touches.slice(n), start);
+          assert.equal(contact[0].down, true);
+          assert.equal(contact.at(-1).down, false);
+          assert.ok(contact[0].x > 0 && contact[0].y > 0);
+          await page.getByRole('button', { name: 'Pause', exact: true }).click();
+          await page.getByRole('button', { name: 'Rotate watch', exact: true }).click();
+          await page.getByRole('button', { name: 'Run', exact: true }).click();
+        } else {
+          assert.equal(
+            await page.getByRole('button', { name: 'Touch screen', exact: true }).count(),
+            0,
+          );
+        }
         await page.screenshot({ path: resolve(out, `${engine}-${profile}.png`), fullPage: true });
         console.log(engine, profile, 'automatic switch ready');
       }
@@ -176,6 +198,40 @@ try {
         const obsoleteResult = await obsolete;
         const sameCanvas = original === model.renderer.domElement;
         const roundVertices = model.geometry.index.count;
+        const touchRays = [];
+        for (const [profile, width, height] of [
+          ['qemu_emery', 200, 228],
+          ['qemu_gabbro', 260, 260],
+        ]) {
+          model.setSpec(specs[profile]);
+          for (const angle of [0, 0.45]) {
+            model.camera.position.set(110 * Math.sin(angle), 14, 110 * Math.cos(angle));
+            model.controls.update();
+            model.camera.updateMatrixWorld(true);
+            model.display.updateMatrixWorld(true);
+            for (const [u, v] of [
+              [0.25, 0.7],
+              [0.65, 0.3],
+            ]) {
+              const screen = specs[profile].screen;
+              const p = model.camera.position
+                .clone()
+                .set((u - 0.5) * screen.width, (0.5 - v) * screen.height, 0);
+              model.display.localToWorld(p);
+              p.project(model.camera);
+              const rect = original.getBoundingClientRect();
+              const hit = model.touchPoint(
+                rect.left + ((p.x + 1) * rect.width) / 2,
+                rect.top + ((1 - p.y) * rect.height) / 2,
+              );
+              touchRays.push({ profile, angle, hit, expected: { x: u * width, y: v * height } });
+            }
+          }
+        }
+        model.setTouchMode(true);
+        const touchDisablesOrbit = !model.controls.enabled;
+        model.setTouchMode(false);
+        const rotationRestored = model.controls.enabled;
         model.pixels(new Uint8ClampedArray(260 * 260 * 4).fill(192));
         await frames();
         model.controls.dispatchEvent({ type: 'start' });
@@ -202,6 +258,9 @@ try {
           canvasesAfterDispose: document.querySelectorAll('canvas').length,
           movingPixelRatio,
           settledPixelRatio,
+          touchRays,
+          touchDisablesOrbit,
+          rotationRestored,
         };
       }, WATCH_MODELS);
       assert.equal(renderer.duplicateRenders, 0);
@@ -214,6 +273,12 @@ try {
       assert.equal(renderer.movingPixelRatio, 1);
       assert.equal(renderer.settledPixelRatio, 1.5);
       assert.equal(renderer.canvasesAfterDispose, 0);
+      for (const ray of renderer.touchRays) {
+        assert.ok(ray.hit, 'Ray hits the actual display at both view angles');
+        assert.ok(Math.abs(ray.hit.x - ray.expected.x) <= 1);
+        assert.ok(Math.abs(ray.hit.y - ray.expected.y) <= 1);
+      }
+      assert.ok(renderer.touchDisablesOrbit && renderer.rotationRestored);
       assert.deepEqual(errors, []);
       results.push({
         engine,

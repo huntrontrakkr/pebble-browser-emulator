@@ -7,6 +7,29 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## App loading and quick inputs
+
+Preview now offers **Shake wrist**, **Wrist tap**, and direct screen contact on Time 2 and
+Round 2. Flat screens accept taps/drags; the 3D view has an explicit touch/rotate toggle
+and maps contact through the actual display mesh. Duo has no touchscreen controls.
+Shake runs a deterministic 600 ms acceleration sequence on virtual time; its single tap
+event reaches the same firmware input path as the developer panel. These are synthetic
+inputs, not measured wrist motion. [Controls and limitations](SENSORS.md).
+
+App installation shows transfer progress, stops after a protocol failure, and has a
+45-second wall-time inactivity watchdog. Cancellation or a Worker crash releases the
+loading state. **Restart preview** loads the selected package into fresh saved/default
+firmware, and a failed session is not reused for the next preview. The previous companion
+script is stopped before replacement. Browser checks cover the timeout/crash recovery,
+actual input delivery, touch release, round clipping and rotated display mapping.
+
+This does **not** resolve every app compatibility failure. Kablooey! 1.0.0 on Emery 4.37.0
+can starve firmware services and cause a subsequent BlobDB install timeout. The unchanged
+app works under native QEMU's default clock, but also overflows the firmware event queue
+under native instruction-count timing. No CPU speed, guest instruction, audio behavior
+or firmware patch was changed to mask that failure. The user's originally failing app was
+not identified. [Investigation, evidence and next steps](APP_LOADING.md).
+
 ## Public downloads and prepared startup
 
 The preview now browses official store watchfaces/apps, loads published PBWs directly, and
@@ -30,7 +53,7 @@ the checker does not publish unreviewed firmware or change visitors' selected ve
 GitHub Pages publishes successful `main` builds after the production checks and verifies the
 deployed files against the tested artifact. The optional service remains unhosted and disabled
 by default. The separate Sites deployment is not updated by this workflow. [Hosting](HOSTING.md).
-The production gate passes 87 Rust tests and 371 JavaScript/Wasm tests (nine optional fixture
+The production gate passes 87 Rust tests and 374 JavaScript/Wasm tests (nine optional fixture
 tests skipped in that command), plus live service/store, Chromium/WebKit offline, real Clay
 configuration and model regressions. Separate sensor runs match every frozen native QEMU
 frame byte on all three profiles. [Hashes, measurements and browser scope](evidence/optional-resources-startup.json).

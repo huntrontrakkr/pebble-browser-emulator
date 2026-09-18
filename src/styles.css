@@ -1778,6 +1778,25 @@ main:not(.preview-mode) .watch-layout:not(.model-controls) {
   padding: 16px 24px 20px;
   gap: 10px;
 }
+.pixel-screen canvas.touch-enabled {
+  touch-action: none;
+  cursor: crosshair;
+}
+.quick-inputs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 24px 0;
+}
+.quick-inputs button {
+  min-height: 44px;
+  flex: 1;
+}
+.touch-hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 8px 24px 0;
+}
 .preview-mode .execution-controls button {
   min-height: 44px;
   flex: 1;

@@ -454,13 +454,13 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
       if (generation === this.generation) this.busy.set(false);
     }
   }
-  private async prepareWatch(generation: number) {
+  private async prepareWatch(generation: number, fresh = false) {
     let firmware =
-      this.watchLoaded && this.currentProfile === this.profile()
+      !fresh && this.watchLoaded && this.currentProfile === this.profile()
         ? undefined
         : await savedFirmware(this.profile()).catch(() => undefined);
     if (generation !== this.generation) return;
-    if (!firmware && (!this.watchLoaded || this.currentProfile !== this.profile())) {
+    if (!firmware && (fresh || !this.watchLoaded || this.currentProfile !== this.profile())) {
       this.status.set('Loading default firmware…');
       try {
         firmware = await bundledFirmware(this.profile(), this.controller!.signal);
@@ -511,6 +511,17 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   }
   async retryFirmware() {
     if (this.package()) await this.builtPackage(this.package()!);
+  }
+  async restart() {
+    if (!this.package()) return;
+    const generation = this.begin();
+    try {
+      await this.prepareWatch(generation, true);
+    } catch (error) {
+      if (generation === this.generation) this.failure.set(String(error));
+    } finally {
+      if (generation === this.generation) this.busy.set(false);
+    }
   }
   async setupFiles(event: Event) {
     const control = event.target as HTMLInputElement,

@@ -5,6 +5,19 @@ values or schedule a scenario. The current focus is the three modern generic emu
 boards. Inputs are delivered to firmware or the companion script; no watchface readings
 are drawn by the host.
 
+In Preview, **Shake wrist** sends 31 acceleration samples over 600 ms at 50 Hz, with a
+single positive Z tap after 100 ms. **Wrist tap** sends that tap alone. Both require a
+running watch. The shake temporarily takes precedence over the demo motion stream;
+pulse/health/location delivery continues, and demo motion resumes afterward.
+
+On Time 2 and Round 2, tap or drag the screen in Pixels or Reflective view. In 3D watch,
+select **Touch screen** to interact, then **Rotate watch** to move the model again.
+Coordinates come from the display mesh intersection, including view angle and scaling.
+Round-screen corners are excluded. Pointer release, cancellation, lost capture, leaving
+the display, pausing, changing views or losing focus releases contact. These controls send
+the generic board's touch interrupt/registers; they do not synthesize an app response.
+2 Duo has no touch route. An app's own touch support and firmware still determine its response.
+
 | Input          | Units / behavior                                                                                | Implemented destination                                    |
 | -------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | Acceleration   | Signed X/Y/Z millig, −32768…32767                                                               | QEMU sample input; all three boards                        |
