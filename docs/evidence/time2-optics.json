@@ -1,0 +1,1010 @@
+{
+  "scope": "Time 2 assumed-optics prototype; numerical reference, not physical-watch calibration.",
+  "hardware": {
+    "gpuBake": "NVIDIA GeForce RTX 3090, 24576 MiB VRAM",
+    "cpu": "Intel Core i9-12900KF, 24 logical processors",
+    "visibleRamGiB": 94
+  },
+  "bake": {
+    "backend": "cuda_ad_spectral_polarized",
+    "mitsuba": "3.7.1",
+    "drjit": "1.2.0",
+    "numpy": "2.3.3",
+    "spectralSamples": 471,
+    "hemisphereSamples": 4096,
+    "bakeSeconds": 0.2319476080010645,
+    "checkSeconds": 0.2504467109683901,
+    "matrixVsClosedFormMaxLinearError": 1.5809656295218133e-07,
+    "heldOutSamplesPerPath": 4352,
+    "heldOutErrors": {
+      "direct": {
+        "maxSrgb255Error": 0.8816613889563059,
+        "rmsSrgb255Error": 0.19569584221702307
+      },
+      "diffuse": {
+        "maxSrgb255Error": 0.8498415366804556,
+        "rmsSrgb255Error": 0.2254989128075811
+      },
+      "backlight": {
+        "maxSrgb255Error": 0.8601744512336645,
+        "rmsSrgb255Error": 0.2419389741784921
+      }
+    },
+    "manifest": {
+      "id": "time2-layered-v1",
+      "calibration": "unmeasured-assumptions",
+      "path": "optics/time2-v1-0c5f3bbdd1c8.rgba",
+      "sha256": "0c5f3bbdd1c8c40dfed1e23425bece6735774e3162af0e5b6220bd492567aa23",
+      "bytes": 278528,
+      "width": 272,
+      "height": 256,
+      "angles": 32,
+      "glassIor": 1.52,
+      "glassRoughness": 0.12,
+      "recipeSha256": "45361ca50b86db6788c7384b87f41fb2bf1eb2a12c2059cd2c4123f714b25f84"
+    },
+    "scope": "Numerical approximation of assumed optics, not validation against a physical watch."
+  },
+  "opticalBrowsers": [
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captures": [
+        {
+          "name": "studio",
+          "center": [
+            131,
+            132,
+            104,
+            255
+          ]
+        },
+        {
+          "name": "daylight",
+          "center": [
+            178,
+            174,
+            136,
+            255
+          ]
+        },
+        {
+          "name": "warm-room",
+          "center": [
+            120,
+            89,
+            36,
+            255
+          ]
+        },
+        {
+          "name": "dark",
+          "center": [
+            0,
+            0,
+            0,
+            255
+          ]
+        },
+        {
+          "name": "backlight",
+          "center": [
+            200,
+            210,
+            225,
+            255
+          ]
+        },
+        {
+          "name": "side-light",
+          "center": [
+            81,
+            83,
+            61,
+            255
+          ]
+        }
+      ],
+      "originalPixels": true,
+      "originalPigment": true,
+      "noDuplicateUpload": true,
+      "timings": [],
+      "previousMaterialReleased": true,
+      "canvasesAfterDispose": 0,
+      "shaderError": {
+        "samples": 423,
+        "maxSrgb255": 0.9545243392248182,
+        "rmsSrgb255": 0.3555964608678486
+      },
+      "fallback": {
+        "notice": "Layered display unavailable. Using the standard display. Error: The display optics have an invalid size.",
+        "standard": true,
+        "caseReady": true
+      },
+      "note": "Material-only synthetic pixels; numerical assumed-optics reference. Desktop renderer, not phone FPS."
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "gpu": "llvmpipe, or similar",
+      "captures": [
+        {
+          "name": "studio",
+          "center": [
+            131,
+            132,
+            104,
+            255
+          ]
+        },
+        {
+          "name": "daylight",
+          "center": [
+            178,
+            174,
+            136,
+            255
+          ]
+        },
+        {
+          "name": "warm-room",
+          "center": [
+            120,
+            89,
+            36,
+            255
+          ]
+        },
+        {
+          "name": "dark",
+          "center": [
+            0,
+            0,
+            0,
+            255
+          ]
+        },
+        {
+          "name": "backlight",
+          "center": [
+            200,
+            210,
+            225,
+            255
+          ]
+        },
+        {
+          "name": "side-light",
+          "center": [
+            80,
+            82,
+            60,
+            255
+          ]
+        }
+      ],
+      "originalPixels": true,
+      "originalPigment": true,
+      "noDuplicateUpload": true,
+      "timings": [],
+      "previousMaterialReleased": true,
+      "canvasesAfterDispose": 0,
+      "shaderError": {
+        "samples": 423,
+        "maxSrgb255": 1.634987780892878,
+        "rmsSrgb255": 0.4312153438184654
+      },
+      "fallback": {
+        "notice": "Layered display unavailable. Using the standard display. Error: The display optics have an invalid size.",
+        "standard": true,
+        "caseReady": true
+      },
+      "note": "Material-only synthetic pixels; numerical assumed-optics reference. Desktop renderer, not phone FPS."
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "gpu": "Apple GPU",
+      "captures": [
+        {
+          "name": "studio",
+          "center": [
+            131,
+            132,
+            104,
+            255
+          ]
+        },
+        {
+          "name": "daylight",
+          "center": [
+            178,
+            174,
+            136,
+            255
+          ]
+        },
+        {
+          "name": "warm-room",
+          "center": [
+            120,
+            89,
+            36,
+            255
+          ]
+        },
+        {
+          "name": "dark",
+          "center": [
+            0,
+            0,
+            0,
+            255
+          ]
+        },
+        {
+          "name": "backlight",
+          "center": [
+            200,
+            210,
+            225,
+            255
+          ]
+        },
+        {
+          "name": "side-light",
+          "center": [
+            80,
+            82,
+            60,
+            255
+          ]
+        }
+      ],
+      "originalPixels": true,
+      "originalPigment": true,
+      "noDuplicateUpload": true,
+      "timings": [],
+      "previousMaterialReleased": true,
+      "canvasesAfterDispose": 0,
+      "shaderError": {
+        "samples": 423,
+        "maxSrgb255": 1.634987780892878,
+        "rmsSrgb255": 0.4312153438184654
+      },
+      "fallback": {
+        "notice": "Layered display unavailable. Using the standard display. Error: The display optics have an invalid size.",
+        "standard": true,
+        "caseReady": true
+      },
+      "note": "Material-only synthetic pixels; numerical assumed-optics reference. Desktop renderer, not phone FPS."
+    }
+  ],
+  "modelBrowsers": [
+    {
+      "engine": "chromium",
+      "browser": "153.0.8010.12",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5,
+        "touchRays": [
+          {
+            "profile": "qemu_emery",
+            "angle": 0,
+            "hit": {
+              "x": 50,
+              "y": 159
+            },
+            "expected": {
+              "x": 50,
+              "y": 159.6
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0,
+            "hit": {
+              "x": 130,
+              "y": 68
+            },
+            "expected": {
+              "x": 130,
+              "y": 68.39999999999999
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0.45,
+            "hit": {
+              "x": 50,
+              "y": 159
+            },
+            "expected": {
+              "x": 50,
+              "y": 159.6
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0.45,
+            "hit": {
+              "x": 130,
+              "y": 68
+            },
+            "expected": {
+              "x": 130,
+              "y": 68.39999999999999
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0,
+            "hit": {
+              "x": 64,
+              "y": 181
+            },
+            "expected": {
+              "x": 65,
+              "y": 182
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0,
+            "hit": {
+              "x": 168,
+              "y": 77
+            },
+            "expected": {
+              "x": 169,
+              "y": 78
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0.45,
+            "hit": {
+              "x": 64,
+              "y": 181
+            },
+            "expected": {
+              "x": 65,
+              "y": 182
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0.45,
+            "hit": {
+              "x": 168,
+              "y": 77
+            },
+            "expected": {
+              "x": 169,
+              "y": 78
+            }
+          }
+        ],
+        "touchDisablesOrbit": true,
+        "rotationRestored": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "firefox",
+      "browser": "155.0",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5,
+        "touchRays": [
+          {
+            "profile": "qemu_emery",
+            "angle": 0,
+            "hit": {
+              "x": 50,
+              "y": 159
+            },
+            "expected": {
+              "x": 50,
+              "y": 159.6
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0,
+            "hit": {
+              "x": 130,
+              "y": 68
+            },
+            "expected": {
+              "x": 130,
+              "y": 68.39999999999999
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0.45,
+            "hit": {
+              "x": 50,
+              "y": 159
+            },
+            "expected": {
+              "x": 50,
+              "y": 159.6
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0.45,
+            "hit": {
+              "x": 130,
+              "y": 68
+            },
+            "expected": {
+              "x": 130,
+              "y": 68.39999999999999
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0,
+            "hit": {
+              "x": 64,
+              "y": 181
+            },
+            "expected": {
+              "x": 65,
+              "y": 182
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0,
+            "hit": {
+              "x": 168,
+              "y": 77
+            },
+            "expected": {
+              "x": 169,
+              "y": 78
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0.45,
+            "hit": {
+              "x": 64,
+              "y": 181
+            },
+            "expected": {
+              "x": 65,
+              "y": 182
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0.45,
+            "hit": {
+              "x": 168,
+              "y": 77
+            },
+            "expected": {
+              "x": 169,
+              "y": 78
+            }
+          }
+        ],
+        "touchDisablesOrbit": true,
+        "rotationRestored": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "browser": "26.6",
+      "profiles": [
+        "qemu_emery",
+        "qemu_flint",
+        "qemu_gabbro"
+      ],
+      "geometries": [
+        {
+          "sourceTriangles": 99772,
+          "triangles": 12156,
+          "bytes": 648504,
+          "estimatedError": 0.024955512955784798
+        },
+        {
+          "sourceTriangles": 11766,
+          "triangles": 8056,
+          "bytes": 567960,
+          "estimatedError": 0.02472449652850628
+        },
+        {
+          "sourceTriangles": 197374,
+          "triangles": 34381,
+          "bytes": 2088420,
+          "estimatedError": 0.024949437007308006
+        }
+      ],
+      "cadRequests": 3,
+      "renderer": {
+        "duplicateRenders": 0,
+        "duplicateUploads": 0,
+        "obsoleteResult": "AbortError",
+        "sameCanvas": true,
+        "roundVertices": 24168,
+        "hiddenRenders": 0,
+        "resumed": true,
+        "canvasesAfterDispose": 0,
+        "movingPixelRatio": 1,
+        "settledPixelRatio": 1.5,
+        "touchRays": [
+          {
+            "profile": "qemu_emery",
+            "angle": 0,
+            "hit": {
+              "x": 50,
+              "y": 159
+            },
+            "expected": {
+              "x": 50,
+              "y": 159.6
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0,
+            "hit": {
+              "x": 130,
+              "y": 68
+            },
+            "expected": {
+              "x": 130,
+              "y": 68.39999999999999
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0.45,
+            "hit": {
+              "x": 50,
+              "y": 159
+            },
+            "expected": {
+              "x": 50,
+              "y": 159.6
+            }
+          },
+          {
+            "profile": "qemu_emery",
+            "angle": 0.45,
+            "hit": {
+              "x": 130,
+              "y": 68
+            },
+            "expected": {
+              "x": 130,
+              "y": 68.39999999999999
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0,
+            "hit": {
+              "x": 64,
+              "y": 181
+            },
+            "expected": {
+              "x": 65,
+              "y": 182
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0,
+            "hit": {
+              "x": 168,
+              "y": 77
+            },
+            "expected": {
+              "x": 169,
+              "y": 78
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0.45,
+            "hit": {
+              "x": 64,
+              "y": 181
+            },
+            "expected": {
+              "x": 65,
+              "y": 182
+            }
+          },
+          {
+            "profile": "qemu_gabbro",
+            "angle": 0.45,
+            "hit": {
+              "x": 168,
+              "y": 77
+            },
+            "expected": {
+              "x": 169,
+              "y": 78
+            }
+          }
+        ],
+        "touchDisablesOrbit": true,
+        "rotationRestored": true
+      },
+      "errors": []
+    }
+  ],
+  "benchmark": {
+    "browser": "153.0.8010.12",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "viewportCss": {
+      "width": 390,
+      "height": 460
+    },
+    "trials": 3,
+    "warmupRenders": 5,
+    "measuredRendersPerView": 20,
+    "views": [
+      "front",
+      "straight",
+      "side"
+    ],
+    "summary": [
+      {
+        "pixelRatio": 1,
+        "standardMedianMs": 16.5,
+        "layeredMedianMs": 15.5,
+        "renderTimeReductionPercent": 6.06
+      },
+      {
+        "pixelRatio": 1.5,
+        "standardMedianMs": 24.2,
+        "layeredMedianMs": 22.8,
+        "renderTimeReductionPercent": 5.79
+      }
+    ],
+    "samples": [
+      {
+        "trial": 0,
+        "ratio": 1,
+        "view": "front",
+        "style": "standard",
+        "medianMs": 16.299999982118607
+      },
+      {
+        "trial": 0,
+        "ratio": 1,
+        "view": "front",
+        "style": "layered",
+        "medianMs": 15.400000005960464
+      },
+      {
+        "trial": 0,
+        "ratio": 1,
+        "view": "straight",
+        "style": "standard",
+        "medianMs": 16
+      },
+      {
+        "trial": 0,
+        "ratio": 1,
+        "view": "straight",
+        "style": "layered",
+        "medianMs": 15.199999988079071
+      },
+      {
+        "trial": 0,
+        "ratio": 1,
+        "view": "side",
+        "style": "standard",
+        "medianMs": 17.5
+      },
+      {
+        "trial": 0,
+        "ratio": 1,
+        "view": "side",
+        "style": "layered",
+        "medianMs": 17.30000001192093
+      },
+      {
+        "trial": 0,
+        "ratio": 1.5,
+        "view": "front",
+        "style": "standard",
+        "medianMs": 24.799999982118607
+      },
+      {
+        "trial": 0,
+        "ratio": 1.5,
+        "view": "front",
+        "style": "layered",
+        "medianMs": 22.099999994039536
+      },
+      {
+        "trial": 0,
+        "ratio": 1.5,
+        "view": "straight",
+        "style": "standard",
+        "medianMs": 24.099999994039536
+      },
+      {
+        "trial": 0,
+        "ratio": 1.5,
+        "view": "straight",
+        "style": "layered",
+        "medianMs": 21.600000023841858
+      },
+      {
+        "trial": 0,
+        "ratio": 1.5,
+        "view": "side",
+        "style": "standard",
+        "medianMs": 23.900000005960464
+      },
+      {
+        "trial": 0,
+        "ratio": 1.5,
+        "view": "side",
+        "style": "layered",
+        "medianMs": 22.80000001192093
+      },
+      {
+        "trial": 1,
+        "ratio": 1,
+        "view": "front",
+        "style": "layered",
+        "medianMs": 15.5
+      },
+      {
+        "trial": 1,
+        "ratio": 1,
+        "view": "front",
+        "style": "standard",
+        "medianMs": 16.5
+      },
+      {
+        "trial": 1,
+        "ratio": 1,
+        "view": "straight",
+        "style": "layered",
+        "medianMs": 15.199999988079071
+      },
+      {
+        "trial": 1,
+        "ratio": 1,
+        "view": "straight",
+        "style": "standard",
+        "medianMs": 16.100000023841858
+      },
+      {
+        "trial": 1,
+        "ratio": 1,
+        "view": "side",
+        "style": "layered",
+        "medianMs": 17.30000001192093
+      },
+      {
+        "trial": 1,
+        "ratio": 1,
+        "view": "side",
+        "style": "standard",
+        "medianMs": 17.900000005960464
+      },
+      {
+        "trial": 1,
+        "ratio": 1.5,
+        "view": "front",
+        "style": "layered",
+        "medianMs": 22.900000005960464
+      },
+      {
+        "trial": 1,
+        "ratio": 1.5,
+        "view": "front",
+        "style": "standard",
+        "medianMs": 25.400000005960464
+      },
+      {
+        "trial": 1,
+        "ratio": 1.5,
+        "view": "straight",
+        "style": "layered",
+        "medianMs": 22.30000001192093
+      },
+      {
+        "trial": 1,
+        "ratio": 1.5,
+        "view": "straight",
+        "style": "standard",
+        "medianMs": 24.099999994039536
+      },
+      {
+        "trial": 1,
+        "ratio": 1.5,
+        "view": "side",
+        "style": "layered",
+        "medianMs": 23.099999994039536
+      },
+      {
+        "trial": 1,
+        "ratio": 1.5,
+        "view": "side",
+        "style": "standard",
+        "medianMs": 24
+      },
+      {
+        "trial": 2,
+        "ratio": 1,
+        "view": "front",
+        "style": "standard",
+        "medianMs": 16.599999994039536
+      },
+      {
+        "trial": 2,
+        "ratio": 1,
+        "view": "front",
+        "style": "layered",
+        "medianMs": 15.900000005960464
+      },
+      {
+        "trial": 2,
+        "ratio": 1,
+        "view": "straight",
+        "style": "standard",
+        "medianMs": 16.5
+      },
+      {
+        "trial": 2,
+        "ratio": 1,
+        "view": "straight",
+        "style": "layered",
+        "medianMs": 15.300000011920929
+      },
+      {
+        "trial": 2,
+        "ratio": 1,
+        "view": "side",
+        "style": "standard",
+        "medianMs": 18
+      },
+      {
+        "trial": 2,
+        "ratio": 1,
+        "view": "side",
+        "style": "layered",
+        "medianMs": 17.69999998807907
+      },
+      {
+        "trial": 2,
+        "ratio": 1.5,
+        "view": "front",
+        "style": "standard",
+        "medianMs": 25.099999994039536
+      },
+      {
+        "trial": 2,
+        "ratio": 1.5,
+        "view": "front",
+        "style": "layered",
+        "medianMs": 23
+      },
+      {
+        "trial": 2,
+        "ratio": 1.5,
+        "view": "straight",
+        "style": "standard",
+        "medianMs": 24.900000005960464
+      },
+      {
+        "trial": 2,
+        "ratio": 1.5,
+        "view": "straight",
+        "style": "layered",
+        "medianMs": 21.80000001192093
+      },
+      {
+        "trial": 2,
+        "ratio": 1.5,
+        "view": "side",
+        "style": "standard",
+        "medianMs": 24.200000017881393
+      },
+      {
+        "trial": 2,
+        "ratio": 1.5,
+        "view": "side",
+        "style": "layered",
+        "medianMs": 23.399999976158142
+      }
+    ],
+    "scope": "Sequential paired material-only renders with readback; SwiftShader on desktop, not phone FPS."
+  },
+  "tests": {
+    "javascriptWasmPassed": 376,
+    "optionalFixtureSkipped": 9,
+    "rustPassed": 87
+  },
+  "coreSha256Unchanged": "c515bbed6ef18caa27d65dcb6f493fa3e8e1c62d7ddcbbf32f8c9ad0e44d362a",
+  "openGates": [
+    "Measured physical panel calibration",
+    "Physical Pixel 9 performance and thermal testing"
+  ]
+}

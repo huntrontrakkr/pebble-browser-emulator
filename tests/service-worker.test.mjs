@@ -17,6 +17,7 @@ const files = {
   'phone-app/index.html': 'phone UI',
   'phone-app/runtime.wasm': 'phone Wasm',
   'phone-app/source.zip': 'phone source',
+  'optics/time2-response.rgba': 'display response',
   'firmware/v1/LICENSE': 'license',
   ...Object.fromEntries(
     ['emery', 'flint', 'gabbro'].flatMap((name) => [
@@ -186,8 +187,13 @@ test('selected offline watch includes firmware, phone and example; removal keeps
   assert.equal(progress.at(-1), 100);
   assert.ok(progress.every((value, index) => index === 0 || value >= progress[index - 1]));
   assert.ok(w.requested.includes('phone-app/runtime.wasm'));
+  assert.ok(w.requested.includes('optics/time2-response.rgba'));
   assert.ok(!w.requested.some((path) => /flint|gabbro/.test(path)));
   w.network = {};
+  assert.equal(
+    await (await w.fetch(scope + 'optics/time2-response.rgba')).text(),
+    'display response',
+  );
   assert.equal(
     await (await w.fetch(scope + 'phone-app/index.html?session=private')).text(),
     'phone UI',

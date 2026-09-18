@@ -64,3 +64,4 @@ Thumbs.db
 /public/phone-app/
 /.openai/phone-build.json
 /scripts/optimization/__pycache__/
+/scripts/optics/__pycache__/

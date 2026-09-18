@@ -47,6 +47,11 @@ more. This is a visual regression check, not a proof of physical accuracy.
 
 ## Lighting and display
 
+Time 2 additionally has an experimental offline-baked layered display, selected through
+**Display optics**. **Standard** retains the material described below; Duo and Round continue
+to use it. See [the optical prototype](OPTICAL_MODEL.md) for the separate numerical reference,
+asset format, performance measurements and unmeasured assumptions.
+
 Select **3D watch**, then choose **Lighting**, **Light direction**, **Ambient light** and
 **Backlight**. Studio, daylight and warm-room environments contain procedural softboxes/
 windows and ground reflection. They are generated once per renderer/preset at 128-pixel

@@ -16,6 +16,7 @@ function downloads(profile) {
       shell(asset) ||
       asset.path.startsWith('wasm/') ||
       asset.path.startsWith('phone-app/') ||
+      (profile === 'qemu_emery' && asset.path.startsWith('optics/')) ||
       asset.path === 'checkpoints/index.json' ||
       asset.path === `checkpoints/${profile}.pbcp` ||
       asset.path === `examples/clock-${platform}.pbw` ||

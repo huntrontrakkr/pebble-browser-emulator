@@ -1,4 +1,5 @@
 import { profileDisplay, type MachineProfile, type FirmwareProfile } from './watch-profiles.ts';
+import type { OpticalProfile } from './watch-optics.ts';
 const revision = 'cb50db8e68c053e7dd595188313dd54aba693bc9';
 export interface WatchModelSpec {
   profile: FirmwareProfile;
@@ -10,11 +11,13 @@ export interface WatchModelSpec {
   screen: { width: number; height: number; radius: number; x: number; y: number; z: number };
   buttons: { mask: number; position: [number, number, number]; top: number }[];
   plastic: boolean;
+  optics?: OpticalProfile;
 }
 export const WATCH_MODELS: Record<FirmwareProfile, WatchModelSpec> = {
   qemu_emery: {
     profile: 'qemu_emery',
     name: 'Pebble Time 2',
+    optics: 'time2',
     path: 'watch/Pebble Time 2 (obelix)/2026-04-08 Pebble Time 2 - 3D CAD Solid Model.STL',
     sha256: 'fb7c75e955e26de21611c81f73eb72bfe24a89df8b0b5064c730c88cecfa6311',
     center: [127.9631424, 128.0000381, 6.2],

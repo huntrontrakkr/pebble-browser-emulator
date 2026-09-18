@@ -53,7 +53,9 @@ export async function modelServer(directory = 'dist/client') {
       if (url.pathname === '/__model.html') {
         response.writeHead(200, { 'Content-Type': 'text/html' });
         response.end(
-          `<html><body style="margin:0"><div id="host" style="width:390px;height:460px"></div><script type="module">window.WatchModel = (await import('./${chunk}')).WatchModel;</script></body></html>`,
+          // The optimized lazy chunk shares exports with the main entry. Give
+          // Angular a valid, inactive host so importing it does not log NG05104.
+          `<html><body style="margin:0"><app-root style="display:none"></app-root><div id="host" style="width:390px;height:460px"></div><script type="module">window.WatchModel = (await import('./${chunk}')).WatchModel;</script></body></html>`,
         );
         return;
       }

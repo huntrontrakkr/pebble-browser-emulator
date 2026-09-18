@@ -1,0 +1,28 @@
+{
+  "id": "time2-layered-v1",
+  "calibration": "unmeasured-assumptions",
+  "description": "Effective flat reflective LCD, not a reconstruction of the proprietary Time 2 optical stack.",
+  "wavelength_nm": [360, 830, 1],
+  "angle_samples": 32,
+  "hemisphere_samples": 4096,
+  "glass_ior": 1.52,
+  "glass_roughness": 0.12,
+  "bulk_optical_depth": 0.025,
+  "retarder_delay_nm": 275,
+  "polarizer_leak": 0.025,
+  "filter_centers_nm": [610, 540, 455],
+  "filter_widths_nm": [48, 38, 30],
+  "filter_leak": 0.025,
+  "normal_white_reflectance_rgb": [0.46, 0.49, 0.40],
+  "normal_white_backlight_rgb": [0.64, 0.72, 0.85],
+  "assumptions": [
+    "Ideal crossed polarizers and a 45-degree retarder; angular path length follows Snell refraction in a homogeneous slab.",
+    "Depolarizing diffuse reflector; independent incident and exit paths; no inter-layer multiple scattering.",
+    "Each two-bit primary is an area-weighted mixture of open and closed subpixels; actual pixel geometry is not known.",
+    "Gaussian color filters and equal-energy illumination; runtime colored lighting uses an RGB approximation.",
+    "Normal-incidence white reflection and backlight are assumed normalization targets, not measured radiometric units.",
+    "Rotationally symmetric response; no azimuthal birefringence, pixel diffraction, lens curvature or nonuniformity.",
+    "Diffuse environment response is integrated for isotropic illumination, then scaled by the environment irradiance.",
+    "Glass Fresnel reflection is evaluated separately by the browser; it is not included twice in the table."
+  ]
+}

@@ -293,6 +293,18 @@
               (ngModelChange)="redraw()"
           /></label>
           @if (displayMode() === 'model') {
+            @if (modelSpec().optics) {
+              <label
+                >Display optics<select
+                  aria-label="Display optics"
+                  [(ngModel)]="opticalStyle"
+                  (ngModelChange)="redraw()"
+                >
+                  <option value="layered">Layered (experimental)</option>
+                  <option value="standard">Standard</option>
+                </select></label
+              >
+            }
             <label
               >Lighting<select
                 aria-label="Lighting environment"
@@ -331,6 +343,9 @@
         }}</span>
       </div>
       @if (displayMode() === 'model') {
+        @if (opticalNotice()) {
+          <p role="status">{{ opticalNotice() }}</p>
+        }
         <p class="model-credit">
           Drag to rotate · Scroll to zoom ·
           <a [href]="modelSource()" target="_blank" rel="noopener"

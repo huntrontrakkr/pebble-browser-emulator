@@ -22,6 +22,7 @@ try {
     const context = await browser.newContext({
       viewport: { width: 390, height: 460 },
       deviceScaleFactor: 1.5,
+      serviceWorkers: 'block',
     });
     await context.route('https://raw.githubusercontent.com/coredevices/hardware/**', (route) =>
       route.fulfill({

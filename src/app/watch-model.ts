@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { loadModelGeometry } from './watch-model-loader.ts';
 import { modelDisplay, type WatchModelSpec } from './watch-model-specs.ts';
 import { screenPoint } from './watch-gestures.ts';
+import { loadOpticalTable, OpticalScreen, type OpticalStyle } from './watch-optics.ts';
 import {
   createWatchEnvironment,
   LIGHTING_ENVIRONMENTS,
@@ -39,6 +40,17 @@ export class WatchModel {
   });
   private texture!: THREE.DataTexture;
   private screenMaterial: THREE.MeshPhysicalMaterial;
+  private optics?: OpticalScreen;
+  private opticalStyle: OpticalStyle = 'standard';
+  private opticalFailure = '';
+  private rawFramebuffer?: Uint8Array;
+  private rawReady = false;
+  private lighting: WatchLighting = {
+    environment: 'studio',
+    ambient: 0.8,
+    backlight: 0,
+    azimuth: -35,
+  };
   private screenGeometry!: THREE.ShapeGeometry;
   private resize: ResizeObserver;
   constructor(
@@ -92,6 +104,10 @@ export class WatchModel {
     if (this.display) this.scene.remove(this.display);
     this.screenGeometry?.dispose();
     this.texture?.dispose();
+    this.optics?.dispose();
+    this.optics = undefined;
+    this.opticalFailure = '';
+    this.rawReady = false;
     this.onButtons([]);
     this.buttonsDirty = true;
     this.material.metalness = spec.plastic ? 0 : 0.9;
@@ -102,6 +118,9 @@ export class WatchModel {
       `Rotatable ${spec.name} model. Drag to rotate; scroll to zoom.`,
     );
     const dimensions = modelDisplay(spec);
+    this.rawFramebuffer = spec.optics
+      ? new Uint8Array(dimensions.width * dimensions.height)
+      : undefined;
     this.texture = new THREE.DataTexture(
       new Uint8Array(dimensions.width * dimensions.height * 4),
       dimensions.width,
@@ -219,7 +238,19 @@ export class WatchModel {
   }
   async load(signal: AbortSignal) {
     const spec = this.spec;
-    const data = await loadModelGeometry(spec, signal);
+    const [data, optical] = await Promise.all([
+      loadModelGeometry(spec, signal),
+      spec.optics
+        ? loadOpticalTable(spec.optics, signal).catch((error) => {
+            signal.throwIfAborted();
+            return error instanceof Error && error.name === 'TimeoutError'
+              ? 'Loading the display optics timed out.'
+              : error instanceof Error
+                ? error.message
+                : String(error);
+          })
+        : undefined,
+    ]);
     signal.throwIfAborted();
     if (this.disposed || spec !== this.spec) return;
     this.geometry = new THREE.BufferGeometry();
@@ -228,12 +259,22 @@ export class WatchModel {
     this.geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
     this.caseMesh = new THREE.Mesh(this.geometry, this.material);
     this.scene.add(this.caseMesh);
+    if (typeof optical === 'string') this.opticalFailure = optical;
+    else if (optical && spec.optics && this.rawFramebuffer) {
+      const { width, height } = modelDisplay(spec);
+      this.optics?.dispose();
+      this.optics = new OpticalScreen(spec.optics, optical, this.rawFramebuffer, width, height);
+      this.updateOpticalLighting();
+    }
+    this.applyOpticalStyle();
     this.invalidate();
   }
-  pixels(rgba: Uint8ClampedArray) {
+  pixels(rgba: Uint8ClampedArray, native?: Uint8Array) {
     const pixels = this.texture.image.data as Uint8Array;
     if (rgba.length !== pixels.length)
       throw new Error('Framebuffer does not match the 3D watch display.');
+    if (native && native.length * 4 !== pixels.length)
+      throw new Error('Native framebuffer does not match the 3D watch display.');
     // Firmware snapshots can repeat the same frame many times. Upload/render only
     // changed pixels; camera motion still renders independently at display rate.
     let changed = false;
@@ -243,10 +284,46 @@ export class WatchModel {
         break;
       }
     }
+    if (native && this.rawFramebuffer && (changed || !this.rawReady)) {
+      this.rawFramebuffer.set(native);
+      this.rawReady = true;
+      if (this.optics) this.optics.frame.needsUpdate = true;
+      this.applyOpticalStyle();
+      this.invalidate();
+    }
     if (!changed) return;
     pixels.set(rgba);
     this.texture.needsUpdate = true;
     this.invalidate();
+  }
+  setOpticalStyle(style: OpticalStyle) {
+    if (this.opticalStyle === style) return;
+    this.opticalStyle = style;
+    this.applyOpticalStyle();
+    this.invalidate();
+  }
+  opticalNotice() {
+    return this.opticalStyle === 'layered' && this.spec.optics && this.opticalFailure
+      ? 'Layered display unavailable. Using the standard display. ' + this.opticalFailure
+      : '';
+  }
+  private applyOpticalStyle() {
+    if (this.display)
+      this.display.material =
+        this.opticalStyle === 'layered' && this.optics && this.rawReady
+          ? this.optics.material
+          : this.screenMaterial;
+  }
+  private updateOpticalLighting() {
+    if (this.scene.environment)
+      this.optics?.lighting(
+        this.scene.environment,
+        this.scene.environmentRotation,
+        THREE.MathUtils.clamp(this.lighting.ambient, 0, 1),
+        THREE.MathUtils.clamp(this.lighting.backlight, 0, 1),
+        this.keyLight,
+        this.fillLight,
+      );
   }
   finish(value: string) {
     if (value === this.finishValue) return;
@@ -269,6 +346,7 @@ export class WatchModel {
     const key = JSON.stringify(options);
     if (this.lightingKey === key) return;
     this.lightingKey = key;
+    this.lighting = options;
     const ambient = THREE.MathUtils.clamp(options.ambient, 0, 1);
     const backlight = THREE.MathUtils.clamp(options.backlight, 0, 1);
     const preset = LIGHTING_ENVIRONMENTS[options.environment];
@@ -288,6 +366,7 @@ export class WatchModel {
     this.fillLight.groundColor.set(preset.ground);
     this.fillLight.intensity = ambient * preset.fill;
     this.screenMaterial.emissiveIntensity = backlight * 0.8;
+    this.updateOpticalLighting();
     this.invalidate();
   }
   reset() {
@@ -306,6 +385,7 @@ export class WatchModel {
     this.screenGeometry.dispose();
     this.material.dispose();
     this.screenMaterial.dispose();
+    this.optics?.dispose();
     this.texture.dispose();
     for (const environment of this.environments.values()) environment.dispose();
     this.renderer.dispose();

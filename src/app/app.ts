@@ -39,6 +39,7 @@ import { screenPoint } from './watch-gestures.ts';
 import { renderPixels, type DisplayMode } from './display.ts';
 import type { WatchModel } from './watch-model.ts';
 import type { LightingEnvironment } from './watch-lighting.ts';
+import type { OpticalStyle } from './watch-optics.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
 
@@ -147,6 +148,8 @@ export class App implements AfterViewInit, OnDestroy {
   ambient = 80;
   backlight = 0;
   lightingEnvironment: LightingEnvironment = 'studio';
+  opticalStyle: OpticalStyle = 'layered';
+  opticalNotice = signal('');
   lightAzimuth = -35;
   finish = 'silver';
   zoom = 2;
@@ -716,12 +719,14 @@ export class App implements AfterViewInit, OnDestroy {
     if (canvas.height !== height) canvas.height = height;
     context.putImageData(this.screenImage, 0, 0);
     if (this.hasModel() && this.displayMode() === 'model' && this.modelProfile === this.profile())
-      this.model?.pixels(rgba);
+      this.model?.pixels(rgba, bytes);
   }
   redraw() {
     const state = this.state();
     if (state) this.draw(state.framebuffer);
     this.model?.finish(this.finish);
+    this.model?.setOpticalStyle(this.opticalStyle);
+    this.opticalNotice.set(this.model?.opticalNotice() ?? '');
     this.model?.setLighting({
       environment: this.lightingEnvironment,
       ambient: this.ambient / 100,

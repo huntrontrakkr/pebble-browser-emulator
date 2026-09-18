@@ -7,6 +7,24 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Time 2 optical prototype
+
+Time 2's 3D preview now offers **Layered (experimental)** and **Standard** display optics.
+An offline GPU spectral/polarization calculation produces a 272 KiB response atlas for
+the live framebuffer. The browser interpolates angle-dependent reflection and backlight
+response, with separate dynamic cover reflections. The static app includes the asset;
+no optics server, GPU compute package or machine-learning runtime is required by visitors.
+Other watches retain their existing materials. [Model, assumptions and reproduction](OPTICAL_MODEL.md).
+
+The compact table differs from the full assumed model by less than one 8-bit sRGB level
+on 4,352 test samples per response path. This is a numerical approximation check, not
+physical calibration: layer properties, filter spectra and white-response normalization
+are explicitly unmeasured. Firmware, sensor behavior and raw frame comparisons are unchanged.
+Physical-watch calibration and Pixel 9 performance remain open acceptance gates.
+The actual shader and live Clock comparison pass Chromium, Firefox and WebKit. A paired
+desktop SwiftShader benchmark measures about 6% lower isolated render time; this is not
+phone FPS or an emulator speedup. [Checks, captures and timing evidence](evidence/time2-optics.json).
+
 ## App loading and quick inputs
 
 Preview now offers **Shake wrist**, **Wrist tap**, and direct screen contact on Time 2 and

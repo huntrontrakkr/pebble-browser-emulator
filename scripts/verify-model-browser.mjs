@@ -98,6 +98,47 @@ try {
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           true,
         );
+        if (profile === 'qemu_emery') {
+          const optics = page.getByRole('combobox', { name: 'Display optics', exact: true });
+          assert.equal(await optics.inputValue(), 'layered');
+          await page.getByRole('button', { name: 'Pause', exact: true }).click();
+          await page.getByRole('button', { name: 'Run', exact: true }).waitFor();
+          const settled = () =>
+            page.evaluate(
+              () =>
+                new Promise((resolve) =>
+                  requestAnimationFrame(() => requestAnimationFrame(resolve)),
+                ),
+            );
+          await settled();
+          const framebuffer = () =>
+            page
+              .locator('canvas[aria-label="Live watch framebuffer"]')
+              .evaluate((canvas) => canvas.toDataURL());
+          const native = await framebuffer();
+          await page
+            .locator('.model-host')
+            .screenshot({ path: resolve(out, `${engine}-clock-layered.png`) });
+          await optics.selectOption('standard');
+          await settled();
+          assert.equal(
+            await framebuffer(),
+            native,
+            'Changing the optical model preserves every framebuffer pixel',
+          );
+          await page
+            .locator('.model-host')
+            .screenshot({ path: resolve(out, `${engine}-clock-standard.png`) });
+          await optics.selectOption('layered');
+          await settled();
+          assert.equal(await framebuffer(), native);
+          await page.getByRole('button', { name: 'Run', exact: true }).click();
+        } else {
+          assert.equal(
+            await page.getByRole('combobox', { name: 'Display optics', exact: true }).count(),
+            0,
+          );
+        }
         if (profile !== 'qemu_flint') {
           const start = await page.evaluate(() => window.modelQa.touches.length);
           await page.getByRole('button', { name: 'Touch screen', exact: true }).click();
@@ -255,7 +296,7 @@ try {
           roundVertices,
           hiddenRenders,
           resumed,
-          canvasesAfterDispose: document.querySelectorAll('canvas').length,
+          canvasesAfterDispose: document.querySelectorAll('#host canvas').length,
           movingPixelRatio,
           settledPixelRatio,
           touchRays,
