@@ -2011,5 +2011,12 @@
     "Cold simplification adds first-use work; original upstream CAD still downloads once.",
     "New lighting costs more than the original Round 2 renderer.",
     "Framebuffer/core unchanged; prepared CAD is a visual approximation."
-  ]
+  ],
+  "ciSetupRegression": {
+    "initialRun": "https://github.com/huntrontrakkr/pebble-browser-emulator/actions/runs/35293211743",
+    "test": "infinite code is interrupted and cannot be resumed",
+    "cause": "20 ms test limit elapsed in trusted bootstrap under runner contention before guest execution",
+    "fix": "Freeze test setup clock only; restore real Date.now before the unchanged infinite-script interruption assertions",
+    "productionPhoneChanged": false
+  }
 }

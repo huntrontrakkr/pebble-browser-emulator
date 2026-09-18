@@ -163,8 +163,17 @@ test('output and storage are bounded', () => {
     a.dispose();
   }
 });
-test('infinite code is interrupted and cannot be resumed', () => {
-  const vm = make({ limits: { turnMilliseconds: 20 } });
+test('infinite code is interrupted and cannot be resumed', (t) => {
+  // This gate measures the guest turn, not scheduler delays while installing the
+  // trusted bootstrap. Restore real time before executing any guest code; retain
+  // the actual 20 ms interrupt and the stopped-instance assertion below.
+  const setupClock = t.mock.method(Date, 'now', () => 0);
+  let vm;
+  try {
+    vm = make({ limits: { turnMilliseconds: 20 } });
+  } finally {
+    setupClock.mock.restore();
+  }
   try {
     const start = Date.now();
     assert.throws(() => vm.start('while(true){}'), /interrupted/);

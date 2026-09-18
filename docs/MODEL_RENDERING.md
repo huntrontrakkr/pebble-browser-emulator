@@ -121,6 +121,12 @@ The complete unit suite passes 355 tests with 9 optional fixture skips. CPU exec
 virtual time, sensors and phone protocols are unchanged. Headless desktop render timings
 must not be treated as Pixel 9 Pro XL frame rates; physical-phone acceptance remains open.
 
+The first CI run also exposed a pre-existing test timing dependency: the phone interruption
+test's 20 ms budget expired during trusted bootstrap setup under runner contention, before
+the guest loop began. That test now freezes its setup clock and restores real wall time
+before executing the infinite guest script. It still asserts real interruption and refuses
+to resume the stopped VM; production timeout/sandbox behavior is unchanged.
+
 Reproduce with a production build:
 
 ```sh
