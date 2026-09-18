@@ -1328,8 +1328,8 @@ export class App implements AfterViewInit, OnDestroy {
         this.phoneStatus.set(data.status);
         if (data.phoneGeneration !== undefined) this.phoneGeneration = data.phoneGeneration;
       }
-      if (data.type === 'network-result')
-        this.phoneHttp.update((rows) => [...rows, JSON.stringify(data)].slice(-100));
+      if (data.type === 'network-result' || data.type === 'websocket-result')
+        this.recordPhoneNetwork(data);
       if (data.type === 'error') {
         this.clearConfiguration();
         this.phoneAccepting = false;
@@ -1366,13 +1366,19 @@ export class App implements AfterViewInit, OnDestroy {
           this.configurationResponse = '';
           this.showPreview();
         }
-        if (event.type === 'network-request' || event.type === 'network-cancel')
-          this.phoneHttp.update((rows) => [...rows, JSON.stringify(event)].slice(-100));
+        if (
+          event.type === 'network-request' ||
+          event.type === 'network-cancel' ||
+          event.type === 'websocket-command'
+        )
+          this.recordPhoneNetwork(event);
         this.log(
           'PHONE',
           event.type === 'configuration'
             ? `Configuration ${event.requestId}: ${event.url.length} characters`
-            : (event.text ?? event.message ?? JSON.stringify(event)),
+            : event.type === 'websocket-command'
+              ? `WebSocket ${event.socketId}: ${event.action}${event.url ? ' ' + event.url : ''}`
+              : (event.text ?? event.message ?? JSON.stringify(event)),
         );
         if (event.type === 'outbound' && this.phoneAccepting) {
           if (!this.linked() || !this.isFirmware()) {
@@ -1490,6 +1496,18 @@ export class App implements AfterViewInit, OnDestroy {
     this.configuration.set(null);
     this.phoneAccepting = false;
     this.phoneWorker?.postMessage({ type: 'stop' });
+  }
+  private recordPhoneNetwork(value: unknown) {
+    const text = JSON.stringify(value);
+    const record =
+      text.length <= 8192
+        ? text
+        : JSON.stringify({
+            truncated: true,
+            characters: text.length,
+            preview: text.slice(0, 8192),
+          });
+    this.phoneHttp.update((rows) => [...rows, record].slice(-100));
   }
   defaultWatchInfo() {
     const version = this.firmwareName().match(/v?(\d+)\.(\d+)\.(\d+)([-+][\w.-]+)?/);

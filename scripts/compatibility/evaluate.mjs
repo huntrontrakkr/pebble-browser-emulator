@@ -61,6 +61,7 @@ const results = await pool(seal.terminals, 8, async (terminal) => {
       phoneErrors: [],
       phoneLimits: [],
       networkRequests: 0,
+      websocketAttempts: 0,
       configurationRequests: 0,
       inputsApplied: 0,
       inputsRejected: [],
@@ -130,6 +131,8 @@ const results = await pool(seal.terminals, 8, async (terminal) => {
         if (e.event.type === 'error') row.diagnostics.phoneErrors.push(e.event.message);
         if (e.event.type === 'limit') row.diagnostics.phoneLimits.push(e.event.message);
         if (e.event.type === 'network-request') row.diagnostics.networkRequests++;
+        if (e.event.type === 'websocket-command' && e.event.action === 'open')
+          row.diagnostics.websocketAttempts++;
         if (e.event.type === 'configuration') row.diagnostics.configurationRequests++;
       }
       if (['phone-delivery-error', 'packet-decode-error', 'phone-dispose-error'].includes(e.type))

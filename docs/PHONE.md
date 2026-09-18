@@ -1,6 +1,6 @@
 # Virtual phone network and configuration contract
 
-The virtual phone runtime remains an original implementation. `network-bootstrap.ts` executes inside QuickJS. `phone-network.ts` validates plain JSON and provides an optional browser-side CORS fetch adapter. No browser, DOM, Node, fetch, or AbortController host object enters the app VM. The separate GPL-3.0-only `phone-app` module now ports the actual upstream Kotlin/Compose settings screen and navigation handler; see [companion port scope](COMPANION_PORT.md).
+The virtual phone runtime remains an original implementation. `network-bootstrap.ts` and `websocket-bootstrap.ts` execute inside QuickJS. `phone-network.ts` and `phone-websocket.ts` validate plain messages and provide optional browser fetch/WebSocket adapters. No browser, DOM, Node, socket, fetch, or AbortController host object enters the app VM. The separate GPL-3.0-only `phone-app` module now ports the actual upstream Kotlin/Compose settings screen and navigation handler; see [companion port scope](COMPANION_PORT.md).
 
 ## Start message
 
@@ -17,6 +17,7 @@ Existing fields remain unchanged. Additional optional fields:
   appInfo: { /* package appinfo JSON */ },
   accountToken: string,
   watchToken: string,
+  language: 'en-US', // optional phone locale; independent of watchInfo.language
   network: {
     mode: 'disabled' | 'fixtures' | 'cors',
     fixtures: [{
@@ -38,6 +39,35 @@ Existing fields remain unchanged. Additional optional fields:
 Default network mode is `disabled`. Unmatched fixtures fail; HTTP 4xx/5xx remain HTTP responses, with XHR `load` and fetch `ok === false`. Fixtures are exact URL/method matches, checked in array order, and do not make network calls. CORS mode uses real browser `fetch` with `mode: 'cors'`, `credentials: 'omit'`, `referrerPolicy: 'no-referrer'`; it cannot bypass mixed-content, private-network, CSP, or CORS browser rules.
 
 Default watchInfo is null. Tokens default to empty strings, never fabricated real credentials. Supply stable simulator identities explicitly; watch tokens should be scoped to the simulated watch and app. App metadata defaults to `{uuid: appId}`. `getAppInfo()` is an emulator compatibility extension: it does not appear in the current official Pebble API documentation or mobile startup implementation.
+
+`navigator.language` and the frozen one-element `navigator.languages` expose the phone locale.
+The browser Worker defaults to its browser locale; standalone/deterministic runs default to
+`en-US`. This does not change the simulated watch language.
+
+## WebSockets
+
+Select **Network access → Browser network (HTTP + WebSocket)** for real connections.
+The persisted mode name remains `cors`; WebSocket handshakes use browser security and server
+Origin rules, not HTTP fetch CORS. HTTPS hosting generally requires `wss:` endpoints.
+No backend is required, and no proxy bypasses authentication or browser restrictions.
+
+Implemented: absolute WS(S)/HTTP(S) URL normalization, subprotocol negotiation, ready states,
+property/listener events, text/ArrayBuffer/typed-array/Blob sends, incoming text and Blob or
+ArrayBuffer messages, buffered amount, error and clean/abnormal close events. The isolated
+Blob surface supports construction, size/type, slice, text and arrayBuffer; it is not the
+entire Blob/File/stream API. Relative URLs, URL credentials and custom handshake headers
+are unsupported. The browser manages any applicable handshake credentials.
+
+Defaults are four sockets, 64 KiB per message, 128 KiB buffered output and a 30-second
+connection/close deadline. VM allocation/execution/output bounds also apply. Restart/stop
+closes real sockets and quarantines late callbacks. Connection timeout uses virtual time
+inside the VM and wall time in the browser adapter. Live response timing is nondeterministic.
+
+Disabled and HTTP-fixture modes expose WebSocket but asynchronously report error and
+abnormal close (1006); they never fabricate a successful connection or server message.
+Worker diagnostics include `websocket-command` and `websocket-result`; the UI truncates
+individual displayed network records explicitly at 8 KiB. Direct hosts can route commands
+through `PhoneWebSocketNetwork` and return bounded events through `deliverWebSocketEvent`.
 
 ## Observable messages and cancellation
 
@@ -64,7 +94,8 @@ Send `{type:'configuration'}` to dispatch `showConfiguration`. The app calls `Pe
 The runtime forwards this response string unchanged. The new companion port uses the pinned
 upstream interceptor's **single URL decode**, matching that native handler; it does not
 re-encode its result. The manual debug field still forwards the exact entered string.
-`null` means cancellation. Duplicate/stale request IDs and stale supplied generations are
+Host `null` means cancellation and becomes `event.response === ''` inside PebbleKit JS,
+matching the documented mobile cancellation behavior. Duplicate/stale request IDs and stale supplied generations are
 ignored. Legacy uncorrelated response calls remain accepted by the API for compatibility;
 the UI always supplies both identifiers and verifies page/app identity.
 
@@ -83,10 +114,13 @@ SDK array message keys reserve named blocks first from 10000, then single keys i
 
 Implemented: asynchronous XHR readyState, property/event-listener handlers, status/headers, text/JSON responses, timeout/abort, progress/completion events; fetch text/JSON response promises, Headers, clone/body consumption, AbortController/Signal; injected watch/app metadata/tokens; configuration request/return correlation.
 
-Not implemented: complete Android/iOS app emulation, DOM/WebView execution in QuickJS, WebSocket, fetch Request/streams/binary/form data, XHR sync/binary/XML/MIME override/upload progress, credentialed requests/cookies, modifying XHR timeout during flight, automatic external configuration interception, real account/timeline/AppGlance/notification services. Unsupported operations reject or throw; they do not report successful physical/network effects. Fetch is a useful compatibility addition, not a guarantee of historical iOS PKJS availability.
+Not implemented: complete Android/iOS app emulation, DOM/WebView execution in QuickJS, fetch Request/streams/binary/form data, XHR sync/binary/XML/MIME override/upload progress, credentialed HTTP requests/cookie management, modifying XHR timeout during flight, automatic external configuration interception, real account/timeline/AppGlance/notification services. Unsupported operations reject or throw; they do not report successful physical/network effects. Fetch is a useful compatibility addition, not a guarantee of historical iOS PKJS availability.
 
 ## Primary sources checked
 
+- Official [Pebble JavaScript tips](https://developer.repebble.com/blog/2013/12/20/Pebble-Javascript-Tips-and-Tricks/): canceled configuration returns an empty string.
+- Official retained [internationalization guide](https://developer.rebble.io/guides/tools-and-resources/internationalization/): phone `navigator.language`, separate from watch locale.
+- [WebSocket standard](https://websockets.spec.whatwg.org/): URL/protocol/state, binary payloads, buffering and close contracts. This is a bounded implementation, not a complete conformance claim.
 - Official [PebbleKit JS API](https://developer.repebble.com/docs/pebblekit-js/Pebble/): watch info, tokens, configuration event payloads, and actual watch ACK requirement.
 - Official [static configuration guide](https://developer.repebble.com/guides/user-interfaces/app-configuration-static/): encoded close fragments and `return_to`.
 - Official [emulator configuration explanation](https://developer.repebble.com/blog/2015/01/30/Pebble-Emulator-JavaScript-Simulation/): native URL interception versus browser callback convention.
@@ -97,6 +131,13 @@ Current verified models: Flint `pebble_2_duo_black` / `pebble_2_duo_white`; curr
 ## Validation
 
 Passed: 12 runtime tests (including SDK block-key allocation); 16 network/context/config tests; 3 actual phone Worker tests; 5 prior phone lifecycle tests; strict TypeScript check. Worker tests use a controlled fetch harness to verify cancellation and exact CORS options without external HTTP dependencies. Real browser CORS is supplied by the browser fetch implementation, not emulated by the Node harness.
+
+Eight additional phone/WebSocket tests cover locale/cancellation, URL normalization, offline
+failure, text/binary/blob transfer, bounds, timeout and stale callbacks. The actual browser
+Worker/QuickJS bridge passes a local real-socket fixture in Chromium, Firefox and WebKit:
+text/binary round trips, negotiated protocol, clean close, offline blocking and restart
+cleanup. Reproduce with `node scripts/verify-phone-websocket-browser.mjs`; set
+`PEBBLE_BROWSERS=chromium` for the CI subset. External app servers are not certified by this fixture.
 
 
 ## Shared watch clock and sensor fixtures

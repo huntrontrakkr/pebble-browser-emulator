@@ -598,15 +598,16 @@
           <details class="phone-settings">
             <summary>Phone environment</summary>
             <label
-              >HTTP requests<select [(ngModel)]="phoneNetworkMode">
+              >Network access<select [(ngModel)]="phoneNetworkMode">
                 <option value="disabled">Disabled</option>
                 <option value="fixtures">Test responses</option>
-                <option value="cors">Browser network (CORS)</option>
+                <option value="cors">Browser network (HTTP + WebSocket)</option>
               </select></label
             >
             <p class="help">
-              Applies when the script starts. Browser requests need the server's CORS permission.
-              Test responses match a URL, method and optional body at a specified virtual delay.
+              Applies when the script starts. HTTP needs CORS permission; WebSockets must satisfy
+              browser security and server origin rules. Test responses apply to HTTP only and match
+              a URL, method and optional body at a specified virtual delay.
             </p>
             @if (phoneNetworkMode === 'fixtures') {
               <label
@@ -667,7 +668,7 @@
           }
           @if (phoneHttp().length) {
             <details>
-              <summary>HTTP events ({{ phoneHttp().length }})</summary>
+              <summary>Network events ({{ phoneHttp().length }})</summary>
               @for (event of phoneHttp(); track $index) {
                 <pre class="source-preview">{{ event }}</pre>
               }

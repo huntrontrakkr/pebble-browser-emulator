@@ -1,0 +1,923 @@
+[
+  {
+    "engine": "chromium",
+    "liveTextAndBinary": true,
+    "cleanClose": true,
+    "offlineBlocked": true,
+    "restartQuarantined": true,
+    "events": [
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [
+            "phone-test"
+          ],
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "socket-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 1
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "open",
+          "protocol": "phone-test",
+          "extensions": ""
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OPEN phone-test",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "send",
+          "data": "echo",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "buffered",
+          "sentBytes": 4,
+          "bufferedAmount": 4
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "send",
+          "data": [
+            3,
+            5,
+            8
+          ],
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "buffered",
+          "sentBytes": 3,
+          "bufferedAmount": 7
+        },
+        "accepted": true
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "message",
+          "data": "echo"
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "echo",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "message",
+          "data": [
+            3,
+            5,
+            8
+          ]
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "3,5,8",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "close",
+          "code": 4001,
+          "reason": "done",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "close",
+          "code": 4001,
+          "reason": "done",
+          "wasClean": true
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "CLOSE 4001 done true",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [],
+          "timestamp": 1789769669647
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OFFLINE",
+          "timestamp": 1789769669647
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OFFLINE CLOSE 1006",
+          "timestamp": 1789769669647
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "offline-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 2
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 3,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [
+            "phone-test"
+          ],
+          "timestamp": 1789769669660
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "stale-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 3
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 3,
+        "socketId": 1,
+        "event": {
+          "type": "open",
+          "protocol": "phone-test",
+          "extensions": ""
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 3,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "HOLD",
+          "timestamp": 1789769669660
+        }
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 4,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "FRESH",
+          "timestamp": 1789769669677
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "fresh-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 4
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      }
+    ]
+  },
+  {
+    "engine": "firefox",
+    "liveTextAndBinary": true,
+    "cleanClose": true,
+    "offlineBlocked": true,
+    "restartQuarantined": true,
+    "events": [
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [
+            "phone-test"
+          ],
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "socket-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 1
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "open",
+          "protocol": "phone-test",
+          "extensions": ""
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OPEN phone-test",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "send",
+          "data": "echo",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "buffered",
+          "sentBytes": 4,
+          "bufferedAmount": 4
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "send",
+          "data": [
+            3,
+            5,
+            8
+          ],
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "buffered",
+          "sentBytes": 3,
+          "bufferedAmount": 7
+        },
+        "accepted": true
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "message",
+          "data": "echo"
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "echo",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "message",
+          "data": [
+            3,
+            5,
+            8
+          ]
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "3,5,8",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "close",
+          "code": 4001,
+          "reason": "done",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "close",
+          "code": 4001,
+          "reason": "done",
+          "wasClean": true
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "CLOSE 4001 done true",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [],
+          "timestamp": 1789769670660
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OFFLINE",
+          "timestamp": 1789769670660
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OFFLINE CLOSE 1006",
+          "timestamp": 1789769670660
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "offline-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 2
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 3,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [
+            "phone-test"
+          ],
+          "timestamp": 1789769670676
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "stale-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 3
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 3,
+        "socketId": 1,
+        "event": {
+          "type": "open",
+          "protocol": "phone-test",
+          "extensions": ""
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 3,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "HOLD",
+          "timestamp": 1789769670676
+        }
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 4,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "FRESH",
+          "timestamp": 1789769670692
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "fresh-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 4
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      }
+    ]
+  },
+  {
+    "engine": "webkit",
+    "liveTextAndBinary": true,
+    "cleanClose": true,
+    "offlineBlocked": true,
+    "restartQuarantined": true,
+    "events": [
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [
+            "phone-test"
+          ],
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "socket-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 1
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "open",
+          "protocol": "phone-test",
+          "extensions": ""
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OPEN phone-test",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "send",
+          "data": "echo",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "buffered",
+          "sentBytes": 4,
+          "bufferedAmount": 4
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "send",
+          "data": [
+            3,
+            5,
+            8
+          ],
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "buffered",
+          "sentBytes": 3,
+          "bufferedAmount": 7
+        },
+        "accepted": true
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "message",
+          "data": "echo"
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "echo",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "message",
+          "data": [
+            3,
+            5,
+            8
+          ]
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "3,5,8",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "close",
+          "code": 4001,
+          "reason": "done",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 1,
+        "socketId": 1,
+        "event": {
+          "type": "close",
+          "code": 4001,
+          "reason": "done",
+          "wasClean": true
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 1,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "CLOSE 4001 done true",
+          "timestamp": 0
+        }
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [],
+          "timestamp": 1789769671159
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OFFLINE",
+          "timestamp": 1789769671159
+        }
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 2,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "OFFLINE CLOSE 1006",
+          "timestamp": 1789769671159
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "offline-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 2
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 3,
+        "event": {
+          "type": "websocket-command",
+          "socketId": 1,
+          "action": "open",
+          "url": "ws://127.0.0.1:36099/socket",
+          "protocols": [
+            "phone-test"
+          ],
+          "timestamp": 1789769671173
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "stale-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 3
+      },
+      {
+        "type": "websocket-result",
+        "phoneGeneration": 3,
+        "socketId": 1,
+        "event": {
+          "type": "open",
+          "protocol": "phone-test",
+          "extensions": ""
+        },
+        "accepted": true
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 3,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "HOLD",
+          "timestamp": 1789769671173
+        }
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      },
+      {
+        "type": "event",
+        "phoneGeneration": 4,
+        "event": {
+          "type": "log",
+          "level": "log",
+          "text": "FRESH",
+          "timestamp": 1789769671188
+        }
+      },
+      {
+        "type": "storage",
+        "appId": "fresh-fixture",
+        "storage": {}
+      },
+      {
+        "type": "status",
+        "status": "Running",
+        "phoneGeneration": 4
+      },
+      {
+        "type": "status",
+        "status": "Stopped"
+      }
+    ]
+  }
+]

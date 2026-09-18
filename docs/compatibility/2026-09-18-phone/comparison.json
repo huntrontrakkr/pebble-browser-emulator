@@ -1,0 +1,352 @@
+{
+  "baseline": "../2026-09-18/report.json",
+  "baselineCounts": {
+    "no-compatible-binary": 431,
+    "scenario-completed": 77,
+    "execution-stopped": 41,
+    "download-unavailable": 51
+  },
+  "counts": {
+    "no-compatible-binary": 431,
+    "scenario-completed": 94,
+    "execution-stopped": 24,
+    "download-unavailable": 51
+  },
+  "baselineTitles": {
+    "total": 200,
+    "downloaded": 183,
+    "installedAny": 62,
+    "completedAny": 37
+  },
+  "titles": {
+    "total": 200,
+    "downloaded": 183,
+    "installedAny": 62,
+    "completedAny": 46
+  },
+  "transitions": {
+    "no-compatible-binary -> no-compatible-binary": 431,
+    "scenario-completed -> scenario-completed": 76,
+    "execution-stopped -> execution-stopped": 23,
+    "scenario-completed -> execution-stopped": 1,
+    "execution-stopped -> scenario-completed": 18,
+    "download-unavailable -> download-unavailable": 51
+  },
+  "changed": [
+    {
+      "id": "529eaee7d7894b8324000022-qemu_emery",
+      "title": "Weather",
+      "profile": "qemu_emery",
+      "before": "scenario-completed",
+      "after": "execution-stopped",
+      "reason": "Error: SyntaxError: Unexpected end of JSON input\n    at <input>:1:1\n    at parse (native)\n    at <anonymous> (pebble-js-app.js:434:33)\n    at dispatch (virtual-phone-bootstrap.js:406:119)\n    at configurationClosed (virtual-phone-bootstrap.js:472:180)\n"
+    },
+    {
+      "id": "56231c63ade802b29d00002b-qemu_emery",
+      "title": "Note To Self",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "529993a5e627cef6e100004b-qemu_emery",
+      "title": "Rosewright Chronograph",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "529993a5e627cef6e100004b-qemu_gabbro",
+      "title": "Rosewright Chronograph",
+      "profile": "qemu_gabbro",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "55a5c024f4510f794c000071-qemu_emery",
+      "title": "TimeStyle",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "55a5c024f4510f794c000071-qemu_flint",
+      "title": "TimeStyle",
+      "profile": "qemu_flint",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "55a5c024f4510f794c000071-qemu_gabbro",
+      "title": "TimeStyle",
+      "profile": "qemu_gabbro",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "537d17e007dd651cce00000c-qemu_emery",
+      "title": "Drunk O' Clock",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "537d17e007dd651cce00000c-qemu_flint",
+      "title": "Drunk O' Clock",
+      "profile": "qemu_flint",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "537d17e007dd651cce00000c-qemu_gabbro",
+      "title": "Drunk O' Clock",
+      "profile": "qemu_gabbro",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "52997231129af73409000033-qemu_emery",
+      "title": "Rosewright A",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "52997231129af73409000033-qemu_gabbro",
+      "title": "Rosewright A",
+      "profile": "qemu_gabbro",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "5551c4a91113bc93a00000de-qemu_emery",
+      "title": "TH3",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "56efc6a7b07e357aef00004f-qemu_emery",
+      "title": "Fourier",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "555147c5095d4f7c75000087-qemu_emery",
+      "title": " Analog Hodinky",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "56b1494a9c4b2008b9000047-qemu_emery",
+      "title": "Modulite 2.0",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "56b1494a9c4b2008b9000047-qemu_flint",
+      "title": "Modulite 2.0",
+      "profile": "qemu_flint",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "56b1494a9c4b2008b9000047-qemu_gabbro",
+      "title": "Modulite 2.0",
+      "profile": "qemu_gabbro",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    },
+    {
+      "id": "562a4e4dfd5d7220db00006c-qemu_emery",
+      "title": "Brick Neon",
+      "profile": "qemu_emery",
+      "before": "execution-stopped",
+      "after": "scenario-completed",
+      "reason": null
+    }
+  ],
+  "baselineCompletedFrames": {
+    "same": [
+      "686578b965207500093d5a94-qemu_emery",
+      "686578b965207500093d5a94-qemu_flint",
+      "686578b965207500093d5a94-qemu_gabbro",
+      "54a1ba1afc5f23e4c000012d-qemu_emery",
+      "54a1ba1afc5f23e4c000012d-qemu_flint",
+      "54a1ba1afc5f23e4c000012d-qemu_gabbro",
+      "540f7cafbc27450164000157-qemu_emery",
+      "540f7cafbc27450164000157-qemu_flint",
+      "540f7cafbc27450164000157-qemu_gabbro",
+      "55b6cd955e0716cd6b0000a1-qemu_emery",
+      "55b6cd955e0716cd6b0000a1-qemu_gabbro",
+      "55b6c2c3e68f5acdfc00008d-qemu_emery",
+      "55b6c2c3e68f5acdfc00008d-qemu_gabbro",
+      "52b77e12dfa4228e8200000a-qemu_emery",
+      "52b77e12dfa4228e8200000a-qemu_flint",
+      "52b77e12dfa4228e8200000a-qemu_gabbro",
+      "529eaee7d7894b8324000022-qemu_emery",
+      "5620e876768e7ada4e00007a-qemu_emery",
+      "5620e876768e7ada4e00007a-qemu_flint",
+      "5620e876768e7ada4e00007a-qemu_gabbro",
+      "56d74906153e89502d000024-qemu_emery",
+      "54551598997cdfddaa000043-qemu_emery",
+      "535e84d0af59179a46000088-qemu_emery",
+      "692b3821d7dcba000a809ba5-qemu_emery",
+      "692b3821d7dcba000a809ba5-qemu_flint",
+      "692b3821d7dcba000a809ba5-qemu_gabbro",
+      "60ec78db1342ae0152f9a409-qemu_emery",
+      "60ec78db1342ae0152f9a409-qemu_flint",
+      "60ec78db1342ae0152f9a409-qemu_gabbro",
+      "553aaf29bf1a5965020000c8-qemu_emery",
+      "5387b383f60819963900000e-qemu_emery",
+      "5387b383f60819963900000e-qemu_flint",
+      "5639b1a377b75e5dfd000030-qemu_emery",
+      "10966bb2d22145c4b428dfd7-qemu_emery",
+      "10966bb2d22145c4b428dfd7-qemu_gabbro",
+      "cd7c4d5fe7ec4989a64976c6-qemu_emery",
+      "cd7c4d5fe7ec4989a64976c6-qemu_flint",
+      "cd7c4d5fe7ec4989a64976c6-qemu_gabbro",
+      "e4f66f24bb0a440b9f6aad69-qemu_emery",
+      "e4f66f24bb0a440b9f6aad69-qemu_gabbro",
+      "532286232c5d4dc499b5918c-qemu_emery",
+      "532286232c5d4dc499b5918c-qemu_flint",
+      "532286232c5d4dc499b5918c-qemu_gabbro",
+      "533966299820be90ed0000c5-qemu_emery",
+      "533966299820be90ed0000c5-qemu_flint",
+      "533966299820be90ed0000c5-qemu_gabbro",
+      "53381b17d1719b42b800028b-qemu_emery",
+      "53381b17d1719b42b800028b-qemu_flint",
+      "53381b17d1719b42b800028b-qemu_gabbro",
+      "535cf7f618c570bf05000023-qemu_emery",
+      "535cf7f618c570bf05000023-qemu_flint",
+      "535cf7f618c570bf05000023-qemu_gabbro",
+      "550ccb556caaed4e0100006d-qemu_emery",
+      "550ccb556caaed4e0100006d-qemu_flint",
+      "550ccb556caaed4e0100006d-qemu_gabbro",
+      "5616de1d7bc7a6ef0a000026-qemu_emery",
+      "54f791b593d5fbffb1000090-qemu_emery",
+      "52db68da227cbe482b000313-qemu_emery",
+      "53118426c6c18ea5af00011a-qemu_emery",
+      "31cfe29ecd814df4b5ca8bb4-qemu_emery",
+      "31cfe29ecd814df4b5ca8bb4-qemu_gabbro",
+      "559f0fffe2b45a3231000098-qemu_emery",
+      "56aeaa675fc3f1c4c700005b-qemu_emery",
+      "555a3ce1c2afa28d5800000f-qemu_emery",
+      "555a3ce1c2afa28d5800000f-qemu_gabbro",
+      "5299d4da129af7d723000079-qemu_emery",
+      "5299d4da129af7d723000079-qemu_flint",
+      "5472c040c13ebf3ddf000045-qemu_emery",
+      "5472c040c13ebf3ddf000045-qemu_flint",
+      "5472c040c13ebf3ddf000045-qemu_gabbro",
+      "5787d959ff7be04f750001b9-qemu_emery",
+      "577527d3ba2fe5a0c1000599-qemu_emery",
+      "577527d3ba2fe5a0c1000599-qemu_flint",
+      "577527d3ba2fe5a0c1000599-qemu_gabbro",
+      "57719ccc6c2104ad170001c8-qemu_emery",
+      "57719ccc6c2104ad170001c8-qemu_flint",
+      "57719ccc6c2104ad170001c8-qemu_gabbro"
+    ],
+    "changed": [],
+    "missing": [],
+    "note": "Weather now stops at cancellation before scenario end; its last captured frame still matches. Other 76 cases complete with equal final frames."
+  },
+  "remainingFirstErrors": {
+    "Error: TypeError: Only text and JSON responses are supported.": [
+      "52e7521679f937c182000004-qemu_emery",
+      "52e7521679f937c182000004-qemu_flint",
+      "52e7521679f937c182000004-qemu_gabbro"
+    ],
+    "SyntaxError: Unexpected end of JSON input": [
+      "529eaee7d7894b8324000022-qemu_emery",
+      "52999773129af794a2000052-qemu_emery",
+      "52999773129af794a2000052-qemu_flint",
+      "52999773129af794a2000052-qemu_gabbro",
+      "5500981184edec8e3100000c-qemu_emery",
+      "5546abfc47bb344acb0000d2-qemu_emery",
+      "54fc76072bf1bfe03500002a-qemu_emery",
+      "567312691a9a82d62800003d-qemu_emery",
+      "567312691a9a82d62800003d-qemu_flint",
+      "567312691a9a82d62800003d-qemu_gabbro",
+      "5520fd91f99b2a612c00000d-qemu_emery",
+      "54730439c13ebf214f000052-qemu_emery",
+      "52a207a0a38509f36600003c-qemu_emery",
+      "52a207a0a38509f36600003c-qemu_flint",
+      "52a207a0a38509f36600003c-qemu_gabbro",
+      "547da528bca84bd06b000002-qemu_emery"
+    ],
+    "TypeError: not a function": [
+      "55de02ca4374cb08ff000055-qemu_emery",
+      "55ed3a06e6ce57442a0000a9-qemu_emery",
+      "695da4c3fbfdde0009f99799-qemu_emery"
+    ],
+    "Error: TypeError: not a function": [
+      "56852cf18d316f6e0a000093-qemu_emery"
+    ],
+    "TypeError: Unsupported AppMessage value.": [
+      "550bf37f1e540c856300005e-qemu_emery"
+    ]
+  },
+  "websocket": {
+    "attempts": 42,
+    "cases": [
+      {
+        "id": "537d17e007dd651cce00000c-qemu_emery",
+        "title": "Drunk O' Clock",
+        "attempts": 7,
+        "outcome": "scenario-completed"
+      },
+      {
+        "id": "537d17e007dd651cce00000c-qemu_flint",
+        "title": "Drunk O' Clock",
+        "attempts": 7,
+        "outcome": "scenario-completed"
+      },
+      {
+        "id": "537d17e007dd651cce00000c-qemu_gabbro",
+        "title": "Drunk O' Clock",
+        "attempts": 7,
+        "outcome": "scenario-completed"
+      },
+      {
+        "id": "56b1494a9c4b2008b9000047-qemu_emery",
+        "title": "Modulite 2.0",
+        "attempts": 7,
+        "outcome": "scenario-completed"
+      },
+      {
+        "id": "56b1494a9c4b2008b9000047-qemu_flint",
+        "title": "Modulite 2.0",
+        "attempts": 7,
+        "outcome": "scenario-completed"
+      },
+      {
+        "id": "56b1494a9c4b2008b9000047-qemu_gabbro",
+        "title": "Modulite 2.0",
+        "attempts": 7,
+        "outcome": "scenario-completed"
+      }
+    ],
+    "networkMode": "disabled",
+    "liveServiceSuccessClaimed": false
+  }
+}

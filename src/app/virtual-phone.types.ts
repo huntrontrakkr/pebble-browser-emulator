@@ -29,10 +29,16 @@ export interface VirtualPhoneLimits {
   networkResponseBytes: number;
   networkTimeoutMs: number;
   configurationBytes: number;
+  pendingSockets: number;
+  socketMessageBytes: number;
+  socketBufferedBytes: number;
+  socketTimeoutMs: number;
 }
 export interface VirtualPhoneOptions {
   appId: string;
   nowMs?: number;
+  /** Simulated phone locale, independent of the watch language. */
+  language?: string;
   /** Explicit deterministic Math.random source for repeatable scenarios. */
   randomSeed?: number;
   coordinates?: PhoneCoordinates;
@@ -70,6 +76,7 @@ export type VirtualPhoneEvent =
   | { type: 'configuration'; requestId: number; url: string; timestamp: number }
   | { type: 'network-request'; request: PhoneNetworkRequest; timestamp: number }
   | { type: 'network-cancel'; requestId: number; timestamp: number }
+  | ({ type: 'websocket-command'; timestamp: number } & PhoneSocketCommand)
   | { type: 'error'; message: string; timestamp: number }
   | { type: 'limit'; resource: 'output'; message: string; timestamp: number };
 
@@ -112,3 +119,15 @@ export interface PhoneNetworkOptions {
   mode: 'disabled' | 'fixtures' | 'cors';
   fixtures?: readonly PhoneNetworkFixture[];
 }
+
+export type PhoneSocketCommand = { socketId: number } & (
+  | { action: 'open'; url: string; protocols: string[] }
+  | { action: 'send'; data: string | number[] }
+  | { action: 'close'; code?: number; reason?: string }
+);
+export type PhoneSocketEvent =
+  | { type: 'open'; protocol: string; extensions: string }
+  | { type: 'message'; data: string | number[] }
+  | { type: 'buffered'; sentBytes?: number; bufferedAmount: number }
+  | { type: 'error'; message: string }
+  | { type: 'close'; code: number; reason: string; wasClean: boolean };

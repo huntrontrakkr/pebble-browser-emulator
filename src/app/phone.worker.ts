@@ -1,3 +1,4 @@
+import { PhoneWebSocketNetwork } from './phone-websocket.ts';
 /// <reference lib="webworker" />
 import {
   newVariant,
@@ -17,6 +18,7 @@ let module: QuickJSWASMModule | undefined,
   generation = 0,
   desiredConnection = false;
 let network: PhoneCorsNetwork | undefined;
+let socketNetwork: PhoneWebSocketNetwork | undefined;
 let externalClock = false,
   clockOriginUs = 0,
   clockEpochMs = 0,
@@ -56,6 +58,7 @@ function output() {
     if (event.type === 'outbound') uiTransportPending = true;
     postMessage({ type: 'event', phoneGeneration: generation, event });
     network?.handle(event);
+    socketNetwork?.handle(event);
   }
   const values = phone.readStorageIfChanged();
   if (values) {
@@ -75,6 +78,8 @@ function stop() {
   externalClock = false;
   pendingLocations = [];
   generation++;
+  socketNetwork?.dispose();
+  socketNetwork = undefined;
   network?.dispose();
   network = undefined;
   clearInterval(timer);
@@ -142,6 +147,7 @@ async function handleMessage(data: any, fromClockPort = false) {
       phone = new VirtualPhone(module, {
         appId,
         nowMs,
+        language: data.language ?? globalThis.navigator?.language ?? 'en-US',
         randomSeed: data.randomSeed,
         coordinates: data.coordinates,
         storage: storage.get(appId) ?? data.storage ?? {},
@@ -154,6 +160,22 @@ async function handleMessage(data: any, fromClockPort = false) {
       });
       if (data.network?.mode === 'cors') {
         const owner = phone;
+        socketNetwork = new PhoneWebSocketNetwork((socketId, event) => {
+          if (job !== generation || phone !== owner) return;
+          try {
+            const accepted = owner.deliverWebSocketEvent(socketId, event);
+            postMessage({
+              type: 'websocket-result',
+              phoneGeneration: generation,
+              socketId,
+              event,
+              accepted,
+            });
+            output();
+          } catch (error) {
+            fail(error);
+          }
+        });
         network = new PhoneCorsNetwork((requestId, result) => {
           if (job !== generation || phone !== owner) return;
           try {

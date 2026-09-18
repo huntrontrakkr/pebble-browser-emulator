@@ -35,6 +35,18 @@ Chromium, Firefox and Linux WebKit engine results do not substitute for actual E
 Windows or Safari on macOS. Optical calibration, assistive technology and broad app/firmware
 combinations remain separate gates.
 
+The companion WebSocket gate runs independently of firmware and the Angular UI:
+
+```sh
+node scripts/verify-phone-websocket-browser.mjs
+```
+
+It bundles the actual phone Worker, starts a local socket fixture, and tests QuickJS text
+and binary round trips, subprotocol negotiation, clean closure, offline blocking and
+restart cleanup in Chromium, Firefox and WebKit. CI runs the Chromium subset with
+`PEBBLE_BROWSERS=chromium`. Evidence is written to `tmp/phone-websocket-browser/results.json`.
+This fixture does not verify public app servers or their authentication requirements.
+
 With a local container2wasm image providing Python 3, the separate build UI gate checks folder
 import, automatic YAML loading, actual guest execution, artifact/record export and cancellation:
 

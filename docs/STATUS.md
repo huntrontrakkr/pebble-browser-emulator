@@ -27,6 +27,20 @@ batch was fixed and the entire identical corpus rerun: zero timeouts, with all 4
 completed-case final frames unchanged. The corrected capture took 3m43s with 20 workers
 and retained 1.2 GB of raw evidence. These are smoke results, not universal compatibility.
 
+The [phone-fix follow-up](compatibility/2026-09-18-phone/README.md) reran the identical 600
+cases after correcting configuration cancellation, providing phone locale and implementing
+bounded browser WebSockets. Completion rises to **94 profile cases / 46 distinct titles**;
+24 companion errors remain. Eighteen prior failures now complete; Weather now reports an
+uncaught JSON parse of the documented empty cancellation string. All other 76 previously
+completed cases remain complete with identical final frames. No timeout/core bus-fault
+outcomes occurred. The full batch was sealed before evaluation and took 3m55s with 20 workers.
+Six WebSocket-using cases now handle offline failures without stopping; live services are
+not certified by that result. Actual real-socket text/binary, close, offline and restart
+checks separately pass Chromium, Firefox and WebKit. Enable live sockets through
+**Network access → Browser network (HTTP + WebSocket)**; no backend is needed.
+Validation: 410 JavaScript/Wasm tests pass, nine optional skips; TypeScript and production
+build pass. [Phone API contracts and limitations](PHONE.md).
+
 
 ## Hardware fidelity work
 

@@ -1,3 +1,5 @@
+import { WEBSOCKET_BOOTSTRAP } from './websocket-bootstrap.ts';
+import { normalizeSocketEvent, normalizeSocketUrl } from './phone-websocket.ts';
 import { NETWORK_BOOTSTRAP } from './network-bootstrap.ts';
 import { normalizeNetworkResult, normalizeNetworkOptions } from './phone-network.ts';
 import type {
@@ -10,6 +12,7 @@ import type {
   PhoneNetworkResult,
   AppMessageDictionary,
   PhoneCoordinates,
+  PhoneSocketEvent,
   VirtualPhoneEvent,
   VirtualPhoneLimits,
   VirtualPhoneOptions,
@@ -18,6 +21,7 @@ export type {
   PhoneNetworkResult,
   AppMessageDictionary,
   PhoneCoordinates,
+  PhoneSocketEvent,
   VirtualPhoneEvent,
   VirtualPhoneLimits,
   VirtualPhoneOptions,
@@ -42,6 +46,10 @@ const DEFAULT_LIMITS: VirtualPhoneLimits = {
   networkResponseBytes: 1024 * 1024,
   networkTimeoutMs: 30000,
   configurationBytes: 512 * 1024,
+  pendingSockets: 4,
+  socketMessageBytes: 64 * 1024,
+  socketBufferedBytes: 128 * 1024,
+  socketTimeoutMs: 30000,
 };
 const utf8 = new TextEncoder();
 
@@ -91,7 +99,11 @@ export class VirtualPhone {
     const coordinates = normalizeCoordinates(
       options.coordinates ?? { latitude: 0, longitude: 0, accuracy: 0 },
     );
+    const language = options.language ?? 'en-US';
+    if (!/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(language) || language.length > 64)
+      throw new Error('Invalid phone language tag.');
     const config = {
+      language,
       appId: options.appId,
       nowMs: this.nowMs,
       randomSeed: options.randomSeed,
@@ -117,6 +129,18 @@ export class VirtualPhone {
     });
     this.context.setProp(this.context.global, '__phoneEmit', bridge);
     bridge.dispose();
+    // A synchronous, string-only URL parser; no host objects or network access enter the VM.
+    const socketUrl = this.context.newFunction('__phoneSocketUrl', (value) => {
+      let result;
+      try {
+        result = { url: normalizeSocketUrl(this.context.getString(value)) };
+      } catch (error) {
+        result = { error: String(error) };
+      }
+      return this.context.newString(JSON.stringify(result));
+    });
+    this.context.setProp(this.context.global, '__phoneSocketUrl', socketUrl);
+    socketUrl.dispose();
     try {
       this.withBudget(() => {
         const result = this.context.evalCode(
@@ -180,13 +204,23 @@ export class VirtualPhone {
       throw new TypeError('Configuration response must be a string or null.');
     if (response !== null && utf8.encode(response).length > this.limits.configurationBytes)
       throw new Error('Configuration response limit exceeded.');
-    return this.perform('configurationClosed', response, requestId ?? null) === true;
+    return this.perform('configurationClosed', response ?? '', requestId ?? null) === true;
   }
   /** Delivers only bounded text/JSON response data, never a host object or function. */
   deliverNetworkResponse(requestId: number, result: PhoneNetworkResult): boolean {
     if (!Number.isSafeInteger(requestId) || requestId < 1) return false;
     const normalized = normalizeNetworkResult(result, this.limits.networkResponseBytes);
     return this.perform('networkResponse', requestId, JSON.stringify(normalized)) === true;
+  }
+  deliverWebSocketEvent(socketId: number, event: PhoneSocketEvent): boolean {
+    if (!Number.isSafeInteger(socketId) || socketId < 1) return false;
+    return (
+      this.perform(
+        'websocketEvent',
+        socketId,
+        JSON.stringify(normalizeSocketEvent(event, this.limits.socketMessageBytes)),
+      ) === true
+    );
   }
   setConnected(connected: boolean): void {
     this.perform('connection', connected);
@@ -309,7 +343,9 @@ export class VirtualPhone {
     const eventLimit =
       parsed.type === 'configuration'
         ? this.limits.configurationBytes + 256
-        : this.limits.eventBytes;
+        : parsed.type === 'websocket-command'
+          ? this.limits.socketMessageBytes * 4 + 4096
+          : this.limits.eventBytes;
     if (
       size > eventLimit ||
       this.events.length >= this.limits.eventCount - 1 ||
@@ -374,6 +410,8 @@ const BOOTSTRAP = String.raw`function(config) {
   'use strict';
   const emitHost = globalThis.__phoneEmit;
   delete globalThis.__phoneEmit;
+  const socketUrlHost = globalThis.__phoneSocketUrl;
+  delete globalThis.__phoneSocketUrl;
   // The official PKJS startup script aliases window to its own JS global.
   // This remains the isolated QuickJS global; no browser window/DOM is exposed.
   globalThis.window = globalThis;
@@ -475,10 +513,11 @@ const BOOTSTRAP = String.raw`function(config) {
     return true;
   }
   const network = (${NETWORK_BOOTSTRAP})({emit, schedule, cancelTimer:id=>timers.delete(id), byteLength, limits, mode:config.network.mode, fixtures:config.network.fixtures});
+  const sockets = (${WEBSOCKET_BOOTSTRAP})({emit,schedule,cancelTimer:id=>timers.delete(id),byteLength,limits,mode:config.network.mode,normalizeUrl:value=>parse(socketUrlHost(value))});
   function locationValue() { return {coords:{...coordinates},timestamp:now}; }
   let locationError=null;
   function locationResult(success,error) {if(locationError){if(typeof error==='function')error({...locationError,PERMISSION_DENIED:1,POSITION_UNAVAILABLE:2,TIMEOUT:3});}else success(locationValue());}
-  globalThis.navigator = Object.freeze({geolocation:Object.freeze({
+  globalThis.navigator = Object.freeze({language:config.language,languages:Object.freeze([config.language]),geolocation:Object.freeze({
     getCurrentPosition(success,error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.'); schedule(() => locationResult(success,error),0,false,[]); },
     watchPosition(success,error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.');
       if (watchers.size >= limits.timers) throw new Error('Geolocation watcher limit exceeded.');
@@ -557,6 +596,7 @@ const BOOTSTRAP = String.raw`function(config) {
     appmessage(json) {const incoming=parse(json), payload=Object.create(null); for(const key of keys(incoming)) payload[reverseKeys[key] ?? key]=incoming[key]; dispatch('appmessage',{payload});},
     configuration() {dispatch('showConfiguration',{});},
     configurationClosed(response,requestId) {if(activeConfiguration===null || (requestId!==null && requestId!==activeConfiguration))return false; activeConfiguration=null;dispatch('webviewclosed',{response});return true;},
+    websocketEvent(id,json) {return sockets.receive(id,parse(json));},
     networkResponse(id,json) {return network.respond(id,json);},
     connection(value) {connected=!!value; if (!connected) for(const id of [...pending.keys()]) settle(id,false,'NOT_CONNECTED');},
     ack(id,accepted) {const result=settle(id,!!accepted,accepted?'ACK':'NACK'); return result;},
