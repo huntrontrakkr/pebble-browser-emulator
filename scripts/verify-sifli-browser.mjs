@@ -58,8 +58,13 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
             }
             const z = data.expected.zeroFill;
             for(let i=0;i<z.bytes;i++) if(e.sifli_read_byte(z.destination+i)!==0) throw new Error('BSS mismatch');
+            let mainEntry;
+            for(let n=0;n<100;n++) {
+              e.sifli_run(100000,data.expected.mainEntry.registers[15]); mainEntry=report();
+              if(mainEntry.stop || mainEntry.registers[15]===data.expected.mainEntry.registers[15]) break;
+            }
             e.sifli_run(100000,0);
-            postMessage({startup:state,hardwareBoundary:report(),ramMatched:true});
+            postMessage({startup:state,mainEntry,hardwareBoundary:report(),ramMatched:true});
           } catch (e) { postMessage({error:String(e)}); }
         }`;
           const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
@@ -97,12 +102,14 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
       );
       assert.equal(result.error, undefined);
       assert.deepEqual(result.startup, fixture.expected.startup);
+      assert.deepEqual(result.mainEntry, fixture.expected.mainEntry);
       assert.deepEqual(result.hardwareBoundary, fixture.expected.hardwareBoundary);
       results.push({
         browser: name,
         version: browser.version(),
         revision: fixture.revision,
         ramMatched: result.ramMatched,
+        mainEntryMatched: true,
         instructions: result.startup.instructionsCompleted,
         hardwareBoundaryMatched: true,
       });
@@ -117,7 +124,7 @@ const report = {
   wasmSha256: createHash('sha256').update(wasm).digest('hex'),
   results,
   scope:
-    'Actual desktop browser Workers, unchanged local firmware; reset-only execution. No full boot or physical-phone performance claim.',
+    'Actual desktop browser Workers, unchanged local firmware; reset and SystemInit execution. No full boot or physical-phone performance claim.',
 };
 const text = JSON.stringify(report, null, 2) + '\n';
 if (reportPath) await writeFile(reportPath, text);

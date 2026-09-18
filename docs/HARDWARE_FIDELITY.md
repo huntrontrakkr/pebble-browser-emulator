@@ -208,43 +208,72 @@ Unknown accesses latch the first fault and stop. Reports retain the registers be
 the failed instruction; no faulted instruction counts as completed. Coprocessor
 instructions are explicitly unsupported. Executable SRAM writes invalidate decoding.
 
-Entry contract `assumed-secure-reset-probe-v1`: Secure privileged Thumb Thread mode,
-engine initial register defaults, no active interrupts, vector-derived MSP/PC, initial
-VTOR at the slot vector, and unknown SRAM until written. This is an explicit assumption,
-not a reconstruction of a physical bootloader handoff. The engine's initial PPB values
-cannot be read by the guest; all PPB accesses stop pending a physical board model.
-No clock, cycle, battery, radio, display or boot-success claims follow from this probe.
+Entry contract `assumed-secure-reset-probe-v2`: Secure privileged Thumb Thread mode,
+vector-derived MSP/PC, no active interrupts, explicit reset values for the supported
+architectural registers, fresh backup-domain POR and unknown SRAM until written. This
+is an assumption, not a captured physical bootloader handoff. Reset clears kernel BSS
+and copies both initializers through actual instructions. Both production 4.37.0 images
+now also complete `SystemInit` and reach `main`:
 
-Both official 4.37.0 images reach `SystemInit`. Time 2/Obelix PVT completes 328,883
-instructions, initializes 40,208 copied RAM bytes and clears 175,142 BSS bytes.
-Round 2/Getafix DVT2 completes 313,880 instructions, initializes 39,736 copied RAM
-bytes and clears 150,797 BSS bytes. Every initializer and BSS byte is checked against
-the ELF/raw audit. These are binary consistency checks, not an independent CPU trace
-or physical measurement. The next instruction boundary requiring hardware behavior is
-a word write to SCB VTOR (`0xe000ed08`), at `0x12115222` / `0x12100da2` respectively.
-The destination value points into firmware-initialized SRAM; do not force a flash VTOR.
+| Checkpoint | Obelix PVT | Getafix DVT2 |
+|---|---:|---:|
+| Enter `SystemInit` (completed instructions) | 328,883 | 313,880 |
+| Enter `main` (completed instructions) | 331,741 | 316,738 |
+| Copied SRAM bytes checked | 40,208 | 39,736 |
+| Cleared BSS bytes checked | 175,142 | 150,797 |
+
+The architectural subset models VTOR, CPACR, SHCSR, selected CCR controls and twelve
+ARMv8-M MPU regions with MAIR and aliases. Access checks cover privilege, read-only
+regions, execute-never, boundary crossing, overlapping matches, and the privileged
+background map. Unsupported attributes and registers fail explicitly. Fault delivery
+still terminates this diagnostic; complete architectural exception handling and the
+STAR-MC1 implementation-specific coprocessors remain open.
+
+The functional caches have the published HCPU geometry: 32 KiB/two-way I-cache and
+16 KiB/four-way D-cache, with 32-byte lines. Instruction and data views are separate;
+writeback, write-through, clean/invalidate by address or set/way, and dirty eviction
+operate on actual bytes. Unknown SRAM stays unknown, including untouched bytes in a
+cache line. Firmware must clean data and invalidate instructions to make modified
+cacheable code visible. The integrated CPU test exercises that path through the guest
+cache-maintenance register. The engine's decoded-op cache is disabled for this board,
+so it cannot hide stale physical I-cache contents. Generic boards keep their original
+fetch/cache behavior.
+
+Cache replacement is deterministic round-robin; CCSIDR allocation/policy flags describe
+the functional model. Neither is a measured silicon result. Only the memory attributes
+used by this startup plus normal write-back `0xff` are accepted; unsupported encodings
+stop explicitly. There is no calibrated bus/cache/oscillator timing or energy model.
+
+The first minimal SoC register subset implements documented RTC backup-register POR
+and storage, RCC pinmux enable/set/clear, initial clock selection and PA21 pad control.
+It does not supply readiness bits for absent devices. After reaching `main`, both
+images stop on the read of `HPSYS_AON.ACR` at `0x500c0010`, PC `0x20002f3a`, in
+`HAL_HPAON_EnableXT48`. This needs the actual oscillator/power state machine and an
+explicit boot-entry clock state. Subsequent `soc_early_init` calls wake/halt LCPU,
+consume EFUSE calibration, start timers/watchdogs, and configure PLLs and clocks.
+Those controllers and dependencies are not yet supplied. A successful `main` checkpoint
+is not a successful watch boot, frame, app install or phone connection.
 
 ```sh
 npm run build:wasm
 npm run fidelity:physical-reset -- obelix_pvt /path/to/slot0.elf /path/to/slot0.bin report.json
 npm run fidelity:physical-reset -- getafix_dvt2 /path/to/slot0.elf /path/to/slot0.bin report.json
+node scripts/verify-sifli-browser.mjs /path/to/local/images report.json
 ```
 
-The runner audits inputs, enforces a 10-million-instruction startup budget and emits
-SHA-256 identities, RAM comparisons and the first hardware boundary. Missing inputs
-exit 2 (`not-run`); comparison failures exit 1. Firmware is never modified or published.
-Each Wasm call is capped at 100,000 steps for Worker yielding/cancellation. The module
-has no host imports, is isolated from the generic runtime and remains a diagnostic
-API rather than a selectable working watch profile. ABI tests run in the normal suite.
-Actual Chromium, Firefox and WebKit Workers also match both reset checkpoints and all
-RAM bytes; see [browser evidence](evidence/sifli-browser-reset.json). Run that optional
-gate with `node scripts/verify-sifli-browser.mjs /path/to/local/images report.json`;
-`PEBBLE_WEBKIT_EXECUTABLE` can select a configured WebKit dependency wrapper.
+The runner audits ELF/raw identity, caps each phase at 10 million instructions and
+compares every initializer/BSS byte plus the `main` MPU/cache configuration derived
+from pinned source. Missing inputs exit 2; a failed comparison exits 1. Wasm ABI 2 runs
+at most 100,000 steps per call so Workers can yield or terminate. The module has no
+host imports. It is built with the static app but is not a working preview profile.
+No production firmware is modified or published.
 
-Next: establish the architectural SCB/MPU configuration and bootloader handoff state,
-then model SiFli clocks/controllers and required ROM/LCPU dependencies. Published
-`SystemInit` configures 12 MPU regions; the generic RP2350 configuration is not evidence
-for this board. Full boot/display/app installation remain separate acceptance gates.
+Actual Chromium, Firefox and WebKit Workers reproduce both checkpoints and the first
+hardware boundary. [Browser record](evidence/sifli-browser-reset.json),
+[Time 2 execution](evidence/obelix-reset-execution.json),
+[Round 2 execution](evidence/getafix-reset-execution.json),
+[source identities and assumptions](evidence/sifli-system-model-sources.json).
+These are model/source consistency checks, not independent silicon validation.
 
 Source declarations distinguish the boards:
 

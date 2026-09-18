@@ -61,3 +61,11 @@ execution. The default is enabled, preserving existing generic profiles. All
 three access widths and both read/write directions are covered in
 `crates/sifli-board/tests/execution.rs`; the separate probe rejects coprocessor
 instructions before execution. See `docs/evidence/sifli-strict-bus.patch`.
+
+`core/bus_trait.rs` and `core/decode.rs`: add separate `fetch16` and an opt-out
+for decoded-instruction caching. Defaults preserve the existing generic runtime.
+The SiFli adapter supplies its own instruction-cache view and disables the engine
+cache so CPU instruction fetch observes firmware cache-maintenance operations.
+An integrated CPU regression modifies executable SRAM, observes stale instructions,
+invalidates I-cache through guest MMIO, and observes the new instruction. See
+`docs/evidence/sifli-fetch-cache.patch`. No guest firmware is patched.

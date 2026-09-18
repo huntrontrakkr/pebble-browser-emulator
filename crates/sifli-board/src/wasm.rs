@@ -14,7 +14,7 @@ fn output(value: serde_json::Value) {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_abi_version() -> u32 {
-    1
+    2
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn sifli_input(size: u32) -> *mut u8 {
@@ -62,6 +62,7 @@ pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
         };
         p.run(budget, (breakpoint != 0).then_some(breakpoint));
         let stop = p.stop();
+        let system = p.system();
         output(serde_json::json!({
             "revision": format!("{:?}", p.revision()),
             "instructionsCompleted": p.instructions_completed, "stepsAttempted": p.steps_attempted,
@@ -74,8 +75,10 @@ pub extern "C" fn sifli_run(budget: u32, breakpoint: u32) -> u32 {
                 Stop::Coprocessor{pc,opcode} => serde_json::json!({"type":"unsupported-coprocessor","pc":pc,"opcode":opcode}),
                 Stop::Sleeping{pc} => serde_json::json!({"type":"sleeping-without-clock-model","pc":pc}),
             }),
+            "system": {"vtor":system.vtor, "cpacr":system.cpacr, "shcsr":system.shcsr,
+                "ccr":system.ccr, "mpuControl":system.ctrl, "mpuRegions":system.regions, "mair":system.mair},
             "registerState": if stop.is_some() {"last-completed-instruction"} else {"current"},
-            "bootComplete": false, "entryState": "assumed-secure-reset-probe-v1"
+            "bootComplete": false, "entryState": "assumed-secure-reset-probe-v2"
         }));
         if stop.is_some() { 2 } else { 1 }
     })

@@ -38,7 +38,7 @@ async function core() {
 test('physical Wasm is self-contained and records the first hardware boundary', async () => {
   for (const revision of [0, 1]) {
     const { e, upload, report } = await core();
-    assert.equal(e.sifli_abi_version(), 1);
+    assert.equal(e.sifli_abi_version(), 2);
     upload(image());
     assert.equal(e.sifli_load(revision), 1);
     assert.equal(e.sifli_run(100, 0), 2);
@@ -53,7 +53,7 @@ test('physical Wasm is self-contained and records the first hardware boundary', 
       address: 0xe000ed00,
       width: 4,
       operation: 'Read',
-      kind: 'Unmapped',
+      kind: 'UnsupportedSystemRegister',
     });
     e.sifli_run(100, 0);
     assert.deepEqual(report(), r);

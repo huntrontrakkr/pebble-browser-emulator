@@ -1,0 +1,82 @@
+{
+  "format": "pebble-sifli-system-generic-regression",
+  "version": 1,
+  "outcome": "matched",
+  "referenceTarget": "previous-generic-Rust-Wasm-internal-consistency",
+  "identity": {
+    "board": "qemu_emery",
+    "revision": "generic",
+    "firmwareVersion": "4.37.0",
+    "firmware": {
+      "micro-flash": "6783255bd4efc4053176936cffebaf8bf7ba7beed572e11ae99aa187e0e41b02",
+      "spi-flash": "d8a622dd54a41e03d10049b102971ec51f1457c9d718dc260968fbcdb47300b5"
+    },
+    "appSha256": "e43dc348dfd3d117660d5e01aaf71739b3483b228626ced28fa21c4fe8a4ca6a",
+    "scenarioSha256": "6751543073ba8cff942e58c37546631dd9de4a08db38a8b67ccb382ce059b7d8",
+    "seed": 1,
+    "initialState": "cold boot; RTC epoch=1789545600"
+  },
+  "before": {
+    "name": "Rust/Wasm generic board",
+    "version": "trace-abi-1",
+    "sha256": "782fdfa95d63416be2a9082bd40d1a50e78d04a45e590f7f53fae435c64c41b9"
+  },
+  "after": {
+    "name": "Rust/Wasm generic board",
+    "version": "trace-abi-1",
+    "sha256": "5d572e09431e1447b43e64c52d240af3dcdd18e9f6811651d1a3ea193981148a"
+  },
+  "observations": [
+    {
+      "checkpoint": "boot",
+      "virtualUs": 4887750.09375,
+      "values": {
+        "stateSha256": "1c486c3d25775a93fe5bb138c6b445b3a3690a1dc71fba3685ceeca4f786270e",
+        "frameSha256": "f3c47ed40fc74167e15df1c7fdd80800b3daca1ce6de47593548d10d23e3a682",
+        "pc": 894748,
+        "xpsr": 1627389952
+      }
+    },
+    {
+      "checkpoint": "installed",
+      "virtualUs": 5607180.328125,
+      "values": {
+        "stateSha256": "232ce0b4bc77280aae46cb50a5f929174243b52d148deb61daf6e16a70c775f2",
+        "frameSha256": "52e2ae7fa001360d95583e691e13f7b1817eb3ffa02548d0226be1d060edde9b",
+        "pc": 888206,
+        "xpsr": 16777216
+      }
+    },
+    {
+      "checkpoint": "interaction",
+      "virtualUs": 6707209.59375,
+      "values": {
+        "stateSha256": "5e5534d7cb8fb240233cc2cfa21cadf5ad556ba728cf76b584a084e93f4c97a0",
+        "frameSha256": "b8b0cf0c76137a4cbd9eedcf539650121d3d3a4c98fec3e9f81d5644e7cc957f",
+        "pc": 880084,
+        "xpsr": 1761607680
+      }
+    },
+    {
+      "checkpoint": "clock-1",
+      "virtualUs": 7424663.4375,
+      "values": {
+        "stateSha256": "166d25ba1fc5235cb494086dac883e7d4587d6c12c366c4bcbabacab96913600",
+        "frameSha256": "52e2ae7fa001360d95583e691e13f7b1817eb3ffa02548d0226be1d060edde9b",
+        "pc": 880060,
+        "xpsr": 1627389967
+      }
+    },
+    {
+      "checkpoint": "app-1",
+      "virtualUs": 8243464.390625,
+      "values": {
+        "stateSha256": "c60d43ce872473f6012f76e7eab978d30af8de440ff1c62cbdd079573f3ca8f8",
+        "frameSha256": "52e2ae7fa001360d95583e691e13f7b1817eb3ffa02548d0226be1d060edde9b",
+        "pc": 894748,
+        "xpsr": 1627389952
+      }
+    }
+  ],
+  "scope": "All five generic Emery Clock machine-state/frame/virtual-time checkpoints unchanged. Not a physical-watch or native-reference claim."
+}

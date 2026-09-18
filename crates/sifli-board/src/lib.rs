@@ -3,7 +3,10 @@
 //! Memory ranges follow pinned SiFli SDK `sf32lb52x/mem_map.h`; only locally
 //! supplied slot-0 bytes and HCPU SRAM are backed. Every other access faults.
 
+pub mod cache;
 pub mod execution;
+pub mod startup_io;
+pub mod system;
 mod wasm;
 
 const HCPU_ROM_END: u64 = 0x0001_0000;
@@ -44,6 +47,9 @@ pub enum FaultKind {
     UnmodeledMmio,
     ReadOnlyFlash,
     Unmapped,
+    UnsupportedSystemRegister,
+    MemoryProtection,
+    UnsupportedMemoryAttribute,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

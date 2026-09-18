@@ -2,6 +2,7 @@
 // Missing inputs are NOT a pass. This gate establishes reset execution, never full boot.
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
 import { auditSifliImage, inspectSifliResetStartup } from '../src/app/sifli-image-audit.ts';
 
 const [revision, elfPath, imagePath, reportPath] = process.argv.slice(2);
@@ -13,12 +14,12 @@ if (!['obelix_pvt', 'getafix_dvt2'].includes(revision) || !elfPath || !imagePath
 }
 const report = {
   format: 'pebble-sifli-reset-execution',
-  version: 1,
+  version: 2,
   revision,
   outcome: 'not-run',
   bootComplete: false,
   referenceTarget: 'ELF-initializers-and-reset-binary',
-  entryState: 'assumed-secure-reset-probe-v1',
+  entryState: 'assumed-secure-reset-probe-v2',
 };
 try {
   const [elf, image, wasm] = await Promise.all([
@@ -74,7 +75,29 @@ try {
   const zero = ramBytes(reset.zeroFill.destination, reset.zeroFill.bytes);
   if (zero.some((b) => b !== 0)) throw new Error('BSS not cleared');
   report.zeroFill = { ...reset.zeroFill, sha256: sha(zero), matches: true };
-  report.outcome = 'reset-initialization-matched';
+  const main = revision === 'obelix_pvt' ? 0x120b1c4c : 0x120a7c40;
+  for (let i = 0; i < 100; i++) {
+    e.sifli_run(100000, main);
+    state = output();
+    if (state.stop || state.registers[15] === main) break;
+  }
+  if (state.stop || state.registers[15] !== main) throw new Error('SystemInit did not reach main');
+  report.mainEntry = state;
+  // Derived independently from the pinned SystemInit source and linker ranges.
+  assert.equal(state.system.mpuControl, 7);
+  assert.equal(state.system.ccr, 0x30200);
+  assert.equal(state.system.cpacr, 0x00f0003f);
+  assert.equal(state.system.shcsr, 0x10000);
+  assert.deepEqual(state.system.mair, [0x4422, 0]);
+  assert.deepEqual(state.system.mpuRegions, [
+    [0x12000006, 0x13ffffe1],
+    [0x40000001, 0x5fffffe5],
+    [0x20000004, 0x20004503],
+    [0x203fc000, 0x204fffe3],
+    [0x2007fc01, 0x2007ffe3],
+    ...Array.from({ length: 7 }, () => [0, 0]),
+  ]);
+  report.outcome = 'system-initialization-matched';
   // Continue without inventing the hardware state to identify the next blocker.
   for (let i = 0; i < 100; i++) {
     e.sifli_run(100000, 0);
@@ -85,7 +108,9 @@ try {
   report.limits = [
     'No verified bootloader handoff state',
     'No physical reference or calibrated timing',
-    'No SiFli MMIO, ROM, LCPU, PPB or coprocessor model',
+    'Limited architectural registers, MPU, functional caches and early boot register model',
+    'No complete SiFli clock/peripheral, ROM, LCPU or coprocessor model',
+    'Cache replacement and allocation flags are model assumptions, not silicon measurements',
     'No full firmware boot, display, installation or phone exchange',
   ];
 } catch (error) {

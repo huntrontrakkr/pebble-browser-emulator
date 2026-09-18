@@ -39,6 +39,11 @@ use std::sync::Arc;
 use crate::threaded::CoreAtomics;
 
 pub trait CoreBus {
+    /// Separate instruction fetch permits board-specific instruction caches.
+    fn fetch16(&mut self, addr: u32, core: u8) -> u16 { self.read16(addr, core) }
+    /// A board with its own instruction cache can disable decoded-op caching.
+    fn cache_decoded_instructions(&self) -> bool { true }
+
     /// Embedders can route PPB/SIO accesses to their own strict board model.
     /// The default preserves the original RP2350 and generic Pebble behavior.
     fn use_internal_peripherals(&self) -> bool { true }

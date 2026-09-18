@@ -1,0 +1,41 @@
+{
+  "format": "pebble-sifli-system-model-sources",
+  "version": 1,
+  "status": "modeled",
+  "sources": [
+    {
+      "url": "https://github.com/coredevices/PebbleOS/blob/9399f564fb5035057a9174025d2c6c625e942285/third_party/hal_sifli/sf32lb52/system_bf0_ap.c",
+      "sha256": "815114c1249f985714620bb335da0fcce44445ca83e96e07f61732c969a5f8f5"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/external/CMSIS/Include/core_cm33.h",
+      "sha256": "23348215729774c63fa5f44274a1ba7e58663b5936ef818dcdb556fe30414264"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/external/CMSIS/Include/mpu_armv8.h",
+      "sha256": "42f95d04b21e25405ab2931763952c9ce727eead4cd087875982341d05ce86a1"
+    },
+    {
+      "url": "https://downloads.sifli.com/user%20manual/UM5201-SF32LB52x-%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C%20V0p8p5.pdf",
+      "sha256": "a5a226fe454f883ebd3ddd14baff0de8eef4a43e96eae84e0adfff3e411f944c"
+    }
+  ],
+  "cacheGeometrySource": "https://downloads.sifli.com/user%20manual/DS5201-SF32LB52x-Datasheet%20V2p5.pdf",
+  "registerTables": "UM5201 internal V0.8.8 (download filename says V0p8p5): 2-6 (RCC enables/initial CSR), 5-4 (PA21), 9-7 (backup).",
+  "assumptions": [
+    "Explicit secure architectural reset state and fresh backup-domain POR; not captured bootloader handoff.",
+    "Functional split cache with deterministic round-robin replacement; timing, allocation flags and replacement not silicon-verified.",
+    "Only Device, Normal noncacheable 0x44, write-through 0x22 and write-back 0xff memory attributes are supported.",
+    "Faults terminate the probe; runtime exception dispatch, complete peripheral clocks and board boot are not accepted."
+  ],
+  "gates": {
+    "resetRam": "matches unchanged ELF/raw initializers and zero-fill",
+    "systemInit": "both revisions reach unchanged main with expected MPU/coprocessor/cache configuration",
+    "browsers": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "fullBoot": false
+  }
+}

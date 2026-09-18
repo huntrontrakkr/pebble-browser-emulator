@@ -1,0 +1,26 @@
+diff --git a/vendor/rp2350-emu/src/core/bus_trait.rs b/vendor/rp2350-emu/src/core/bus_trait.rs
+index b768e26..467edf3 100644
+--- a/vendor/rp2350-emu/src/core/bus_trait.rs
++++ b/vendor/rp2350-emu/src/core/bus_trait.rs
+@@ -41,0 +42,5 @@ pub trait CoreBus {
++    /// Separate instruction fetch permits board-specific instruction caches.
++    fn fetch16(&mut self, addr: u32, core: u8) -> u16 { self.read16(addr, core) }
++    /// A board with its own instruction cache can disable decoded-op caching.
++    fn cache_decoded_instructions(&self) -> bool { true }
++
+diff --git a/vendor/rp2350-emu/src/core/decode.rs b/vendor/rp2350-emu/src/core/decode.rs
+index 42a5356..bde8234 100644
+--- a/vendor/rp2350-emu/src/core/decode.rs
++++ b/vendor/rp2350-emu/src/core/decode.rs
+@@ -268 +268 @@ impl CortexM33 {
+-        let entry = if is_cacheable_pc(pc) {
++        let entry = if bus.cache_decoded_instructions() && is_cacheable_pc(pc) {
+@@ -424 +424 @@ impl CortexM33 {
+-        let hw0 = bus.read16(pc, self.core_id);
++        let hw0 = bus.fetch16(pc, self.core_id);
+@@ -441 +441 @@ impl CortexM33 {
+-            bus.read16(pc.wrapping_add(2), self.core_id)
++            bus.fetch16(pc.wrapping_add(2), self.core_id)
+@@ -496 +496 @@ impl CortexM33 {
+-        if is_cacheable_pc(pc) {
++        if bus.cache_decoded_instructions() && is_cacheable_pc(pc) {

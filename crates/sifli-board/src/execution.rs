@@ -1,6 +1,10 @@
 //! Execute unchanged slot-0 reset code under explicitly assumed CPU entry state.
-//! No clocks, IRQ sources, ROM, PPB or SiFli controllers are supplied by this probe.
+//! Architectural startup, MPU and functional caches; clocks/SoC devices remain separate.
 use crate::{AccessFault, ImageError, Operation, Revision, SifliAddressSpace};
+use crate::{
+    cache::Cache,
+    system::{Maintenance, Policy, SystemControl},
+};
 use rp2350_emu::{CortexM33, core::CoreBus, threaded::CoreAtomics};
 use std::{cell::Cell, sync::Arc};
 
@@ -10,6 +14,34 @@ pub enum Stop {
     Exception { pc: u32, cfsr: u32, hfsr: u32 },
     Coprocessor { pc: u32, opcode: u32 },
     Sleeping { pc: u32 },
+}
+
+#[cfg(test)]
+mod cache_execution_tests {
+    use super::*;
+    #[test]
+    fn cpu_fetch_observes_instruction_cache_until_invalidation() {
+        let mut slot = vec![0; 0x1200];
+        slot[0x1000..0x1004].copy_from_slice(&0x20080000u32.to_le_bytes());
+        slot[0x1004..0x1008].copy_from_slice(&0x12021101u32.to_le_bytes());
+        let mut p = ResetProbe::new(Revision::ObelixPvt, slot).unwrap();
+        let ram = 0x20020000;
+        p.bus.memory.write(0, ram, 2, 0x2001).unwrap(); // MOVS r0,#1
+        p.bus.system.ccr |= 1 << 17;
+        p.cpu.regs.r[15] = ram;
+        p.run(1, None);
+        assert_eq!(p.cpu.regs.r[0], 1);
+        // A bus-master write does not update the CPU's instruction cache.
+        p.bus.memory.write(0, ram, 2, 0x2002).unwrap();
+        p.cpu.regs.r[15] = ram;
+        p.run(1, None);
+        assert_eq!(p.cpu.regs.r[0], 1);
+        p.bus.access_write(0xe000ef50, 4, 0).unwrap();
+        p.cpu.regs.r[15] = ram;
+        p.run(1, None);
+        assert_eq!(p.cpu.regs.r[0], 2);
+        assert_eq!(p.stop(), None);
+    }
 }
 
 #[derive(Debug)]
@@ -26,7 +58,11 @@ struct Bus {
     pc: u32,
     wait: u32,
     fetch: u32,
-    wrote: bool,
+    system: SystemControl,
+    icache: Cache,
+    dcache: Cache,
+    privileged: bool,
+    io: crate::startup_io::StartupIo,
 }
 
 impl Bus {
@@ -38,47 +74,146 @@ impl Bus {
         self.failure.set(self.failure.get().or(Some(fault)));
         self.atomics.set_bus_fault(0, address);
     }
-    fn read(&self, address: u32, width: u8) -> u32 {
+    fn record(&self, fault: AccessFault) {
+        self.failure.set(self.failure.get().or(Some(fault)));
+        self.atomics.set_bus_fault(0, fault.address);
+    }
+    fn error(
+        &self,
+        address: u32,
+        width: u8,
+        operation: Operation,
+        kind: crate::FaultKind,
+    ) -> AccessFault {
+        AccessFault {
+            revision: self.memory.revision(),
+            pc: self.pc,
+            address,
+            width,
+            operation,
+            kind,
+        }
+    }
+    fn access_read(&mut self, address: u32, width: u8, op: Operation) -> Result<u32, AccessFault> {
+        let policy = self
+            .system
+            .access(address, width, op, self.privileged)
+            .map_err(|k| self.error(address, width, op, k))?;
+        if crate::startup_io::StartupIo::owns(address) {
+            return self
+                .io
+                .read(address, width)
+                .map_err(|k| self.error(address, width, op, k));
+        }
+        if (0xe0000000..0xf0000000).contains(&address) {
+            return self
+                .system
+                .read(address, width, self.privileged)
+                .map_err(|k| self.error(address, width, op, k));
+        }
+        if op == Operation::Fetch
+            && self.system.ccr & (1 << 17) != 0
+            && matches!(policy, Policy::WriteThrough | Policy::WriteBack)
+        {
+            self.icache
+                .read(&mut self.memory, self.pc, address, width, op)
+        } else if op == Operation::Read
+            && self.system.ccr & (1 << 16) != 0
+            && matches!(policy, Policy::WriteThrough | Policy::WriteBack)
+        {
+            self.dcache
+                .read(&mut self.memory, self.pc, address, width, op)
+        } else {
+            self.memory.read(self.pc, address, width, op)
+        }
+    }
+    fn read(&mut self, address: u32, width: u8, op: Operation) -> u32 {
         if self.failure.get().is_some() {
             return 0;
         }
-        match self.memory.read(self.pc, address, width, Operation::Read) {
-            Ok(value) => value,
-            Err(fault) => {
-                self.failure.set(Some(fault));
-                self.atomics.set_bus_fault(0, address);
-                // Required by CoreBus's scalar ABI. The faulted instruction is
-                // terminal; this sentinel is never accepted as register data.
+        match self.access_read(address, width, op) {
+            Ok(v) => v,
+            Err(f) => {
+                self.record(f);
                 0
             }
+        }
+    }
+    fn access_write(&mut self, address: u32, width: u8, value: u32) -> Result<(), AccessFault> {
+        let op = Operation::Write;
+        let policy = self
+            .system
+            .access(address, width, op, self.privileged)
+            .map_err(|k| self.error(address, width, op, k))?;
+        if crate::startup_io::StartupIo::owns(address) {
+            return self
+                .io
+                .write(address, width, value)
+                .map_err(|k| self.error(address, width, op, k));
+        }
+        if (0xe0000000..0xf0000000).contains(&address) {
+            let action = self
+                .system
+                .write(address, width, value, self.privileged)
+                .map_err(|k| self.error(address, width, op, k))?;
+            match action {
+                Maintenance::None => {}
+                Maintenance::InstructionAll => self.icache.invalidate_all(),
+                Maintenance::InstructionAddress(a) => self.icache.invalidate_address(a),
+                Maintenance::Data {
+                    value,
+                    by_set,
+                    clean,
+                    invalidate,
+                } => self.dcache.maintain(
+                    &mut self.memory,
+                    self.pc,
+                    value,
+                    by_set,
+                    clean,
+                    invalidate,
+                )?,
+            }
+            return Ok(());
+        }
+        if self.system.ccr & (1 << 16) != 0
+            && matches!(policy, Policy::WriteThrough | Policy::WriteBack)
+        {
+            self.dcache
+                .write(&mut self.memory, self.pc, address, width, value, policy)
+        } else {
+            self.memory.write(self.pc, address, width, value)
         }
     }
     fn write(&mut self, address: u32, width: u8, value: u32) {
         if self.failure.get().is_some() {
             return;
         }
-        match self.memory.write(self.pc, address, width, value) {
-            Ok(()) => self.wrote = true,
-            Err(fault) => {
-                self.failure.set(Some(fault));
-                self.atomics.set_bus_fault(0, address);
-            }
+        if let Err(f) = self.access_write(address, width, value) {
+            self.record(f);
         }
     }
 }
 
 impl CoreBus for Bus {
+    fn fetch16(&mut self, a: u32, _: u8) -> u16 {
+        self.read(a, 2, Operation::Fetch) as u16
+    }
+    fn cache_decoded_instructions(&self) -> bool {
+        false
+    }
+
     fn use_internal_peripherals(&self) -> bool {
         false
     }
     fn read8(&mut self, a: u32, _: u8) -> u8 {
-        self.read(a, 1) as u8
+        self.read(a, 1, Operation::Read) as u8
     }
     fn read16(&mut self, a: u32, _: u8) -> u16 {
-        self.read(a, 2) as u16
+        self.read(a, 2, Operation::Read) as u16
     }
     fn read32(&mut self, a: u32, _: u8) -> u32 {
-        self.read(a, 4)
+        self.read(a, 4, Operation::Read)
     }
     fn write8(&mut self, a: u32, v: u8, _: u8) {
         self.write(a, 1, v as u32)
@@ -208,13 +343,24 @@ impl ResetProbe {
                 pc: reset & !1,
                 wait: 0,
                 fetch: 0,
-                wrote: false,
+                system: SystemControl::default(),
+                icache: Cache::instruction(),
+                dcache: Cache::data(),
+                privileged: true,
+                // Documented RTC backup-domain POR values (UM5201 §9.7).
+                // This probe assumes a newly powered backup domain; it does
+                // not stand in for a captured warm-boot retention image.
+                io: crate::startup_io::StartupIo::default(),
             },
             stop: None,
             fault_registers: None,
             instructions_completed: 0,
             steps_attempted: 0,
         })
+    }
+
+    pub fn system(&self) -> &SystemControl {
+        &self.bus.system
     }
 
     pub fn registers(&self) -> [u32; 16] {
@@ -250,7 +396,9 @@ impl ResetProbe {
                 self.stop = Some(Stop::Sleeping { pc });
                 return;
             }
-            let fetch = |a| self.bus.memory.read(pc, a, 2, Operation::Fetch);
+            self.bus.pc = pc;
+            self.bus.privileged = self.cpu.regs.ipsr() != 0 || self.cpu.regs.control & 1 == 0;
+            let mut fetch = |a| self.bus.access_read(a, 2, Operation::Fetch);
             let hw = match fetch(pc) {
                 Ok(v) => v,
                 Err(e) => {
@@ -277,6 +425,10 @@ impl ResetProbe {
             }
             self.steps_attempted += 1;
             let before = self.cpu.regs.r;
+            self.cpu.ppb.vtor = self.bus.system.vtor;
+            self.cpu.ppb.cpacr = self.bus.system.cpacr;
+            self.cpu.ppb.shcsr = self.bus.system.shcsr;
+            self.cpu.ppb.ccr = self.bus.system.ccr;
             self.cpu.step(&mut self.bus);
             if let Some(e) = self.bus.failure.get() {
                 self.fault_registers = Some(before);
@@ -293,9 +445,6 @@ impl ResetProbe {
                 return;
             }
             self.instructions_completed += 1;
-            if std::mem::take(&mut self.bus.wrote) {
-                self.cpu.invalidate_decode_cache_all();
-            }
         }
     }
 }

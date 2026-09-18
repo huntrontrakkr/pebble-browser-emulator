@@ -265,7 +265,7 @@ impl CortexM33 {
         // Cache lookup — by-value (`DecodedOp: Copy`), so no borrow on
         // `bus` survives into dispatch. Cache lives on `self`
         // (per-core) since Phase 3 follow-up #10.
-        let entry = if is_cacheable_pc(pc) {
+        let entry = if bus.cache_decoded_instructions() && is_cacheable_pc(pc) {
             let slot = ((pc >> 1) & CACHE_INDEX_MASK) as usize;
             let e = self.decode_cache_get(slot);
             if e.tag == pc { Some(e) } else { None }
@@ -421,7 +421,7 @@ impl CortexM33 {
         // only catches non-SRAM fetch penalty (APB/XIP).
         bus.reset_extra_wait_states();
 
-        let hw0 = bus.read16(pc, self.core_id);
+        let hw0 = bus.fetch16(pc, self.core_id);
         if bus.bus_fault(self.core_id) {
             // Fetch fault — DO NOT cache. Return a minimal entry so the
             // caller's dispatch path can proceed and the post-step fault
@@ -438,7 +438,7 @@ impl CortexM33 {
 
         let wide = is_wide(hw0);
         let hw1 = if wide {
-            bus.read16(pc.wrapping_add(2), self.core_id)
+            bus.fetch16(pc.wrapping_add(2), self.core_id)
         } else {
             0
         };
@@ -493,7 +493,7 @@ impl CortexM33 {
             flags,
         };
 
-        if is_cacheable_pc(pc) {
+        if bus.cache_decoded_instructions() && is_cacheable_pc(pc) {
             let slot = ((pc >> 1) & CACHE_INDEX_MASK) as usize;
             self.decode_cache_set(slot, entry);
         }

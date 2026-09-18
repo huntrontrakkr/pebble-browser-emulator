@@ -43,20 +43,25 @@ that zeroing range. The audit does not supply the post-bootloader clock/controll
 An isolated Rust SiFli address space now maps supplied slot-0 bytes and HCPU RAM for
 those two revisions; missing ROM, LCPU, flash and MMIO accesses fail with structured
 context. Uninitialized SRAM also faults instead of manufacturing a zero-filled boot state.
-Both physical revisions now execute unchanged reset instructions in the separate
-`sifli-probe.wasm` module. Obelix completes 328,883 instructions and Getafix 313,880
-before `SystemInit`; all copied RAM sections and BSS bytes match the audited binaries.
-This is a bounded probe with explicit assumed CPU entry state, not a completed firmware
-boot. Both then stop at their first unmodeled SCB VTOR write (`0xe000ed08`); no generic
-QEMU peripherals or default register values substitute for physical hardware. PPB/SIO
-accesses, unknown memory and unsupported coprocessors stop with diagnostic context.
-The module is built with the static app but is not exposed as a working preview profile.
-[Time 2 execution evidence](evidence/obelix-reset-execution.json),
-[Round 2 execution evidence](evidence/getafix-reset-execution.json).
-Actual Chromium, Firefox and WebKit Workers reproduce both complete RAM comparisons,
-register checkpoints and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
-Validation: 103 Rust tests, 392 JavaScript tests (9 optional skips), Clippy and the
-full production build pass. Full physical firmware boot remains incomplete.
+Both physical revisions now execute unchanged reset code and complete `SystemInit`
+in the separate `sifli-probe.wasm` module. They reach PebbleOS `main` after 331,741
+instructions (Obelix) / 316,738 (Getafix), with the expected 12-region MPU configuration,
+access permissions, memory attributes and enabled instruction/data caches. Cache
+visibility, dirty writeback and maintenance are functional models; replacement and timing
+are not calibrated. Guest code is unchanged. Minimal documented startup registers cover
+RTC backup POR, the RCC pinmux enable and PA21 configuration.
+Execution now stops at the oscillator readiness/control register `HPSYS_AON.ACR`
+(`0x500c0010`) inside `HAL_HPAON_EnableXT48`. The actual clock/power state machine,
+LCPU execution, factory calibration, flash/device controllers and full boot remain unfinished.
+This is still a diagnostic module, not a selectable working physical-watch preview.
+[Time 2 evidence](evidence/obelix-reset-execution.json),
+[Round 2 evidence](evidence/getafix-reset-execution.json),
+[model sources and assumptions](evidence/sifli-system-model-sources.json).
+Actual Chromium, Firefox and WebKit Workers match both reset and `main` checkpoints,
+RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
+Validation: 113 Rust tests, 392 JavaScript tests (9 optional skips), Clippy and the full
+production build pass. The generic Emery Clock regression preserves all five previous
+state/frame/time checkpoints ([record](evidence/sifli-system-generic-regression.json)).
 Physical SiFli implementation, active phone snapshots, native deterministic replay and actual
 watch calibration remain open. [Contracts, reproduction and source inventory](HARDWARE_FIDELITY.md).
 

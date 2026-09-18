@@ -162,12 +162,15 @@ Deliver bounded, tested changes. Keep [STATUS](docs/STATUS.md) accurate and unre
 in the approved roadmap. Software milestones can complete without watches. **Physical fidelity
 cannot be marked verified without physical evidence.**
 
-## Execution checkpoint — physical reset startup
+## Execution checkpoint — physical system initialization
 
-Obelix PVT and Getafix DVT2 now execute unchanged 4.37.0 reset code in a separate
-Rust/Wasm probe. RAM initializers and BSS match the audited ELF/raw images, and both
-reach `SystemInit`. Execution stops at the first unsupported SCB VTOR write. This
-advances Plan 3 but does not complete its boot, app or phone acceptance criteria.
-The CPU handoff remains an explicit assumption; system registers, SiFli peripherals,
-ROM/LCPU dependencies and physical validation remain open. Reproduction and evidence
-are recorded in [hardware fidelity](docs/HARDWARE_FIDELITY.md#physical-reset-execution).
+Obelix PVT and Getafix DVT2 execute unchanged 4.37.0 reset code, initialize SRAM,
+configure the MPU/caches and reach PebbleOS `main` in Rust/Wasm. Both pass actual
+Chromium, Firefox and WebKit Worker checks. Architectural register access, MPU checks,
+functional cache visibility and minimal documented boot registers now have regressions.
+
+Plan 3 remains incomplete. The current boundary is the HXT48 oscillator control/readiness
+register in `soc_early_init`; oscillator/power/clock sequencing, LCPU/ROM, EFUSE calibration,
+remaining device controllers, full boot, display, installation and phone exchange still
+need implementation and independent acceptance. Initial hardware state and cache replacement
+remain explicit assumptions. [Evidence and reproduction](docs/HARDWARE_FIDELITY.md#physical-reset-execution).
