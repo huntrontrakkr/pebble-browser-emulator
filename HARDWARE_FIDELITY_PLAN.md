@@ -176,8 +176,10 @@ remain absent. An explicit W25Q128JV profile and synthetic OTP pages now complet
 NOR read path and `BSP_System_Config`. Always-on global-timer initialization is modeled and
 has an integrated regression: guest instructions enable both domains, synchronize HPSYS to
 LPSYS and observe counters advance from executed cycles, and an undocumented counter command
-faults rather than being accepted. The bounded sequence now reaches USART1; the boundary
-after it has not been established here, since that needs the licensed slot images.
+faults rather than being accepted. Real firmware drives the timer too: in the deepest run
+both domains are enabled with one synchronization, counting a 32 kHz source. The bounded
+sequence stops at the first USART1 read, `0x50084000`, so modelling USART1 is the next
+boundary.
 Array/OTP program/erase and full MPI XIP bus behavior are not implemented.
 Remaining oscillator/power/clock sequencing, LCPU/ROM, physical calibration,
 device controllers, full boot, display, installation and phone exchange still

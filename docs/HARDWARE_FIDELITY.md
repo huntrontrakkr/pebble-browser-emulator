@@ -277,12 +277,30 @@ See the [factory-data interface and limits](SIFLI_FACTORY_DATA.md) and
 [physical measurements](PHYSICAL_MEASUREMENTS.md). A successful calibration-transfer test
 is not a successful watch boot, frame, app install or phone connection.
 
+The slot-0 payloads are published release assets, so the run reproduces without any private
+input:
+
 ```sh
+base=https://github.com/coredevices/pebbleos/releases/download/v4.37.0
+for f in firmware_obelix_pvt_v4.37.0_slot0.{elf,bin} \
+         firmware_getafix_dvt2_v4.37.0_slot0.{elf,bin}; do curl -sSLO "$base/$f"; done
 npm run build:wasm
-npm run fidelity:physical-reset -- obelix_pvt /path/to/slot0.elf /path/to/slot0.bin report.json
-npm run fidelity:physical-reset -- getafix_dvt2 /path/to/slot0.elf /path/to/slot0.bin report.json
+npm run fidelity:physical-reset -- obelix_pvt firmware_obelix_pvt_v4.37.0_slot0.{elf,bin} report.json
+npm run fidelity:physical-reset -- getafix_dvt2 firmware_getafix_dvt2_v4.37.0_slot0.{elf,bin} report.json
 node scripts/verify-sifli-browser.mjs /path/to/local/images report.json
 ```
+
+Their SHA-256 identities are recorded in the evidence files below; a run whose `identity`
+matches apart from `wasmSha256` is the same firmware under a different build of this core.
+Both revisions reproduce their recorded instruction counts and boundary exactly under the
+rebuilt core, including the Armv8-M rejection and MPU cache changes.
+
+The bounded sequence ends at the first USART1 register read — `0x50084000`, reported as
+`UnmodeledMmio` — after 585,221 instructions on Obelix PVT (pc `0x12114ec8`) and 566,234 on
+Getafix DVT2 (pc `0x12100a48`). At that point the firmware has enabled both global-timer
+domains and issued one synchronization against a 32 kHz source, so the always-on timer is
+driven by real firmware and not only by the synthetic vectors above. Modelling USART1 is the
+next boundary.
 
 The runner audits ELF/raw identity, caps each phase at 10 million instructions and
 compares every initializer/BSS byte plus the `main` MPU/cache configuration derived
