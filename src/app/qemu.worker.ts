@@ -1,6 +1,11 @@
 import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './watch-profiles.ts';
 /// <reference lib="webworker" />
-import { PebbleTransport, encodeAppMessage, decodeAppMessage } from './pebble-transport.ts';
+import {
+  PebbleTransport,
+  encodeAppMessage,
+  decodeAppMessage,
+  diagnoseFirmwareLaunch,
+} from './pebble-transport.ts';
 import { appPackage } from './archives.ts';
 import type { MachineStateUpdate } from './emulator.types.ts';
 import { encodeQemuPacket } from './pebble-transport.ts';
@@ -49,6 +54,8 @@ const decoder = new TextDecoder();
 let transport: PebbleTransport | undefined,
   firmwareReady = false,
   consoleTail = '',
+  launchConsoleTail = '',
+  launchDiagnostic = '',
   installing = false,
   generation = 0,
   linked = false,
@@ -316,6 +323,10 @@ function createTransport() {
       },
     },
     {
+      diagnoseWaitFailure: (endpoint) =>
+        endpoint === 0x34
+          ? launchDiagnostic || diagnoseFirmwareLaunch(launchConsoleTail)
+          : undefined,
       onControl: (channel, payload) => {
         postMessage({
           type: 'control',
@@ -377,7 +388,12 @@ function serial() {
     if (port === 1) transport?.feedUart(bytes);
     if (port === 2) {
       const text = decoder.decode(bytes, { stream: true });
-      consoleTail = (consoleTail + text).slice(-2000);
+      consoleTail = (consoleTail + text).slice(-16384);
+      if (installing) {
+        launchConsoleTail = (launchConsoleTail + text).slice(-16384);
+        if (!launchDiagnostic)
+          launchDiagnostic = diagnoseFirmwareLaunch(launchConsoleTail) ?? '';
+      }
       if (!firmwareReady && consoleTail.includes('Ready for communication.')) {
         firmwareReady = true;
         announceReady = true;
@@ -477,6 +493,8 @@ function resetSession() {
   announceReady = false;
   startupOwner = undefined;
   consoleTail = '';
+  launchConsoleTail = '';
+  launchDiagnostic = '';
   linked = false;
   installing = false;
   battery = 100;
@@ -852,6 +870,8 @@ self.onmessage = async ({ data }) => {
         if (demoApplying) throw new Error('Wait for demo settings to finish before installing.');
         const parts = appPackage(data.bytes, FIRMWARE_PROFILES[profile].platform);
         stop();
+        launchConsoleTail = '';
+        launchDiagnostic = '';
         installing = true;
         running = true;
         const current = generation;

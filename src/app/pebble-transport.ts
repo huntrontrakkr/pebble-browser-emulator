@@ -27,6 +27,8 @@ export interface PebbleTransportHost {
 export interface PebbleTransportOptions {
   onPacket?(direction: 'phone' | 'watch', packet: PebblePacket): void;
   onControl?(channel: number, payload: Uint8Array): void;
+  /** Replace a packet timeout with a firmware-derived explanation when available. */
+  diagnoseWaitFailure?(endpoint: number): string | undefined;
   timeoutMs?: number;
 }
 export interface PebbleAppParts {
@@ -301,8 +303,12 @@ export class PebbleTransport {
       const now = this.host.nowMs();
       if (!Number.isFinite(now) || now < previous)
         throw new Error('Transport clock must advance monotonically.');
-      if (now - started >= timeoutMs)
-        throw new Error(`Timeout waiting for Pebble endpoint 0x${endpoint.toString(16)}.`);
+      if (now - started >= timeoutMs) {
+        const diagnosis = this.options.diagnoseWaitFailure?.(endpoint);
+        throw new Error(
+          diagnosis ?? `Timeout waiting for Pebble endpoint 0x${endpoint.toString(16)}.`,
+        );
+      }
       if (now === previous && ++stagnant > 10000)
         throw new Error('CPU did not advance while waiting for a packet.');
       if (now !== previous) stagnant = 0;
@@ -445,6 +451,22 @@ export class PebbleTransport {
       throw error;
     }
   }
+}
+
+/** Turn the firmware console emitted during launch into an actionable install error. */
+export function diagnoseFirmwareLaunch(consoleText: string): string | undefined {
+  const size = /App image exceeds virtual size:\s*image=(\d+)\s+virtual=(\d+)/i.exec(consoleText);
+  if (size)
+    return `Firmware rejected application launch: image size ${size[1]} exceeds declared virtual size ${size[2]}.`;
+  const overflow = /Stack overflow\s*\[task:\s*App\s*<([^>]+)>\]/i.exec(consoleText);
+  if (overflow) return `Application ${overflow[1]} overflowed its stack during launch.`;
+  const fault = /App fault!.*?PC:\s*(0x[0-9a-f]+)/is.exec(consoleText);
+  if (fault) return `Application faulted during launch at PC ${fault[1]}.`;
+  const failed = /Failed to start app\s*<([^>]+)>/i.exec(consoleText);
+  if (failed) return `Firmware failed to start application ${failed[1]}.`;
+  if (/Dangerously rebooted|Resetting!/i.test(consoleText))
+    return 'Firmware rebooted while launching the application.';
+  return undefined;
 }
 
 /** Extract the fixed modern AppMetadata record from a Pebble executable header. */

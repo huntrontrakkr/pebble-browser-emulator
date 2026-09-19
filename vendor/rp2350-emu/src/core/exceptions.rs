@@ -691,9 +691,12 @@ impl CortexM33 {
                 }
             }
             Fault::MemManage => {
-                // Set MMFSR.DACCVIOL (bit 1 of CFSR). Data-side is the honest default:
-                // Phase 7 Stage E's MPU-fault-during-lazy-flush use case is data-side.
-                self.ppb.cfsr |= 1 << 1;
+                // Access checks record IACCVIOL or DACCVIOL/MMARVALID before
+                // delivery. Direct test and lazy-FP callers without an address
+                // retain the historical data-fault default.
+                if self.ppb.cfsr & 0x83 == 0 {
+                    self.ppb.cfsr |= 1 << 1;
+                }
                 if self.ppb.shcsr & (1 << 16) != 0 {
                     // MEMFAULTENA
                     self.enter_exception(4, bus)

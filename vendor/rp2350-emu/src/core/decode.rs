@@ -254,6 +254,10 @@ impl CortexM33 {
         // off — the store lands in a cold struct field touched only
         // by `emit_mmio_trace`.
         bus.set_active_pc(pc, self.core_id);
+        if !self.mpu_allows(pc, 2, super::MemoryAccess::Execute) {
+            self.raise_memmanage(pc, true);
+            return 1;
+        }
 
         // Is this fetch sequential from the previous instruction?
         // The M33 prefetch buffer absorbs bank 2/6 penalty on sequential
@@ -281,6 +285,10 @@ impl CortexM33 {
         let hw0 = entry.hw0;
         let hw1 = entry.hw1;
         let is_wide = entry.is_wide();
+        if is_wide && !self.mpu_allows(pc.wrapping_add(2), 2, super::MemoryAccess::Execute) {
+            self.raise_memmanage(pc.wrapping_add(2), true);
+            return 1;
+        }
         let is_pure = entry.is_pure();
         let flag_only = entry.is_flag_only();
 

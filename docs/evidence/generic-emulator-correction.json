@@ -37,22 +37,45 @@
     "sha256": "977a8e967836b5c10ddfcd2fceb2ebe26d44f5b284ce208c647da09265870c6c",
     "firmwareVersion": "4.37.0",
     "faultCasesCompared": 12,
-    "matchingAppUuidAndPc": 11,
-    "unmatched": [
-      "52e04d79d8561de30700002e-qemu_gabbro"
-    ],
-    "matchingInstallTimeouts": [
+    "matchingAppUuidAndPc": 12,
+    "unmatched": [],
+    "historicalMatchingEndpoint34Timeouts": [
       "529289cee07df1fa76000009-qemu_flint",
       "529289cee07df1fa76000009-qemu_emery",
       "529289cee07df1fa76000009-qemu_gabbro",
       "557ed8733c562e76c5000021-qemu_flint"
     ],
-    "inputScheduling": "host waits; not deterministic virtual-time replay"
+    "sportsGabbroRepeatability": "initial miss followed by 3/3 native repeats with CFSR 0x82, MMFAR 0x10, stack overflow, PC 0, LR 0"
   },
   "limits": [
     "Targeted compatibility and throughput evidence, not the full 600-case corpus",
     "Host timing is not a hardware-cycle measurement",
-    "Native input scheduling is not deterministic instruction-time replay",
+    "The MPU follow-up is targeted Sports/Arena3D evidence, not a rerun of the full batch",
     "No physical-watch timing or sensor calibration is established"
-  ]
+  ],
+  "mpuFollowup": {
+    "wasmSha256": "6ec29eb7a9d8ec839d2ef439f386ced93773bbf9c9d56a42f9d7ccdccd9eaa06",
+    "sportsGabbro": {
+      "scenarioMs": 20000,
+      "cfsr": "0x82",
+      "mmfar": "0x10",
+      "classification": "MemManage stack overflow",
+      "appPc": "0x0",
+      "appLr": "0x0",
+      "matchesNativeRepeat": true
+    },
+    "sportsFlint": {
+      "scenarioMs": 20000,
+      "cfsr": "0x82",
+      "mmfar": "0x10",
+      "classification": "MemManage",
+      "appPc": "0x81516"
+    },
+    "arena3dFlintLaunchDiagnostic": "Application faulted during launch at PC 0x7b994.",
+    "ventooPreflight": {
+      "flint": "load 29761 > virtual 29668",
+      "emery": "load 32161 > virtual 32020",
+      "gabbro": "load 32161 > virtual 32004"
+    }
+  }
 }

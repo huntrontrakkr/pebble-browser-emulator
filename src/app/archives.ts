@@ -247,6 +247,12 @@ export function appPackage(
     if (binary.length < 130 || ![80, 66, 76, 65, 80, 80, 0, 0].every((v, i) => binary[i] === v))
       throw new Error('Invalid PBW ' + label + ' header.');
     const view = new DataView(binary.buffer, binary.byteOffset, binary.byteLength);
+    const loadSize = view.getUint16(0x0e, true);
+    const virtualSize = view.getUint16(0x80, true);
+    if (loadSize > virtualSize)
+      throw new Error(
+        `Invalid PBW ${label}: load size ${loadSize} exceeds virtual size ${virtualSize}.`,
+      );
     const flags = view.getUint32(96, true);
     const encodedPlatform = (flags >> 6) & 15;
     const expected = selectedPlatform === 'root' ? 1 : APP_PLATFORMS[selectedPlatform].id;

@@ -48,7 +48,10 @@ explicitly reports an unsupported SDK version. After this capture, the package s
 tightened to reject root-level builds on Gabbro immediately. The sealed table deliberately
 retains the observed timeouts; no post-change census result is inferred from it. Native and
 other supported legacy builds remain selectable on Gabbro. The last title without any
-successful install is Ventoo; all three profiles timed out awaiting its launch response.
+successful install is Ventoo. Follow-up inspection found that every selected binary in its
+current store PBW declares a load size larger than its virtual size. Firmware 4.37.0 rejects
+the unchanged package in both native QEMU and the Rust core; the loader now reports those
+invalid sizes before starting a transfer.
 
 Actual Chromium, Firefox and WebKit Worker/QuickJS checks pass live binary HTTP/XHR and
 WebSocket round trips ([browser record](phone-browser.json)). The store-detail hydration and direct legacy link paths have unit

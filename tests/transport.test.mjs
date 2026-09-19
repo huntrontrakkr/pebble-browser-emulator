@@ -8,6 +8,7 @@ import {
   encodeAppMessage,
   decodeAppMessage,
   appMetadata,
+  diagnoseFirmwareLaunch,
   formatUuid,
   parseUuid,
 } from '../src/app/pebble-transport.ts';
@@ -142,6 +143,34 @@ test('response wait observes sequence marks and virtual timeout/disposal', async
   await assert.rejects(t.waitPacket(4), /Timeout/);
   t.dispose();
   await assert.rejects(t.waitPacket(3), /disposed/);
+});
+
+test('launch timeout reports a firmware-derived cause when the console has one', async () => {
+  assert.equal(
+    diagnoseFirmwareLaunch('App image exceeds virtual size: image=32161 virtual=32020'),
+    'Firmware rejected application launch: image size 32161 exceeds declared virtual size 32020.',
+  );
+  assert.equal(
+    diagnoseFirmwareLaunch('Stack overflow [task: App <Sports>]'),
+    'Application Sports overflowed its stack during launch.',
+  );
+  let now = 0;
+  const t = new PebbleTransport(
+    {
+      ...dummyHost,
+      nowMs: () => now,
+      advance: async () => {
+        now += 10;
+      },
+    },
+    {
+      timeoutMs: 20,
+      diagnoseWaitFailure: (endpoint) =>
+        endpoint === 0x34 ? 'Firmware failed to start application Test.' : undefined,
+    },
+  );
+  await assert.rejects(t.waitPacket(0x34), /Firmware failed to start application Test/);
+  await assert.rejects(t.waitPacket(0x35), /Timeout waiting for Pebble endpoint 0x35/);
 });
 
 test('owned BlobDB deletion uses command 4 and requires real success or missing-key status', async () => {

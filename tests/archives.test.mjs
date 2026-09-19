@@ -60,6 +60,14 @@ test('PBW selection validates worker platform, UUID, presence and header before 
   assert.throws(() => appPackage(pack(binary(6), null), 'flint'), /flag/);
   assert.throws(() => appPackage(pack(binary(6, 0), binary(6)), 'flint'), /flag/);
   assert.throws(() => appPackage(pack(binary(6), new Uint8Array(140)), 'flint'), /header/);
+  const impossible = binary(6, 0);
+  const impossibleHeader = new DataView(impossible.buffer);
+  impossibleHeader.setUint16(0x0e, 140, true);
+  impossibleHeader.setUint16(0x80, 139, true);
+  assert.throws(
+    () => appPackage(pack(impossible, null), 'flint'),
+    /load size 140 exceeds virtual size 139/,
+  );
 });
 
 test('Emery selects intact legacy Basalt/Aplite builds without rewriting their binary headers', () => {

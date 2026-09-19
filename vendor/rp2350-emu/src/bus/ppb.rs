@@ -215,6 +215,10 @@ impl Default for Ppb {
 }
 
 impl Ppb {
+    #[inline]
+    fn armv7_mpu(&self) -> bool {
+        (self.cpuid >> 4) & 0x0fff == 0x0c24
+    }
     /// Pack 4 consecutive SHPR bytes into a u32 (little-endian).
     fn pack_shpr(&self, start: usize) -> u32 {
         u32::from_le_bytes([
@@ -337,8 +341,8 @@ impl Ppb {
             0xEF38 => self.fpcar,
             0xEF3C => self.fpdscr,
 
-            // MPU_TYPE: 16 regions on RP2350 Cortex-M33
-            0xED90 => 0x0000_1000, // DREGION=16, IREGION=0, SEPARATE=0
+            // MPU_TYPE follows the configured core profile.
+            0xED90 => if self.armv7_mpu() { 0x0000_0800 } else { 0x0000_1000 },
             // MPU_CTRL
             0xED94 => self.mpu_ctrl,
             // MPU_RNR
@@ -554,10 +558,13 @@ impl Ppb {
             // MPU_CTRL
             0xED94 => self.mpu_ctrl = val,
             // MPU_RNR
-            0xED98 => self.mpu_rnr = val & 0xF,
+            0xED98 => self.mpu_rnr = val & if self.armv7_mpu() { 0x7 } else { 0xF },
             // MPU_RBAR (ARMv8-M §B11.2.5): [31:5] BASE, [4:3] SH,
             // [2:1] AP, [0] XN — all bits carry meaning.
             0xED9C => {
+                if self.armv7_mpu() && val & 0x10 != 0 {
+                    self.mpu_rnr = val & 0x7;
+                }
                 let idx = (self.mpu_rnr & 0xF) as usize;
                 self.mpu_regions[idx].0 = val;
             }
@@ -566,7 +573,7 @@ impl Ppb {
             // (the bootrom's readback self-test depends on this).
             0xEDA0 => {
                 let idx = (self.mpu_rnr & 0xF) as usize;
-                self.mpu_regions[idx].1 = val & !0x10;
+                self.mpu_regions[idx].1 = if self.armv7_mpu() { val } else { val & !0x10 };
             }
             // MPU_RBAR_An / RLAR_An aliases — see read path for definition.
             0xEDA4 | 0xEDAC | 0xEDB4 => {

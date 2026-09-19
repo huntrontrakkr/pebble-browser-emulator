@@ -60,12 +60,16 @@ The [generic emulator correction](GENERIC_EMULATOR_CORRECTION.md) fixes a WebAss
 signed-`i32` sentinel comparison that let terminal runs continue, and lets CPU-accepted
 BusFaults reach PebbleOS rather than stopping the whole Worker. An identical targeted
 33-case batch fell from 413.3s to 74.7s (5.53×) with no host timeout and unchanged title
-completion totals. Eleven of twelve resulting app-fault UUID/program-counter pairs match
-unchanged packages under pinned native Pebble QEMU; Sports on Gabbro remains an explicit
-host-scheduling/reference difference. Ventoo on all three profiles and Arena3D on Flint
-also reproduce their install timeout natively. This corrects a stall and guest exception
-delivery; it is not cycle-accuracy or universal-compatibility evidence.
-Validation: 417 JavaScript/Wasm tests pass (nine optional fixture skips), the complete
+completion totals. Eleven of twelve initial app-fault UUID/program-counter pairs matched
+unchanged packages under pinned native Pebble QEMU. Three native repeats showed the same
+Sports/Gabbro MPU stack-guard fault; the Rust core now enforces ordinary PMSAv7/PMSAv8
+access permissions and matches its `CFSR=0x82`, `MMFAR=0x10`, PC/LR-zero result. Ventoo's
+current store PBW is invalid because each selected binary's load size exceeds its declared
+virtual size, so it is now rejected before transfer. Arena3D on Flint transfers but then
+faults at PC `0x7b994` after firmware cannot allocate its accelerometer subscription; it
+runs on Emery/Gabbro. Launch waits now report those firmware causes rather than only endpoint
+`0x34` timeouts. This is not cycle-accuracy or universal-compatibility evidence.
+Validation: 418 JavaScript/Wasm tests pass (nine optional fixture skips), the complete
 Rust workspace passes, and the production PWA build passes.
 
 

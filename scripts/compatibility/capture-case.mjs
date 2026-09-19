@@ -10,6 +10,7 @@ import {
   encodeAppMessage,
   decodeAppMessage,
   encodeQemuPacket,
+  diagnoseFirmwareLaunch,
 } from '../../src/app/pebble-transport.ts';
 import { appPackage, inspectPackage } from '../../src/app/archives.ts';
 import { FIRMWARE_PROFILES, APP_PLATFORMS } from '../../src/app/watch-profiles.ts';
@@ -35,6 +36,8 @@ let eventBytes = 0,
   transport,
   phone,
   serialTail = '',
+  launchConsoleTail = '',
+  launchDiagnostic = '',
   steps = 0,
   lastFrame = -1,
   frameIndex = 0,
@@ -165,7 +168,12 @@ async function advance(deadline = api.spike_ticks() + 640000, trace = false) {
     event('uart', { direction: 'watch', port, base64: bytes.toString('base64') });
     if (port === 1) transport.feedUart(bytes);
     if (port === 2) {
-      serialTail = (serialTail + bytes.toString('utf8')).slice(-8192);
+      serialTail = (serialTail + bytes.toString('utf8')).slice(-16384);
+      if (phase === 'install') {
+        launchConsoleTail = (launchConsoleTail + bytes.toString('utf8')).slice(-16384);
+        if (!launchDiagnostic)
+          launchDiagnostic = diagnoseFirmwareLaunch(launchConsoleTail) ?? '';
+      }
       if (consoleBytes + n <= 256 * 2 ** 20) {
         writeSync(consoleFd, bytes);
         consoleBytes += n;
@@ -300,6 +308,10 @@ try {
   transport = new PebbleTransport(
     { nowMs: clock, advance: () => advance(), writeUart },
     {
+      diagnoseWaitFailure: (endpoint) =>
+        endpoint === 0x34
+          ? launchDiagnostic || diagnoseFirmwareLaunch(launchConsoleTail)
+          : undefined,
       onPacket: (direction, packet) => {
         event('packet', {
           direction,
@@ -322,6 +334,8 @@ try {
   while (!serialTail.includes('Ready for communication.')) await advance();
   checkpoint('boot');
   phase = 'install';
+  launchConsoleTail = '';
+  launchDiagnostic = '';
   await transport.setBluetooth(true);
   observations.install = await transport.install(parts, (p) => event('install-progress', p));
   observations.installed = true;
