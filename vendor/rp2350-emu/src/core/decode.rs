@@ -255,13 +255,9 @@ impl CortexM33 {
         // by `emit_mmio_trace`.
         bus.set_active_pc(pc, self.core_id);
         self.instruction_abandoned = false;
+        let fetch_context = self.current_access_context();
         if self.ppb.mpu_ctrl & 1 != 0
-            && !self.mpu_permits(
-                pc,
-                2,
-                super::MemoryAccess::Execute,
-                self.current_access_context(),
-            )
+            && !self.mpu_permits(pc, 2, super::MemoryAccess::Execute, fetch_context)
         {
             self.raise_instruction_access_violation();
             return 1;
@@ -299,7 +295,7 @@ impl CortexM33 {
                 pc.wrapping_add(2),
                 2,
                 super::MemoryAccess::Execute,
-                self.current_access_context(),
+                fetch_context,
             )
         {
             self.raise_instruction_access_violation();

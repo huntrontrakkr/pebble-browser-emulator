@@ -50,6 +50,49 @@ pub(crate) const NVIC_BIT_WORDS: usize = 2;
 /// are unused (IRQs 52..55 do not exist).
 pub(crate) const NVIC_IPR_WORDS: usize = 13;
 
+/// Number of 32-byte blocks memoized by [`MpuCache`]. A power of two so the
+/// slot index is a mask.
+pub(crate) const MPU_CACHE_SLOTS: usize = 128;
+
+/// One memoized 32-byte block. `known`/`allow` carry one bit per
+/// (access kind, privileged) pair, so a block that is fetched and read keeps
+/// both answers. `known == 0` marks an unused slot.
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct MpuCacheEntry {
+    pub(crate) tag: u32,
+    pub(crate) known: u8,
+    pub(crate) allow: u8,
+}
+
+/// Memoized MPU permission lookups, one entry per 32-byte block.
+///
+/// Region permissions are constant across a 32-byte block: PMSAv8 regions are
+/// 32-byte granular, and a PMSAv7 region is at least 32 bytes with subregions
+/// no smaller than that, so a block never spans a permission boundary. Derived
+/// state only — never checkpointed, and discarded by `Ppb::mpu_changed()`.
+#[derive(Clone, Debug)]
+pub struct MpuCache {
+    /// The most recent block per (access kind, privileged), ahead of the
+    /// table. Straight-line code fetches the same block for several
+    /// instructions and a function's stack accesses stay in one block, but
+    /// the two interleave, so one shared entry would thrash. `u32::MAX` marks
+    /// an empty lane.
+    pub(crate) front_tag: [u32; 6],
+    pub(crate) front_allow: [bool; 6],
+    pub(crate) entries: [MpuCacheEntry; MPU_CACHE_SLOTS],
+}
+
+impl MpuCache {
+    /// An empty cache: every lane and slot misses until refilled.
+    pub fn stale() -> Self {
+        Self {
+            front_tag: [u32::MAX; 6],
+            front_allow: [false; 6],
+            entries: [MpuCacheEntry::default(); MPU_CACHE_SLOTS],
+        }
+    }
+}
+
 /// Per-core Private Peripheral Bus state (NVIC, SCB, SysTick stubs).
 /// Phase 3: slim — only what the bootrom needs.
 pub struct Ppb {
@@ -101,6 +144,10 @@ pub struct Ppb {
     pub mpu_ctrl: u32,                 // MPU Control (0xE000ED94)
     pub mpu_rnr: u32,                  // MPU Region Number (0xE000ED98)
     pub mpu_regions: [(u32, u32); 16], // 16 regions: (RBAR, RLAR) pairs
+    /// Memoized permission lookups for [`mpu_regions`](Self::mpu_regions).
+    /// Derived state: discarded by `mpu_changed()` on every MPU write, so a
+    /// writer that touches a region directly must call it.
+    pub mpu_cache: MpuCache,
 
     // SAU (0xE000EDD0-0xE000EDE0)
     pub sau_ctrl: u32,                // SAU Control (bit 0 = enable, bit 1 = ALLNS)
@@ -195,6 +242,7 @@ impl Default for Ppb {
             mpu_ctrl: 0,
             mpu_rnr: 0,
             mpu_regions: [(0, 0); 16],
+            mpu_cache: MpuCache::stale(),
             sau_ctrl: 0,
             sau_rnr: 0,
             sau_regions: [(0, 0); 8],
@@ -215,6 +263,10 @@ impl Default for Ppb {
 }
 
 impl Ppb {
+    /// Invalidate derived MPU state after a direct region or control write.
+    pub fn mpu_changed(&mut self) {
+        self.mpu_cache = MpuCache::stale();
+    }
     #[inline]
     fn armv7_mpu(&self) -> bool {
         (self.cpuid >> 4) & 0x0fff == 0x0c24
@@ -556,7 +608,10 @@ impl Ppb {
             // MPU_TYPE: read-only
             0xED90 => {}
             // MPU_CTRL
-            0xED94 => self.mpu_ctrl = val,
+            0xED94 => {
+                self.mpu_ctrl = val;
+                self.mpu_changed();
+            }
             // MPU_RNR
             0xED98 => self.mpu_rnr = val & if self.armv7_mpu() { 0x7 } else { 0xF },
             // MPU_RBAR (ARMv8-M §B11.2.5): [31:5] BASE, [4:3] SH,
@@ -567,6 +622,7 @@ impl Ppb {
                 }
                 let idx = (self.mpu_rnr & 0xF) as usize;
                 self.mpu_regions[idx].0 = val;
+                self.mpu_changed();
             }
             // MPU_RLAR (ARMv8-M §B11.2.8): [31:5] LIMIT, [4] RES0,
             // [3:1] AttrIndx, [0] EN. Mask bit [4] so it reads back as 0
@@ -574,17 +630,20 @@ impl Ppb {
             0xEDA0 => {
                 let idx = (self.mpu_rnr & 0xF) as usize;
                 self.mpu_regions[idx].1 = if self.armv7_mpu() { val } else { val & !0x10 };
+                self.mpu_changed();
             }
             // MPU_RBAR_An / RLAR_An aliases — see read path for definition.
             0xEDA4 | 0xEDAC | 0xEDB4 => {
                 let n = ((addr as usize) - 0xEDA4) / 8 + 1;
                 let idx = ((self.mpu_rnr as usize) & !0x3) | n;
                 self.mpu_regions[idx & 0xF].0 = val;
+                self.mpu_changed();
             }
             0xEDA8 | 0xEDB0 | 0xEDB8 => {
                 let n = ((addr as usize) - 0xEDA8) / 8 + 1;
                 let idx = ((self.mpu_rnr as usize) & !0x3) | n;
                 self.mpu_regions[idx & 0xF].1 = val & !0x10;
+                self.mpu_changed();
             }
 
             // SAU_CTRL

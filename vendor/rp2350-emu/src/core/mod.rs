@@ -955,8 +955,9 @@ impl CortexM33 {
         None
     }
 
-    #[inline]
-    fn mpu_byte_permitted(
+    /// Scan the regions for one byte. The cached entry point below is what
+    /// the execution paths call.
+    fn mpu_byte_scan(
         &self,
         addr: u32,
         access: MemoryAccess,
@@ -972,11 +973,63 @@ impl CortexM33 {
         region.unwrap_or(privileged && control & 4 != 0)
     }
 
+    /// Region permission for one byte, memoized per 32-byte block.
+    #[inline]
+    fn mpu_byte_permitted(
+        &mut self,
+        addr: u32,
+        access: MemoryAccess,
+        privileged: bool,
+        control: u32,
+    ) -> bool {
+        let tag = addr >> 5;
+        let index = (access as u8 * 2 + privileged as u8) as usize;
+        if self.ppb.mpu_cache.front_tag[index] == tag {
+            let cached = self.ppb.mpu_cache.front_allow[index];
+            // A missed invalidation would silently change guest behavior, so
+            // every test run re-scans behind the cache.
+            debug_assert_eq!(
+                cached,
+                self.mpu_byte_scan(addr, access, privileged, control),
+                "stale MPU cache entry for {addr:#010x}"
+            );
+            return cached;
+        }
+        let bit = 1u8 << index;
+        let slot = (tag as usize) & (crate::bus::ppb::MPU_CACHE_SLOTS - 1);
+        let entry = self.ppb.mpu_cache.entries[slot];
+        let allowed = if entry.known & bit != 0 && entry.tag == tag {
+            let cached = entry.allow & bit != 0;
+            debug_assert_eq!(
+                cached,
+                self.mpu_byte_scan(addr, access, privileged, control),
+                "stale MPU cache entry for {addr:#010x}"
+            );
+            cached
+        } else {
+            let scanned = self.mpu_byte_scan(addr, access, privileged, control);
+            let entry = &mut self.ppb.mpu_cache.entries[slot];
+            if entry.tag != tag {
+                entry.tag = tag;
+                entry.known = 0;
+                entry.allow = 0;
+            }
+            entry.known |= bit;
+            if scanned {
+                entry.allow |= bit;
+            }
+            scanned
+        };
+        self.ppb.mpu_cache.front_tag[index] = tag;
+        self.ppb.mpu_cache.front_allow[index] = allowed;
+        allowed
+    }
+
     /// MPU permission for a `size`-byte access (Armv7-M ValidateAddress and
     /// its Armv8-M equivalent). Regions are 32-byte granular, so an access
     /// inside one 32-byte block needs a single lookup.
     pub(crate) fn mpu_permits(
-        &self,
+        &mut self,
         addr: u32,
         size: u32,
         access: MemoryAccess,
@@ -1000,9 +1053,12 @@ impl CortexM33 {
 
     /// MPU check for a data access made by the executing instruction.
     #[inline(always)]
-    fn data_access_permitted(&self, addr: u32, size: u32, access: MemoryAccess) -> bool {
-        self.ppb.mpu_ctrl & 1 == 0
-            || self.mpu_permits(addr, size, access, self.current_access_context())
+    fn data_access_permitted(&mut self, addr: u32, size: u32, access: MemoryAccess) -> bool {
+        if self.ppb.mpu_ctrl & 1 == 0 {
+            return true;
+        }
+        let context = self.current_access_context();
+        self.mpu_permits(addr, size, access, context)
     }
 
     /// Abandon the executing instruction for a synchronous fault. Its later

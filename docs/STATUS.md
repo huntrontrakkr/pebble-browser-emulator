@@ -82,7 +82,7 @@ mode after the handler's first instruction. Thirteen synthetic vectors on all th
 cover these paths; twelve failed before the change. Unchanged 4.37.0 firmware boots
 byte-identically for 20 virtual seconds on each profile. The vectors follow the architecture
 pseudocode and QEMU's v7m helpers. No native-QEMU captures exist for them yet. MPU
-enforcement still costs 26 to 38% of native boot throughput ([CPU support](CPU_SUPPORT.md)).
+enforcement costs 16 to 19% of native boot throughput ([CPU support](CPU_SUPPORT.md)).
 Validation: 162 Rust workspace tests, Clippy and rustfmt pass; the vendored core's 3,643
 unit tests pass with its 21 pre-existing failures unchanged. On integration the Wasm build
 and 417 JavaScript/Wasm ABI tests also pass (eleven optional fixture skips). The preview and
@@ -92,6 +92,17 @@ three profiles match their native-QEMU notification frames. Firefox and WebKit e
 sensor workflow gate and the compatibility census were not rerun; the first needs engine
 builds and the second needs SDK 4.33.1 and a native-QEMU reference frame, neither reachable
 from this environment.
+
+MPU permission lookups are now memoized per 32-byte block
+([evidence](evidence/mpu-cache-throughput.json)). Permissions are constant across a block,
+so the regions are scanned only when a block is first touched: 98.9% of the roughly 1.66
+lookups per instruction avoid the scan, and enforcement now costs 16 to 19% of
+pre-enforcement boot throughput rather than 27 to 42%. Every MPU register write discards the
+cache, so a lookup carries no validity check. Guest behavior is unchanged: all three 20
+virtual second 4.37.0 boots stay byte-identical, startup checkpoints reproduce, and debug
+builds re-scan the regions behind every hit and assert the answers match — the workspace
+tests and roughly 65 million re-scanned lookups per profile in a debug firmware boot found
+no mismatch. Throughput is native host measurement, not browser or watch performance.
 
 Preview cancellation no longer latches a loading error. `cancel-startup` and `pause` can
 reach the emulator Worker while `init` is still fetching and compiling the core; the Worker

@@ -91,3 +91,14 @@ Unchanged 4.37.0 firmware boots byte-identically on all three profiles. Not mode
 unprivileged SCS accesses as BusFault, PMSAv8 overlapping-region faults, default-map
 execute-never regions, FPCCR.USER/MMRDY for lazy preservation, a derived HardFault
 pending behind NMI, and precise abandonment for BusFault and UsageFault.
+
+`bus/ppb.rs`, `core/mod.rs`, `core/checkpoint.rs`: memoize MPU permission lookups. `Ppb`
+owns six front lanes, one per (access kind, privileged) pair, ahead of a 128-entry
+direct-mapped table of 32-byte blocks. Region permissions are constant across a 32-byte
+block — PMSAv8 regions are 32-byte granular, and a PMSAv7 region is at least 32 bytes with
+subregions no smaller than that — so a block never spans a permission boundary. Every MPU
+register write calls `Ppb::mpu_changed()`, which discards the cache, so a lookup carries no
+validity check; a writer that sets a region directly must call it. The cache is derived
+state and is not checkpointed. Debug builds re-scan the regions behind every hit and assert
+the answers match. Firmware boots stay byte-identical; see
+`docs/evidence/mpu-cache-throughput.json`.

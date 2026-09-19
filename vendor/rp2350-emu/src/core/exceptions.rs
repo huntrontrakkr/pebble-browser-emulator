@@ -1297,6 +1297,7 @@ mod tests {
         let rbar = (base & !0x1F) | ((ap & 0x3) << 1);
         let rlar = (limit & !0x1F) | if enable { 1 } else { 0 };
         cpu.ppb.mpu_regions[idx] = (rbar, rlar);
+        cpu.ppb.mpu_changed();
 
         // SAU on with a catch-all Secure region — required to avoid the
         // SAU-disabled universal-RW fallback. Region 0 covers everything.

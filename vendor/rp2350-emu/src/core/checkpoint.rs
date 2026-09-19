@@ -259,7 +259,11 @@ fields!(Ppb {
     nvic_ispr,
     nvic_iabr,
     nvic_ipr
-});
+},
+    // Memoized region lookups, derived from the registers above. A restored
+    // core starts with an empty cache and refills it on first use.
+    mpu_cache = crate::bus::ppb::MpuCache::stale()
+);
 fields!(CoreAtomics {
     halted,
     wfe_waiting,

@@ -1,0 +1,56 @@
+{
+  "format": "mpu-cache-throughput",
+  "version": 1,
+  "measuredAt": "2026-09-19",
+  "scope": "Memoized MPU region lookups in the vendored CPU. Guest-visible behavior is unchanged; this records the throughput recovered and how the cache was proved not to go stale.",
+  "baseCommit": "9864a93",
+  "preEnforcementCommit": "80904ec",
+  "change": "Ppb owns a permission cache: six front lanes, one per (access kind, privileged) pair, ahead of a 128-entry direct-mapped table of 32-byte blocks. Region permissions are constant across a 32-byte block, so a block never spans a permission boundary. Every MPU register write calls Ppb::mpu_changed(), which discards the cache, so a lookup carries no validity check at all.",
+  "method": "crates/qemu-emery/examples/native_boot.rs, release build, unchanged official 4.37.0 images, fixed epoch, 8 virtual seconds, median of 3 runs on one host core. All four builds measured on the same machine in the same session.",
+  "stepsPerSecond": {
+    "qemu_flint": {
+      "preEnforcement": 22008821,
+      "before": 12735378,
+      "after": 18481383,
+      "checksRemoved": 20820221
+    },
+    "qemu_emery": {
+      "preEnforcement": 22104278,
+      "before": 16137133,
+      "after": 18080571,
+      "checksRemoved": 20871134
+    },
+    "qemu_gabbro": {
+      "preEnforcement": 22125511,
+      "before": 15878259,
+      "after": 17994006,
+      "checksRemoved": 20308432
+    }
+  },
+  "summary": "MPU enforcement cost 42% (Flint), 27% (Emery) and 28% (Gabbro) of pre-enforcement boot throughput; it now costs 16%, 18% and 19%. Flint gains most because PMSAv7 decodes a region size per lookup where PMSAv8 compares a stored limit.",
+  "checksRemovedNote": "A build of this tree with the MPU check stubbed out reaches 20.3 to 20.9 M steps/s, not the 22.1 M of the pre-enforcement commit. About a third of the remaining gap is the precise-fault machinery added with MPU precision, not region lookup, so it is not recoverable by caching.",
+  "lookupProfile": {
+    "method": "Temporary counters over an 8 virtual second boot, removed before commit",
+    "qemu_flint": { "lookups": 285317279, "frontHits": 187636833, "scans": 3223572, "invalidations": 1729 },
+    "qemu_emery": { "lookups": 282225900, "frontHits": 140726389, "scans": 4467450, "invalidations": 1527 },
+    "note": "About 1.66 lookups per executed instruction, and 98.9% of them never reach a region scan. The remaining cost is the volume of lookups, not the scan."
+  },
+  "equivalence": {
+    "firmwareBoots": "All three 20 virtual second 4.37.0 boots are byte-identical to 9864a93: same steps, cycles, frames and frame, RAM and UART digests",
+    "startupCheckpoints": "npm run build:checkpoints reproduces identical SHA-256 checkpoints across repeated runs",
+    "staleness": "Debug builds re-scan the regions behind every cache hit and assert the answers match. The 162 Rust workspace tests pass under that assertion, and a debug boot of unchanged 4.37.0 firmware ran 38.7 M (Flint), 40.9 M (Emery) and 41.2 M (Gabbro) instructions, roughly 65 M re-scanned lookups per profile, with no mismatch."
+  },
+  "validation": {
+    "rustWorkspaceTests": 162,
+    "clippy": "cargo clippy --workspace --all-targets -- -D warnings passes",
+    "rustfmt": "cargo fmt --all -- --check passes",
+    "javascriptWasmTests": "417 pass, 0 fail, 11 skipped",
+    "browserGates": "Preview and demo gates pass in Chromium: 9020 ms first boot and install, 10.271 virtual seconds in 10 real seconds, and native-QEMU notification frames match on all three profiles",
+    "notRun": "Firefox and WebKit engines, the sensor workflow gate and the compatibility census, as for the MPU precision change"
+  },
+  "limits": [
+    "Host throughput on one x86-64 machine, not browser or watch performance",
+    "The cache is derived state and is never checkpointed; a restored core refills it",
+    "A writer that sets MPU registers without going through the register path must call Ppb::mpu_changed(); the debug assertion is what enforces this in tests"
+  ]
+}
