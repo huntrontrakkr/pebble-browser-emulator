@@ -1,5 +1,13 @@
 # Third-party notices
 
+## Inter
+
+`public/fonts/inter-latin-wght-normal.woff2` is the latin subset of the Inter variable
+font, taken from the `@fontsource-variable/inter` 5.3.0 package, under the
+**SIL Open Font License 1.1**. Its licence is kept beside it at
+`public/fonts/INTER-LICENSE.txt`. The font is self-hosted so the static application needs
+no font service; nothing is fetched at runtime.
+
 ## Companion browser port
 
 `phone-app` contains adapted Core Devices mobileapp source pinned at

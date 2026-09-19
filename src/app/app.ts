@@ -43,6 +43,15 @@ import type { OpticalStyle } from './watch-optics.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
 
+/** The operating system's colour-scheme preference, false where unsupported. */
+function prefersDarkTheme(): boolean {
+  try {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches === true;
+  } catch {
+    return false;
+  }
+}
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -250,7 +259,10 @@ export class App implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.demoSettings.set(readDemoSettings());
     try {
-      this.setTheme(localStorage.getItem('pebble.theme') ?? 'light');
+      // Follow the operating system until the viewer picks a theme, so a
+      // dark desktop does not open to a full-brightness page.
+      const stored = localStorage.getItem('pebble.theme');
+      this.setTheme(stored ?? (prefersDarkTheme() ? 'dark' : 'light'));
     } catch {}
     this.cleanupInspector = registerInspector(
       (document as Document & { modelContext?: InspectorRegistry }).modelContext,
@@ -738,6 +750,10 @@ export class App implements AfterViewInit, OnDestroy {
   setTheme(value: string) {
     this.theme.set(value);
     document.documentElement.dataset['theme'] = value;
+    // Keep the browser's own chrome (address bar, overscroll) on the same
+    // surface as the page background.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', value === 'dark' ? '#141210' : '#f3efe9');
     try {
       localStorage.setItem('pebble.theme', value);
     } catch {}

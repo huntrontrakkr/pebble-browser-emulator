@@ -1,18 +1,42 @@
+/* Inter, variable weight, latin subset. SIL Open Font License 1.1 —
+   see public/fonts/INTER-LICENSE.txt. Self-hosted so the static app needs no
+   font service. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   color-scheme: light;
-  --bg: #f5f6f8;
-  --panel: #fff;
-  --panel-alt: #f8f9fb;
-  --text: #202631;
-  --muted: #626e7d;
-  --line: #dce1e8;
-  --accent: #245bc4;
-  --accent-hover: #194ba8;
-  --selected: #eaf0fc;
-  --stage: #eef0f3;
-  --error: #a32929;
-  --error-bg: #fff1f0;
+  --bg: #f3efe9;
+  --panel: #fffdfa;
+  --panel-alt: #f8f4ee;
+  --text: #211e19;
+  --muted: #6d6459;
+  --line: #e3ddd3;
+  --accent: #a8521f;
+  --accent-hover: #8d4318;
+  --selected: #f6ebe0;
+  --stage: #ebe6de;
+  --error: #9e2b20;
+  --error-bg: #fdf0ed;
+  /* Device shell: a surface distinct from panels, so the watch reads as an
+     object sitting on the stage rather than another card. */
+  --device: #34302a;
+  --device-edge: #1e1b17;
+  --device-ink: #efe9e0;
+  --shadow-raise: inset 0 1px 0 #ffffffcc, 0 10px 24px -12px #2a211540;
+  --shadow-well: inset 0 2px 7px #00000024, inset 0 -1px 0 #ffffff66;
+  --radius: 10px;
+  --radius-lg: 18px;
   font-family:
+    'Inter Variable',
     Inter,
     ui-sans-serif,
     -apple-system,
@@ -23,18 +47,23 @@
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #14171c;
-  --panel: #1c2027;
-  --panel-alt: #222730;
-  --text: #e7eaf0;
-  --muted: #a2aab8;
-  --line: #353d49;
-  --accent: #81a9fc;
-  --accent-hover: #abc6ff;
-  --selected: #263753;
-  --stage: #171b21;
-  --error: #ffafac;
-  --error-bg: #392626;
+  --bg: #141210;
+  --panel: #1c1a17;
+  --panel-alt: #23201c;
+  --text: #ece6dd;
+  --muted: #a69c8e;
+  --line: #332e28;
+  --accent: #e59356;
+  --accent-hover: #f0ab77;
+  --selected: #35251a;
+  --stage: #100e0c;
+  --error: #ff9d92;
+  --error-bg: #3a221f;
+  --device: #3b3733;
+  --device-edge: #171512;
+  --device-ink: #e9e3da;
+  --shadow-raise: inset 0 1px 0 #ffffff12, 0 12px 28px -14px #000000b0;
+  --shadow-well: inset 0 2px 9px #00000088, inset 0 -1px 0 #ffffff0f;
 }
 * {
   box-sizing: border-box;
@@ -136,13 +165,21 @@ button:hover:not(:disabled),
   border-color: var(--muted);
 }
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.55;
   cursor: default;
 }
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--panel);
+  color: #fff;
+}
+/* A primary action that is not available yet drops its fill rather than
+   washing it out, so it reads as inert instead of broken. */
+button.primary:disabled {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 1;
 }
 button.primary:hover:not(:disabled) {
   background: var(--accent-hover);
@@ -1259,53 +1296,85 @@ h1 {
 
 /* The screen and its four physical controls stay together at every viewport size. */
 .watch-layout {
-  --control-size: 48px;
+  --control-size: 38px;
+  /* Shell thickness around the screen, and the body's outer corner. The
+     screen corner is the body corner less the bezel, so the two curves stay
+     concentric at any size. */
+  --bezel: 22px;
+  --body-radius: 32px;
+  --screen-radius: calc(var(--body-radius) - var(--bezel));
   position: relative;
   flex: 0 1 auto;
   width: min(var(--screen-width), 360px, calc(100% - 132px));
-  margin: 36px 66px;
+  margin: 44px 70px;
+}
+/* The body: one geometric slab the screen is recessed into, rather than a
+   ring drawn around the canvas. */
+.watch-layout::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--bezel) * -1);
+  border-radius: var(--body-radius);
+  background: var(--device);
+  box-shadow:
+    0 0 0 1px var(--device-edge),
+    var(--shadow-raise);
+  z-index: 0;
 }
 .watch-layout .pixel-screen {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: none;
   overflow: hidden;
-  border-radius: 10px;
-  box-shadow:
-    0 0 0 10px var(--panel),
-    0 0 0 11px var(--line),
-    0 14px 32px #00000016;
+  border-radius: var(--screen-radius);
+  box-shadow: var(--shadow-well);
+}
+.watch-layout.round-watch {
+  --bezel: 26px;
+}
+.watch-layout.round-watch::before {
+  border-radius: 50%;
 }
 .watch-layout.round-watch .pixel-screen {
   border-radius: 50%;
 }
-.watch-layout.duo-watch .pixel-screen {
-  border-radius: 1px;
+.watch-layout.duo-watch {
+  --body-radius: 10px;
 }
+.watch-layout.duo-watch .pixel-screen {
+  border-radius: 2px;
+}
+/* Buttons are part of the shell: tabs that grow out of the body's edge and
+   share its surface, not free-floating keys beside it. */
 .watch-control {
   position: absolute;
   transform: translateY(-50%);
   width: var(--control-size);
-  height: var(--control-size);
-  min-height: 48px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: 0 2px 3px #00000008;
+  background: var(--device);
+  border: 0;
+  box-shadow:
+    0 0 0 1px var(--device-edge),
+    var(--shadow-raise);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  color: var(--text);
-  z-index: 2;
+  color: var(--device-ink);
+  z-index: 0;
 }
 .watch-control.left-control {
-  left: -64px;
+  left: calc(var(--bezel) * -1 - var(--control-size) + 10px);
+  border-radius: 12px 3px 3px 12px;
 }
 .watch-control.right-control {
-  right: -64px;
+  right: calc(var(--bezel) * -1 - var(--control-size) + 10px);
+  border-radius: 3px 12px 12px 3px;
 }
 .watch-control-icon {
   font-size: 24px;
@@ -1317,16 +1386,19 @@ h1 {
 }
 .watch-control-label {
   position: absolute;
-  top: calc(100% + 4px);
-  font-size: 10px;
+  top: calc(100% + 6px);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 .watch-control.pressed {
   background: var(--accent);
-  color: var(--panel);
-  border-color: var(--accent);
-  box-shadow: inset 0 2px 4px #0003;
+  color: #fff;
+  box-shadow:
+    0 0 0 1px var(--accent),
+    inset 0 2px 5px #00000040;
 }
 .watch-control:focus-visible,
 .display-stage:focus-visible {
