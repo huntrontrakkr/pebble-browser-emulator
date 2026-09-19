@@ -20,9 +20,11 @@
   --text: #211e19;
   --muted: #6d6459;
   --line: #e3ddd3;
-  --accent: #a8521f;
-  --accent-hover: #8d4318;
-  --selected: #f6ebe0;
+  --accent: #2a2521;
+  --accent-hover: #100e0c;
+  --accent-ink: #fffdfa;
+  --link: #3d5a78;
+  --selected: #ebe6dd;
   --stage: #ebe6de;
   --error: #9e2b20;
   --error-bg: #fdf0ed;
@@ -31,6 +33,9 @@
   --device: #34302a;
   --device-edge: #1e1b17;
   --device-ink: #efe9e0;
+  --key: #bdb5a7;
+  --key-edge: #8e867a;
+  --key-ink: #24211d;
   --shadow-raise: inset 0 1px 0 #ffffffcc, 0 10px 24px -12px #2a211540;
   --shadow-well: inset 0 2px 7px #00000024, inset 0 -1px 0 #ffffff66;
   --radius: 10px;
@@ -53,15 +58,20 @@
   --text: #ece6dd;
   --muted: #a69c8e;
   --line: #332e28;
-  --accent: #e59356;
-  --accent-hover: #f0ab77;
-  --selected: #35251a;
+  --accent: #ece5da;
+  --accent-hover: #fffaf2;
+  --accent-ink: #1a1815;
+  --link: #9cb8d4;
+  --selected: #2b2723;
   --stage: #100e0c;
   --error: #ff9d92;
   --error-bg: #3a221f;
   --device: #3b3733;
   --device-edge: #171512;
   --device-ink: #e9e3da;
+  --key: #a49b8e;
+  --key-edge: #6d6659;
+  --key-ink: #1c1a17;
   --shadow-raise: inset 0 1px 0 #ffffff12, 0 12px 28px -14px #000000b0;
   --shadow-well: inset 0 2px 9px #00000088, inset 0 -1px 0 #ffffff0f;
 }
@@ -171,7 +181,7 @@ button:disabled {
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 /* A primary action that is not available yet drops its fill rather than
    washing it out, so it reads as inert instead of broken. */
@@ -190,7 +200,7 @@ button.primary:hover:not(:disabled) {
   outline-offset: 3px;
 }
 a {
-  color: var(--accent);
+  color: var(--link);
   text-decoration: none;
 }
 a:hover {
@@ -1296,12 +1306,12 @@ h1 {
 
 /* The screen and its four physical controls stay together at every viewport size. */
 .watch-layout {
-  --control-size: 38px;
+  --control-size: 35px;
   /* Shell thickness around the screen, and the body's outer corner. The
      screen corner is the body corner less the bezel, so the two curves stay
      concentric at any size. */
   --bezel: 22px;
-  --body-radius: 32px;
+  --body-radius: 27px;
   --screen-radius: calc(var(--body-radius) - var(--bezel));
   position: relative;
   flex: 0 1 auto;
@@ -1357,24 +1367,26 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--device);
+  background: var(--key);
   border: 0;
   box-shadow:
-    0 0 0 1px var(--device-edge),
-    var(--shadow-raise);
+    0 0 0 1px var(--key-edge),
+    inset 0 1px 0 #ffffff59,
+    inset 0 -1px 0 #00000026,
+    0 2px 5px -2px #00000059;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  color: var(--device-ink);
+  color: var(--key-ink);
   z-index: 0;
 }
 .watch-control.left-control {
   left: calc(var(--bezel) * -1 - var(--control-size) + 10px);
-  border-radius: 12px 3px 3px 12px;
+  border-radius: 9px 2px 2px 9px;
 }
 .watch-control.right-control {
   right: calc(var(--bezel) * -1 - var(--control-size) + 10px);
-  border-radius: 3px 12px 12px 3px;
+  border-radius: 2px 9px 9px 2px;
 }
 .watch-control-icon {
   font-size: 24px;
@@ -1394,11 +1406,11 @@ h1 {
   font-weight: 600;
 }
 .watch-control.pressed {
-  background: var(--accent);
-  color: #fff;
+  background: var(--key-edge);
+  color: var(--key-ink);
   box-shadow:
-    0 0 0 1px var(--accent),
-    inset 0 2px 5px #00000040;
+    0 0 0 1px var(--key-edge),
+    inset 0 2px 5px #00000059;
 }
 .watch-control:focus-visible,
 .display-stage:focus-visible {
