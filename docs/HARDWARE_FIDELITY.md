@@ -296,6 +296,15 @@ Reports keep `estimatedCoreCycles`, reference ticks and measured instruction cou
 It is built with the static app but is not a working preview profile.
 No production firmware is modified or published.
 
+Always-on global-timer initialization is also exercised through executed guest
+instructions, not only by calling the model: a synthetic slot enables the low-power and
+high-power domains, writes the documented synchronization command, spends cycles and reads
+both counters back, and separate vectors confirm that synchronizing before both domains are
+enabled, or issuing an undocumented counter command, stops with a structured
+`UnmodeledMmio` fault instead of being accepted
+(`crates/sifli-board/tests/global_timer_execution.rs`). Oscillator frequencies remain
+uncalibrated nominal values, so this checks sequence and bookkeeping, not silicon timing.
+
 Chromium and Firefox Workers reproduce the full bounded sequence through the new USART1
 boundary for both revisions. WebKit was not rerun because its GTK/GStreamer runtime is absent
 from this host. [Browser record](evidence/sifli-browser-reset.json),
