@@ -1,0 +1,1094 @@
+--- a/src/bus/ppb.rs
++++ b/src/bus/ppb.rs
+@@ -215,6 +215,10 @@ impl Default for Ppb {
+ }
+ 
+ impl Ppb {
++    #[inline]
++    fn armv7_mpu(&self) -> bool {
++        (self.cpuid >> 4) & 0x0fff == 0x0c24
++    }
+     /// Pack 4 consecutive SHPR bytes into a u32 (little-endian).
+     fn pack_shpr(&self, start: usize) -> u32 {
+         u32::from_le_bytes([
+@@ -337,8 +341,8 @@ impl Ppb {
+             0xEF38 => self.fpcar,
+             0xEF3C => self.fpdscr,
+ 
+-            // MPU_TYPE: 16 regions on RP2350 Cortex-M33
+-            0xED90 => 0x0000_1000, // DREGION=16, IREGION=0, SEPARATE=0
++            // MPU_TYPE follows the configured core profile.
++            0xED90 => if self.armv7_mpu() { 0x0000_0800 } else { 0x0000_1000 },
+             // MPU_CTRL
+             0xED94 => self.mpu_ctrl,
+             // MPU_RNR
+@@ -554,10 +558,13 @@ impl Ppb {
+             // MPU_CTRL
+             0xED94 => self.mpu_ctrl = val,
+             // MPU_RNR
+-            0xED98 => self.mpu_rnr = val & 0xF,
++            0xED98 => self.mpu_rnr = val & if self.armv7_mpu() { 0x7 } else { 0xF },
+             // MPU_RBAR (ARMv8-M §B11.2.5): [31:5] BASE, [4:3] SH,
+             // [2:1] AP, [0] XN — all bits carry meaning.
+             0xED9C => {
++                if self.armv7_mpu() && val & 0x10 != 0 {
++                    self.mpu_rnr = val & 0x7;
++                }
+                 let idx = (self.mpu_rnr & 0xF) as usize;
+                 self.mpu_regions[idx].0 = val;
+             }
+@@ -566,7 +573,7 @@ impl Ppb {
+             // (the bootrom's readback self-test depends on this).
+             0xEDA0 => {
+                 let idx = (self.mpu_rnr & 0xF) as usize;
+-                self.mpu_regions[idx].1 = val & !0x10;
++                self.mpu_regions[idx].1 = if self.armv7_mpu() { val } else { val & !0x10 };
+             }
+             // MPU_RBAR_An / RLAR_An aliases — see read path for definition.
+             0xEDA4 | 0xEDAC | 0xEDB4 => {
+--- a/src/core/checkpoint.rs
++++ b/src/core/checkpoint.rs
+@@ -180,14 +180,14 @@ impl<T: StateValue> StateValue for Arc<T> {
+     }
+ }
+ macro_rules! fields {
+-    ($ty:ty { $($field:ident),+ $(,)? } $(, $skip:ident = $default:expr)?) => {
++    ($ty:ty { $($field:ident),+ $(,)? } $(, $skip:ident = $default:expr)*) => {
+         impl StateValue for $ty {
+             fn encode(&self, out: &mut Vec<u8>) {
+-                let Self { $($field,)+ $($skip: _,)? } = self;
++                let Self { $($field,)+ $($skip: _,)* } = self;
+                 $($field.encode(out);)+
+             }
+             fn decode(input: &mut Reader<'_>) -> Result<Self> {
+-                Ok(Self { $($field: StateValue::decode(input)?,)+ $($skip: $default,)? })
++                Ok(Self { $($field: StateValue::decode(input)?,)+ $($skip: $default,)* })
+             }
+         }
+     };
+@@ -325,7 +325,10 @@ fields!(
+         bootrom_reboot_hook_pc_ns,
+         bootrom_hook_fired
+     },
+-    decode_cache = CortexM33::new(0, Arc::new(CoreAtomics::default())).decode_cache
++    decode_cache = CortexM33::new(0, Arc::new(CoreAtomics::default())).decode_cache,
++    // Only set while an abandoned instruction is rolled back; always clear at
++    // the instruction boundaries where checkpoints are taken.
++    instruction_abandoned = false
+ );
+ impl CortexM33 {
+     pub fn checkpoint_atomics(&self) -> Arc<CoreAtomics> {
+--- a/src/core/decode.rs
++++ b/src/core/decode.rs
+@@ -254,6 +254,18 @@ impl CortexM33 {
+         // off — the store lands in a cold struct field touched only
+         // by `emit_mmio_trace`.
+         bus.set_active_pc(pc, self.core_id);
++        self.instruction_abandoned = false;
++        if self.ppb.mpu_ctrl & 1 != 0
++            && !self.mpu_permits(
++                pc,
++                2,
++                super::MemoryAccess::Execute,
++                self.current_access_context(),
++            )
++        {
++            self.raise_instruction_access_violation();
++            return 1;
++        }
+ 
+         // Is this fetch sequential from the previous instruction?
+         // The M33 prefetch buffer absorbs bank 2/6 penalty on sequential
+@@ -281,6 +293,18 @@ impl CortexM33 {
+         let hw0 = entry.hw0;
+         let hw1 = entry.hw1;
+         let is_wide = entry.is_wide();
++        if is_wide
++            && self.ppb.mpu_ctrl & 1 != 0
++            && !self.mpu_permits(
++                pc.wrapping_add(2),
++                2,
++                super::MemoryAccess::Execute,
++                self.current_access_context(),
++            )
++        {
++            self.raise_instruction_access_violation();
++            return 1;
++        }
+         let is_pure = entry.is_pure();
+         let flag_only = entry.is_flag_only();
+ 
+@@ -361,14 +385,20 @@ impl CortexM33 {
+             };
+             cycles + bank_penalty
+         } else {
+-            // Slow path — preserves existing semantics verbatim.
++            // Slow path — preserves existing semantics verbatim, except that
++            // an instruction abandoned by a precise fault on one of its own
++            // accesses is rolled back (see `InstructionSnapshot`).
++            // Coprocessor loads (LDC class, L=1: VLDR/VLDM/VPOP) also write
++            // S registers.
++            let snapshot =
++                super::InstructionSnapshot::capture(self, is_wide && hw0 & 0xEE10 == 0xEC10);
+             bus.reset_extra_wait_states();
+             // Fetch contribution: apply only on non-sequential fetches.
+             if !is_sequential {
+                 bus.add_extra_wait_states(entry.fetch_wait as u32);
+             }
+ 
+-            if is_wide {
++            let cycles = if is_wide {
+                 self.regs.set_pc(pc.wrapping_add(4));
+                 let cycles = if cond_passed {
+                     self.execute_thumb32(hw0, hw1, bus)
+@@ -398,7 +428,12 @@ impl CortexM33 {
+                     self.advance_it_state();
+                 }
+                 cycles + bus.extra_wait_states()
++            };
++            if self.instruction_abandoned {
++                snapshot.restore(self);
++                self.instruction_abandoned = false;
+             }
++            cycles
+         }
+     }
+ 
+--- a/src/core/exceptions.rs
++++ b/src/core/exceptions.rs
+@@ -1,10 +1,21 @@
+ use std::sync::atomic::Ordering;
+ 
+-use tracing::{debug, info};
++use tracing::{debug, info, warn};
+ 
+-use super::{CoreBus, CortexM33, Fault};
++use super::{AccessContext, CoreBus, CortexM33, Fault, MMFSR_MSTKERR, MMFSR_MUNSTKERR};
+ use crate::bus::ppb::{FPCCR_BFRDY, FPCCR_LSPACT, FPCCR_LSPEN, FPCCR_MMRDY, FPCCR_SPLIMVIOL};
+ 
++// SHCSR pending and enable bits for the configurable system exceptions.
++const SHCSR_USGFAULTPENDED: u32 = 1 << 12;
++const SHCSR_MEMFAULTPENDED: u32 = 1 << 13;
++const SHCSR_BUSFAULTPENDED: u32 = 1 << 14;
++const SHCSR_SVCALLPENDED: u32 = 1 << 15;
++const SHCSR_PENDED_MASK: u32 = 0xF << 12;
++pub(crate) const SHCSR_MEMFAULTENA: u32 = 1 << 16;
++const SHCSR_BUSFAULTENA: u32 = 1 << 17;
++const SHCSR_USGFAULTENA: u32 = 1 << 18;
++pub(crate) const HFSR_FORCED: u32 = 1 << 30;
++
+ /// CONTROL.FPCA bit position (bit 2). Owned exclusively by the three sites
+ /// in this file plus `fpu_execute`; see `Ppb` field doc invariants.
+ pub(crate) const CONTROL_FPCA: u32 = 1 << 2;
+@@ -141,15 +152,37 @@ impl CortexM33 {
+             stacked_xpsr |= 1 << 9;
+         }
+ 
+-        // Push exception frame: R0, R1, R2, R3, R12, LR, ReturnAddress, xPSR
+-        self.bus_write32(frame_sp, self.regs.r[0], bus);
+-        self.bus_write32(frame_sp.wrapping_add(4), self.regs.r[1], bus);
+-        self.bus_write32(frame_sp.wrapping_add(8), self.regs.r[2], bus);
+-        self.bus_write32(frame_sp.wrapping_add(12), self.regs.r[3], bus);
+-        self.bus_write32(frame_sp.wrapping_add(16), self.regs.r[12], bus);
+-        self.bus_write32(frame_sp.wrapping_add(20), self.regs.lr(), bus);
+-        self.bus_write32(frame_sp.wrapping_add(24), self.return_address(exc_num), bus);
+-        self.bus_write32(frame_sp.wrapping_add(28), stacked_xpsr, bus);
++        // The interrupted context performs the stacking: PushStack uses its
++        // privilege, and a derived fault is judged against its priority.
++        let stack_context = self.current_access_context();
++        let interrupted_priority = self.execution_priority();
++
++        // Push exception frame: R0, R1, R2, R3, R12, LR, ReturnAddress, xPSR.
++        // Only the frame locations are architected. As in QEMU's
++        // v7m_push_stack, stacking stops at the first MPU-denied store; the
++        // stacking error (MSTKERR, no address) is a derived exception below.
++        let frame = [
++            self.regs.r[0],
++            self.regs.r[1],
++            self.regs.r[2],
++            self.regs.r[3],
++            self.regs.r[12],
++            self.regs.lr(),
++            self.return_address(exc_num),
++            stacked_xpsr,
++        ];
++        let mut stacked = true;
++        for (i, word) in frame.into_iter().enumerate() {
++            if !self.stack_write32(
++                frame_sp.wrapping_add(4 * i as u32),
++                word,
++                stack_context,
++                bus,
++            ) {
++                stacked = false;
++                break;
++            }
++        }
+ 
+         // FP context — eager (LSPEN=0) writes S0-S15 + FPSCR now; lazy
+         // (LSPEN=1, default) reserves the slots and sets FPCCR.LSPACT
+@@ -166,18 +199,21 @@ impl CortexM33 {
+                 // leave behind from a prior fault.
+                 self.ppb.fpccr |= FPCCR_LSPACT;
+                 self.ppb.fpccr &= !(FPCCR_MMRDY | FPCCR_BFRDY);
+-            } else {
++            } else if stacked {
+                 // Eager: write S0-S15 + FPSCR + reserved word. Layout
+                 // per DDI0553 §B3.4.3 ExceptionEntry pseudocode.
+-                for i in 0..16 {
+-                    self.bus_write32(
+-                        fp_region_sp.wrapping_add((i as u32) * 4),
+-                        self.regs.s[i].to_bits(),
+-                        bus,
+-                    );
++                let mut words = [0u32; 18];
++                for (word, s) in words.iter_mut().zip(self.regs.s) {
++                    *word = s.to_bits();
++                }
++                words[16] = self.regs.fpscr;
++                for (i, word) in words.into_iter().enumerate() {
++                    let addr = fp_region_sp.wrapping_add(4 * i as u32);
++                    if !self.stack_write32(addr, word, stack_context, bus) {
++                        stacked = false;
++                        break;
++                    }
+                 }
+-                self.bus_write32(fp_region_sp.wrapping_add(64), self.regs.fpscr, bus);
+-                self.bus_write32(fp_region_sp.wrapping_add(68), 0, bus);
+             }
+             // Reset FPSCR from FPDSCR active bits: AHP[26], DN[25],
+             // FZ[24], RMODE[23:22] (DDI0553 §B3.4.3). Cumulative
+@@ -213,9 +249,19 @@ impl CortexM33 {
+                 0x9 // return to Thread, MSP
+             };
+ 
+-        // Fetch vector from table
++        // A stacking error makes this a derived-exception entry: take the
++        // higher-priority of the original and derived exceptions.
++        let exc_num = if stacked {
++            exc_num
++        } else {
++            self.ppb.cfsr |= MMFSR_MSTKERR;
++            self.resolve_stacking_error(exc_num, interrupted_priority)
++        };
++
++        // Fetch vector from table. Vector reads always use the default
++        // memory map, never the MPU regions.
+         let vtor = self.ppb.vtor;
+-        let vector = self.bus_read32(vtor.wrapping_add((exc_num as u32) * 4), bus);
++        let vector = self.read32_unchecked(vtor.wrapping_add((exc_num as u32) * 4), bus);
+         self.regs.set_pc(vector & !1);
+ 
+         // Enter handler mode: set IPSR, force MSP, clear IT.
+@@ -238,6 +284,117 @@ impl CortexM33 {
+         12
+     }
+ 
++    // --- Derived exceptions (stacking and unstacking errors) ---
++
++    /// The exception a stacking or unstacking error raises: MemManage when
++    /// enabled and able to preempt `priority`, otherwise an escalated
++    /// HardFault (HFSR.FORCED).
++    fn derived_memmanage(&mut self, priority: i16) -> u16 {
++        if self.ppb.shcsr & SHCSR_MEMFAULTENA != 0 && self.ppb.exception_priority(4) < priority {
++            4
++        } else {
++            self.ppb.hfsr |= HFSR_FORCED;
++            3
++        }
++    }
++
++    /// Choose between the exception being entered and the MemManage derived
++    /// from its stacking error, as QEMU does by pending both and taking the
++    /// highest-priority one. The other remains pending.
++    fn resolve_stacking_error(&mut self, original: u16, interrupted_priority: i16) -> u16 {
++        let derived = self.derived_memmanage(interrupted_priority);
++        if derived == original {
++            return original;
++        }
++        let derived_priority = self.ppb.exception_priority(derived);
++        let original_priority = self.ppb.exception_priority(original);
++        if derived_priority < original_priority
++            || (derived_priority == original_priority && derived < original)
++        {
++            // Late arrival: the derived exception is taken first.
++            self.repend_exception(original);
++            derived
++        } else {
++            if derived == 4 {
++                self.ppb.shcsr |= SHCSR_MEMFAULTPENDED;
++            } else {
++                // Only NMI outranks a derived HardFault. The core has no
++                // pending HardFault state, so this corner is not modelled.
++                warn!(
++                    original,
++                    "derived HardFault behind a higher-priority exception is not modelled",
++                );
++            }
++            original
++        }
++    }
++
++    /// Return an exception that lost to a late-arriving derived exception to
++    /// the pending state its dispatch cleared.
++    fn repend_exception(&mut self, exc_num: u16) {
++        match exc_num {
++            2 => self.ppb.icsr |= crate::bus::ppb::ICSR_NMIPENDSET,
++            4 => self.ppb.shcsr |= SHCSR_MEMFAULTPENDED,
++            5 => self.ppb.shcsr |= SHCSR_BUSFAULTPENDED,
++            6 => self.ppb.shcsr |= SHCSR_USGFAULTPENDED,
++            11 => self.ppb.shcsr |= SHCSR_SVCALLPENDED,
++            14 => self.ppb.icsr |= crate::bus::ppb::ICSR_PENDSVSET,
++            15 => self.ppb.icsr |= crate::bus::ppb::ICSR_PENDSTSET,
++            n if n >= 16 => {
++                let irq = (n - 16) as u32;
++                let word = (irq / 32) as usize;
++                if word < crate::bus::ppb::NVIC_BIT_WORDS {
++                    // Keep both pending latches in step (see the DUAL-CLEAR
++                    // INVARIANT in `try_take_any_pending_exception`).
++                    self.ppb.clear_active(n);
++                    self.ppb.nvic_ispr[word].fetch_or(1 << (irq % 32), Ordering::Relaxed);
++                    self.atomics.assert_irq(self.core_id as usize, irq);
++                }
++            }
++            // HardFault cannot lose to a derived exception.
++            _ => {}
++        }
++    }
++
++    /// Configurable system exceptions pending in SHCSR, by software or as
++    /// derived exceptions: MemManage, BusFault and UsageFault while enabled,
++    /// and SVCall. Returns the highest-priority one, lowest number on ties.
++    fn highest_pending_system_handler(&self) -> Option<(i16, u16)> {
++        let shcsr = self.ppb.shcsr;
++        if shcsr & SHCSR_PENDED_MASK == 0 {
++            return None;
++        }
++        let candidates = [
++            (4u16, SHCSR_MEMFAULTPENDED, SHCSR_MEMFAULTENA),
++            (5, SHCSR_BUSFAULTPENDED, SHCSR_BUSFAULTENA),
++            (6, SHCSR_USGFAULTPENDED, SHCSR_USGFAULTENA),
++            (11, SHCSR_SVCALLPENDED, 0),
++        ];
++        let mut best: Option<(i16, u16)> = None;
++        for (exc, pended, enable) in candidates {
++            if shcsr & pended == 0 || (enable != 0 && shcsr & enable == 0) {
++                continue;
++            }
++            let prio = self.ppb.exception_priority(exc);
++            if best.is_none_or(|(bp, _)| prio < bp) {
++                best = Some((prio, exc));
++            }
++        }
++        best
++    }
++
++    /// Clear the SHCSR pending bit of a configurable system exception that
++    /// is being activated.
++    fn clear_system_handler_pending(&mut self, exc_num: u16) {
++        self.ppb.shcsr &= !match exc_num {
++            4 => SHCSR_MEMFAULTPENDED,
++            5 => SHCSR_BUSFAULTPENDED,
++            6 => SHCSR_USGFAULTPENDED,
++            11 => SHCSR_SVCALLPENDED,
++            _ => 0,
++        };
++    }
++
+     // --- Exception return ---
+ 
+     /// Pop exception frame, restore mode. Returns cycle cost (~12).
+@@ -316,7 +473,9 @@ impl CortexM33 {
+         // thread mode. Temporarily swap IPSR + clear the departing
+         // exception's active tracking so `can_preempt` reflects the
+         // post-pop state; restore on no-tail-chain below.
+-        let stacked_xpsr_peek = self.bus_read32(sp.wrapping_add(28), bus);
++        // The peek is this model's way to find the returning context's
++        // priority, not an architectural access, so it bypasses the MPU.
++        let stacked_xpsr_peek = self.read32_unchecked(sp.wrapping_add(28), bus);
+         let post_pop_ipsr = (stacked_xpsr_peek & 0x1FF) as u16;
+         let saved_ipsr_bits = self.regs.xpsr & 0x1FF;
+         self.regs.xpsr = (self.regs.xpsr & !0x1FF) | (post_pop_ipsr as u32);
+@@ -324,21 +483,59 @@ impl CortexM33 {
+         if let Some(new_exc) = self.pick_tail_chain_target() {
+             return self.activate_tail_chain(new_exc, exc_return, bus);
+         }
++        // An unstacking error is judged against the returning context.
++        let return_to_thread = exc_return & 0x8 != 0;
++        let returning_priority = self.execution_priority();
+         // No tail-chain: restore IPSR so the unstack below overwrites
+         // it with the stacked value (the normal pre-emption semantics).
+         // The cleared active bit stays cleared — the normal pop path
+         // below does the same clear at its tail.
+         self.regs.xpsr = (self.regs.xpsr & !0x1FF) | saved_ipsr_bits;
+ 
++        // PopStack uses the privilege of the mode being returned to
++        // (Armv7-M ExceptionReturn; QEMU do_v7m_exception_exit). Read the
++        // whole frame before changing any state.
++        let unstack_context = AccessContext {
++            privileged: !return_to_thread || self.regs.control & 1 == 0,
++            negative_priority: !return_to_thread && matches!(post_pop_ipsr, 2 | 3),
++        };
++        let lspact = self.ppb.fpccr & FPCCR_LSPACT != 0;
++        let mut basic = [0u32; 8];
++        // S0-S15 then FPSCR, when an FP frame was actually written.
++        let mut fp = [0u32; 17];
++        let fp_words = if had_fp_frame && !lspact { fp.len() } else { 0 };
++        let mut popped = true;
++        for (i, slot) in basic
++            .iter_mut()
++            .chain(fp.iter_mut().take(fp_words))
++            .enumerate()
++        {
++            match self.stack_read32(sp.wrapping_add(4 * i as u32), unstack_context, bus) {
++                Some(word) => *slot = word,
++                None => {
++                    popped = false;
++                    break;
++                }
++            }
++        }
++        if !popped {
++            // MUNSTKERR: the frame stays in place and the derived fault is
++            // taken as a tail-chain; its handler returns with the same
++            // EXC_RETURN to retry the unstacking.
++            self.ppb.cfsr |= MMFSR_MUNSTKERR;
++            let derived = self.derived_memmanage(returning_priority);
++            return self.activate_tail_chain(derived, exc_return, bus);
++        }
++
+         // Pop basic frame
+-        self.regs.r[0] = self.bus_read32(sp, bus);
+-        self.regs.r[1] = self.bus_read32(sp.wrapping_add(4), bus);
+-        self.regs.r[2] = self.bus_read32(sp.wrapping_add(8), bus);
+-        self.regs.r[3] = self.bus_read32(sp.wrapping_add(12), bus);
+-        self.regs.r[12] = self.bus_read32(sp.wrapping_add(16), bus);
+-        self.regs.r[14] = self.bus_read32(sp.wrapping_add(20), bus);
+-        let return_pc = self.bus_read32(sp.wrapping_add(24), bus);
+-        let return_xpsr = self.bus_read32(sp.wrapping_add(28), bus);
++        self.regs.r[0] = basic[0];
++        self.regs.r[1] = basic[1];
++        self.regs.r[2] = basic[2];
++        self.regs.r[3] = basic[3];
++        self.regs.r[12] = basic[4];
++        self.regs.r[14] = basic[5];
++        let return_pc = basic[6];
++        let return_xpsr = basic[7];
+ 
+         self.regs.set_pc(return_pc & !1);
+ 
+@@ -350,16 +547,13 @@ impl CortexM33 {
+         //   LSPACT=0 → an FP op in the handler triggered the lazy flush,
+         //              or eager mode wrote the frame. Pop S0-S15 + FPSCR.
+         if had_fp_frame {
+-            let fp_region_sp = sp.wrapping_add(32);
+-            let lspact = self.ppb.fpccr & FPCCR_LSPACT != 0;
+             if lspact {
+                 self.ppb.fpccr &= !FPCCR_LSPACT;
+             } else {
+-                for i in 0..16 {
+-                    let bits = self.bus_read32(fp_region_sp.wrapping_add((i as u32) * 4), bus);
+-                    self.regs.s[i] = f32::from_bits(bits);
++                for (s, bits) in self.regs.s.iter_mut().zip(&fp[..16]) {
++                    *s = f32::from_bits(*bits);
+                 }
+-                self.regs.fpscr = self.bus_read32(fp_region_sp.wrapping_add(64), bus);
++                self.regs.fpscr = fp[16];
+             }
+         }
+ 
+@@ -447,6 +641,12 @@ impl CortexM33 {
+                 other => other,
+             };
+         }
++        if let Some((prio, exc)) = self.highest_pending_system_handler() {
++            best = match best {
++                Some((bp, be)) if bp < prio || (bp == prio && be < exc) => Some((bp, be)),
++                _ => Some((prio, exc)),
++            };
++        }
+ 
+         let (_, candidate) = best?;
+         if !self.can_preempt(candidate) {
+@@ -473,8 +673,8 @@ impl CortexM33 {
+             2 => self.ppb.icsr &= !crate::bus::ppb::ICSR_NMIPENDSET,
+             14 => self.ppb.icsr &= !crate::bus::ppb::ICSR_PENDSVSET,
+             15 => self.ppb.icsr &= !crate::bus::ppb::ICSR_PENDSTSET,
+-            _ => {
+-                let irq = new_exc - 16;
++            n if n >= 16 => {
++                let irq = n - 16;
+                 let word = (irq / 32) as usize;
+                 let bit = irq % 32;
+                 if word < crate::bus::ppb::NVIC_BIT_WORDS {
+@@ -484,6 +684,9 @@ impl CortexM33 {
+                 }
+                 self.ppb.set_irq_active(irq as u32);
+             }
++            // SHCSR-pended configurable faults and SVCall, or a HardFault
++            // derived from an unstacking error.
++            n => self.clear_system_handler_pending(n),
+         }
+ 
+         // IPSR → new exception number; IT state clears on handler entry.
+@@ -496,9 +699,9 @@ impl CortexM33 {
+         self.regs.r[14] = exc_return;
+ 
+         // Fetch vector, update PC. Already in handler mode on MSP,
+-        // so no CONTROL/SP changes.
++        // so no CONTROL/SP changes. Vector reads bypass the MPU.
+         let vtor = self.ppb.vtor;
+-        let vector = self.bus_read32(vtor.wrapping_add((new_exc as u32) * 4), bus);
++        let vector = self.read32_unchecked(vtor.wrapping_add((new_exc as u32) * 4), bus);
+         self.regs.set_pc(vector & !1);
+         self.regs.sync_sp_from_banked();
+ 
+@@ -623,6 +826,12 @@ impl CortexM33 {
+                 other => other,
+             };
+         }
++        if let Some((prio, exc)) = self.highest_pending_system_handler() {
++            best = match best {
++                Some((bp, be)) if bp < prio || (bp == prio && be < exc) => Some((bp, be)),
++                _ => Some((prio, exc)),
++            };
++        }
+ 
+         let (_, candidate) = best?;
+         if !self.can_preempt(candidate) {
+@@ -654,6 +863,7 @@ impl CortexM33 {
+             15 => {
+                 self.ppb.icsr &= !crate::bus::ppb::ICSR_PENDSTSET;
+             }
++            4..=11 => self.clear_system_handler_pending(candidate),
+             _ => {
+                 // External IRQ. See DUAL-CLEAR INVARIANT above.
+                 let irq = candidate - 16;
+@@ -691,18 +901,30 @@ impl CortexM33 {
+                 }
+             }
+             Fault::MemManage => {
+-                // Set MMFSR.DACCVIOL (bit 1 of CFSR). Data-side is the honest default:
+-                // Phase 7 Stage E's MPU-fault-during-lazy-flush use case is data-side.
+-                self.ppb.cfsr |= 1 << 1;
+-                if self.ppb.shcsr & (1 << 16) != 0 {
+-                    // MEMFAULTENA
++                // Access checks record their MMFSR cause before delivery.
++                // Direct test callers without a cause retain the historical
++                // data-fault default.
++                use super::{
++                    MMFSR_DACCVIOL, MMFSR_IACCVIOL, MMFSR_MLSPERR, MMFSR_MSTKERR, MMFSR_MUNSTKERR,
++                };
++                let causes = MMFSR_IACCVIOL
++                    | MMFSR_DACCVIOL
++                    | MMFSR_MUNSTKERR
++                    | MMFSR_MSTKERR
++                    | MMFSR_MLSPERR;
++                if self.ppb.cfsr & causes == 0 {
++                    self.ppb.cfsr |= MMFSR_DACCVIOL;
++                }
++                // A synchronous fault that is disabled, or cannot preempt the
++                // current execution priority, escalates to HardFault.
++                if self.ppb.shcsr & SHCSR_MEMFAULTENA != 0 && self.can_preempt(4) {
+                     self.enter_exception(4, bus)
+                 } else {
+                     info!(
+                         pc = format_args!("{:#010x}", self.current_instr_addr),
+                         "HardFault escalation from MemManage",
+                     );
+-                    self.ppb.hfsr |= 1 << 30; // FORCED
++                    self.ppb.hfsr |= HFSR_FORCED;
+                     self.enter_exception(3, bus) // escalate to HardFault
+                 }
+             }
+--- a/src/core/execute_fpu.rs
++++ b/src/core/execute_fpu.rs
+@@ -1237,32 +1237,45 @@ impl CortexM33 {
+     /// is never actually delivered (step() catches the bus flag first).
+     pub(crate) fn flush_lazy_fp_context<B: CoreBus>(&mut self, bus: &mut B) -> Result<(), ()> {
+         let base = self.ppb.fpcar;
+-
+-        // S0..S15 → +0..+60.
+-        for i in 0..16 {
+-            self.bus_write32(
+-                base.wrapping_add((i as u32) * 4),
+-                self.regs.s[i].to_bits(),
+-                bus,
+-            );
++        // Preservation is checked like stacking, never as an ordinary access
++        // of the FP instruction. FPCCR.USER is not modelled, so the executing
++        // handler's privilege applies, as it did before MPU enforcement.
++        let context = self.current_access_context();
++
++        // S0..S15 → +0..+60; FPSCR → +64; reserved → +68 (zero per
++        // architecture).
++        let mut words = [0u32; 18];
++        for (word, s) in words.iter_mut().zip(self.regs.s) {
++            *word = s.to_bits();
++        }
++        words[16] = self.regs.fpscr;
++        for (i, word) in words.into_iter().enumerate() {
++            if !self.stack_write32(base.wrapping_add(4 * i as u32), word, context, bus) {
++                return self.lazy_fp_preservation_error();
++            }
+             if bus.bus_fault(self.core_id) {
+                 self.ppb.fpccr |= crate::bus::ppb::FPCCR_BFRDY;
+                 return Err(());
+             }
+         }
+-        // FPSCR → +64; reserved → +68 (write zero per architecture).
+-        self.bus_write32(base.wrapping_add(64), self.regs.fpscr, bus);
+-        if bus.bus_fault(self.core_id) {
+-            self.ppb.fpccr |= crate::bus::ppb::FPCCR_BFRDY;
+-            return Err(());
+-        }
+-        self.bus_write32(base.wrapping_add(68), 0, bus);
+-        if bus.bus_fault(self.core_id) {
+-            self.ppb.fpccr |= crate::bus::ppb::FPCCR_BFRDY;
+-            return Err(());
+-        }
+         Ok(())
+     }
++
++    /// An MPU-denied lazy preservation store (MLSPERR, no address). As in
++    /// QEMU's PreserveFPState: when MemManage can be taken now, the FP
++    /// instruction is abandoned and LSPACT stays set; otherwise MemManage
++    /// stays pending and the instruction proceeds with the partial frame.
++    #[cold]
++    fn lazy_fp_preservation_error(&mut self) -> Result<(), ()> {
++        self.ppb.cfsr |= super::MMFSR_MLSPERR;
++        if self.ppb.shcsr & super::exceptions::SHCSR_MEMFAULTENA != 0 && !self.can_preempt(4) {
++            self.ppb.shcsr |= 1 << 13; // MEMFAULTPENDED
++            return Ok(());
++        }
++        // Taken now; a disabled MemManage escalates in `deliver_fault`.
++        self.abandon_instruction(super::Fault::MemManage);
++        Err(())
++    }
+ }
+ 
+ // ============================================================================
+--- a/src/core/mod.rs
++++ b/src/core/mod.rs
+@@ -196,7 +196,6 @@ pub(crate) enum Fault {
+     //     destination page is unmapped by the MPU.
+     //   * Phase 7 Stage E — MPU TT path and any other MPU-sourced
+     //     data-access fault.
+-    #[allow(dead_code)]
+     MemManage,
+     /// Raised by CP7 RCP assertion failure (Phase 7 Stage E) — delivered
+     /// as exception #2 (NMI). Not masked by PRIMASK; FAULTMASK is honored
+@@ -205,6 +204,72 @@ pub(crate) enum Fault {
+     // BusFault is delivered via bus.bus_fault() flag, not this enum
+ }
+ 
++#[derive(Clone, Copy)]
++pub(crate) enum MemoryAccess {
++    Read,
++    Write,
++    Execute,
++}
++
++// CFSR.MMFSR cause and address-valid bits.
++pub(crate) const MMFSR_IACCVIOL: u32 = 1 << 0;
++pub(crate) const MMFSR_DACCVIOL: u32 = 1 << 1;
++pub(crate) const MMFSR_MUNSTKERR: u32 = 1 << 3;
++pub(crate) const MMFSR_MSTKERR: u32 = 1 << 4;
++pub(crate) const MMFSR_MLSPERR: u32 = 1 << 5;
++pub(crate) const MMFSR_MMARVALID: u32 = 1 << 7;
++
++/// Privilege and priority under which the MPU checks an access. Ordinary
++/// instruction accesses use the executing context; exception stacking and
++/// unstacking use the context that owns the frame (Armv7-M PushStack and
++/// ExceptionReturn, Armv8-M equivalents).
++#[derive(Clone, Copy, Debug)]
++pub(crate) struct AccessContext {
++    pub(crate) privileged: bool,
++    /// Execution priority below zero (NMI, HardFault or FAULTMASK). With
++    /// MPU_CTRL.HFNMIENA clear such accesses use the default memory map.
++    pub(crate) negative_priority: bool,
++}
++
++/// Architectural state an abandoned instruction may already have changed.
++/// Captured before every non-pure instruction and restored when one of its
++/// own data accesses faults, so the fault is precise: the stacked PC retries
++/// the instruction with its original registers, SP, IT state and monitor.
++/// Stores performed before the first denied access remain, as the
++/// architecture permits for restartable multiple-store instructions.
++struct InstructionSnapshot {
++    r: [u32; 16],
++    xpsr: u32,
++    it_state: u8,
++    exclusive_address: Option<u32>,
++    /// Captured only for coprocessor loads, which write S registers.
++    s: Option<[f32; 32]>,
++}
++
++impl InstructionSnapshot {
++    #[inline(always)]
++    fn capture(cpu: &CortexM33, fp_load: bool) -> Self {
++        Self {
++            r: cpu.regs.r,
++            xpsr: cpu.regs.xpsr,
++            it_state: cpu.it_state,
++            exclusive_address: cpu.exclusive_address,
++            s: if fp_load { Some(cpu.regs.s) } else { None },
++        }
++    }
++
++    #[cold]
++    fn restore(self, cpu: &mut CortexM33) {
++        cpu.regs.r = self.r;
++        cpu.regs.xpsr = self.xpsr;
++        cpu.it_state = self.it_state;
++        cpu.exclusive_address = self.exclusive_address;
++        if let Some(s) = self.s {
++            cpu.regs.s = s;
++        }
++    }
++}
++
+ /// Per-core access counters for workload characterization (Phase 0a).
+ #[derive(Debug, Default, Clone)]
+ pub struct CoreCounters {
+@@ -258,6 +323,11 @@ pub struct CortexM33 {
+     pub(crate) it_state: u8,
+     /// Pending synchronous fault from the most recent instruction.
+     pub(crate) pending_fault: Option<Fault>,
++    /// Set when one of the executing instruction's own accesses raised a
++    /// precise fault. Later accesses of that instruction are suppressed, and
++    /// `decode_execute` restores its [`InstructionSnapshot`]. Always clear at
++    /// an instruction boundary, so checkpoints do not record it.
++    pub(crate) instruction_abandoned: bool,
+     /// DCP (CP4/5) half-word register file. Eight double-precision slots
+     /// (indexed 0..7), each made of two 32-bit halves: half A (low) at
+     /// index `d*2`, half B (high) at index `d*2 + 1`. Layout matches
+@@ -381,6 +451,7 @@ impl CortexM33 {
+             current_instr_addr: 0,
+             it_state: 0,
+             pending_fault: None,
++            instruction_abandoned: false,
+             dcp_halves: [0; 16],
+             dcp_status: 0,
+             secure: true,
+@@ -795,7 +866,213 @@ impl CortexM33 {
+         addr >> 28 == 0xD && PerCoreSio::owns_offset(addr & 0xFFF)
+     }
+ 
++    #[inline]
++    fn is_armv7_m(&self) -> bool {
++        (self.ppb.cpuid >> 4) & 0x0fff == 0x0c24
++    }
++
++    /// Access context of the executing code.
++    #[inline(always)]
++    pub(crate) fn current_access_context(&self) -> AccessContext {
++        let ipsr = self.regs.ipsr();
++        AccessContext {
++            privileged: ipsr != 0 || self.regs.control & 1 == 0,
++            negative_priority: self.regs.faultmask & 1 != 0 || matches!(ipsr, 2 | 3),
++        }
++    }
++
++    /// PMSAv8: the enabled region containing `addr`, if any, decides.
++    fn pmsav8_region_permits(
++        &self,
++        addr: u32,
++        access: MemoryAccess,
++        privileged: bool,
++    ) -> Option<bool> {
++        for &(rbar, rlar) in &self.ppb.mpu_regions {
++            if rlar & 1 == 0 || addr < rbar & !0x1f || addr > rlar | 0x1f {
++                continue;
++            }
++            // AP[2:1]: 00 privileged RW, 01 any RW, 10 privileged RO, 11 any RO.
++            let ap = (rbar >> 1) & 3;
++            let readable = privileged || ap & 1 != 0;
++            let writable = ap & 2 == 0 && (privileged || ap == 1);
++            return Some(match access {
++                MemoryAccess::Read => readable,
++                MemoryAccess::Write => writable,
++                MemoryAccess::Execute => readable && rbar & 1 == 0,
++            });
++        }
++        None
++    }
++
++    /// PMSAv7: the highest-numbered enabled region containing `addr` in an
++    /// enabled subregion decides.
++    fn pmsav7_region_permits(
++        &self,
++        addr: u32,
++        access: MemoryAccess,
++        privileged: bool,
++    ) -> Option<bool> {
++        for &(rbar, rasr) in self.ppb.mpu_regions[..8].iter().rev() {
++            if rasr & 1 == 0 {
++                continue;
++            }
++            let size_field = (rasr >> 1) & 0x1f;
++            if size_field < 4 {
++                // Region sizes below 32 bytes are UNPREDICTABLE; never match.
++                continue;
++            }
++            let log2_size = size_field + 1; // 5..=32
++            let offset = if log2_size == 32 {
++                addr
++            } else {
++                let mask = (1u32 << log2_size) - 1;
++                if addr & !mask != rbar & !mask {
++                    continue;
++                }
++                addr & mask
++            };
++            if log2_size >= 8 && rasr & (1 << (8 + (offset >> (log2_size - 3)))) != 0 {
++                continue; // disabled subregion
++            }
++            let ap = (rasr >> 24) & 7;
++            let readable = match ap {
++                1 | 5 => privileged,
++                2 | 3 | 6 | 7 => true,
++                _ => false,
++            };
++            let writable = match ap {
++                1 | 2 => privileged,
++                3 => true,
++                _ => false,
++            };
++            return Some(match access {
++                MemoryAccess::Read => readable,
++                MemoryAccess::Write => writable,
++                MemoryAccess::Execute => readable && rasr & (1 << 28) == 0,
++            });
++        }
++        None
++    }
++
++    #[inline]
++    fn mpu_byte_permitted(
++        &self,
++        addr: u32,
++        access: MemoryAccess,
++        privileged: bool,
++        control: u32,
++    ) -> bool {
++        let region = if self.is_armv7_m() {
++            self.pmsav7_region_permits(addr, access, privileged)
++        } else {
++            self.pmsav8_region_permits(addr, access, privileged)
++        };
++        // No region: the default map as a privileged background (PRIVDEFENA).
++        region.unwrap_or(privileged && control & 4 != 0)
++    }
++
++    /// MPU permission for a `size`-byte access (Armv7-M ValidateAddress and
++    /// its Armv8-M equivalent). Regions are 32-byte granular, so an access
++    /// inside one 32-byte block needs a single lookup.
++    pub(crate) fn mpu_permits(
++        &self,
++        addr: u32,
++        size: u32,
++        access: MemoryAccess,
++        context: AccessContext,
++    ) -> bool {
++        let control = self.ppb.mpu_ctrl;
++        if control & 1 == 0 || (context.negative_priority && control & 2 == 0) {
++            return true;
++        }
++        // PPB accesses always use the default memory map. The SCS rejects
++        // unprivileged accesses with a BusFault, which is not modelled here,
++        // so unprivileged PPB accesses stay subject to the regions.
++        if context.privileged && addr >> 20 == 0xE00 && !matches!(access, MemoryAccess::Execute) {
++            return true;
++        }
++        let last = addr.wrapping_add(size - 1);
++        self.mpu_byte_permitted(addr, access, context.privileged, control)
++            && ((addr ^ last) & !0x1f == 0
++                || self.mpu_byte_permitted(last, access, context.privileged, control))
++    }
++
++    /// MPU check for a data access made by the executing instruction.
++    #[inline(always)]
++    fn data_access_permitted(&self, addr: u32, size: u32, access: MemoryAccess) -> bool {
++        self.ppb.mpu_ctrl & 1 == 0
++            || self.mpu_permits(addr, size, access, self.current_access_context())
++    }
++
++    /// Abandon the executing instruction for a synchronous fault. Its later
++    /// accesses are suppressed and `decode_execute` restores its snapshot.
++    pub(crate) fn abandon_instruction(&mut self, fault: Fault) {
++        self.pending_fault = Some(fault);
++        self.instruction_abandoned = true;
++    }
++
++    /// A denied data access: MemManage with DACCVIOL and the first denied
++    /// address in MMFAR.
++    #[cold]
++    fn abandon_for_data_access(&mut self, addr: u32) {
++        self.ppb.cfsr |= MMFSR_DACCVIOL | MMFSR_MMARVALID;
++        self.ppb.mmfar = addr;
++        self.abandon_instruction(Fault::MemManage);
++    }
++
++    /// A denied instruction fetch: IACCVIOL without an address. Nothing of
++    /// the instruction has executed, so there is nothing to restore.
++    #[cold]
++    pub(crate) fn raise_instruction_access_violation(&mut self) {
++        self.ppb.cfsr |= MMFSR_IACCVIOL;
++        self.pending_fault = Some(Fault::MemManage);
++    }
++
++    /// Exception-frame or lazy FP store, checked with the frame owner's
++    /// context. A denied store is reported to the caller; it never abandons
++    /// the executing instruction.
++    pub(crate) fn stack_write32<B: CoreBus>(
++        &mut self,
++        addr: u32,
++        val: u32,
++        context: AccessContext,
++        bus: &mut B,
++    ) -> bool {
++        if !self.mpu_permits(addr, 4, MemoryAccess::Write, context) {
++            return false;
++        }
++        self.write32_unchecked(addr, val, bus);
++        true
++    }
++
++    /// Exception-frame load, checked with the returning context.
++    pub(crate) fn stack_read32<B: CoreBus>(
++        &mut self,
++        addr: u32,
++        context: AccessContext,
++        bus: &mut B,
++    ) -> Option<u32> {
++        if !self.mpu_permits(addr, 4, MemoryAccess::Read, context) {
++            return None;
++        }
++        Some(self.read32_unchecked(addr, bus))
++    }
++
+     pub(crate) fn bus_read32<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u32 {
++        if self.instruction_abandoned {
++            return 0;
++        }
++        if !self.data_access_permitted(addr, 4, MemoryAccess::Read) {
++            self.abandon_for_data_access(addr);
++            return 0;
++        }
++        self.read32_unchecked(addr, bus)
++    }
++
++    /// Word read without an MPU check: vector fetches, which always use the
++    /// default memory map, and callers that have checked the access.
++    pub(crate) fn read32_unchecked<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u32 {
+         self.counters.classify_access(addr, false);
+         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+             let val = self.ppb.read32(addr);
+@@ -815,6 +1092,18 @@ impl CortexM33 {
+     }
+ 
+     pub(crate) fn bus_write32<B: CoreBus>(&mut self, addr: u32, val: u32, bus: &mut B) {
++        if self.instruction_abandoned {
++            return;
++        }
++        if !self.data_access_permitted(addr, 4, MemoryAccess::Write) {
++            self.abandon_for_data_access(addr);
++            return;
++        }
++        self.write32_unchecked(addr, val, bus);
++    }
++
++    /// Word write without an MPU check, for callers that have checked it.
++    pub(crate) fn write32_unchecked<B: CoreBus>(&mut self, addr: u32, val: u32, bus: &mut B) {
+         self.counters.classify_access(addr, true);
+         // Phase 0b.2: any data-side write invalidates a peer core's
+         // exclusive monitor. `Emulator::step` snoops this flag after the
+@@ -837,6 +1126,13 @@ impl CortexM33 {
+     }
+ 
+     pub(crate) fn bus_read16<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u16 {
++        if self.instruction_abandoned {
++            return 0;
++        }
++        if !self.data_access_permitted(addr, 2, MemoryAccess::Read) {
++            self.abandon_for_data_access(addr);
++            return 0;
++        }
+         self.counters.classify_access(addr, false);
+         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+             // ARMv8-M: halfword PPB accesses are UNPREDICTABLE (word-only
+@@ -874,6 +1170,13 @@ impl CortexM33 {
+     }
+ 
+     pub(crate) fn bus_write16<B: CoreBus>(&mut self, addr: u32, val: u16, bus: &mut B) {
++        if self.instruction_abandoned {
++            return;
++        }
++        if !self.data_access_permitted(addr, 2, MemoryAccess::Write) {
++            self.abandon_for_data_access(addr);
++            return;
++        }
+         self.counters.classify_access(addr, true);
+         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
+         self.did_write_this_quantum = true;
+@@ -907,6 +1210,13 @@ impl CortexM33 {
+     }
+ 
+     pub(crate) fn bus_read8<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u8 {
++        if self.instruction_abandoned {
++            return 0;
++        }
++        if !self.data_access_permitted(addr, 1, MemoryAccess::Read) {
++            self.abandon_for_data_access(addr);
++            return 0;
++        }
+         self.counters.classify_access(addr, false);
+         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
+             // NVIC_IPR and SCB_SHPR are byte-accessible priority registers.
+@@ -939,6 +1249,13 @@ impl CortexM33 {
+     }
+ 
+     pub(crate) fn bus_write8<B: CoreBus>(&mut self, addr: u32, val: u8, bus: &mut B) {
++        if self.instruction_abandoned {
++            return;
++        }
++        if !self.data_access_permitted(addr, 1, MemoryAccess::Write) {
++            self.abandon_for_data_access(addr);
++            return;
++        }
+         self.counters.classify_access(addr, true);
+         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
+         self.did_write_this_quantum = true;
+@@ -1033,6 +1350,7 @@ impl CortexM33 {
+     /// Returns cycle count.
+     pub fn execute_one(&mut self, opcode: u16) -> u32 {
+         self.pending_fault = None;
++        self.instruction_abandoned = false;
+         let pc = self.regs.pc();
+         self.current_instr_addr = pc;
+         self.regs.set_pc(pc.wrapping_add(2));
+@@ -1043,6 +1361,7 @@ impl CortexM33 {
+     /// Execute a single 16-bit instruction with a provided bus.
+     pub fn execute_one_with_bus(&mut self, opcode: u16, bus: &mut Bus) -> u32 {
+         self.pending_fault = None;
++        self.instruction_abandoned = false;
+         let pc = self.regs.pc();
+         self.current_instr_addr = pc;
+         self.regs.set_pc(pc.wrapping_add(2));
+@@ -1053,6 +1372,7 @@ impl CortexM33 {
+     /// Advances PC by 4 before execution.
+     pub fn execute_one_wide(&mut self, hw0: u16, hw1: u16) -> u32 {
+         self.pending_fault = None;
++        self.instruction_abandoned = false;
+         let pc = self.regs.pc();
+         self.current_instr_addr = pc;
+         self.regs.set_pc(pc.wrapping_add(4));
+@@ -1063,6 +1383,7 @@ impl CortexM33 {
+     /// Execute a single 32-bit Thumb-2 instruction with a provided bus.
+     pub fn execute_one_wide_with_bus(&mut self, hw0: u16, hw1: u16, bus: &mut Bus) -> u32 {
+         self.pending_fault = None;
++        self.instruction_abandoned = false;
+         let pc = self.regs.pc();
+         self.current_instr_addr = pc;
+         self.regs.set_pc(pc.wrapping_add(4));

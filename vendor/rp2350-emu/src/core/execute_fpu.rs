@@ -1237,31 +1237,44 @@ impl CortexM33 {
     /// is never actually delivered (step() catches the bus flag first).
     pub(crate) fn flush_lazy_fp_context<B: CoreBus>(&mut self, bus: &mut B) -> Result<(), ()> {
         let base = self.ppb.fpcar;
+        // Preservation is checked like stacking, never as an ordinary access
+        // of the FP instruction. FPCCR.USER is not modelled, so the executing
+        // handler's privilege applies, as it did before MPU enforcement.
+        let context = self.current_access_context();
 
-        // S0..S15 → +0..+60.
-        for i in 0..16 {
-            self.bus_write32(
-                base.wrapping_add((i as u32) * 4),
-                self.regs.s[i].to_bits(),
-                bus,
-            );
+        // S0..S15 → +0..+60; FPSCR → +64; reserved → +68 (zero per
+        // architecture).
+        let mut words = [0u32; 18];
+        for (word, s) in words.iter_mut().zip(self.regs.s) {
+            *word = s.to_bits();
+        }
+        words[16] = self.regs.fpscr;
+        for (i, word) in words.into_iter().enumerate() {
+            if !self.stack_write32(base.wrapping_add(4 * i as u32), word, context, bus) {
+                return self.lazy_fp_preservation_error();
+            }
             if bus.bus_fault(self.core_id) {
                 self.ppb.fpccr |= crate::bus::ppb::FPCCR_BFRDY;
                 return Err(());
             }
         }
-        // FPSCR → +64; reserved → +68 (write zero per architecture).
-        self.bus_write32(base.wrapping_add(64), self.regs.fpscr, bus);
-        if bus.bus_fault(self.core_id) {
-            self.ppb.fpccr |= crate::bus::ppb::FPCCR_BFRDY;
-            return Err(());
-        }
-        self.bus_write32(base.wrapping_add(68), 0, bus);
-        if bus.bus_fault(self.core_id) {
-            self.ppb.fpccr |= crate::bus::ppb::FPCCR_BFRDY;
-            return Err(());
-        }
         Ok(())
+    }
+
+    /// An MPU-denied lazy preservation store (MLSPERR, no address). As in
+    /// QEMU's PreserveFPState: when MemManage can be taken now, the FP
+    /// instruction is abandoned and LSPACT stays set; otherwise MemManage
+    /// stays pending and the instruction proceeds with the partial frame.
+    #[cold]
+    fn lazy_fp_preservation_error(&mut self) -> Result<(), ()> {
+        self.ppb.cfsr |= super::MMFSR_MLSPERR;
+        if self.ppb.shcsr & super::exceptions::SHCSR_MEMFAULTENA != 0 && !self.can_preempt(4) {
+            self.ppb.shcsr |= 1 << 13; // MEMFAULTPENDED
+            return Ok(());
+        }
+        // Taken now; a disabled MemManage escalates in `deliver_fault`.
+        self.abandon_instruction(super::Fault::MemManage);
+        Err(())
     }
 }
 

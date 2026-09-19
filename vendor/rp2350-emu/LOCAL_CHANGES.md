@@ -69,3 +69,25 @@ cache so CPU instruction fetch observes firmware cache-maintenance operations.
 An integrated CPU regression modifies executable SRAM, observes stale instructions,
 invalidates I-cache through guest MMIO, and observes the new instruction. See
 `docs/evidence/sifli-fetch-cache.patch`. No guest firmware is patched.
+
+`core/mod.rs`, `core/decode.rs`, `core/exceptions.rs`, `core/execute_fpu.rs`,
+`core/checkpoint.rs` and `bus/ppb.rs`: enforce the MPU for the generic Pebble profiles,
+with precise faults. PMSAv7 (Cortex-M4 CPUID) and PMSAv8 region permissions apply to
+instruction fetches, data accesses, exception stacking and unstacking, and lazy FP
+preservation; MPU_TYPE and MPU_RNR follow the profile. A denied data access abandons
+the executing instruction: registers, SP and writeback bases, IT state, the exclusive
+monitor and loaded S registers are restored, later accesses of that instruction are
+suppressed, and MMFAR holds the first denied address. Stacking stops at the first denied
+store and reports MSTKERR as a derived exception, taken first only when it outranks the
+original exception and otherwise pended through SHCSR. Unstacking reads the whole frame
+with the returning mode's privilege before changing state; a denied read reports
+MUNSTKERR and tail-chains to the derived fault. Lazy FP preservation reports MLSPERR.
+Vector reads and privileged PPB data accesses use the default memory map, FAULTMASK
+bypasses regions like NMI/HardFault when HFNMIENA is clear, and a synchronous MemManage
+that cannot preempt escalates to HardFault. SHCSR pending bits for MemManage, BusFault,
+UsageFault and SVCall take part in exception arbitration and tail-chaining. See
+`docs/evidence/mpu-enforcement.patch` and `crates/qemu-emery/tests/mpu_precise_faults.rs`.
+Unchanged 4.37.0 firmware boots byte-identically on all three profiles. Not modelled:
+unprivileged SCS accesses as BusFault, PMSAv8 overlapping-region faults, default-map
+execute-never regions, FPCCR.USER/MMRDY for lazy preservation, a derived HardFault
+pending behind NMI, and precise abandonment for BusFault and UsageFault.

@@ -180,14 +180,14 @@ impl<T: StateValue> StateValue for Arc<T> {
     }
 }
 macro_rules! fields {
-    ($ty:ty { $($field:ident),+ $(,)? } $(, $skip:ident = $default:expr)?) => {
+    ($ty:ty { $($field:ident),+ $(,)? } $(, $skip:ident = $default:expr)*) => {
         impl StateValue for $ty {
             fn encode(&self, out: &mut Vec<u8>) {
-                let Self { $($field,)+ $($skip: _,)? } = self;
+                let Self { $($field,)+ $($skip: _,)* } = self;
                 $($field.encode(out);)+
             }
             fn decode(input: &mut Reader<'_>) -> Result<Self> {
-                Ok(Self { $($field: StateValue::decode(input)?,)+ $($skip: $default,)? })
+                Ok(Self { $($field: StateValue::decode(input)?,)+ $($skip: $default,)* })
             }
         }
     };
@@ -325,7 +325,10 @@ fields!(
         bootrom_reboot_hook_pc_ns,
         bootrom_hook_fired
     },
-    decode_cache = CortexM33::new(0, Arc::new(CoreAtomics::default())).decode_cache
+    decode_cache = CortexM33::new(0, Arc::new(CoreAtomics::default())).decode_cache,
+    // Only set while an abandoned instruction is rolled back; always clear at
+    // the instruction boundaries where checkpoints are taken.
+    instruction_abandoned = false
 );
 impl CortexM33 {
     pub fn checkpoint_atomics(&self) -> Arc<CoreAtomics> {

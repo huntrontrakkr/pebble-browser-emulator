@@ -72,6 +72,23 @@ runs on Emery/Gabbro. Launch waits now report those firmware causes rather than 
 Validation: 418 JavaScript/Wasm tests pass (nine optional fixture skips), the complete
 Rust workspace passes, and the production PWA build passes.
 
+MPU faults are now precise ([evidence](evidence/mpu-precise-faults.json)). A denied data
+access abandons its instruction, restoring its registers, stack pointer and IT state, and
+MMFAR records the first denied address. Exception stacking, unstacking and lazy FP
+preservation report MSTKERR, MUNSTKERR and MLSPERR as derived exceptions. Previously the
+instruction completed with zeroed loads and its later stores: a PUSH into a stack guard left
+SP inside the guard, wrote the registers above it, and re-entered MemManage from Handler
+mode after the handler's first instruction. Thirteen synthetic vectors on all three profiles
+cover these paths; twelve failed before the change. Unchanged 4.37.0 firmware boots
+byte-identically for 20 virtual seconds on each profile. The vectors follow the architecture
+pseudocode and QEMU's v7m helpers. No native-QEMU captures exist for them yet, and the census
+and browser gates were not rerun. MPU enforcement still costs 26 to 38% of native boot
+throughput ([CPU support](CPU_SUPPORT.md)).
+Validation: 162 Rust workspace tests, Clippy and rustfmt pass; the vendored core's 3,643
+unit tests pass with its 21 pre-existing failures unchanged. On integration the Wasm build
+and 416 JavaScript/Wasm ABI tests also pass (eleven optional fixture skips); the browser
+workflow gate and the compatibility census were not rerun.
+
 
 ## Hardware fidelity work
 

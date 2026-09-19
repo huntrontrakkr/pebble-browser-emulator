@@ -254,8 +254,16 @@ impl CortexM33 {
         // off — the store lands in a cold struct field touched only
         // by `emit_mmio_trace`.
         bus.set_active_pc(pc, self.core_id);
-        if !self.mpu_allows(pc, 2, super::MemoryAccess::Execute) {
-            self.raise_memmanage(pc, true);
+        self.instruction_abandoned = false;
+        if self.ppb.mpu_ctrl & 1 != 0
+            && !self.mpu_permits(
+                pc,
+                2,
+                super::MemoryAccess::Execute,
+                self.current_access_context(),
+            )
+        {
+            self.raise_instruction_access_violation();
             return 1;
         }
 
@@ -285,8 +293,16 @@ impl CortexM33 {
         let hw0 = entry.hw0;
         let hw1 = entry.hw1;
         let is_wide = entry.is_wide();
-        if is_wide && !self.mpu_allows(pc.wrapping_add(2), 2, super::MemoryAccess::Execute) {
-            self.raise_memmanage(pc.wrapping_add(2), true);
+        if is_wide
+            && self.ppb.mpu_ctrl & 1 != 0
+            && !self.mpu_permits(
+                pc.wrapping_add(2),
+                2,
+                super::MemoryAccess::Execute,
+                self.current_access_context(),
+            )
+        {
+            self.raise_instruction_access_violation();
             return 1;
         }
         let is_pure = entry.is_pure();
@@ -369,14 +385,20 @@ impl CortexM33 {
             };
             cycles + bank_penalty
         } else {
-            // Slow path — preserves existing semantics verbatim.
+            // Slow path — preserves existing semantics verbatim, except that
+            // an instruction abandoned by a precise fault on one of its own
+            // accesses is rolled back (see `InstructionSnapshot`).
+            // Coprocessor loads (LDC class, L=1: VLDR/VLDM/VPOP) also write
+            // S registers.
+            let snapshot =
+                super::InstructionSnapshot::capture(self, is_wide && hw0 & 0xEE10 == 0xEC10);
             bus.reset_extra_wait_states();
             // Fetch contribution: apply only on non-sequential fetches.
             if !is_sequential {
                 bus.add_extra_wait_states(entry.fetch_wait as u32);
             }
 
-            if is_wide {
+            let cycles = if is_wide {
                 self.regs.set_pc(pc.wrapping_add(4));
                 let cycles = if cond_passed {
                     self.execute_thumb32(hw0, hw1, bus)
@@ -406,7 +428,12 @@ impl CortexM33 {
                     self.advance_it_state();
                 }
                 cycles + bus.extra_wait_states()
+            };
+            if self.instruction_abandoned {
+                snapshot.restore(self);
+                self.instruction_abandoned = false;
             }
+            cycles
         }
     }
 

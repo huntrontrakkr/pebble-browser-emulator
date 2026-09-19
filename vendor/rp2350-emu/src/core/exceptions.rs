@@ -1,9 +1,20 @@
 use std::sync::atomic::Ordering;
 
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
-use super::{CoreBus, CortexM33, Fault};
+use super::{AccessContext, CoreBus, CortexM33, Fault, MMFSR_MSTKERR, MMFSR_MUNSTKERR};
 use crate::bus::ppb::{FPCCR_BFRDY, FPCCR_LSPACT, FPCCR_LSPEN, FPCCR_MMRDY, FPCCR_SPLIMVIOL};
+
+// SHCSR pending and enable bits for the configurable system exceptions.
+const SHCSR_USGFAULTPENDED: u32 = 1 << 12;
+const SHCSR_MEMFAULTPENDED: u32 = 1 << 13;
+const SHCSR_BUSFAULTPENDED: u32 = 1 << 14;
+const SHCSR_SVCALLPENDED: u32 = 1 << 15;
+const SHCSR_PENDED_MASK: u32 = 0xF << 12;
+pub(crate) const SHCSR_MEMFAULTENA: u32 = 1 << 16;
+const SHCSR_BUSFAULTENA: u32 = 1 << 17;
+const SHCSR_USGFAULTENA: u32 = 1 << 18;
+pub(crate) const HFSR_FORCED: u32 = 1 << 30;
 
 /// CONTROL.FPCA bit position (bit 2). Owned exclusively by the three sites
 /// in this file plus `fpu_execute`; see `Ppb` field doc invariants.
@@ -141,15 +152,37 @@ impl CortexM33 {
             stacked_xpsr |= 1 << 9;
         }
 
-        // Push exception frame: R0, R1, R2, R3, R12, LR, ReturnAddress, xPSR
-        self.bus_write32(frame_sp, self.regs.r[0], bus);
-        self.bus_write32(frame_sp.wrapping_add(4), self.regs.r[1], bus);
-        self.bus_write32(frame_sp.wrapping_add(8), self.regs.r[2], bus);
-        self.bus_write32(frame_sp.wrapping_add(12), self.regs.r[3], bus);
-        self.bus_write32(frame_sp.wrapping_add(16), self.regs.r[12], bus);
-        self.bus_write32(frame_sp.wrapping_add(20), self.regs.lr(), bus);
-        self.bus_write32(frame_sp.wrapping_add(24), self.return_address(exc_num), bus);
-        self.bus_write32(frame_sp.wrapping_add(28), stacked_xpsr, bus);
+        // The interrupted context performs the stacking: PushStack uses its
+        // privilege, and a derived fault is judged against its priority.
+        let stack_context = self.current_access_context();
+        let interrupted_priority = self.execution_priority();
+
+        // Push exception frame: R0, R1, R2, R3, R12, LR, ReturnAddress, xPSR.
+        // Only the frame locations are architected. As in QEMU's
+        // v7m_push_stack, stacking stops at the first MPU-denied store; the
+        // stacking error (MSTKERR, no address) is a derived exception below.
+        let frame = [
+            self.regs.r[0],
+            self.regs.r[1],
+            self.regs.r[2],
+            self.regs.r[3],
+            self.regs.r[12],
+            self.regs.lr(),
+            self.return_address(exc_num),
+            stacked_xpsr,
+        ];
+        let mut stacked = true;
+        for (i, word) in frame.into_iter().enumerate() {
+            if !self.stack_write32(
+                frame_sp.wrapping_add(4 * i as u32),
+                word,
+                stack_context,
+                bus,
+            ) {
+                stacked = false;
+                break;
+            }
+        }
 
         // FP context — eager (LSPEN=0) writes S0-S15 + FPSCR now; lazy
         // (LSPEN=1, default) reserves the slots and sets FPCCR.LSPACT
@@ -166,18 +199,21 @@ impl CortexM33 {
                 // leave behind from a prior fault.
                 self.ppb.fpccr |= FPCCR_LSPACT;
                 self.ppb.fpccr &= !(FPCCR_MMRDY | FPCCR_BFRDY);
-            } else {
+            } else if stacked {
                 // Eager: write S0-S15 + FPSCR + reserved word. Layout
                 // per DDI0553 §B3.4.3 ExceptionEntry pseudocode.
-                for i in 0..16 {
-                    self.bus_write32(
-                        fp_region_sp.wrapping_add((i as u32) * 4),
-                        self.regs.s[i].to_bits(),
-                        bus,
-                    );
+                let mut words = [0u32; 18];
+                for (word, s) in words.iter_mut().zip(self.regs.s) {
+                    *word = s.to_bits();
                 }
-                self.bus_write32(fp_region_sp.wrapping_add(64), self.regs.fpscr, bus);
-                self.bus_write32(fp_region_sp.wrapping_add(68), 0, bus);
+                words[16] = self.regs.fpscr;
+                for (i, word) in words.into_iter().enumerate() {
+                    let addr = fp_region_sp.wrapping_add(4 * i as u32);
+                    if !self.stack_write32(addr, word, stack_context, bus) {
+                        stacked = false;
+                        break;
+                    }
+                }
             }
             // Reset FPSCR from FPDSCR active bits: AHP[26], DN[25],
             // FZ[24], RMODE[23:22] (DDI0553 §B3.4.3). Cumulative
@@ -213,9 +249,19 @@ impl CortexM33 {
                 0x9 // return to Thread, MSP
             };
 
-        // Fetch vector from table
+        // A stacking error makes this a derived-exception entry: take the
+        // higher-priority of the original and derived exceptions.
+        let exc_num = if stacked {
+            exc_num
+        } else {
+            self.ppb.cfsr |= MMFSR_MSTKERR;
+            self.resolve_stacking_error(exc_num, interrupted_priority)
+        };
+
+        // Fetch vector from table. Vector reads always use the default
+        // memory map, never the MPU regions.
         let vtor = self.ppb.vtor;
-        let vector = self.bus_read32(vtor.wrapping_add((exc_num as u32) * 4), bus);
+        let vector = self.read32_unchecked(vtor.wrapping_add((exc_num as u32) * 4), bus);
         self.regs.set_pc(vector & !1);
 
         // Enter handler mode: set IPSR, force MSP, clear IT.
@@ -236,6 +282,117 @@ impl CortexM33 {
         );
 
         12
+    }
+
+    // --- Derived exceptions (stacking and unstacking errors) ---
+
+    /// The exception a stacking or unstacking error raises: MemManage when
+    /// enabled and able to preempt `priority`, otherwise an escalated
+    /// HardFault (HFSR.FORCED).
+    fn derived_memmanage(&mut self, priority: i16) -> u16 {
+        if self.ppb.shcsr & SHCSR_MEMFAULTENA != 0 && self.ppb.exception_priority(4) < priority {
+            4
+        } else {
+            self.ppb.hfsr |= HFSR_FORCED;
+            3
+        }
+    }
+
+    /// Choose between the exception being entered and the MemManage derived
+    /// from its stacking error, as QEMU does by pending both and taking the
+    /// highest-priority one. The other remains pending.
+    fn resolve_stacking_error(&mut self, original: u16, interrupted_priority: i16) -> u16 {
+        let derived = self.derived_memmanage(interrupted_priority);
+        if derived == original {
+            return original;
+        }
+        let derived_priority = self.ppb.exception_priority(derived);
+        let original_priority = self.ppb.exception_priority(original);
+        if derived_priority < original_priority
+            || (derived_priority == original_priority && derived < original)
+        {
+            // Late arrival: the derived exception is taken first.
+            self.repend_exception(original);
+            derived
+        } else {
+            if derived == 4 {
+                self.ppb.shcsr |= SHCSR_MEMFAULTPENDED;
+            } else {
+                // Only NMI outranks a derived HardFault. The core has no
+                // pending HardFault state, so this corner is not modelled.
+                warn!(
+                    original,
+                    "derived HardFault behind a higher-priority exception is not modelled",
+                );
+            }
+            original
+        }
+    }
+
+    /// Return an exception that lost to a late-arriving derived exception to
+    /// the pending state its dispatch cleared.
+    fn repend_exception(&mut self, exc_num: u16) {
+        match exc_num {
+            2 => self.ppb.icsr |= crate::bus::ppb::ICSR_NMIPENDSET,
+            4 => self.ppb.shcsr |= SHCSR_MEMFAULTPENDED,
+            5 => self.ppb.shcsr |= SHCSR_BUSFAULTPENDED,
+            6 => self.ppb.shcsr |= SHCSR_USGFAULTPENDED,
+            11 => self.ppb.shcsr |= SHCSR_SVCALLPENDED,
+            14 => self.ppb.icsr |= crate::bus::ppb::ICSR_PENDSVSET,
+            15 => self.ppb.icsr |= crate::bus::ppb::ICSR_PENDSTSET,
+            n if n >= 16 => {
+                let irq = (n - 16) as u32;
+                let word = (irq / 32) as usize;
+                if word < crate::bus::ppb::NVIC_BIT_WORDS {
+                    // Keep both pending latches in step (see the DUAL-CLEAR
+                    // INVARIANT in `try_take_any_pending_exception`).
+                    self.ppb.clear_active(n);
+                    self.ppb.nvic_ispr[word].fetch_or(1 << (irq % 32), Ordering::Relaxed);
+                    self.atomics.assert_irq(self.core_id as usize, irq);
+                }
+            }
+            // HardFault cannot lose to a derived exception.
+            _ => {}
+        }
+    }
+
+    /// Configurable system exceptions pending in SHCSR, by software or as
+    /// derived exceptions: MemManage, BusFault and UsageFault while enabled,
+    /// and SVCall. Returns the highest-priority one, lowest number on ties.
+    fn highest_pending_system_handler(&self) -> Option<(i16, u16)> {
+        let shcsr = self.ppb.shcsr;
+        if shcsr & SHCSR_PENDED_MASK == 0 {
+            return None;
+        }
+        let candidates = [
+            (4u16, SHCSR_MEMFAULTPENDED, SHCSR_MEMFAULTENA),
+            (5, SHCSR_BUSFAULTPENDED, SHCSR_BUSFAULTENA),
+            (6, SHCSR_USGFAULTPENDED, SHCSR_USGFAULTENA),
+            (11, SHCSR_SVCALLPENDED, 0),
+        ];
+        let mut best: Option<(i16, u16)> = None;
+        for (exc, pended, enable) in candidates {
+            if shcsr & pended == 0 || (enable != 0 && shcsr & enable == 0) {
+                continue;
+            }
+            let prio = self.ppb.exception_priority(exc);
+            if best.is_none_or(|(bp, _)| prio < bp) {
+                best = Some((prio, exc));
+            }
+        }
+        best
+    }
+
+    /// Clear the SHCSR pending bit of a configurable system exception that
+    /// is being activated.
+    fn clear_system_handler_pending(&mut self, exc_num: u16) {
+        self.ppb.shcsr &= !match exc_num {
+            4 => SHCSR_MEMFAULTPENDED,
+            5 => SHCSR_BUSFAULTPENDED,
+            6 => SHCSR_USGFAULTPENDED,
+            11 => SHCSR_SVCALLPENDED,
+            _ => 0,
+        };
     }
 
     // --- Exception return ---
@@ -316,7 +473,9 @@ impl CortexM33 {
         // thread mode. Temporarily swap IPSR + clear the departing
         // exception's active tracking so `can_preempt` reflects the
         // post-pop state; restore on no-tail-chain below.
-        let stacked_xpsr_peek = self.bus_read32(sp.wrapping_add(28), bus);
+        // The peek is this model's way to find the returning context's
+        // priority, not an architectural access, so it bypasses the MPU.
+        let stacked_xpsr_peek = self.read32_unchecked(sp.wrapping_add(28), bus);
         let post_pop_ipsr = (stacked_xpsr_peek & 0x1FF) as u16;
         let saved_ipsr_bits = self.regs.xpsr & 0x1FF;
         self.regs.xpsr = (self.regs.xpsr & !0x1FF) | (post_pop_ipsr as u32);
@@ -324,21 +483,59 @@ impl CortexM33 {
         if let Some(new_exc) = self.pick_tail_chain_target() {
             return self.activate_tail_chain(new_exc, exc_return, bus);
         }
+        // An unstacking error is judged against the returning context.
+        let return_to_thread = exc_return & 0x8 != 0;
+        let returning_priority = self.execution_priority();
         // No tail-chain: restore IPSR so the unstack below overwrites
         // it with the stacked value (the normal pre-emption semantics).
         // The cleared active bit stays cleared — the normal pop path
         // below does the same clear at its tail.
         self.regs.xpsr = (self.regs.xpsr & !0x1FF) | saved_ipsr_bits;
 
+        // PopStack uses the privilege of the mode being returned to
+        // (Armv7-M ExceptionReturn; QEMU do_v7m_exception_exit). Read the
+        // whole frame before changing any state.
+        let unstack_context = AccessContext {
+            privileged: !return_to_thread || self.regs.control & 1 == 0,
+            negative_priority: !return_to_thread && matches!(post_pop_ipsr, 2 | 3),
+        };
+        let lspact = self.ppb.fpccr & FPCCR_LSPACT != 0;
+        let mut basic = [0u32; 8];
+        // S0-S15 then FPSCR, when an FP frame was actually written.
+        let mut fp = [0u32; 17];
+        let fp_words = if had_fp_frame && !lspact { fp.len() } else { 0 };
+        let mut popped = true;
+        for (i, slot) in basic
+            .iter_mut()
+            .chain(fp.iter_mut().take(fp_words))
+            .enumerate()
+        {
+            match self.stack_read32(sp.wrapping_add(4 * i as u32), unstack_context, bus) {
+                Some(word) => *slot = word,
+                None => {
+                    popped = false;
+                    break;
+                }
+            }
+        }
+        if !popped {
+            // MUNSTKERR: the frame stays in place and the derived fault is
+            // taken as a tail-chain; its handler returns with the same
+            // EXC_RETURN to retry the unstacking.
+            self.ppb.cfsr |= MMFSR_MUNSTKERR;
+            let derived = self.derived_memmanage(returning_priority);
+            return self.activate_tail_chain(derived, exc_return, bus);
+        }
+
         // Pop basic frame
-        self.regs.r[0] = self.bus_read32(sp, bus);
-        self.regs.r[1] = self.bus_read32(sp.wrapping_add(4), bus);
-        self.regs.r[2] = self.bus_read32(sp.wrapping_add(8), bus);
-        self.regs.r[3] = self.bus_read32(sp.wrapping_add(12), bus);
-        self.regs.r[12] = self.bus_read32(sp.wrapping_add(16), bus);
-        self.regs.r[14] = self.bus_read32(sp.wrapping_add(20), bus);
-        let return_pc = self.bus_read32(sp.wrapping_add(24), bus);
-        let return_xpsr = self.bus_read32(sp.wrapping_add(28), bus);
+        self.regs.r[0] = basic[0];
+        self.regs.r[1] = basic[1];
+        self.regs.r[2] = basic[2];
+        self.regs.r[3] = basic[3];
+        self.regs.r[12] = basic[4];
+        self.regs.r[14] = basic[5];
+        let return_pc = basic[6];
+        let return_xpsr = basic[7];
 
         self.regs.set_pc(return_pc & !1);
 
@@ -350,16 +547,13 @@ impl CortexM33 {
         //   LSPACT=0 → an FP op in the handler triggered the lazy flush,
         //              or eager mode wrote the frame. Pop S0-S15 + FPSCR.
         if had_fp_frame {
-            let fp_region_sp = sp.wrapping_add(32);
-            let lspact = self.ppb.fpccr & FPCCR_LSPACT != 0;
             if lspact {
                 self.ppb.fpccr &= !FPCCR_LSPACT;
             } else {
-                for i in 0..16 {
-                    let bits = self.bus_read32(fp_region_sp.wrapping_add((i as u32) * 4), bus);
-                    self.regs.s[i] = f32::from_bits(bits);
+                for (s, bits) in self.regs.s.iter_mut().zip(&fp[..16]) {
+                    *s = f32::from_bits(*bits);
                 }
-                self.regs.fpscr = self.bus_read32(fp_region_sp.wrapping_add(64), bus);
+                self.regs.fpscr = fp[16];
             }
         }
 
@@ -447,6 +641,12 @@ impl CortexM33 {
                 other => other,
             };
         }
+        if let Some((prio, exc)) = self.highest_pending_system_handler() {
+            best = match best {
+                Some((bp, be)) if bp < prio || (bp == prio && be < exc) => Some((bp, be)),
+                _ => Some((prio, exc)),
+            };
+        }
 
         let (_, candidate) = best?;
         if !self.can_preempt(candidate) {
@@ -473,8 +673,8 @@ impl CortexM33 {
             2 => self.ppb.icsr &= !crate::bus::ppb::ICSR_NMIPENDSET,
             14 => self.ppb.icsr &= !crate::bus::ppb::ICSR_PENDSVSET,
             15 => self.ppb.icsr &= !crate::bus::ppb::ICSR_PENDSTSET,
-            _ => {
-                let irq = new_exc - 16;
+            n if n >= 16 => {
+                let irq = n - 16;
                 let word = (irq / 32) as usize;
                 let bit = irq % 32;
                 if word < crate::bus::ppb::NVIC_BIT_WORDS {
@@ -484,6 +684,9 @@ impl CortexM33 {
                 }
                 self.ppb.set_irq_active(irq as u32);
             }
+            // SHCSR-pended configurable faults and SVCall, or a HardFault
+            // derived from an unstacking error.
+            n => self.clear_system_handler_pending(n),
         }
 
         // IPSR → new exception number; IT state clears on handler entry.
@@ -496,9 +699,9 @@ impl CortexM33 {
         self.regs.r[14] = exc_return;
 
         // Fetch vector, update PC. Already in handler mode on MSP,
-        // so no CONTROL/SP changes.
+        // so no CONTROL/SP changes. Vector reads bypass the MPU.
         let vtor = self.ppb.vtor;
-        let vector = self.bus_read32(vtor.wrapping_add((new_exc as u32) * 4), bus);
+        let vector = self.read32_unchecked(vtor.wrapping_add((new_exc as u32) * 4), bus);
         self.regs.set_pc(vector & !1);
         self.regs.sync_sp_from_banked();
 
@@ -623,6 +826,12 @@ impl CortexM33 {
                 other => other,
             };
         }
+        if let Some((prio, exc)) = self.highest_pending_system_handler() {
+            best = match best {
+                Some((bp, be)) if bp < prio || (bp == prio && be < exc) => Some((bp, be)),
+                _ => Some((prio, exc)),
+            };
+        }
 
         let (_, candidate) = best?;
         if !self.can_preempt(candidate) {
@@ -654,6 +863,7 @@ impl CortexM33 {
             15 => {
                 self.ppb.icsr &= !crate::bus::ppb::ICSR_PENDSTSET;
             }
+            4..=11 => self.clear_system_handler_pending(candidate),
             _ => {
                 // External IRQ. See DUAL-CLEAR INVARIANT above.
                 let irq = candidate - 16;
@@ -691,21 +901,30 @@ impl CortexM33 {
                 }
             }
             Fault::MemManage => {
-                // Access checks record IACCVIOL or DACCVIOL/MMARVALID before
-                // delivery. Direct test and lazy-FP callers without an address
-                // retain the historical data-fault default.
-                if self.ppb.cfsr & 0x83 == 0 {
-                    self.ppb.cfsr |= 1 << 1;
+                // Access checks record their MMFSR cause before delivery.
+                // Direct test callers without a cause retain the historical
+                // data-fault default.
+                use super::{
+                    MMFSR_DACCVIOL, MMFSR_IACCVIOL, MMFSR_MLSPERR, MMFSR_MSTKERR, MMFSR_MUNSTKERR,
+                };
+                let causes = MMFSR_IACCVIOL
+                    | MMFSR_DACCVIOL
+                    | MMFSR_MUNSTKERR
+                    | MMFSR_MSTKERR
+                    | MMFSR_MLSPERR;
+                if self.ppb.cfsr & causes == 0 {
+                    self.ppb.cfsr |= MMFSR_DACCVIOL;
                 }
-                if self.ppb.shcsr & (1 << 16) != 0 {
-                    // MEMFAULTENA
+                // A synchronous fault that is disabled, or cannot preempt the
+                // current execution priority, escalates to HardFault.
+                if self.ppb.shcsr & SHCSR_MEMFAULTENA != 0 && self.can_preempt(4) {
                     self.enter_exception(4, bus)
                 } else {
                     info!(
                         pc = format_args!("{:#010x}", self.current_instr_addr),
                         "HardFault escalation from MemManage",
                     );
-                    self.ppb.hfsr |= 1 << 30; // FORCED
+                    self.ppb.hfsr |= HFSR_FORCED;
                     self.enter_exception(3, bus) // escalate to HardFault
                 }
             }

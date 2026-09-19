@@ -205,10 +205,69 @@ pub(crate) enum Fault {
 }
 
 #[derive(Clone, Copy)]
-enum MemoryAccess {
+pub(crate) enum MemoryAccess {
     Read,
     Write,
     Execute,
+}
+
+// CFSR.MMFSR cause and address-valid bits.
+pub(crate) const MMFSR_IACCVIOL: u32 = 1 << 0;
+pub(crate) const MMFSR_DACCVIOL: u32 = 1 << 1;
+pub(crate) const MMFSR_MUNSTKERR: u32 = 1 << 3;
+pub(crate) const MMFSR_MSTKERR: u32 = 1 << 4;
+pub(crate) const MMFSR_MLSPERR: u32 = 1 << 5;
+pub(crate) const MMFSR_MMARVALID: u32 = 1 << 7;
+
+/// Privilege and priority under which the MPU checks an access. Ordinary
+/// instruction accesses use the executing context; exception stacking and
+/// unstacking use the context that owns the frame (Armv7-M PushStack and
+/// ExceptionReturn, Armv8-M equivalents).
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct AccessContext {
+    pub(crate) privileged: bool,
+    /// Execution priority below zero (NMI, HardFault or FAULTMASK). With
+    /// MPU_CTRL.HFNMIENA clear such accesses use the default memory map.
+    pub(crate) negative_priority: bool,
+}
+
+/// Architectural state an abandoned instruction may already have changed.
+/// Captured before every non-pure instruction and restored when one of its
+/// own data accesses faults, so the fault is precise: the stacked PC retries
+/// the instruction with its original registers, SP, IT state and monitor.
+/// Stores performed before the first denied access remain, as the
+/// architecture permits for restartable multiple-store instructions.
+struct InstructionSnapshot {
+    r: [u32; 16],
+    xpsr: u32,
+    it_state: u8,
+    exclusive_address: Option<u32>,
+    /// Captured only for coprocessor loads, which write S registers.
+    s: Option<[f32; 32]>,
+}
+
+impl InstructionSnapshot {
+    #[inline(always)]
+    fn capture(cpu: &CortexM33, fp_load: bool) -> Self {
+        Self {
+            r: cpu.regs.r,
+            xpsr: cpu.regs.xpsr,
+            it_state: cpu.it_state,
+            exclusive_address: cpu.exclusive_address,
+            s: if fp_load { Some(cpu.regs.s) } else { None },
+        }
+    }
+
+    #[cold]
+    fn restore(self, cpu: &mut CortexM33) {
+        cpu.regs.r = self.r;
+        cpu.regs.xpsr = self.xpsr;
+        cpu.it_state = self.it_state;
+        cpu.exclusive_address = self.exclusive_address;
+        if let Some(s) = self.s {
+            cpu.regs.s = s;
+        }
+    }
 }
 
 /// Per-core access counters for workload characterization (Phase 0a).
@@ -264,6 +323,11 @@ pub struct CortexM33 {
     pub(crate) it_state: u8,
     /// Pending synchronous fault from the most recent instruction.
     pub(crate) pending_fault: Option<Fault>,
+    /// Set when one of the executing instruction's own accesses raised a
+    /// precise fault. Later accesses of that instruction are suppressed, and
+    /// `decode_execute` restores its [`InstructionSnapshot`]. Always clear at
+    /// an instruction boundary, so checkpoints do not record it.
+    pub(crate) instruction_abandoned: bool,
     /// DCP (CP4/5) half-word register file. Eight double-precision slots
     /// (indexed 0..7), each made of two 32-bit halves: half A (low) at
     /// index `d*2`, half B (high) at index `d*2 + 1`. Layout matches
@@ -387,6 +451,7 @@ impl CortexM33 {
             current_instr_addr: 0,
             it_state: 0,
             pending_fault: None,
+            instruction_abandoned: false,
             dcp_halves: [0; 16],
             dcp_status: 0,
             secure: true,
@@ -806,29 +871,31 @@ impl CortexM33 {
         (self.ppb.cpuid >> 4) & 0x0fff == 0x0c24
     }
 
-    #[inline]
-    fn is_privileged(&self) -> bool {
-        self.regs.in_handler_mode() || self.regs.control & 1 == 0
+    /// Access context of the executing code.
+    #[inline(always)]
+    pub(crate) fn current_access_context(&self) -> AccessContext {
+        let ipsr = self.regs.ipsr();
+        AccessContext {
+            privileged: ipsr != 0 || self.regs.control & 1 == 0,
+            negative_priority: self.regs.faultmask & 1 != 0 || matches!(ipsr, 2 | 3),
+        }
     }
 
-    fn armv8_mpu_permission(&self, addr: u32, access: MemoryAccess) -> Option<bool> {
+    /// PMSAv8: the enabled region containing `addr`, if any, decides.
+    fn pmsav8_region_permits(
+        &self,
+        addr: u32,
+        access: MemoryAccess,
+        privileged: bool,
+    ) -> Option<bool> {
         for &(rbar, rlar) in &self.ppb.mpu_regions {
-            if rlar & 1 == 0 {
+            if rlar & 1 == 0 || addr < rbar & !0x1f || addr > rlar | 0x1f {
                 continue;
             }
-            let base = rbar & !0x1f;
-            let limit = (rlar & !0x1f) | 0x1f;
-            if addr < base || addr > limit {
-                continue;
-            }
-            let privileged = self.is_privileged();
+            // AP[2:1]: 00 privileged RW, 01 any RW, 10 privileged RO, 11 any RO.
             let ap = (rbar >> 1) & 3;
-            let readable = privileged || ap == 1 || ap == 3;
-            let writable = match ap {
-                0 => privileged,
-                1 => true,
-                _ => false,
-            };
+            let readable = privileged || ap & 1 != 0;
+            let writable = ap & 2 == 0 && (privileged || ap == 1);
             return Some(match access {
                 MemoryAccess::Read => readable,
                 MemoryAccess::Write => writable,
@@ -838,29 +905,36 @@ impl CortexM33 {
         None
     }
 
-    fn armv7_mpu_permission(&self, addr: u32, access: MemoryAccess) -> Option<bool> {
-        // PMSAv7 resolves overlapping regions in descending region-number order.
+    /// PMSAv7: the highest-numbered enabled region containing `addr` in an
+    /// enabled subregion decides.
+    fn pmsav7_region_permits(
+        &self,
+        addr: u32,
+        access: MemoryAccess,
+        privileged: bool,
+    ) -> Option<bool> {
         for &(rbar, rasr) in self.ppb.mpu_regions[..8].iter().rev() {
             if rasr & 1 == 0 {
                 continue;
             }
             let size_field = (rasr >> 1) & 0x1f;
             if size_field < 4 {
+                // Region sizes below 32 bytes are UNPREDICTABLE; never match.
                 continue;
             }
-            let size = 1u64 << (size_field + 1);
-            let base = (rbar as u64) & !(size - 1);
-            let offset = (addr as u64).wrapping_sub(base);
-            if offset >= size {
-                continue;
-            }
-            if size >= 256 {
-                let subregion = (offset / (size / 8)) as u32;
-                if rasr & (1 << (8 + subregion)) != 0 {
+            let log2_size = size_field + 1; // 5..=32
+            let offset = if log2_size == 32 {
+                addr
+            } else {
+                let mask = (1u32 << log2_size) - 1;
+                if addr & !mask != rbar & !mask {
                     continue;
                 }
+                addr & mask
+            };
+            if log2_size >= 8 && rasr & (1 << (8 + (offset >> (log2_size - 3)))) != 0 {
+                continue; // disabled subregion
             }
-            let privileged = self.is_privileged();
             let ap = (rasr >> 24) & 7;
             let readable = match ap {
                 1 | 5 => privileged,
@@ -881,44 +955,125 @@ impl CortexM33 {
         None
     }
 
-    fn mpu_allows_byte(&self, addr: u32, access: MemoryAccess) -> bool {
-        let control = self.ppb.mpu_ctrl;
-        if control & 1 == 0 {
-            return true;
-        }
-        let exception = self.regs.ipsr();
-        if matches!(exception, 2 | 3) && control & 2 == 0 {
-            return true;
-        }
-        let permission = if self.is_armv7_m() {
-            self.armv7_mpu_permission(addr, access)
+    #[inline]
+    fn mpu_byte_permitted(
+        &self,
+        addr: u32,
+        access: MemoryAccess,
+        privileged: bool,
+        control: u32,
+    ) -> bool {
+        let region = if self.is_armv7_m() {
+            self.pmsav7_region_permits(addr, access, privileged)
         } else {
-            self.armv8_mpu_permission(addr, access)
+            self.pmsav8_region_permits(addr, access, privileged)
         };
-        permission.unwrap_or_else(|| self.is_privileged() && control & 4 != 0)
+        // No region: the default map as a privileged background (PRIVDEFENA).
+        region.unwrap_or(privileged && control & 4 != 0)
     }
 
-    fn mpu_allows(&self, addr: u32, size: u32, access: MemoryAccess) -> bool {
-        self.mpu_allows_byte(addr, access)
-            && self.mpu_allows_byte(addr.wrapping_add(size.saturating_sub(1)), access)
-    }
-
-    fn raise_memmanage(&mut self, addr: u32, instruction: bool) {
-        if instruction {
-            self.ppb.cfsr |= 1; // MMFSR.IACCVIOL
-        } else {
-            self.ppb.cfsr |= (1 << 1) | (1 << 7); // DACCVIOL + MMARVALID
-            self.ppb.mmfar = addr;
+    /// MPU permission for a `size`-byte access (Armv7-M ValidateAddress and
+    /// its Armv8-M equivalent). Regions are 32-byte granular, so an access
+    /// inside one 32-byte block needs a single lookup.
+    pub(crate) fn mpu_permits(
+        &self,
+        addr: u32,
+        size: u32,
+        access: MemoryAccess,
+        context: AccessContext,
+    ) -> bool {
+        let control = self.ppb.mpu_ctrl;
+        if control & 1 == 0 || (context.negative_priority && control & 2 == 0) {
+            return true;
         }
+        // PPB accesses always use the default memory map. The SCS rejects
+        // unprivileged accesses with a BusFault, which is not modelled here,
+        // so unprivileged PPB accesses stay subject to the regions.
+        if context.privileged && addr >> 20 == 0xE00 && !matches!(access, MemoryAccess::Execute) {
+            return true;
+        }
+        let last = addr.wrapping_add(size - 1);
+        self.mpu_byte_permitted(addr, access, context.privileged, control)
+            && ((addr ^ last) & !0x1f == 0
+                || self.mpu_byte_permitted(last, access, context.privileged, control))
+    }
+
+    /// MPU check for a data access made by the executing instruction.
+    #[inline(always)]
+    fn data_access_permitted(&self, addr: u32, size: u32, access: MemoryAccess) -> bool {
+        self.ppb.mpu_ctrl & 1 == 0
+            || self.mpu_permits(addr, size, access, self.current_access_context())
+    }
+
+    /// Abandon the executing instruction for a synchronous fault. Its later
+    /// accesses are suppressed and `decode_execute` restores its snapshot.
+    pub(crate) fn abandon_instruction(&mut self, fault: Fault) {
+        self.pending_fault = Some(fault);
+        self.instruction_abandoned = true;
+    }
+
+    /// A denied data access: MemManage with DACCVIOL and the first denied
+    /// address in MMFAR.
+    #[cold]
+    fn abandon_for_data_access(&mut self, addr: u32) {
+        self.ppb.cfsr |= MMFSR_DACCVIOL | MMFSR_MMARVALID;
+        self.ppb.mmfar = addr;
+        self.abandon_instruction(Fault::MemManage);
+    }
+
+    /// A denied instruction fetch: IACCVIOL without an address. Nothing of
+    /// the instruction has executed, so there is nothing to restore.
+    #[cold]
+    pub(crate) fn raise_instruction_access_violation(&mut self) {
+        self.ppb.cfsr |= MMFSR_IACCVIOL;
         self.pending_fault = Some(Fault::MemManage);
     }
 
+    /// Exception-frame or lazy FP store, checked with the frame owner's
+    /// context. A denied store is reported to the caller; it never abandons
+    /// the executing instruction.
+    pub(crate) fn stack_write32<B: CoreBus>(
+        &mut self,
+        addr: u32,
+        val: u32,
+        context: AccessContext,
+        bus: &mut B,
+    ) -> bool {
+        if !self.mpu_permits(addr, 4, MemoryAccess::Write, context) {
+            return false;
+        }
+        self.write32_unchecked(addr, val, bus);
+        true
+    }
+
+    /// Exception-frame load, checked with the returning context.
+    pub(crate) fn stack_read32<B: CoreBus>(
+        &mut self,
+        addr: u32,
+        context: AccessContext,
+        bus: &mut B,
+    ) -> Option<u32> {
+        if !self.mpu_permits(addr, 4, MemoryAccess::Read, context) {
+            return None;
+        }
+        Some(self.read32_unchecked(addr, bus))
+    }
+
     pub(crate) fn bus_read32<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u32 {
-        self.counters.classify_access(addr, false);
-        if !self.mpu_allows(addr, 4, MemoryAccess::Read) {
-            self.raise_memmanage(addr, false);
+        if self.instruction_abandoned {
             return 0;
         }
+        if !self.data_access_permitted(addr, 4, MemoryAccess::Read) {
+            self.abandon_for_data_access(addr);
+            return 0;
+        }
+        self.read32_unchecked(addr, bus)
+    }
+
+    /// Word read without an MPU check: vector fetches, which always use the
+    /// default memory map, and callers that have checked the access.
+    pub(crate) fn read32_unchecked<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u32 {
+        self.counters.classify_access(addr, false);
         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             let val = self.ppb.read32(addr);
             if bus.mmio_trace_enabled() {
@@ -937,11 +1092,19 @@ impl CortexM33 {
     }
 
     pub(crate) fn bus_write32<B: CoreBus>(&mut self, addr: u32, val: u32, bus: &mut B) {
-        self.counters.classify_access(addr, true);
-        if !self.mpu_allows(addr, 4, MemoryAccess::Write) {
-            self.raise_memmanage(addr, false);
+        if self.instruction_abandoned {
             return;
         }
+        if !self.data_access_permitted(addr, 4, MemoryAccess::Write) {
+            self.abandon_for_data_access(addr);
+            return;
+        }
+        self.write32_unchecked(addr, val, bus);
+    }
+
+    /// Word write without an MPU check, for callers that have checked it.
+    pub(crate) fn write32_unchecked<B: CoreBus>(&mut self, addr: u32, val: u32, bus: &mut B) {
+        self.counters.classify_access(addr, true);
         // Phase 0b.2: any data-side write invalidates a peer core's
         // exclusive monitor. `Emulator::step` snoops this flag after the
         // core's quantum slice and clears the peer's `exclusive_address`.
@@ -963,11 +1126,14 @@ impl CortexM33 {
     }
 
     pub(crate) fn bus_read16<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u16 {
-        self.counters.classify_access(addr, false);
-        if !self.mpu_allows(addr, 2, MemoryAccess::Read) {
-            self.raise_memmanage(addr, false);
+        if self.instruction_abandoned {
             return 0;
         }
+        if !self.data_access_permitted(addr, 2, MemoryAccess::Read) {
+            self.abandon_for_data_access(addr);
+            return 0;
+        }
+        self.counters.classify_access(addr, false);
         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             // ARMv8-M: halfword PPB accesses are UNPREDICTABLE (word-only
             // registers). We defensively compose the result from the
@@ -1004,11 +1170,14 @@ impl CortexM33 {
     }
 
     pub(crate) fn bus_write16<B: CoreBus>(&mut self, addr: u32, val: u16, bus: &mut B) {
-        self.counters.classify_access(addr, true);
-        if !self.mpu_allows(addr, 2, MemoryAccess::Write) {
-            self.raise_memmanage(addr, false);
+        if self.instruction_abandoned {
             return;
         }
+        if !self.data_access_permitted(addr, 2, MemoryAccess::Write) {
+            self.abandon_for_data_access(addr);
+            return;
+        }
+        self.counters.classify_access(addr, true);
         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
         self.did_write_this_quantum = true;
         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
@@ -1041,11 +1210,14 @@ impl CortexM33 {
     }
 
     pub(crate) fn bus_read8<B: CoreBus>(&mut self, addr: u32, bus: &mut B) -> u8 {
-        self.counters.classify_access(addr, false);
-        if !self.mpu_allows(addr, 1, MemoryAccess::Read) {
-            self.raise_memmanage(addr, false);
+        if self.instruction_abandoned {
             return 0;
         }
+        if !self.data_access_permitted(addr, 1, MemoryAccess::Read) {
+            self.abandon_for_data_access(addr);
+            return 0;
+        }
+        self.counters.classify_access(addr, false);
         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
             // NVIC_IPR and SCB_SHPR are byte-accessible priority registers.
             // CMSIS uses uint8_t lanes for NVIC_SetPriority/GetPriority.
@@ -1077,11 +1249,14 @@ impl CortexM33 {
     }
 
     pub(crate) fn bus_write8<B: CoreBus>(&mut self, addr: u32, val: u8, bus: &mut B) {
-        self.counters.classify_access(addr, true);
-        if !self.mpu_allows(addr, 1, MemoryAccess::Write) {
-            self.raise_memmanage(addr, false);
+        if self.instruction_abandoned {
             return;
         }
+        if !self.data_access_permitted(addr, 1, MemoryAccess::Write) {
+            self.abandon_for_data_access(addr);
+            return;
+        }
+        self.counters.classify_access(addr, true);
         // Phase 0b.2: see `bus_write32` for the monitor-invalidation rationale.
         self.did_write_this_quantum = true;
         if bus.use_internal_peripherals() && addr >> 28 == 0xE && !Bus::is_boot_ram(addr) {
@@ -1175,6 +1350,7 @@ impl CortexM33 {
     /// Returns cycle count.
     pub fn execute_one(&mut self, opcode: u16) -> u32 {
         self.pending_fault = None;
+        self.instruction_abandoned = false;
         let pc = self.regs.pc();
         self.current_instr_addr = pc;
         self.regs.set_pc(pc.wrapping_add(2));
@@ -1185,6 +1361,7 @@ impl CortexM33 {
     /// Execute a single 16-bit instruction with a provided bus.
     pub fn execute_one_with_bus(&mut self, opcode: u16, bus: &mut Bus) -> u32 {
         self.pending_fault = None;
+        self.instruction_abandoned = false;
         let pc = self.regs.pc();
         self.current_instr_addr = pc;
         self.regs.set_pc(pc.wrapping_add(2));
@@ -1195,6 +1372,7 @@ impl CortexM33 {
     /// Advances PC by 4 before execution.
     pub fn execute_one_wide(&mut self, hw0: u16, hw1: u16) -> u32 {
         self.pending_fault = None;
+        self.instruction_abandoned = false;
         let pc = self.regs.pc();
         self.current_instr_addr = pc;
         self.regs.set_pc(pc.wrapping_add(4));
@@ -1205,6 +1383,7 @@ impl CortexM33 {
     /// Execute a single 32-bit Thumb-2 instruction with a provided bus.
     pub fn execute_one_wide_with_bus(&mut self, hw0: u16, hw1: u16, bus: &mut Bus) -> u32 {
         self.pending_fault = None;
+        self.instruction_abandoned = false;
         let pc = self.regs.pc();
         self.current_instr_addr = pc;
         self.regs.set_pc(pc.wrapping_add(4));

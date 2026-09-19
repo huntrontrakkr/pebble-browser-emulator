@@ -1,0 +1,150 @@
+{
+  "format": "mpu-precise-faults",
+  "version": 1,
+  "measuredAt": "2026-09-19",
+  "scope": "Precise MPU faults in the vendored CPU for qemu_flint (PMSAv7), qemu_emery and qemu_gabbro (PMSAv8): synthetic vectors, Rust regression suites, and unchanged 4.37.0 firmware boots",
+  "baseCommit": "ecfa7f5",
+  "preEnforcementCommit": "80904ec",
+  "reference": "Armv7-M and Armv8-M exception pseudocode (ValidateAddress, PushStack, ExceptionReturn, PreserveFPState) and QEMU's v7m stacking helpers. No native-QEMU capture was made for these vectors.",
+  "stackGuardPush": {
+    "vector": "Unprivileged Thread on PSP=0x20001008 executes PUSH {r4-r7}; a 32-byte store-denied guard ends at 0x20001000",
+    "before": {
+      "mmfsr": "0x82",
+      "mmfar": "0x20000ff4",
+      "psp": "0x20000fd8",
+      "storesAboveGuard": "r6 and r7 written",
+      "afterHandlerFirstInstruction": "nested MemManage from Handler mode, LR 0xfffffff1"
+    },
+    "after": {
+      "mmfsr": "0x92",
+      "mmfar": "0x20000ff8",
+      "psp": "0x20000fe8",
+      "storesAboveGuard": "none",
+      "afterHandlerFirstInstruction": "same MemManage, LR 0xfffffffd"
+    },
+    "profiles": [
+      "qemu_flint",
+      "qemu_emery",
+      "qemu_gabbro"
+    ]
+  },
+  "syntheticVectors": {
+    "file": "crates/qemu-emery/tests/mpu_precise_faults.rs",
+    "tests": 13,
+    "failedBeforeChange": 12,
+    "passedAfterChange": 13,
+    "regressionGuard": "execute_never_fetch_still_reports_iaccviol_only passes before and after",
+    "firstFailureBeforeChange": {
+      "push_into_stack_guard_is_abandoned_and_stacking_error_is_not_redelivered": "MMFSR 0x82, expected 0x92",
+      "denied_load_leaves_destination_and_writeback_base_unchanged": "destination r0 became 0",
+      "load_multiple_reports_first_denied_address_without_writeback": "MMFAR held the last denied word",
+      "abandoned_load_in_it_block_stacks_its_own_it_state": "stacked ITSTATE 0, expected 0x08",
+      "stacking_error_on_interrupt_entry_takes_higher_priority_memmanage": "SysTick handler entered (IPSR 15)",
+      "lower_priority_stacking_error_pends_memmanage_until_tail_chain": "MMFSR 0x82, expected MSTKERR 0x10",
+      "unstacking_uses_return_privilege_and_tail_chains_on_error": "returned to Thread using Handler privilege",
+      "vector_read_ignores_mpu_regions": "vector read denied, PC 0",
+      "faultmask_accesses_bypass_mpu_when_hfnmiena_is_clear": "MemManage taken under FAULTMASK",
+      "memmanage_that_cannot_preempt_escalates_to_hardfault": "nested MemManage (IPSR 4), expected HardFault",
+      "privileged_ppb_access_ignores_mpu_regions": "MemManage on CPUID read",
+      "lazy_fp_preservation_error_abandons_fp_instruction": "MMFSR 0x82 and FP instruction completed, expected MLSPERR 0x20"
+    },
+    "firstFailingProfile": "qemu_flint (each test stops at its first failing profile)"
+  },
+  "validation": {
+    "rustWorkspaceTests": {
+      "before": 149,
+      "after": 162,
+      "failed": 0
+    },
+    "focusedCpuSet": {
+      "passed": 61,
+      "failed": 0
+    },
+    "vendoredCoreUnitTests": {
+      "command": "cargo test --release -p rp2350-emu --lib --features test-hooks,testing (standalone copy without the unused tracing-subscriber dev-dependency)",
+      "passed": 3643,
+      "failed": 21,
+      "ignored": 27,
+      "failuresIdenticalToBase": true,
+      "note": "The 21 failures predate this change: absent RP2350 bootrom fixture and upstream expectations superseded by the documented CPS, ITSTATE and MRS corrections. These tests are not part of the parent workspace."
+    },
+    "clippy": "cargo clippy --workspace --all-targets -- -D warnings passes; the vendored library passes with -D warnings",
+    "rustfmt": "cargo fmt --all -- --check passes",
+    "notRun": "Browser workflow gate and the compatibility census. npm test and the Wasm build could not be run when these vectors were measured (no npm reachability there); they were run on integration, where the Wasm build and 416 JavaScript/Wasm ABI tests pass with eleven optional fixture skips. Rust dependencies were built from their tagged GitHub sources at the locked versions.",
+    "crossCheck": "Stacking, unstacking and lazy-preservation behavior compared by reading QEMU target/arm/tcg/m_helper.c and hw/intc/armv7m_nvic.c at f8aef8a (2026-09-18)",
+    "integrationRecheck": {
+      "host": "Integration environment, 2026-09-19",
+      "firmwareBootDigestsReproduced": true,
+      "baselineComparison": "The same 20-second boots built from the base commit ecfa7f5 produce identical steps, cycles, frames and FNV digests on all three profiles",
+      "syntheticVectorsAgainstBase": "12 of 13 fail on ecfa7f5, 13 of 13 pass with this change",
+      "rustWorkspaceTests": 162,
+      "focusedCpuSet": 61,
+      "clippyAndRustfmt": "pass",
+      "javascriptWasmTests": "416 pass, 0 fail, 11 skipped"
+    }
+  },
+  "firmwareBoot": {
+    "method": "crates/qemu-emery/examples/native_boot.rs, release build, unchanged official 4.37.0 images, fixed epoch, 20 virtual seconds",
+    "identicalToBase": true,
+    "profiles": {
+      "qemu_emery": {
+        "steps": 192395018,
+        "cycles": 278257407,
+        "frames": 47,
+        "frameFnv64": "06c43e5e0cda9f40",
+        "ramFnv64": "0586ef5b31a5584e",
+        "uartBytes": 4724,
+        "uartFnv64": "1f59b56ce76a3e44",
+        "cfsr": "0x0"
+      },
+      "qemu_flint": {
+        "steps": 195427320,
+        "cycles": 302883684,
+        "frames": 71,
+        "frameFnv64": "aaac3bab15866fc1",
+        "ramFnv64": "fa46c35cafa59eae",
+        "uartBytes": 4559,
+        "uartFnv64": "38309139e32052a9",
+        "cfsr": "0x0"
+      },
+      "qemu_gabbro": {
+        "steps": 192519619,
+        "cycles": 279414028,
+        "frames": 68,
+        "frameFnv64": "27bdff4d5bc3380a",
+        "ramFnv64": "efd4950f6721bad4",
+        "uartBytes": 4628,
+        "uartFnv64": "4bb98bfb2b8045db",
+        "cfsr": "0x0"
+      }
+    }
+  },
+  "nativeThroughput": {
+    "method": "The same boot loop built against 80904ec, ecfa7f5 and this change; 8 virtual seconds; three interleaved rounds on one host core; medians of board steps per host second",
+    "stepsPerSecond": {
+      "qemu_emery": {
+        "preEnforcement": 13341497,
+        "base": 9715690,
+        "change": 9857819
+      },
+      "qemu_flint": {
+        "preEnforcement": 13234142,
+        "base": 7712554,
+        "change": 8247091
+      },
+      "qemu_gabbro": {
+        "preEnforcement": 13115604,
+        "base": 9639992,
+        "change": 9743156
+      }
+    },
+    "summary": "MPU enforcement costs 26% (Emery, Gabbro) and 38% (Flint) of native boot throughput after this change, versus 27% and 42% before it"
+  },
+  "limits": [
+    "Synthetic architectural vectors, not native-QEMU or physical-watch captures",
+    "Multi-register loads restore all registers on abandonment; the architecture leaves registers loaded before the fault UNKNOWN and QEMU keeps them",
+    "An unstacking error leaves r0-r3, r12 and LR unchanged; QEMU keeps the words popped before the error. Both are architecturally permitted",
+    "Not modelled: PMSAv8 overlapping-region faults, default-map execute-never regions, unprivileged SCS BusFaults, FPCCR.USER/MMRDY for lazy preservation, a derived HardFault pending behind NMI, precise BusFault and UsageFault abandonment",
+    "Host throughput is native, not browser or watch performance"
+  ]
+}
