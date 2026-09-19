@@ -93,6 +93,18 @@ sensor workflow gate and the compatibility census were not rerun; the first need
 builds and the second needs SDK 4.33.1 and a native-QEMU reference frame, neither reachable
 from this environment.
 
+Kablooey's system task queue overflow now has an identified cause
+([record](evidence/kablooey-pacing-cause.json)). The core advances device time by the
+executing instruction's estimated cycle cost, so the guest gets one instruction-cost per
+board cycle — about 96,198 instructions between the audio device's 10 ms refill requests.
+Native QEMU's default mode runs the CPU unthrottled between those refills, which is why it
+completed the workload while its instruction-count pacing, the same coupling this core
+applies, overflowed. `PebbleBus::instructions_per_cycle` makes the ratio explicit and
+defaults to 1, leaving all three boots byte-identical. Kablooey itself is still not
+reproduced here — its PBW comes from a host this environment refuses — so the cause is
+established from the pinned QEMU source and this core's arithmetic, not from a run, and
+Kablooey remains an open compatibility failure.
+
 Physical SiFli startup now configures USART1
 ([Obelix](evidence/obelix-reset-execution.json), [Getafix](evidence/getafix-reset-execution.json)).
 The register subset follows the pinned SiFli SDK; firmware enables the transmitter, sets BRR

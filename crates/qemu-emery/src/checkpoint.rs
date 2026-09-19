@@ -91,6 +91,11 @@ pub fn encode(cpu: &CortexM33, bus: &PebbleBus) -> Vec<u8> {
         active_pc,
         failed,
         trace: _, // Observation is deliberately outside guest state.
+        // Pacing configuration, not guest state: a restored bus takes the
+        // default ratio and its caller re-applies any other setting. At the
+        // default the remainder is always zero, so the format is unchanged.
+        instructions_per_cycle: _,
+        cycle_remainder: _,
         wait,
         fetch,
         observed_pending_irqs,
@@ -141,6 +146,8 @@ pub fn decode(bytes: &[u8], expected: BoardProfile) -> Result<(CortexM33, Pebble
         active_pc: StateValue::decode(&mut input)?,
         failed: StateValue::decode(&mut input)?,
         trace: crate::trace::Trace::default(),
+        instructions_per_cycle: 1,
+        cycle_remainder: 0,
         wait: StateValue::decode(&mut input)?,
         fetch: StateValue::decode(&mut input)?,
         observed_pending_irqs: StateValue::decode(&mut input)?,

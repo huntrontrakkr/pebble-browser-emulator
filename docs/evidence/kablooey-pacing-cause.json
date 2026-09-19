@@ -1,0 +1,50 @@
+{
+  "format": "pebble-kablooey-pacing-cause",
+  "version": 1,
+  "measuredAt": "2026-09-19",
+  "scope": "Root cause of Kablooey's system task queue overflow, and the execution-budget ratio the core now exposes. No Kablooey run was performed for this record.",
+  "baseCommit": "a84a550",
+  "failure": {
+    "symptom": "service_system_task: System task queue full, then Resetting!",
+    "firstDetectedVirtualMs": 7102.41803125,
+    "consequence": "The later BlobDB 0xb1db install times out because the watch has reset",
+    "priorEvidence": "evidence/kablooey-audio-model.json"
+  },
+  "mechanism": {
+    "coreBehavior": "board_step_before advances device time by the executing instruction's estimated cycle cost, so the guest spends exactly one instruction-cost per board cycle. The generic board's SYSCLK is 64 MHz, giving the guest 64,000,000 estimated cycles per virtual second and no more.",
+    "audioDrain": "QEMU's pebble_audio drains on a 10 ms QEMU_CLOCK_VIRTUAL timer and raises IRQ 10 to request a refill. Ten virtual milliseconds is 640,000 ticks at 64 MHz.",
+    "budgetBetweenRefills": {
+      "ticks": 640000,
+      "measuredInstructionsAtRatio1": 96198,
+      "basis": "9,619,751 steps per virtual second, measured over a 20 virtual second unchanged qemu_emery 4.37.0 boot"
+    },
+    "reference": "Native QEMU's default mode runs the CPU unthrottled, so between two drains the guest completes as much work as the host can execute, not 96,198 instructions. The declared SYSCLK is a timer frequency there, not an execution budget.",
+    "corroboration": "The repository's own earlier observation that native QEMU completed this workload under default wall-clock execution but overflowed under instruction-count pacing. Instruction-count pacing is the same one-cost-per-cycle coupling this core implements, so the reference implementation reproduces the failure when it is paced the way this core is always paced.",
+    "conclusion": "The overflow follows from deterministic 64 MHz pacing rather than from a defect in the audio device, the CPU or the scheduler. It is what a one-instruction-cost-per-cycle model produces for a workload that needs more execution between device events than the budget allows."
+  },
+  "sources": {
+    "sysclk": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/include/hw/arm/pebble_generic.h",
+    "audioDrainTimer": "https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/hw/misc/pebble_audio.c"
+  },
+  "change": {
+    "added": "PebbleBus::instructions_per_cycle, the instruction-costs the interpreter completes per board cycle",
+    "default": 1,
+    "defaultMeaning": "Unchanged behavior, equivalent to native QEMU under -icount",
+    "equivalence": "All three 20 virtual second 4.37.0 boots stay byte-identical at the default: same steps, cycles, frames and frame, RAM and UART digests",
+    "notCheckpointed": "The ratio is configuration, not guest state; a restored bus takes the default and its caller re-applies any other setting. At the default the carried remainder is always zero, so the checkpoint format is unchanged.",
+    "projectedBudget": {
+      "ratio4": 384790,
+      "ratio8": 769580
+    }
+  },
+  "notDone": {
+    "kablooeyRun": "Not reproduced. The Kablooey 1.0.0 PBW (sha256 7eb911a829a289f92deb75ab5ddabf82b9d13f45947749192e031ec553646dca) comes from apps.repebble.com, and both that host and appstore-api.repebble.com are refused by this environment's network policy.",
+    "whatWouldConfirm": "Run the documented fidelity scenario with the PBW at the default ratio to reproduce the 7.102 s overflow, then at a higher ratio. If the overflow moves later in proportion to the ratio and clears once the budget exceeds Kablooey's demand, the cause above is confirmed; if it persists at a large ratio, the cause is elsewhere and this record is wrong."
+  },
+  "limits": [
+    "The mechanism is established from the pinned QEMU source and this core's pacing arithmetic, not from a Kablooey run",
+    "No ratio other than 1 has recorded evidence; a run at another ratio is a modeling assumption, not a compatibility result",
+    "The estimated cycle cost is neither a retired instruction count nor a physical clock measurement, so the 96,198 figure describes this model, not silicon",
+    "Raising the ratio trades away the claim that device time matches the declared 64 MHz SYSCLK; it is an investigation control, not a default"
+  ]
+}

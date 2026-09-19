@@ -21,6 +21,24 @@ pub struct PebbleBus {
     pub active_pc: u32,
     pub failed: Option<(u32, u32, bool)>,
     pub trace: trace::Trace,
+    /// Instruction-costs the interpreter completes per board cycle.
+    ///
+    /// The generic board declares SYSCLK at 64 MHz
+    /// ([`pebble_generic.h`](https://github.com/coredevices/qemu/blob/v10.1.5-pebble17/include/hw/arm/pebble_generic.h)),
+    /// and this core advances device time by the executing instruction's
+    /// estimated cycle cost — one cost per cycle, matching native QEMU under
+    /// `-icount`. Native QEMU's default mode runs the CPU unthrottled instead,
+    /// so the guest completes far more work between two device events.
+    ///
+    /// `1` is that icount-equivalent default and the only setting with
+    /// recorded evidence. A higher value gives the guest proportionally more
+    /// execution between device events, for investigating workloads that
+    /// exhaust the budget; it is a modeling assumption, not a measurement, and
+    /// a run at any other value is not a compatibility result.
+    pub instructions_per_cycle: u32,
+    /// Cycle costs not yet converted into device ticks, so a non-default
+    /// ratio stays exact instead of dropping the remainder each step.
+    cycle_remainder: u32,
     wait: u32,
     fetch: u32,
     observed_pending_irqs: u64,
@@ -51,6 +69,8 @@ impl PebbleBus {
             active_pc: 0,
             failed: None,
             trace: trace::Trace::default(),
+            instructions_per_cycle: 1,
+            cycle_remainder: 0,
             wait: 0,
             fetch: 0,
             observed_pending_irqs: 0,
@@ -409,7 +429,20 @@ pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64
         cpu.wake()
     }
     let mut elapsed = cpu.cycles().wrapping_sub(prev).max(1);
-    if cpu.is_halted() || cpu.is_wfe_waiting() {
+    let sleeping = cpu.is_halted() || cpu.is_wfe_waiting();
+    if !sleeping && bus.instructions_per_cycle > 1 {
+        // Awake: `elapsed` is the instruction's estimated cycle cost. Spend
+        // `instructions_per_cycle` of them per board cycle, carrying the
+        // remainder so the ratio stays exact over a run.
+        let ratio = u64::from(bus.instructions_per_cycle);
+        let total = elapsed + u64::from(bus.cycle_remainder);
+        elapsed = total / ratio;
+        bus.cycle_remainder = (total % ratio) as u32;
+        // A step may cost no device time at all, which is the point: the
+        // carried remainder still advances the clock within `ratio` steps,
+        // because an executed step always costs at least one cycle.
+    }
+    if sleeping {
         let scale = if cpu.ppb.syst_csr & 4 != 0 { 1 } else { 64 };
         let until_systick = if cpu.ppb.syst_csr & 1 != 0 {
             (cpu.ppb.syst_cvr as u64).max(1) * scale - bus.devices.systick_fraction.min(scale - 1)

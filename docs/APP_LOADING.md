@@ -55,6 +55,27 @@ as before the samples were added. This supports a load/timing investigation, but
 estimated interpreter cost is neither a retired instruction count nor a physical clock
 measurement. A reference-backed scheduler, CPU or device cause remains unproven.
 
+The cause of that overflow is now identified ([record](evidence/kablooey-pacing-cause.json)).
+This core advances device time by the executing instruction's estimated cycle cost, so the
+guest spends exactly one instruction-cost per board cycle and gets 64,000,000 estimated
+cycles per virtual second. QEMU's audio device drains on a 10 ms `QEMU_CLOCK_VIRTUAL` timer
+and requests a refill, which is 640,000 ticks apart — about 96,198 instructions of guest
+execution, measured against an unchanged 4.37.0 boot. Native QEMU's default mode runs the
+CPU unthrottled between those drains, so the declared 64 MHz SYSCLK is a timer frequency
+there rather than an execution budget. This matches the earlier observation that native
+QEMU completed the workload under wall-clock execution but overflowed under instruction-count
+pacing: instruction-count pacing is the same coupling this core always applies. The overflow
+therefore follows from deterministic 64 MHz pacing rather than from a defect in the audio
+device, the CPU or the scheduler.
+
+`PebbleBus::instructions_per_cycle` makes that ratio explicit. It defaults to 1 — unchanged
+behavior, equivalent to native QEMU under `-icount`, with all three boots byte-identical —
+and a higher value gives the guest proportionally more execution between device events. No
+other value has recorded evidence, so a run at one is a modeling assumption and not a
+compatibility result. **Kablooey is still not reproduced here**: its PBW comes from
+apps.repebble.com, which this environment's network policy refuses. Running the documented
+scenario at the default and then at a higher ratio would confirm or refute the cause above.
+
 Fresh store installs of Clear Timer, Roon Remote, Spin the Bottle, Fatal Run, Slow and
 Clock Dude succeeded. That is installation coverage, not certification of their complete
 behavior. In particular, network-dependent features and app-specific sensor processing
