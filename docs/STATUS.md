@@ -93,6 +93,20 @@ sensor workflow gate and the compatibility census were not rerun; the first need
 builds and the second needs SDK 4.33.1 and a native-QEMU reference frame, neither reachable
 from this environment.
 
+The Flint profile now rejects Armv8-M and FPv5 encodings
+([evidence](evidence/flint-armv7m-rejections.json)). Flint identifies as a Cortex-M4, an
+Armv7E-M part with no Security Extension and FPv4-SP, but ran on the shared Armv8-M engine.
+SG, TT, BXNS, the acquire/release loads and stores, and the FPv5 floating-point encodings
+(VSEL, VMAXNM, VMINNM, VRINT) now raise UsageFault.UNDEFINSTR there while Emery and Gabbro
+still execute them. MSR and MRS are the exception: they are defined Armv7-M encodings, so a
+reserved SYSm is UNPREDICTABLE rather than UNDEFINED. Flint discards MSPLIM and PSPLIM writes,
+reads them as zero and enforces no stack limit at exception entry, which is both the more
+accurate Cortex-M4 model and required by the firmware — unchanged qemu_flint 4.37.0 writes
+both limits during startup, and rejecting them stopped the boot after 22,934 steps. A survey
+of a full 20 virtual second Flint boot found no other Armv8-M encoding, so the rejections
+cannot affect the pinned image; all three boots stay byte-identical. Eight synthetic vectors
+cover the set, each also asserting Emery and Gabbro still execute it.
+
 MPU permission lookups are now memoized per 32-byte block
 ([evidence](evidence/mpu-cache-throughput.json)). Permissions are constant across a block,
 so the regions are scanned only when a block is first touched: 98.9% of the roughly 1.66
@@ -487,8 +501,11 @@ it requires the deterministic PBW hash recorded in `evidence/firmware-acceptance
 1. Implement current physical Asterix/Obelix/Getafix board families, ROM/bootloader/controller
    dependencies and firmware revisions individually. Older boards are deferred. Sharing app dimensions or platform flags is insufficient.
 2. Complete architectural exclusions and instruction/exception/MPU/FPU/security verification.
-   Flint currently uses the shared engine with Cortex-M4 identification and board properties;
-   it does not yet reject every M33-only instruction. Timing and energy are not calibrated.
+   Flint uses the shared engine with Cortex-M4 identification and board properties, and now
+   rejects the Armv8-M and FPv5 encodings that engine implements
+   ([evidence](evidence/flint-armv7m-rejections.json)). That is not a complete Armv7E-M
+   conformance statement: Armv7E-M instructions this engine does not implement remain a
+   separate gap. Timing and energy are not calibrated.
 3. Complete the Linux SDK/Waf/PBW gate, custom fonts, SVG/vector resources, native package
    libraries, additional SDK versions and remaining app types. Arbitrary GitHub projects are not yet universal.
 4. Complete microphone/audio, physical sensor controllers (including raw optical/gyro/light/

@@ -867,8 +867,18 @@ impl CortexM33 {
     }
 
     #[inline]
-    fn is_armv7_m(&self) -> bool {
+    pub(crate) fn is_armv7_m(&self) -> bool {
         (self.ppb.cpuid >> 4) & 0x0fff == 0x0c24
+    }
+
+    /// True when an Armv8-M-only encoding must be rejected. The Flint profile
+    /// identifies as Cortex-M4, an Armv7E-M part with no Security Extension
+    /// and FPv4-SP, so the Armv8-M and FPv5 encodings this shared engine
+    /// implements are UNDEFINED there and raise UsageFault.UNDEFINSTR rather
+    /// than executing as they would on an M33.
+    #[inline]
+    pub(crate) fn rejects_armv8_m(&self) -> bool {
+        self.is_armv7_m()
     }
 
     /// Access context of the executing code.

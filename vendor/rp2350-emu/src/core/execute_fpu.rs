@@ -599,6 +599,12 @@ impl CortexM33 {
         // the 0xFE family does not use.
         let hw0_15_8 = (hw0 >> 8) & 0xFF;
         if hw0_15_8 == 0xFE && hw1 & 0x10 == 0 {
+            // VSEL, VMAXNM, VMINNM and the directed-rounding converts are
+            // FPv5. Cortex-M4 carries FPv4-SP, which has none of them.
+            if self.rejects_armv8_m() {
+                self.pending_fault = Some(super::Fault::UsageFault);
+                return 0;
+            }
             return self.fpu_v8m_dp(hw0, hw1);
         }
 
@@ -917,6 +923,12 @@ impl CortexM33 {
                 // VCMPE.F32 Sd, #0.0
                 self.fpu_vcmp(sd, 0.0);
                 1
+            }
+            // VRINTR (0110,0), VRINTZ (0110,1) and VRINTX (0111,0) are FPv5
+            // additions; FPv4-SP has no VRINT at all.
+            (0b0110, 0 | 1) | (0b0111, 0) if self.rejects_armv8_m() => {
+                self.pending_fault = Some(super::Fault::UsageFault);
+                0
             }
             (0b0110, 0) => {
                 // VRINTR.F32 Sd, Sm — round per FPSCR.RMode (no IXC tracking)

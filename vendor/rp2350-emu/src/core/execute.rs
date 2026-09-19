@@ -480,10 +480,16 @@ impl CortexM33 {
                         return self.exit_exception(target, bus);
                     }
                 }
+                // BXNS: bit 2 set, not a link (BLX) variant. The Security
+                // Extension is Armv8-M only, so the Armv7-M profile rejects
+                // the encoding instead of branching.
+                let bxns = opcode & 0x4 != 0 && !link;
+                if bxns && self.rejects_armv8_m() {
+                    return self.thumb16_undefined(opcode, 0, bus);
+                }
                 // Bit 0 of target encodes Thumb state. Must be 1 for M33.
                 self.regs.set_pc(target & !1);
-                // BXNS: bit 2 set, not a link (BLX) variant, currently Secure
-                if opcode & 0x4 != 0 && !link && self.secure {
+                if bxns && self.secure {
                     self.transition_to_nonsecure();
                 }
                 1 // M33 measured: 1 cycle

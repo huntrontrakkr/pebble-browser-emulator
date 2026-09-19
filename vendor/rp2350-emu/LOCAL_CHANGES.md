@@ -102,3 +102,14 @@ validity check; a writer that sets a region directly must call it. The cache is 
 state and is not checkpointed. Debug builds re-scan the regions behind every hit and assert
 the answers match. Firmware boots stay byte-identical; see
 `docs/evidence/mpu-cache-throughput.json`.
+
+`core/mod.rs`, `core/execute.rs`, `core/execute_thumb32.rs`, `core/execute_fpu.rs`,
+`core/exceptions.rs`: reject Armv8-M and FPv5 encodings on a core that identifies as
+Armv7-M (Cortex-M4 CPUID), for the generic Flint profile. SG, TT, BXNS, the acquire/release
+loads and stores, the 0xFE floating-point data-processing family (VSEL, VMAXNM, VMINNM) and
+VRINTR/VRINTZ/VRINTX raise UsageFault.UNDEFINSTR there. MSR and MRS are defined Armv7-M
+encodings, so MSPLIM, PSPLIM and the Non-Secure banked aliases are treated as reserved SYSm
+values instead: the write is discarded, the read returns zero, and exception entry enforces
+no stack limit. Unchanged qemu_flint 4.37.0 writes both stack limits at startup and executes
+no other Armv8-M encoding. See `docs/evidence/flint-armv7m-rejections.json` and
+`crates/qemu-emery/tests/flint_armv7m_rejections.rs`.

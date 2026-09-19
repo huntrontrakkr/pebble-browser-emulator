@@ -1,0 +1,54 @@
+{
+  "format": "flint-armv7m-rejections",
+  "version": 1,
+  "measuredAt": "2026-09-19",
+  "scope": "Armv8-M and FPv5 encodings rejected on the generic Flint profile, which identifies as Cortex-M4 (CPUID 0x410fc240), an Armv7E-M part with no Security Extension and FPv4-SP. Emery and Gabbro (CPUID 0x410fd213) keep executing them.",
+  "baseCommit": "9a8d91f",
+  "reference": "Armv7-M and Armv8-M architecture manuals for the encodings and for reserved-SYSm behavior. No native-QEMU capture was made for these vectors.",
+  "rejected": {
+    "instructions": [
+      "SG — Security Extension",
+      "TT/TTT/TTA/TTAT — Security Extension",
+      "BXNS — Security Extension",
+      "LDA, LDAB, LDAH, STL, STLB, STLH, LDAEX, LDAEXB, LDAEXH, STLEX, STLEXB, STLEXH — Armv8-M Main Extension acquire/release",
+      "VSEL, VMAXNM, VMINNM and the rest of the 0xFE data-processing family — FPv5",
+      "VRINTR, VRINTZ, VRINTX — FPv5"
+    ],
+    "result": "UsageFault with CFSR.UFSR.UNDEFINSTR, as for any UNDEFINED encoding"
+  },
+  "notRejected": {
+    "case": "MSR and MRS with SYSm 10 (MSPLIM), 11 (PSPLIM) or any Non-Secure banked alias (bit 7)",
+    "behavior": "MSR and MRS are defined Armv7-M encodings; only the register is reserved, and Armv7-M leaves a reserved SYSm UNPREDICTABLE rather than UNDEFINED. Flint discards the write and reads zero instead of faulting, and exception entry enforces no stack limit on an Armv7-M core.",
+    "why": "Unchanged qemu_flint 4.37.0 depends on it. Its startup executes MSR MSPLIM, r0 at 0x129a (f380 880a) and MSR PSPLIM, r0 at 0x12a2 (f380 880b). Rejecting them stopped the boot after 22,934 steps with CFSR 0x18200 and a forced HardFault. Treating them as reserved is also the more accurate model: before this change Flint stored the limits and exception entry could have enforced a stack limit that Cortex-M4 silicon does not have."
+  },
+  "firmwareSurvey": {
+    "method": "Temporary counters on every gated decode site over a 20 virtual second unchanged 4.37.0 boot, removed before commit",
+    "qemu_flint": "No SG, TT, BXNS, acquire/release or FPv5 encoding executes. Every Thumb-16 0x47xx form seen is a plain BX or BLX with bits [2:0] clear, 2,451,742 of them BX LR. The only Armv8-M dependency is the two stack-limit writes above.",
+    "conclusion": "The pinned Flint image is otherwise Armv7E-M clean, so the rejections above cannot affect it."
+  },
+  "syntheticVectors": {
+    "file": "crates/qemu-emery/tests/flint_armv7m_rejections.rs",
+    "tests": 8,
+    "failedBeforeChange": 8,
+    "passedAfterChange": 8,
+    "shape": "Each vector asserts Flint raises UNDEFINSTR and that Emery and Gabbro do not, so an encoding that is undefined on every profile cannot pass vacuously."
+  },
+  "equivalence": {
+    "firmwareBoots": "All three 20 virtual second 4.37.0 boots are byte-identical to 9a8d91f: same steps, cycles, frames and frame, RAM and UART digests",
+    "startupCheckpoints": "The Flint startup checkpoint shrinks by 9 bytes because its stack limits now stay zero. Emery and Gabbro move by a few bytes between builds even when boots are byte-identical, which predates this change; each build reproduces its own checkpoints exactly."
+  },
+  "validation": {
+    "rustWorkspaceTests": 170,
+    "clippy": "cargo clippy --workspace --all-targets -- -D warnings passes",
+    "rustfmt": "cargo fmt --all -- --check passes",
+    "javascriptWasmTests": "417 pass, 0 fail, 11 skipped",
+    "browserGates": "Preview and demo gates pass in Chromium, the demo gate on all three profiles",
+    "notRun": "Firefox and WebKit engines, the sensor workflow gate and the compatibility census"
+  },
+  "limits": [
+    "Synthetic architectural vectors, not native-QEMU or physical-watch captures",
+    "BXNS is gated on the encoding this engine already decodes as BXNS, with the Non-Secure marker at bit 2 of the Thumb-16 BX encoding. The Armv8-M manual places that marker at bit 0. The pinned Flint image contains no BXNS under either reading, so this change does not settle which is right, and it is not a new defect.",
+    "The rejection set covers the Armv8-M and FPv5 encodings this engine implements. It is not a complete Armv7E-M conformance statement: unimplemented Armv8-M encodings are undefined for every profile, and Armv7E-M instructions absent from this engine are a separate gap",
+    "VLLDM and VLSTM are not implemented by this engine, so there is nothing to reject"
+  ]
+}

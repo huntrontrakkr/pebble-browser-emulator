@@ -771,6 +771,9 @@ impl CortexM33 {
         // When executed from Non-Secure state, transitions to Secure and clears
         // LR bit 0 to mark the return address as Non-Secure.
         if hw0 == 0xE97F && hw1 == 0xE97F {
+            if self.rejects_armv8_m() {
+                return self.thumb32_undefined(hw0, hw1, bus);
+            }
             if !self.secure {
                 self.transition_to_secure();
                 // Clear bit 0 of LR to mark return address as NS.
@@ -815,6 +818,9 @@ impl CortexM33 {
             && matches!(ar_op, 8 | 9 | 10 | 12 | 13 | 14)
             && ((!ar_load && ar_exclusive) || hw1 & 0xF == 0xF)
         {
+            if self.rejects_armv8_m() {
+                return self.thumb32_undefined(hw0, hw1, bus);
+            }
             let rn = (hw0 & 0xF) as usize;
             let rt = (hw1 >> 12) as usize;
             let addr = self.regs.r[rn];
@@ -862,6 +868,9 @@ impl CortexM33 {
         if hw0 & 0xFFF0 == 0xE840 {
             // TT family: hw1[15:12]=0xF, hw1[7:0]=0x00
             if (hw1 >> 12) & 0xF == 0xF && hw1 & 0xFF == 0x00 {
+                if self.rejects_armv8_m() {
+                    return self.thumb32_undefined(hw0, hw1, bus);
+                }
                 let rn = (hw0 & 0xF) as usize;
                 let rd = ((hw1 >> 8) & 0xF) as usize;
                 let addr = self.regs.r[rn];
@@ -1136,9 +1145,24 @@ impl CortexM33 {
 
     /// MSR — write a general-purpose register to a special system register.
     /// Encoding: 11110_0111_00_R_Rn  10_00_mask_00_SYSm
+    /// SYSm values that name a register the Armv7-M profile does not have:
+    /// the stack limits (10, 11) and every Non-Secure banked alias (bit 7).
+    #[inline]
+    fn is_armv8_m_sysm(sysm: u8) -> bool {
+        matches!(sysm, 10 | 11) || sysm & 0x80 != 0
+    }
+
     fn thumb32_msr(&mut self, hw0: u16, hw1: u16) -> u32 {
         let rn = (hw0 & 0xF) as usize;
         let sysm = (hw1 & 0xFF) as u8;
+        // MSPLIM/PSPLIM and the Non-Secure banked aliases do not exist on
+        // Armv7-M. MSR itself is a defined encoding there, and a reserved
+        // SYSm is UNPREDICTABLE rather than UNDEFINED, so the write is
+        // discarded instead of raising UsageFault. Unchanged qemu_flint
+        // 4.37.0 depends on this: its startup writes MSPLIM and PSPLIM.
+        if self.rejects_armv8_m() && Self::is_armv8_m_sysm(sysm) {
+            return 1;
+        }
         let mask = ((hw1 >> 10) & 0x3) as u8;
         let val = self.regs.r[rn];
 
@@ -1229,6 +1253,12 @@ impl CortexM33 {
         self.regs.sync_sp_to_banked();
         let rd = ((hw1 >> 8) & 0xF) as usize;
         let sysm = (hw1 & 0xFF) as u8;
+        // Reserved on Armv7-M, as for MSR above: UNPREDICTABLE, so the read
+        // returns zero rather than the Armv8-M register this engine keeps.
+        if self.rejects_armv8_m() && Self::is_armv8_m_sysm(sysm) {
+            self.regs.r[rd] = 0;
+            return 1;
+        }
 
         self.regs.r[rd] = match sysm {
             // APSR / IAPSR / EAPSR / XPSR / combined variants — NZCVQ flags

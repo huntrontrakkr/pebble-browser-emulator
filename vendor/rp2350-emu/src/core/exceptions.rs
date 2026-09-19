@@ -127,7 +127,12 @@ impl CortexM33 {
         // adding the FP region pushes the SP past the limit. If the
         // basic frame alone already underflows, SPLIMVIOL stays clear
         // (the violation is not attributable to FP context).
-        let limit = if use_psp {
+        // Armv7-M has no stack-limit registers, so a core identifying as
+        // Cortex-M4 enforces no limit even though an Armv8-M build's MSPLIM
+        // and PSPLIM writes are discarded rather than rejected.
+        let limit = if self.is_armv7_m() {
+            0
+        } else if use_psp {
             self.regs.psplim
         } else {
             self.regs.msplim
