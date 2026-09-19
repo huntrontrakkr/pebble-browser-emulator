@@ -32,6 +32,8 @@ pub struct SystemControl {
     pub rnr: u32,
     pub regions: [(u32, u32); 12],
     pub mair: [u32; 2],
+    pub priority_group: u32,
+    system_handler_priorities: [u8; 12],
     csselr: u32,
 }
 
@@ -46,6 +48,8 @@ impl Default for SystemControl {
             rnr: 0,
             regions: [(0, 0); 12],
             mair: [0; 2],
+            priority_group: 0,
+            system_handler_priorities: [0; 12],
             csselr: 0,
         }
     }
@@ -59,6 +63,13 @@ impl SystemControl {
         }
     }
     pub fn read(&self, a: u32, width: u8, privileged: bool) -> Result<u32, FaultKind> {
+        if width == 1 && (0xe000ed18..0xe000ed24).contains(&a) {
+            return if privileged {
+                Ok(self.system_handler_priorities[(a - 0xe000ed18) as usize] as u32)
+            } else {
+                Err(FaultKind::MemoryProtection)
+            };
+        }
         if width != 4 || a & 3 != 0 {
             return Err(FaultKind::InvalidWidth);
         }
@@ -66,6 +77,7 @@ impl SystemControl {
             return Err(FaultKind::MemoryProtection);
         }
         Ok(match a {
+            0xe000ed0c => (0xfa05 << 16) | (self.priority_group << 8),
             0xe000ed08 => self.vtor,
             0xe000ed14 => self.ccr,
             0xe000ed24 => self.shcsr,
@@ -102,6 +114,13 @@ impl SystemControl {
         value: u32,
         privileged: bool,
     ) -> Result<Maintenance, FaultKind> {
+        if width == 1 && (0xe000ed18..0xe000ed24).contains(&a) {
+            if !privileged {
+                return Err(FaultKind::MemoryProtection);
+            }
+            self.system_handler_priorities[(a - 0xe000ed18) as usize] = value as u8;
+            return Ok(Maintenance::None);
+        }
         if width != 4 || a & 3 != 0 {
             return Err(FaultKind::InvalidWidth);
         }
@@ -109,6 +128,11 @@ impl SystemControl {
             return Err(FaultKind::MemoryProtection);
         }
         match a {
+            0xe000ed0c
+                if value >> 16 == 0x5fa && value & !0xffff_4700 == 0 && value & 0x4000 == 0 =>
+            {
+                self.priority_group = (value >> 8) & 7;
+            }
             0xe000ed08 => self.vtor = value & !0x7f,
             0xe000ed14 => {
                 // Do not accept unimplemented trap/security semantics.

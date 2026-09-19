@@ -130,19 +130,24 @@ Separate synthetic fixtures run unchanged firmware through a 32-byte EFUSE copy 
 trim application in both revisions. CPU-visible inspection includes dirty cache bytes without
 altering them. An explicit W25Q128JV profile now executes MPI2 NOR startup and security-page reads.
 With three distinct synthetic OTP pages, both images return from `BSP_System_Config` after
-14 commands and 544 byte-for-byte verified OTP transfers. Missing flash identity/pages
-remain explicit faults. This establishes the boot-time read path, not physical calibration
-or flash program/erase support. The next fixture boundary is LPSYS_AON.CR1 (`0x40040004`)
-in global-timer startup. The CPU slot/XIP mapping remains independent of full MPI bus timing.
+14 commands and 544 byte-for-byte verified OTP transfers. Missing flash identity/pages remain
+explicit faults. The physical startup slice now models the documented global timer, RC32K,
+WDT1, HRC48 calibration counter, DLL1 lock, HCPU/LCPU muxes and dividers, DVFS latches, PMU
+initialization, 13 SiP-pad analog transitions, four wake enables and required Cortex-M33
+priority controls. Both unchanged images reach the first USART1 access at `0x50084000`.
+Analog response and timing remain unmeasured; USART and later devices are not implemented.
+The CPU slot/XIP mapping remains independent of full MPI bus timing.
 See the [factory-data contract](SIFLI_FACTORY_DATA.md) and
 [physical measurement steps](PHYSICAL_MEASUREMENTS.md). No actual watch data was collected.
 This is still a diagnostic module, not a selectable working physical-watch preview.
 [Time 2 evidence](evidence/obelix-reset-execution.json),
 [Round 2 evidence](evidence/getafix-reset-execution.json),
 [model sources and assumptions](evidence/sifli-system-model-sources.json).
-Actual Chromium, Firefox and WebKit Workers match both reset and `main` checkpoints,
-clock/delay checkpoints, LCPU reset, synthetic calibration and NOR/OTP, RAM comparisons and hardware boundaries ([browser record](evidence/sifli-browser-reset.json)).
-Validation: 127 Rust tests, 395 JavaScript tests (9 optional skips), Clippy and the full
+Chromium and Firefox Workers reproduce the full bounded sequence through the new USART1
+boundary for both revisions ([browser record](evidence/sifli-browser-reset.json)). WebKit was
+not rerun because this host lacks its GTK/GStreamer runtime, so current three-engine coverage
+does not extend to this boundary.
+Validation: 149 Rust tests, 427 JavaScript tests (9 optional skips), Clippy and the full
 production build pass. The generic Emery Clock regression preserves all five previous
 state/frame/time checkpoints ([record](evidence/sifli-system-generic-regression.json)).
 Physical SiFli implementation, active phone snapshots, native deterministic replay and actual
@@ -340,7 +345,7 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
 | Capability                 | Verified scope                                                                                                                                                                                                                                                                                 |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                                                        |
-| Physical and older watches | Firmware package inspection; Obelix PVT/Getafix DVT2 have bounded reset execution only; full physical and legacy firmware boots remain unimplemented.                                                                                                                                                      |
+| Physical and older watches | Obelix PVT/Getafix DVT2 execute unchanged through bounded early clocks, PMU, watchdog, pin and wake setup to USART1; full physical and legacy firmware boots remain unimplemented.                                                                                                                         |
 | GitHub source              | Public repositories, commit-pinned downloads, branches/subfolders, local ZIP and folder import; unsupported build behavior reports an error.                                                                                                                                                   |
 | Linux build sandbox        | Local container2wasm WASI image, custom YAML/shell commands, imported dependencies, quotas, cancellation and artifact export. Python + actual ARM GCC object generation verified; full SDK/Waf PBW gate remains open.                                                                          |
 | Native C builds            | SDK 4.33.1 headers/libraries/defines/limits for Aplite, Basalt, Chalk, Diorite, Emery, Flint and Gabbro; modern and legacy SDK 3 metadata.                                                                                                                                                     |

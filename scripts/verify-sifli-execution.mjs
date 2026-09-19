@@ -14,7 +14,7 @@ if (!['obelix_pvt', 'getafix_dvt2'].includes(revision) || !elfPath || !imagePath
 }
 const report = {
   format: 'pebble-sifli-reset-execution',
-  version: 5,
+  version: 6,
   revision,
   outcome: 'not-run',
   bootComplete: false,
@@ -253,7 +253,21 @@ try {
   });
   const boardConfigComplete = state;
   until();
-  assert.equal(state.stop?.address, 0x40040004); // next unmodeled global timer
+  assert.equal(state.stop?.address, 0x50084000); // USART1 begins application peripheral setup
+  assert.equal(state.stop?.kind, 'UnmodeledMmio');
+  assert.deepEqual(state.globalTimer.enabled, [true, true]);
+  assert.equal(state.globalTimer.synchronizations, 1);
+  assert.equal(state.pmucClock.rc32Ready, true);
+  assert.equal(state.pmucClock.lowPowerHz, 32000);
+  assert.equal(state.lpsysClock.peripheralSource, 'hxt48');
+  assert.equal(state.hrcCalibration.measurementsCompleted, 1, 'HRC measurement count');
+  assert.equal(state.dll.dll1Ready, true);
+  assert.equal(state.dll.locksCompleted, 1, 'DLL lock count');
+  assert.equal(state.sipPins.analogTransitions, 13);
+  assert.equal(state.wakeupSources.enabledMask, 0xc6);
+  assert.equal(state.watchdog.active, true);
+  assert.equal(state.watchdog.starts, 1, 'watchdog start count');
+  assert.equal(state.watchdog.stops, 2, 'watchdog stop count');
   report.syntheticNor = {
     source: 'synthetic-controller-test-only',
     profile: 'W25Q128JV',
@@ -262,6 +276,7 @@ try {
     nextBoundary: state,
     physicalCalibrationVerified: false,
   };
+  report.outcome = 'physical-early-init-reached-usart1';
   report.limits = [
     'No verified bootloader handoff state; LCPU controls assume an active domain awaiting reset',
     'No factory calibration supplied; synthetic bank transfer is not hardware calibration',
@@ -269,7 +284,7 @@ try {
     'Limited architectural registers, MPU, functional caches and early boot register model',
     'HXT settling defaults to an assumed 48000 reference ticks; DWT uses estimated engine cycles',
     'LCPU power-active POR status is not evidence of a running Bluetooth controller',
-    'No complete SiFli clock/peripheral, ROM, LCPU or coprocessor model',
+    'Bounded early clocks, PMU, watchdog, pin and wake controls only; no complete SiFli peripheral, ROM, LCPU or coprocessor model',
     'Cache replacement and allocation flags are model assumptions, not silicon measurements',
     'No full firmware boot, display, installation or phone exchange',
   ];

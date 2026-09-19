@@ -19,6 +19,8 @@ fn oscillator_readiness_requires_elapsed_time_and_can_fail() {
     assert!(c.write(0x500c0010, 3).is_err());
     assert!(c.write(0x50000020, 0x1003).is_err()); // unmodeled DLL
     assert_eq!(c.read(0x50000020), Ok(0x1001));
+    c.write_csr(0x1003, true).unwrap();
+    assert_eq!(c.read(0x50000020), Ok(0x1003));
     let mut failed = BootClock::default();
     failed.hxt_startup_ticks.take();
     failed.advance(48_000_000);
@@ -40,6 +42,9 @@ fn restart_and_dividers_use_reference_time_not_poll_count() {
     assert!(c.hxt_ready());
     assert_eq!(c.reference_ticks, 144_000);
     assert_eq!(c.estimated_cycles, 120_000);
+    assert_eq!(c.read(0x50000044), Ok(0x49101));
+    c.write(0x50000044, 0x1900c).unwrap();
+    assert_eq!(c.read(0x50000044), Ok(0x1900c));
 }
 
 #[test]

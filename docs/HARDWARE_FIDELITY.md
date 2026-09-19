@@ -250,8 +250,12 @@ The early boot clock model additionally implements HRC/HXT selection, HCLK divis
 HXT request/readiness. Readiness depends on elapsed nominal 48MHz reference ticks, not
 poll count. HRC is assumed ready at application entry; HXT starts requested with an assumed
 48,000-tick settling delay. DWT CYCCNT/CPI counters use estimated engine costs with trace
-enable, secure counter gating and wrapping. Only the assumed reset-disabled SysTick state
-is readable; configuring an unimplemented timer/trace/DLL still faults.
+enable, secure counter gating and wrapping. The bounded startup model now also covers the
+dual-domain always-on timer, RC32K selection, WDT1 commands, HRC48 measurement, DLL1 lock,
+HCPU/LCPU clock muxes, DVFS supply latches, deep-WFI dividers, SiP-pad analog transitions,
+wake enables, AIRCR priority grouping and byte-wide system-handler priorities. Their digital
+register sequencing follows pinned sources. Oscillator, DLL, regulator and watchdog timing
+remain unmeasured model assumptions.
 
 Both unchanged images now execute the crystal switch, LCPU power-domain wake request and
 230us/30us HAL delays. The documented LP_ACTIVE POR bit is power-domain status, not a
@@ -263,9 +267,11 @@ EFUSE transfers require caller-supplied bank data. Its timing/status, RCC gating
 behavior are modeled; absent data produces `MissingFactoryCalibration`. Separate synthetic
 bank/identity fixtures verify the unchanged HAL's 32-byte copy and PMUC trim writes. The
 NOR/OTP path now accepts an explicit W25Q128JV profile and three caller-supplied security
-pages. Separate synthetic fixtures return from `BSP_System_Config`, verifying 544 copied
-OTP bytes across 14 commands. The next dependency is LPSYS_AON.CR1 (`0x40040004`) during
-global-timer startup. Array/OTP programming and full XIP bus behavior are still unsupported.
+pages. Separate synthetic fixtures verify 544 copied OTP bytes across 14 commands, then run
+both unchanged images through `soc_early_init` and the common HAL initialization. Obelix PVT
+and Getafix DVT2 reach the first USART1 register access at `0x50084000`; this is now the next
+explicit boundary. Array/OTP programming, complete XIP bus behavior, USART and later board
+devices remain unsupported.
 These are synthetic read-path checks, not measured factory calibration.
 See the [factory-data interface and limits](SIFLI_FACTORY_DATA.md) and
 [physical measurements](PHYSICAL_MEASUREMENTS.md). A successful calibration-transfer test
@@ -280,7 +286,8 @@ node scripts/verify-sifli-browser.mjs /path/to/local/images report.json
 
 The runner audits ELF/raw identity, caps each phase at 10 million instructions and
 compares every initializer/BSS byte plus the `main` MPU/cache configuration derived
-from pinned source, then checks the early clock/delay checkpoint, LCPU reset and separate synthetic calibration transfer/trim tests. Missing inputs exit 2;
+from pinned source, then checks LCPU reset and the synthetic factory/NOR fixture through
+the bounded physical early-init sequence. Missing inputs exit 2;
 a failed comparison or exhausted boundary search exits 1. Wasm ABI 5 runs
 at most 100,000 steps per call so Workers can yield or terminate. The module has no
 host imports. After loading and before executing, `sifli_configure_hxt(ticks)` accepts a
@@ -289,8 +296,9 @@ Reports keep `estimatedCoreCycles`, reference ticks and measured instruction cou
 It is built with the static app but is not a working preview profile.
 No production firmware is modified or published.
 
-Actual Chromium, Firefox and WebKit Workers reproduce reset, main and early clock checkpoints, LCPU reset, synthetic calibration and the first
-hardware boundary. [Browser record](evidence/sifli-browser-reset.json),
+Chromium and Firefox Workers reproduce the full bounded sequence through the new USART1
+boundary for both revisions. WebKit was not rerun because its GTK/GStreamer runtime is absent
+from this host. [Browser record](evidence/sifli-browser-reset.json),
 [Time 2 execution](evidence/obelix-reset-execution.json),
 [Round 2 execution](evidence/getafix-reset-execution.json),
 [source identities and assumptions](evidence/sifli-system-model-sources.json).

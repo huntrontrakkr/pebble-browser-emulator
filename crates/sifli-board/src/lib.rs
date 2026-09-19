@@ -3,18 +3,27 @@
 //! Memory ranges follow pinned SiFli SDK `sf32lb52x/mem_map.h`; only locally
 //! supplied slot-0 bytes and HCPU SRAM are backed. Every other access faults.
 
+pub mod aon_timer;
 pub mod cache;
 pub mod calibration;
 pub mod clock;
 pub mod debug_counter;
+pub mod dll;
 pub mod efuse;
 pub mod execution;
+pub mod hpaon_wakeup;
+pub mod hrc_calibration;
 pub mod lcpu_reset;
+pub mod lpsys_clock;
 pub mod mpi;
 pub mod nor;
+pub mod pmuc;
+pub mod sip_pinmux;
 pub mod startup_io;
 pub mod system;
+pub mod system_config;
 mod wasm;
+pub mod watchdog;
 
 const HCPU_ROM_END: u64 = 0x0001_0000;
 const QSPI1_BASE: u64 = 0x1000_0000;

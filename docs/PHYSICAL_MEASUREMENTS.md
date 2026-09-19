@@ -53,8 +53,9 @@ define the next dependencies:
 | HXT48 request/switch, LCPU wake request and 230us/30us delays | Executes with functional clocks and estimated DWT cycles | Measured readiness/timing; slow/failing crystal tests already run |
 | LCPU reset/halt | Executes with CPUWAIT retained under explicit active-domain assumption | Capture real entry state; LCPU execution and sleep still absent |
 | BSP configuration / EFUSE | Timed transfers, trim latches and NOR/OTP reads modeled; synthetic board configuration passes | Supply matched EFUSE/identity/flash data; verify the actual part and nonempty factory records |
-| Global timer, RC32K, watchdog, DLL and HCLK setup | Not reached | Implement timebases, locking/calibration, reset effects and interrupt routing |
-| Flash, board devices, scheduler, display and phone | Not accepted | Device models and independent boot/frame/protocol captures |
+| Global timer, RC32K, watchdog, DLL and HCLK setup | Source-backed digital sequence reaches USART1; oscillator/DLL/watchdog timing is unmeasured | Capture timer rates, oscillator startup, DLL lock and watchdog handoff on both revisions |
+| SiP pins and HPAON wake enables | Register sequence modeled through all 13 analog pad transitions and four early wake sources | Verify electrical state and bootloader handoff on hardware |
+| USART, remaining board devices, scheduler, display and phone | Not accepted | Device models and independent boot/frame/protocol captures |
 
 The published [SiFli startup flow](https://docs.sifli.com/projects/sdk/latest/en/sf32lb52x/app_development/startup_flow.html)
 explains ROM boot, a second-stage bootloader and application startup. Directly entering the

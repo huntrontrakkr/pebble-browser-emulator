@@ -116,6 +116,8 @@ let both unchanged 4.37.0 images return from `BSP_System_Config`. Fourteen compl
 transfer 544 OTP bytes (32 system + 256 user + 256 customer); every destination byte is checked
 through the non-mutating CPU-visible view, including the system buffer on the stack. The
 fixture uses an end-of-list marker for optional OTP settings, so this does not establish
-crystal-trim or other nonempty factory-record behavior. The next boundary is LPSYS_AON.CR1
-(`0x40040004`) in `HAL_HPAON_StartGTimer`. Firmware remains unchanged and full boot remains
-unaccepted. Browser gates repeat this in Chromium, Firefox and WebKit.
+crystal-trim or other nonempty factory-record behavior. The same fixture now proceeds through
+the bounded physical clock, PMU, watchdog, SiP-pad and wake-source startup slice. Both images
+stop explicitly at the first USART1 access (`0x50084000`). Firmware remains unchanged and a
+full boot remains unaccepted. Chromium and Firefox Worker evidence covers this boundary;
+WebKit still needs a host with its native GTK/GStreamer runtime.

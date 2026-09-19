@@ -1,15 +1,15 @@
 {
   "format": "pebble-sifli-reset-execution",
-  "version": 5,
+  "version": 6,
   "revision": "obelix_pvt",
-  "outcome": "lcpu-reset-sequence-matched",
+  "outcome": "physical-early-init-reached-usart1",
   "bootComplete": false,
   "referenceTarget": "ELF-initializers-and-reset-binary",
   "entryState": "assumed-secure-reset-probe-v2",
   "identity": {
     "elfSha256": "591e715a5dda8bae5a082625c0a1a591740e1b42cca725a63d74b3e2fc950df5",
     "imageSha256": "67b56825d66eaeab97bc1f8a6803c7b689cd42f28c31813379469059b99c49b2",
-    "wasmSha256": "64f27cf39847ca6bdaa75b966de70fb1b1582c2ac7dc7a0cf7baecb2a4940650"
+    "wasmSha256": "37f4b0a1a556eba6c0ab9c206c00eb4ac0c68ac2dfb245add7742374359ed018"
   },
   "startup": {
     "bootComplete": false,
@@ -17,6 +17,7 @@
       "analogVerified": false,
       "aonBg": 24,
       "buck": 2953390337,
+      "buckVout": 13,
       "chipId": null,
       "hpVout": 11,
       "lpVout": 5,
@@ -30,11 +31,36 @@
       "referenceTicks48MHz": 573733,
       "timingVerified": false
     },
+    "dll": {
+      "analogVerified": false,
+      "dll1Ready": false,
+      "locksCompleted": 0,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
     "factoryData": {
       "loadedBankMask": 0,
       "readsCompleted": 0,
       "source": "missing"
+    },
+    "globalTimer": {
+      "counters": [
+        0,
+        0
+      ],
+      "enabled": [
+        false,
+        false
+      ],
+      "sourceHz": 10000,
+      "synchronizations": 0,
+      "timingVerified": false
+    },
+    "hrcCalibration": {
+      "analogVerified": false,
+      "done": false,
+      "measurementsCompleted": 0,
+      "timingVerified": false
     },
     "instructionsCompleted": 328883,
     "lcpuReset": {
@@ -45,6 +71,11 @@
       "executesLcpu": false,
       "releases": 0
     },
+    "lpsysClock": {
+      "peripheralSource": "hrc48",
+      "sourceChanges": 0,
+      "timingVerified": false
+    },
     "msplim": 537086272,
     "nor": {
       "commandsCompleted": 0,
@@ -52,6 +83,12 @@
       "otpBytesRead": 0,
       "otpLoadedMask": 0,
       "profile": "missing",
+      "timingVerified": false
+    },
+    "pmucClock": {
+      "lowPowerHz": 10000,
+      "rc32Ready": false,
+      "rc32StartupTicks": 48000,
       "timingVerified": false
     },
     "psplim": 0,
@@ -75,6 +112,10 @@
       303125020
     ],
     "revision": "ObelixPvt",
+    "sipPins": {
+      "analogTransitions": 0,
+      "electricalBehaviorVerified": false
+    },
     "stepsAttempted": 328883,
     "stop": null,
     "system": {
@@ -137,6 +178,16 @@
       ],
       "shcsr": 0,
       "vtor": 302125056
+    },
+    "wakeupSources": {
+      "enabledMask": 0,
+      "eventsInjected": 0
+    },
+    "watchdog": {
+      "active": false,
+      "countdownTimingVerified": false,
+      "starts": 0,
+      "stops": 0
     }
   },
   "copies": [
@@ -167,6 +218,7 @@
       "analogVerified": false,
       "aonBg": 24,
       "buck": 2953390337,
+      "buckVout": 13,
       "chipId": null,
       "hpVout": 11,
       "lpVout": 5,
@@ -180,11 +232,36 @@
       "referenceTicks48MHz": 578098,
       "timingVerified": false
     },
+    "dll": {
+      "analogVerified": false,
+      "dll1Ready": false,
+      "locksCompleted": 0,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
     "factoryData": {
       "loadedBankMask": 0,
       "readsCompleted": 0,
       "source": "missing"
+    },
+    "globalTimer": {
+      "counters": [
+        0,
+        0
+      ],
+      "enabled": [
+        false,
+        false
+      ],
+      "sourceHz": 10000,
+      "synchronizations": 0,
+      "timingVerified": false
+    },
+    "hrcCalibration": {
+      "analogVerified": false,
+      "done": false,
+      "measurementsCompleted": 0,
+      "timingVerified": false
     },
     "instructionsCompleted": 331741,
     "lcpuReset": {
@@ -195,6 +272,11 @@
       "executesLcpu": false,
       "releases": 0
     },
+    "lpsysClock": {
+      "peripheralSource": "hrc48",
+      "sourceChanges": 0,
+      "timingVerified": false
+    },
     "msplim": 537086272,
     "nor": {
       "commandsCompleted": 0,
@@ -202,6 +284,12 @@
       "otpBytesRead": 0,
       "otpLoadedMask": 0,
       "profile": "missing",
+      "timingVerified": false
+    },
+    "pmucClock": {
+      "lowPowerHz": 10000,
+      "rc32Ready": false,
+      "rc32StartupTicks": 48000,
       "timingVerified": false
     },
     "psplim": 0,
@@ -225,6 +313,10 @@
       302718028
     ],
     "revision": "ObelixPvt",
+    "sipPins": {
+      "analogTransitions": 0,
+      "electricalBehaviorVerified": false
+    },
     "stepsAttempted": 331741,
     "stop": null,
     "system": {
@@ -287,6 +379,16 @@
       ],
       "shcsr": 65536,
       "vtor": 537028864
+    },
+    "wakeupSources": {
+      "enabledMask": 0,
+      "eventsInjected": 0
+    },
+    "watchdog": {
+      "active": false,
+      "countdownTimingVerified": false,
+      "starts": 0,
+      "stops": 0
     }
   },
   "clockStartup": {
@@ -295,6 +397,7 @@
       "analogVerified": false,
       "aonBg": 24,
       "buck": 2953390337,
+      "buckVout": 13,
       "chipId": null,
       "hpVout": 11,
       "lpVout": 5,
@@ -308,11 +411,36 @@
       "referenceTicks48MHz": 591276,
       "timingVerified": false
     },
+    "dll": {
+      "analogVerified": false,
+      "dll1Ready": false,
+      "locksCompleted": 0,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
     "factoryData": {
       "loadedBankMask": 0,
       "readsCompleted": 0,
       "source": "missing"
+    },
+    "globalTimer": {
+      "counters": [
+        0,
+        0
+      ],
+      "enabled": [
+        false,
+        false
+      ],
+      "sourceHz": 10000,
+      "synchronizations": 0,
+      "timingVerified": false
+    },
+    "hrcCalibration": {
+      "analogVerified": false,
+      "done": false,
+      "measurementsCompleted": 0,
+      "timingVerified": false
     },
     "instructionsCompleted": 342136,
     "lcpuReset": {
@@ -323,6 +451,11 @@
       "executesLcpu": false,
       "releases": 0
     },
+    "lpsysClock": {
+      "peripheralSource": "hrc48",
+      "sourceChanges": 0,
+      "timingVerified": false
+    },
     "msplim": 537086272,
     "nor": {
       "commandsCompleted": 0,
@@ -330,6 +463,12 @@
       "otpBytesRead": 0,
       "otpLoadedMask": 0,
       "profile": "missing",
+      "timingVerified": false
+    },
+    "pmucClock": {
+      "lowPowerHz": 10000,
+      "rc32Ready": false,
+      "rc32StartupTicks": 48000,
       "timingVerified": false
     },
     "psplim": 0,
@@ -353,6 +492,10 @@
       536880616
     ],
     "revision": "ObelixPvt",
+    "sipPins": {
+      "analogTransitions": 0,
+      "electricalBehaviorVerified": false
+    },
     "stepsAttempted": 342136,
     "stop": null,
     "system": {
@@ -415,6 +558,16 @@
       ],
       "shcsr": 65536,
       "vtor": 537028864
+    },
+    "wakeupSources": {
+      "enabledMask": 0,
+      "eventsInjected": 0
+    },
+    "watchdog": {
+      "active": false,
+      "countdownTimingVerified": false,
+      "starts": 0,
+      "stops": 0
     }
   },
   "hardwareBoundary": {
@@ -423,6 +576,7 @@
       "analogVerified": false,
       "aonBg": 24,
       "buck": 2953390337,
+      "buckVout": 13,
       "chipId": null,
       "hpVout": 14,
       "lpVout": 5,
@@ -436,11 +590,36 @@
       "referenceTicks48MHz": 593764,
       "timingVerified": false
     },
+    "dll": {
+      "analogVerified": false,
+      "dll1Ready": false,
+      "locksCompleted": 0,
+      "timingVerified": false
+    },
     "entryState": "assumed-secure-reset-probe-v2",
     "factoryData": {
       "loadedBankMask": 0,
       "readsCompleted": 0,
       "source": "missing"
+    },
+    "globalTimer": {
+      "counters": [
+        0,
+        0
+      ],
+      "enabled": [
+        false,
+        false
+      ],
+      "sourceHz": 10000,
+      "synchronizations": 0,
+      "timingVerified": false
+    },
+    "hrcCalibration": {
+      "analogVerified": false,
+      "done": false,
+      "measurementsCompleted": 0,
+      "timingVerified": false
     },
     "instructionsCompleted": 343860,
     "lcpuReset": {
@@ -451,6 +630,11 @@
       "executesLcpu": false,
       "releases": 1
     },
+    "lpsysClock": {
+      "peripheralSource": "hrc48",
+      "sourceChanges": 0,
+      "timingVerified": false
+    },
     "msplim": 537086272,
     "nor": {
       "commandsCompleted": 0,
@@ -458,6 +642,12 @@
       "otpBytesRead": 0,
       "otpLoadedMask": 0,
       "profile": "missing",
+      "timingVerified": false
+    },
+    "pmucClock": {
+      "lowPowerHz": 10000,
+      "rc32Ready": false,
+      "rc32StartupTicks": 48000,
       "timingVerified": false
     },
     "psplim": 0,
@@ -481,6 +671,10 @@
       303112150
     ],
     "revision": "ObelixPvt",
+    "sipPins": {
+      "analogTransitions": 0,
+      "electricalBehaviorVerified": false
+    },
     "stepsAttempted": 343861,
     "stop": {
       "address": 1342226432,
@@ -550,6 +744,16 @@
       ],
       "shcsr": 65536,
       "vtor": 537028864
+    },
+    "wakeupSources": {
+      "enabledMask": 0,
+      "eventsInjected": 0
+    },
+    "watchdog": {
+      "active": false,
+      "countdownTimingVerified": false,
+      "starts": 0,
+      "stops": 0
     }
   },
   "syntheticEfuse": {
@@ -563,6 +767,7 @@
         "analogVerified": false,
         "aonBg": 24,
         "buck": 2953390337,
+        "buckVout": 13,
         "chipId": null,
         "hpVout": 11,
         "lpVout": 5,
@@ -576,11 +781,36 @@
         "referenceTicks48MHz": 595039,
         "timingVerified": false
       },
+      "dll": {
+        "analogVerified": false,
+        "dll1Ready": false,
+        "locksCompleted": 0,
+        "timingVerified": false
+      },
       "entryState": "assumed-secure-reset-probe-v2",
       "factoryData": {
         "loadedBankMask": 2,
         "readsCompleted": 1,
         "source": "caller-supplied-unverified"
+      },
+      "globalTimer": {
+        "counters": [
+          0,
+          0
+        ],
+        "enabled": [
+          false,
+          false
+        ],
+        "sourceHz": 10000,
+        "synchronizations": 0,
+        "timingVerified": false
+      },
+      "hrcCalibration": {
+        "analogVerified": false,
+        "done": false,
+        "measurementsCompleted": 0,
+        "timingVerified": false
       },
       "instructionsCompleted": 344728,
       "lcpuReset": {
@@ -591,6 +821,11 @@
         "executesLcpu": false,
         "releases": 1
       },
+      "lpsysClock": {
+        "peripheralSource": "hrc48",
+        "sourceChanges": 0,
+        "timingVerified": false
+      },
       "msplim": 537086272,
       "nor": {
         "commandsCompleted": 0,
@@ -598,6 +833,12 @@
         "otpBytesRead": 0,
         "otpLoadedMask": 0,
         "profile": "missing",
+        "timingVerified": false
+      },
+      "pmucClock": {
+        "lowPowerHz": 10000,
+        "rc32Ready": false,
+        "rc32StartupTicks": 48000,
         "timingVerified": false
       },
       "psplim": 0,
@@ -621,6 +862,10 @@
         303112866
       ],
       "revision": "ObelixPvt",
+      "sipPins": {
+        "analogTransitions": 0,
+        "electricalBehaviorVerified": false
+      },
       "stepsAttempted": 344729,
       "stop": {
         "address": 1342222340,
@@ -690,6 +935,16 @@
         ],
         "shcsr": 65536,
         "vtor": 537028864
+      },
+      "wakeupSources": {
+        "enabledMask": 0,
+        "eventsInjected": 0
+      },
+      "watchdog": {
+        "active": false,
+        "countdownTimingVerified": false,
+        "starts": 0,
+        "stops": 0
       }
     },
     "physicalCalibrationVerified": false
@@ -702,6 +957,7 @@
         "analogVerified": false,
         "aonBg": 28,
         "buck": 2953390337,
+        "buckVout": 13,
         "chipId": 0,
         "hpVout": 11,
         "lpVout": 1,
@@ -715,11 +971,36 @@
         "referenceTicks48MHz": 595525,
         "timingVerified": false
       },
+      "dll": {
+        "analogVerified": false,
+        "dll1Ready": false,
+        "locksCompleted": 0,
+        "timingVerified": false
+      },
       "entryState": "assumed-secure-reset-probe-v2",
       "factoryData": {
         "loadedBankMask": 2,
         "readsCompleted": 1,
         "source": "caller-supplied-unverified"
+      },
+      "globalTimer": {
+        "counters": [
+          0,
+          0
+        ],
+        "enabled": [
+          false,
+          false
+        ],
+        "sourceHz": 10000,
+        "synchronizations": 0,
+        "timingVerified": false
+      },
+      "hrcCalibration": {
+        "analogVerified": false,
+        "done": false,
+        "measurementsCompleted": 0,
+        "timingVerified": false
       },
       "instructionsCompleted": 345038,
       "lcpuReset": {
@@ -730,6 +1011,11 @@
         "executesLcpu": false,
         "releases": 1
       },
+      "lpsysClock": {
+        "peripheralSource": "hrc48",
+        "sourceChanges": 0,
+        "timingVerified": false
+      },
       "msplim": 537086272,
       "nor": {
         "commandsCompleted": 0,
@@ -737,6 +1023,12 @@
         "otpBytesRead": 0,
         "otpLoadedMask": 0,
         "profile": "missing",
+        "timingVerified": false
+      },
+      "pmucClock": {
+        "lowPowerHz": 10000,
+        "rc32Ready": false,
+        "rc32StartupTicks": 48000,
         "timingVerified": false
       },
       "psplim": 0,
@@ -760,6 +1052,10 @@
         536875658
       ],
       "revision": "ObelixPvt",
+      "sipPins": {
+        "analogTransitions": 0,
+        "electricalBehaviorVerified": false
+      },
       "stepsAttempted": 345039,
       "stop": {
         "address": 1342447640,
@@ -829,6 +1125,16 @@
         ],
         "shcsr": 65536,
         "vtor": 537028864
+      },
+      "wakeupSources": {
+        "enabledMask": 0,
+        "eventsInjected": 0
+      },
+      "watchdog": {
+        "active": false,
+        "countdownTimingVerified": false,
+        "starts": 0,
+        "stops": 0
       }
     },
     "registersMatched": true,
@@ -842,6 +1148,7 @@
         "analogVerified": false,
         "aonBg": 28,
         "buck": 2953390337,
+        "buckVout": 13,
         "chipId": 0,
         "hpVout": 11,
         "lpVout": 1,
@@ -855,11 +1162,36 @@
         "referenceTicks48MHz": 597684,
         "timingVerified": false
       },
+      "dll": {
+        "analogVerified": false,
+        "dll1Ready": false,
+        "locksCompleted": 0,
+        "timingVerified": false
+      },
       "entryState": "assumed-secure-reset-probe-v2",
       "factoryData": {
         "loadedBankMask": 2,
         "readsCompleted": 1,
         "source": "caller-supplied-unverified"
+      },
+      "globalTimer": {
+        "counters": [
+          0,
+          0
+        ],
+        "enabled": [
+          false,
+          false
+        ],
+        "sourceHz": 10000,
+        "synchronizations": 0,
+        "timingVerified": false
+      },
+      "hrcCalibration": {
+        "analogVerified": false,
+        "done": false,
+        "measurementsCompleted": 0,
+        "timingVerified": false
       },
       "instructionsCompleted": 346295,
       "lcpuReset": {
@@ -870,6 +1202,11 @@
         "executesLcpu": false,
         "releases": 1
       },
+      "lpsysClock": {
+        "peripheralSource": "hrc48",
+        "sourceChanges": 0,
+        "timingVerified": false
+      },
       "msplim": 537086272,
       "nor": {
         "commandsCompleted": 5,
@@ -877,6 +1214,12 @@
         "otpBytesRead": 0,
         "otpLoadedMask": 0,
         "profile": "caller-selected-w25q128jv",
+        "timingVerified": false
+      },
+      "pmucClock": {
+        "lowPowerHz": 10000,
+        "rc32Ready": false,
+        "rc32StartupTicks": 48000,
         "timingVerified": false
       },
       "psplim": 0,
@@ -900,6 +1243,10 @@
         536875658
       ],
       "revision": "ObelixPvt",
+      "sipPins": {
+        "analogTransitions": 0,
+        "electricalBehaviorVerified": false
+      },
       "stepsAttempted": 346296,
       "stop": {
         "address": 1342447640,
@@ -969,6 +1316,16 @@
         ],
         "shcsr": 65536,
         "vtor": 537028864
+      },
+      "wakeupSources": {
+        "enabledMask": 0,
+        "eventsInjected": 0
+      },
+      "watchdog": {
+        "active": false,
+        "countdownTimingVerified": false,
+        "starts": 0,
+        "stops": 0
       }
     }
   },
@@ -1001,6 +1358,7 @@
         "analogVerified": false,
         "aonBg": 28,
         "buck": 2953390337,
+        "buckVout": 13,
         "chipId": 0,
         "hpVout": 11,
         "lpVout": 1,
@@ -1014,11 +1372,36 @@
         "referenceTicks48MHz": 620788,
         "timingVerified": false
       },
+      "dll": {
+        "analogVerified": false,
+        "dll1Ready": false,
+        "locksCompleted": 0,
+        "timingVerified": false
+      },
       "entryState": "assumed-secure-reset-probe-v2",
       "factoryData": {
         "loadedBankMask": 2,
         "readsCompleted": 1,
         "source": "caller-supplied-unverified"
+      },
+      "globalTimer": {
+        "counters": [
+          0,
+          0
+        ],
+        "enabled": [
+          false,
+          false
+        ],
+        "sourceHz": 10000,
+        "synchronizations": 0,
+        "timingVerified": false
+      },
+      "hrcCalibration": {
+        "analogVerified": false,
+        "done": false,
+        "measurementsCompleted": 0,
+        "timingVerified": false
       },
       "instructionsCompleted": 362892,
       "lcpuReset": {
@@ -1029,6 +1412,11 @@
         "executesLcpu": false,
         "releases": 1
       },
+      "lpsysClock": {
+        "peripheralSource": "hrc48",
+        "sourceChanges": 0,
+        "timingVerified": false
+      },
       "msplim": 537086272,
       "nor": {
         "commandsCompleted": 14,
@@ -1036,6 +1424,12 @@
         "otpBytesRead": 544,
         "otpLoadedMask": 7,
         "profile": "caller-selected-w25q128jv",
+        "timingVerified": false
+      },
+      "pmucClock": {
+        "lowPowerHz": 10000,
+        "rc32Ready": false,
+        "rc32StartupTicks": 48000,
         "timingVerified": false
       },
       "psplim": 0,
@@ -1059,6 +1453,10 @@
         536883068
       ],
       "revision": "ObelixPvt",
+      "sipPins": {
+        "analogTransitions": 0,
+        "electricalBehaviorVerified": false
+      },
       "stepsAttempted": 362892,
       "stop": null,
       "system": {
@@ -1121,6 +1519,16 @@
         ],
         "shcsr": 65536,
         "vtor": 537028864
+      },
+      "wakeupSources": {
+        "enabledMask": 0,
+        "eventsInjected": 0
+      },
+      "watchdog": {
+        "active": false,
+        "countdownTimingVerified": false,
+        "starts": 0,
+        "stops": 0
       }
     },
     "nextBoundary": {
@@ -1129,17 +1537,24 @@
         "analogVerified": false,
         "aonBg": 28,
         "buck": 2953390337,
+        "buckVout": 15,
         "chipId": 0,
-        "hpVout": 11,
+        "hpVout": 4,
         "lpVout": 1,
-        "periLdo": 395268,
-        "vret": 2101277
+        "periLdo": 395300,
+        "vret": 2101253
       },
       "clock": {
-        "estimatedCoreCycles": 620797,
+        "estimatedCoreCycles": 912031,
         "hxtReady": true,
         "hxtStartupTicks": 48000,
-        "referenceTicks48MHz": 620797,
+        "referenceTicks48MHz": 912031,
+        "timingVerified": false
+      },
+      "dll": {
+        "analogVerified": false,
+        "dll1Ready": true,
+        "locksCompleted": 1,
         "timingVerified": false
       },
       "entryState": "assumed-secure-reset-probe-v2",
@@ -1148,7 +1563,26 @@
         "readsCompleted": 1,
         "source": "caller-supplied-unverified"
       },
-      "instructionsCompleted": 362898,
+      "globalTimer": {
+        "counters": [
+          149,
+          149
+        ],
+        "enabled": [
+          true,
+          true
+        ],
+        "sourceHz": 32000,
+        "synchronizations": 1,
+        "timingVerified": false
+      },
+      "hrcCalibration": {
+        "analogVerified": false,
+        "done": false,
+        "measurementsCompleted": 1,
+        "timingVerified": false
+      },
+      "instructionsCompleted": 585221,
       "lcpuReset": {
         "assertedMask": 0,
         "assertions": 1,
@@ -1156,6 +1590,11 @@
         "entryState": "assumed-active-awaiting-reset",
         "executesLcpu": false,
         "releases": 1
+      },
+      "lpsysClock": {
+        "peripheralSource": "hxt48",
+        "sourceChanges": 1,
+        "timingVerified": false
       },
       "msplim": 537086272,
       "nor": {
@@ -1166,33 +1605,43 @@
         "profile": "caller-selected-w25q128jv",
         "timingVerified": false
       },
+      "pmucClock": {
+        "lowPowerHz": 32000,
+        "rc32Ready": true,
+        "rc32StartupTicks": 48000,
+        "timingVerified": false
+      },
       "psplim": 0,
       "registerState": "last-completed-instruction",
       "registers": [
+        536890672,
+        8,
         0,
-        1074003968,
-        3288334336,
-        1342963712,
-        0,
-        0,
-        0,
-        0,
+        36,
+        536890672,
+        1342717952,
         0,
         0,
         0,
         0,
         0,
-        537087240,
-        302271481,
-        536883080
+        0,
+        614400,
+        537087208,
+        303124161,
+        303124168
       ],
       "revision": "ObelixPvt",
-      "stepsAttempted": 362899,
+      "sipPins": {
+        "analogTransitions": 13,
+        "electricalBehaviorVerified": false
+      },
+      "stepsAttempted": 585222,
       "stop": {
-        "address": 1074003972,
+        "address": 1342717952,
         "kind": "UnmodeledMmio",
         "operation": "Read",
-        "pc": 536883080,
+        "pc": 303124168,
         "type": "access",
         "width": 4
       },
@@ -1254,8 +1703,18 @@
             0
           ]
         ],
-        "shcsr": 65536,
-        "vtor": 537028864
+        "shcsr": 458752,
+        "vtor": 302125056
+      },
+      "wakeupSources": {
+        "enabledMask": 198,
+        "eventsInjected": 0
+      },
+      "watchdog": {
+        "active": true,
+        "countdownTimingVerified": false,
+        "starts": 1,
+        "stops": 2
       }
     },
     "physicalCalibrationVerified": false
@@ -1267,7 +1726,7 @@
     "Limited architectural registers, MPU, functional caches and early boot register model",
     "HXT settling defaults to an assumed 48000 reference ticks; DWT uses estimated engine cycles",
     "LCPU power-active POR status is not evidence of a running Bluetooth controller",
-    "No complete SiFli clock/peripheral, ROM, LCPU or coprocessor model",
+    "Bounded early clocks, PMU, watchdog, pin and wake controls only; no complete SiFli peripheral, ROM, LCPU or coprocessor model",
     "Cache replacement and allocation flags are model assumptions, not silicon measurements",
     "No full firmware boot, display, installation or phone exchange"
   ]

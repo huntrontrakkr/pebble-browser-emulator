@@ -93,6 +93,8 @@ fn calibration_latches_preserve_control_fields_and_require_identity() {
     c.write(0x500ca014, (old & !0x3c00) | 0x2800).unwrap();
     assert_eq!(c.vret & 0x3c00, 0x2800);
     assert!(c.write(0x500ca014, c.vret ^ 1).is_err());
-    assert!(c.write(0x500ca05c, c.peri_ldo | 1).is_err());
+    c.write(0x500ca05c, c.peri_ldo | 1).unwrap();
+    assert_eq!(c.peri_ldo & 1, 1);
+    assert!(c.write(0x500ca05c, c.peri_ldo | (1 << 6)).is_err());
     assert!(c.write(0x5000b004, 1).is_err());
 }

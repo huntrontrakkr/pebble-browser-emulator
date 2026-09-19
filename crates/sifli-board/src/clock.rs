@@ -11,6 +11,7 @@ pub struct BootClock {
     acr: u32,
     csr: u32,
     cfgr: u32,
+    deep_wfi_cfgr: u32,
 }
 impl Default for BootClock {
     fn default() -> Self {
@@ -22,12 +23,13 @@ impl Default for BootClock {
             acr: 7,
             csr: 0x1000,
             cfgr: 0x24101,
+            deep_wfi_cfgr: (1 << 18) | (1 << 15) | (1 << 12) | (1 << 8) | 1,
         }
     }
 }
 impl BootClock {
     pub fn owns(a: u32) -> bool {
-        matches!(a, 0x50000020 | 0x50000024 | 0x500c0010)
+        matches!(a, 0x50000020 | 0x50000024 | 0x50000044 | 0x500c0010)
     }
     pub fn advance(&mut self, cycles: u64) {
         self.estimated_cycles = self.estimated_cycles.wrapping_add(cycles);
@@ -48,6 +50,7 @@ impl BootClock {
             0x500c0010 => Ok(self.acr | ((self.acr & 1) << 30) | ((self.hxt_ready() as u32) << 31)),
             0x50000020 => Ok(self.csr),
             0x50000024 => Ok(self.cfgr),
+            0x50000044 => Ok(self.deep_wfi_cfgr),
             _ => Err(FaultKind::UnmodeledMmio),
         }
     }
@@ -68,20 +71,27 @@ impl BootClock {
                 self.acr = value & 7;
             }
             0x50000020 => {
-                let v = value & 0xf0f7;
-                // DLLs, WDT clock and non-default peripheral muxes need their
-                // own devices. Reject them instead of reporting false readiness.
-                if v & !0x1001 != 0
-                    || (v & 1 != 0 && !self.hxt_ready())
-                    || (v & 1 == 0 && self.acr & 1 == 0)
-                {
-                    return Err(FaultKind::UnmodeledMmio);
-                }
-                self.csr = v;
+                self.write_csr(value, false)?;
             }
             0x50000024 => self.cfgr = value & 0x3f77ff,
+            0x50000044 if value & !0x0f07_f7ff == 0 => self.deep_wfi_cfgr = value,
             _ => return Err(FaultKind::UnmodeledMmio),
         }
+        Ok(())
+    }
+
+    pub fn write_csr(&mut self, value: u32, dll1_ready: bool) -> Result<(), FaultKind> {
+        let value = value & 0xf0f7;
+        if value & !0x1003 != 0 {
+            return Err(FaultKind::UnmodeledMmio);
+        }
+        match value & 3 {
+            0 if self.acr & 1 != 0 => {}
+            1 if self.hxt_ready() => {}
+            3 if dll1_ready => {}
+            _ => return Err(FaultKind::PeripheralNotReady),
+        }
+        self.csr = value;
         Ok(())
     }
 }

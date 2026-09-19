@@ -26,12 +26,22 @@ fn system_registers_are_bounded_and_preserve_unknowns() {
         Err(FaultKind::UnsupportedSystemRegister)
     );
     assert_eq!(s.read(0xe000ed90, 1, true), Err(FaultKind::InvalidWidth));
+    s.write(0xe000ed18, 1, 0xe0, true).unwrap();
+    assert_eq!(s.read(0xe000ed18, 1, true), Ok(0xe0));
     assert_eq!(
         s.write(0xe000ed08, 4, 0x12345678, false),
         Err(FaultKind::MemoryProtection)
     );
     s.write(0xe000ed08, 4, 0x12345678, true).unwrap();
     assert_eq!(s.vtor, 0x12345600);
+    assert_eq!(s.read(0xe000ed0c, 4, true), Ok(0xfa05_0000));
+    s.write(0xe000ed0c, 4, 0x05fa_0300, true).unwrap();
+    assert_eq!(s.priority_group, 3);
+    assert_eq!(s.read(0xe000ed0c, 4, true), Ok(0xfa05_0300));
+    assert_eq!(
+        s.write(0xe000ed0c, 4, 0x05fa_0004, true),
+        Err(FaultKind::UnsupportedSystemRegister)
+    );
     s.write(0xe000ed98, 4, 11, true).unwrap();
     assert_eq!(
         s.write(0xe000ed98, 4, 12, true),

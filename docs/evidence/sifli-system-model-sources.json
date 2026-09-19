@@ -1,6 +1,6 @@
 {
   "format": "pebble-sifli-system-model-sources",
-  "version": 4,
+  "version": 5,
   "status": "modeled",
   "sources": [
     {
@@ -24,6 +24,10 @@
       "sha256": "93f60f0230927c9885a7db9673e83361c370ec2bca6b9e2ba57feeb68a065acf"
     },
     {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_pinmux.c",
+      "sha256": "01247be8e8d06c4f5109309b90a7c07f01d04028fc170bb9a8d98254b0d889f0"
+    },
+    {
       "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/hal/bf0_hal_rcc.c",
       "sha256": "edec99ca46d2d265d12166c809dcaa068d86027194a4ac042278ca2c7b5a52de"
     },
@@ -34,6 +38,18 @@
     {
       "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/lpsys_aon.h",
       "sha256": "bb798330e19dfa6b207fe724da382a5bb30dfbe374360dda36dec817aaea5387"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/hpsys_aon.h",
+      "sha256": "87dbfd16a7349f3a1a1577b9f2b6df0108e741a1a1c2982ccf32dee4605a4258"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/hpsys_rcc.h",
+      "sha256": "fade671104cd0206d4a135fde27988487e094c2b8dea6e57f4763ae187a5de3b"
+    },
+    {
+      "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/pmuc.h",
+      "sha256": "9c146f1834078435de37321e0517a61d0572fd9d07d687a820601fe9faf1b734"
     },
     {
       "url": "https://github.com/coredevices/SiFli-SDK/blob/bfee83c7adc0b19c2923f1788238def50f0a9dce/drivers/cmsis/sf32lb52x/lpsys_rcc.h",
@@ -82,7 +98,7 @@
     }
   ],
   "cacheGeometrySource": "https://downloads.sifli.com/user%20manual/DS5201-SF32LB52x-Datasheet%20V2p5.pdf",
-  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC), 4-3 (HPSYS_AON ACR/ISSR), 5-4 (PA21), 9-7 (backup); pinned CMSIS DWT/DEMCR fields. Also 3-3 (PMUC trim register reset values/masks), 13-4 (EFUSE). Also 14-2 (MPI2).",
+  "registerTables": "UM5201 internal V0.8.8: 2-6 (RCC/DLL/HRC calibration), 3-3 (PMUC clocks, supplies and counters), 4-3 (HPSYS_AON timer/wake controls), 5-4 (SiP/PA pinmux), 5-5 (HPSYS_CFG), 9-5 (WDT1), 9-7 (backup), 13-4 (EFUSE), 14-2 (MPI2); pinned CMSIS AIRCR/SHPR/DWT/DEMCR fields.",
   "assumptions": [
     "Explicit secure architectural reset state and fresh backup-domain POR; not captured bootloader handoff.",
     "Functional split cache with deterministic round-robin replacement; timing, allocation flags and replacement not silicon-verified.",
@@ -95,20 +111,23 @@
     "PMUC calibration models digital trim fields only, not measured analog voltages or regulator dynamics.",
     "NOR profile is caller-selected W25Q128JV, not verified watch BOM. Three security pages are explicit inputs, never default erased bytes.",
     "MPI uses whole-transfer buffering with padded final FIFO words and estimated serial-clock timing. DMA, IRQ, chaining, write/erase and full XIP bus behavior are unsupported.",
-    "NOR volatile refresh is rounded to 3 nominal 48MHz ticks; reset recovery is modeled at the datasheet approximate 30us. These are not captured hardware timings."
+    "NOR volatile refresh is rounded to 3 nominal 48MHz ticks; reset recovery is modeled at the datasheet approximate 30us. These are not captured hardware timings.",
+    "RC32K startup uses an assumed 1ms delay. HRC48 trim response is a nominal monotonic model centered on the documented POR trim; no watch measurement verifies it.",
+    "DLL lock uses the manual's five-microsecond minimum. Regulator writes record digital latch state without analog settling, voltage or power behavior.",
+    "WDT1 command/configuration state is modeled, but its countdown, interrupt and reset timing are not yet advanced. SiP analog mode records register state without electrical behavior."
   ],
   "gates": {
     "resetRam": "matches unchanged ELF/raw initializers and zero-fill",
     "systemInit": "both revisions reach unchanged main with expected MPU/coprocessor/cache configuration",
     "browsers": [
       "chromium",
-      "firefox",
-      "webkit"
+      "firefox"
     ],
     "fullBoot": false,
     "earlyClockStartup": "both images reach HAL_RCC_Reset_and_Halt_LCPU after source switch and 230us/30us DWT waits; internal consistency, not measured timing",
     "lcpuReset": "both images assert and release reset once, retaining CPUWAIT; initial state is assumed, not captured",
     "calibration": "synthetic fixtures match HAL byte transfer and PMUC trim mappings; physical calibration not verified",
-    "norOtp": "both unchanged images return from BSP_System_Config with separate synthetic EFUSE/identity/NOR/OTP inputs; all 544 OTP destination bytes match in all three browser engines"
+    "norOtp": "both unchanged images return from BSP_System_Config with separate synthetic EFUSE/identity/NOR/OTP inputs; all 544 OTP destination bytes match",
+    "physicalEarlyInit": "both unchanged images pass the bounded timer/clock/PMU/watchdog/pin/wake sequence and stop at the first USART1 access in local Wasm plus Chromium and Firefox Workers; WebKit was not rerun because this host lacks its native runtime"
   }
 }

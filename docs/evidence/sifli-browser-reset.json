@@ -1,7 +1,7 @@
 {
   "format": "pebble-sifli-browser-reset",
-  "version": 1,
-  "wasmSha256": "64f27cf39847ca6bdaa75b966de70fb1b1582c2ac7dc7a0cf7baecb2a4940650",
+  "version": 2,
+  "wasmSha256": "37f4b0a1a556eba6c0ab9c206c00eb4ac0c68ac2dfb245add7742374359ed018",
   "results": [
     {
       "browser": "chromium",
@@ -12,6 +12,7 @@
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
       "syntheticNorOtpMatched": true,
+      "physicalEarlyInitMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -24,6 +25,7 @@
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
       "syntheticNorOtpMatched": true,
+      "physicalEarlyInitMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     },
@@ -36,6 +38,7 @@
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
       "syntheticNorOtpMatched": true,
+      "physicalEarlyInitMatched": true,
       "instructions": 328883,
       "hardwareBoundaryMatched": true
     },
@@ -48,33 +51,10 @@
       "clockStartupMatched": true,
       "syntheticCalibrationMatched": true,
       "syntheticNorOtpMatched": true,
-      "instructions": 313880,
-      "hardwareBoundaryMatched": true
-    },
-    {
-      "browser": "webkit",
-      "version": "26.6",
-      "revision": "obelix_pvt",
-      "ramMatched": true,
-      "mainEntryMatched": true,
-      "clockStartupMatched": true,
-      "syntheticCalibrationMatched": true,
-      "syntheticNorOtpMatched": true,
-      "instructions": 328883,
-      "hardwareBoundaryMatched": true
-    },
-    {
-      "browser": "webkit",
-      "version": "26.6",
-      "revision": "getafix_dvt2",
-      "ramMatched": true,
-      "mainEntryMatched": true,
-      "clockStartupMatched": true,
-      "syntheticCalibrationMatched": true,
-      "syntheticNorOtpMatched": true,
+      "physicalEarlyInitMatched": true,
       "instructions": 313880,
       "hardwareBoundaryMatched": true
     }
   ],
-  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, early clock/delay, LCPU reset and synthetic calibration transfer/trim and NOR/OTP board-configuration execution. No full boot or physical-phone performance claim."
+  "scope": "Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, clock/delay, LCPU reset, synthetic factory/NOR data and bounded physical early initialization through the first USART1 access. No full boot, measured silicon timing or physical-phone performance claim."
 }

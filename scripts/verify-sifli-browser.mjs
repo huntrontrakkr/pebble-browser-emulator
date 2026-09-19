@@ -103,7 +103,12 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
             for(const c of data.expected.syntheticNor.copies) {
               for(let i=0;i<c.bytesMatched;i++) if((e.sifli_read_cpu_byte(c.destination+i)>>>0)!==pages[c.page-1][i]) throw new Error('OTP buffer mismatch');
             }
-            e.sifli_run(100000,0);const nextBoundary=report();
+            let nextBoundary;
+            for(let n=0;n<100;n++) {
+              e.sifli_run(100000,0); nextBoundary=report();
+              if(nextBoundary.stop) break;
+              await new Promise(resolve=>setTimeout(resolve,0));
+            }
             postMessage({startup:state,mainEntry,clockStartup,hardwareBoundary,syntheticTrim,boardConfigComplete,nextBoundary,ramMatched:true});
           } catch (e) { postMessage({error:String(e)}); }
         }`;
@@ -160,6 +165,7 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
         clockStartupMatched: true,
         syntheticCalibrationMatched: true,
         syntheticNorOtpMatched: true,
+        physicalEarlyInitMatched: true,
         instructions: result.startup.instructionsCompleted,
         hardwareBoundaryMatched: true,
       });
@@ -170,11 +176,11 @@ for (const name of (process.env.PEBBLE_BROWSERS ?? 'chromium,firefox,webkit').sp
 }
 const report = {
   format: 'pebble-sifli-browser-reset',
-  version: 1,
+  version: 2,
   wasmSha256: createHash('sha256').update(wasm).digest('hex'),
   results,
   scope:
-    'Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, early clock/delay, LCPU reset and synthetic calibration transfer/trim and NOR/OTP board-configuration execution. No full boot or physical-phone performance claim.',
+    'Actual desktop browser Workers, unchanged local firmware; reset, SystemInit, clock/delay, LCPU reset, synthetic factory/NOR data and bounded physical early initialization through the first USART1 access. No full boot, measured silicon timing or physical-phone performance claim.',
 };
 const text = JSON.stringify(report, null, 2) + '\n';
 if (reportPath) await writeFile(reportPath, text);
