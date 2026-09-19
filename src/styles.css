@@ -199,6 +199,14 @@ button.primary:hover:not(:disabled) {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+/* The mark is a stencil: the case is the text colour and the screen is
+   knocked out, so it stays correct in either theme without a second asset. */
+.identity-mark {
+  display: block;
+  flex: none;
+  color: var(--text);
+}
+
 a {
   color: var(--link);
   text-decoration: none;

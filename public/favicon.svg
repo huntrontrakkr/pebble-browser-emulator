@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#245bc4"/><path d="M23 8h18v10H23zM23 46h18v10H23z" fill="#fff" opacity=".7"/><rect x="16" y="16" width="32" height="32" rx="7" fill="none" stroke="#fff" stroke-width="4"/><path d="M32 24v9l6 4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+  <style>
+    :root { --case: #2a2521; --screen: #f4f1ec; }
+    @media (prefers-color-scheme: dark) {
+      :root { --case: #ece5da; --screen: #1c1a17; }
+    }
+  </style>
+  <mask id="screen">
+    <rect width="64" height="64" fill="#fff" />
+    <rect x="18" y="15" width="28" height="34" rx="4" fill="#000" />
+  </mask>
+  <g mask="url(#screen)" fill="var(--case)">
+    <rect x="11" y="7" width="42" height="50" rx="11" />
+    <rect x="5" y="27" width="6" height="10" rx="2" />
+    <rect x="53" y="15.5" width="6" height="9" rx="2" />
+    <rect x="53" y="27.5" width="6" height="9" rx="2" />
+    <rect x="53" y="39.5" width="6" height="9" rx="2" />
+  </g>
+</svg>
