@@ -625,6 +625,17 @@ self.onmessage = async ({ data }) => {
       postMessage({ type: 'ready' });
       return;
     }
+    // Cancelling a preview posts these before `init` can finish. Neither needs
+    // the core, and rejecting them left the preview holding a loading error it
+    // never cleared, so the next start did nothing.
+    if (data.type === 'cancel-startup') {
+      if (!loaded) {
+        bootController?.abort();
+        bootRevision++;
+      }
+      return;
+    }
+    if (data.type === 'pause' && !api) return;
     if (!api) throw new Error('QEMU core is still loading.');
     switch (data.type) {
       case 'presentation':
@@ -633,12 +644,6 @@ self.onmessage = async ({ data }) => {
       case 'pacing':
         realtime = !!data.realtime;
         paceStart = undefined;
-        break;
-      case 'cancel-startup':
-        if (!loaded) {
-          bootController?.abort();
-          bootRevision++;
-        }
         break;
       case 'firmware':
         demoOwned.clear();

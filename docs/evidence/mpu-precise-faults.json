@@ -80,7 +80,14 @@
       "rustWorkspaceTests": 162,
       "focusedCpuSet": 61,
       "clippyAndRustfmt": "pass",
-      "javascriptWasmTests": "416 pass, 0 fail, 11 skipped"
+      "javascriptWasmTests": "417 pass, 0 fail, 11 skipped",
+      "browserGates": {
+        "engine": "Chromium 141.0.7390.37, built static client, local HTTP server",
+        "preview": "pass: 9368 ms first boot and install, 9473 ms cached, 10.017 virtual seconds in 10 s, no main-thread long task",
+        "demo": "pass on qemu_emery, qemu_flint and qemu_gabbro, including the native-QEMU notification frame comparison",
+        "notRun": "Firefox and WebKit engine builds are absent here; the sensor workflow gate needs SDK 4.33.1 and a native-QEMU reference frame, and neither host is reachable from this environment",
+        "preexistingDefectFound": "cancel-startup and pause posted before init completed were rejected, latching a preview error the UI never cleared; reproduced on the base commit in 3 of 6 scripted attempts and fixed in src/app/qemu.worker.ts"
+      }
     }
   },
   "firmwareBoot": {

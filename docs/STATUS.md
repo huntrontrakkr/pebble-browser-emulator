@@ -81,13 +81,25 @@ SP inside the guard, wrote the registers above it, and re-entered MemManage from
 mode after the handler's first instruction. Thirteen synthetic vectors on all three profiles
 cover these paths; twelve failed before the change. Unchanged 4.37.0 firmware boots
 byte-identically for 20 virtual seconds on each profile. The vectors follow the architecture
-pseudocode and QEMU's v7m helpers. No native-QEMU captures exist for them yet, and the census
-and browser gates were not rerun. MPU enforcement still costs 26 to 38% of native boot
-throughput ([CPU support](CPU_SUPPORT.md)).
+pseudocode and QEMU's v7m helpers. No native-QEMU captures exist for them yet. MPU
+enforcement still costs 26 to 38% of native boot throughput ([CPU support](CPU_SUPPORT.md)).
 Validation: 162 Rust workspace tests, Clippy and rustfmt pass; the vendored core's 3,643
 unit tests pass with its 21 pre-existing failures unchanged. On integration the Wasm build
-and 416 JavaScript/Wasm ABI tests also pass (eleven optional fixture skips); the browser
-workflow gate and the compatibility census were not rerun.
+and 417 JavaScript/Wasm ABI tests also pass (eleven optional fixture skips). The preview and
+demo browser gates pass in Chromium with this core: bundled firmware and Clock install in
+9.4 s, ten virtual seconds track ten real seconds with no main-thread long task, and all
+three profiles match their native-QEMU notification frames. Firefox and WebKit engines, the
+sensor workflow gate and the compatibility census were not rerun; the first needs engine
+builds and the second needs SDK 4.33.1 and a native-QEMU reference frame, neither reachable
+from this environment.
+
+Preview cancellation no longer latches a loading error. `cancel-startup` and `pause` can
+reach the emulator Worker while `init` is still fetching and compiling the core; the Worker
+rejected them, and the preview kept that error, so the next start did nothing and the watch
+stayed blank until a reload. Both commands are now handled without the core. The defect
+predates the MPU work and reproduced in about half of scripted cancel-then-restart attempts
+on the previous commit; the fix passed eight consecutive attempts, and a regression test
+drives the race directly through a blocked `init` fetch.
 
 
 ## Hardware fidelity work
