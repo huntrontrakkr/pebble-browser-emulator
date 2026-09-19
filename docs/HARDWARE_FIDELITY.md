@@ -295,12 +295,24 @@ matches apart from `wasmSha256` is the same firmware under a different build of 
 Both revisions reproduce their recorded instruction counts and boundary exactly under the
 rebuilt core, including the Armv8-M rejection and MPU cache changes.
 
-The bounded sequence ends at the first USART1 register read — `0x50084000`, reported as
-`UnmodeledMmio` — after 585,221 instructions on Obelix PVT (pc `0x12114ec8`) and 566,234 on
-Getafix DVT2 (pc `0x12100a48`). At that point the firmware has enabled both global-timer
+USART1 is now modeled: the register layout follows `USART_TypeDef` in the pinned SiFli SDK
+(`drivers/cmsis/Include/usart.h`) and the base address `0x50084000` comes from
+`drivers/cmsis/sf32lb52x/register.h`. Firmware configures it and routes its pins through
+HPSYS_CFG `USART1_PINR`: on both revisions the transmitter is enabled once, BRR is 48, and
+TXD is routed to pad PA19. Transmission is modeled as instantaneous — a byte written to TDR
+is captured and the transmitter always reports ready — so there is no baud or bit timing
+here. No receive path is modeled: RDR, DRDR and DTDR report `UnmodeledMmio` rather than
+inventing a byte, and no console output has been emitted by the boundary below.
+
+The bounded sequence now ends at the read-modify-write of the PA19 pad register,
+`0x50003080`, reported as `UnmodeledMmio` — after 585,444 instructions on Obelix PVT and
+566,457 on Getafix DVT2, 223 further instructions on each than before USART1 was modeled.
+That the firmware routes TXD to PA19 and then reads PA19's pad register is an internal
+consistency check, not an independent one. Advancing past it needs the pad reset values from
+UM5201: this model knows only PA21's, so a read of any other pad stops rather than answering
+with a value it cannot source. At that point the firmware has also enabled both global-timer
 domains and issued one synchronization against a 32 kHz source, so the always-on timer is
-driven by real firmware and not only by the synthetic vectors above. Modelling USART1 is the
-next boundary.
+driven by real firmware and not only by the synthetic vectors above.
 
 The runner audits ELF/raw identity, caps each phase at 10 million instructions and
 compares every initializer/BSS byte plus the `main` MPU/cache configuration derived

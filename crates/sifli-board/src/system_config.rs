@@ -8,6 +8,7 @@ pub struct SystemConfig {
     security: u32,
     ulpmcr: u32,
     cau2_cr: u32,
+    usart1_pinr: u32,
 }
 
 impl Default for SystemConfig {
@@ -17,6 +18,7 @@ impl Default for SystemConfig {
             security: 1,
             ulpmcr: 0x0013_0213,
             cau2_cr: 0,
+            usart1_pinr: 0,
         }
     }
 }
@@ -25,7 +27,7 @@ impl SystemConfig {
     pub fn owns(address: u32) -> bool {
         matches!(
             address,
-            0x5000_b00c | 0x5000_b010 | 0x5000_b01c | 0x5000_b094
+            0x5000_b00c | 0x5000_b010 | 0x5000_b01c | 0x5000_b058 | 0x5000_b094
         )
     }
 
@@ -33,11 +35,17 @@ impl SystemConfig {
         self.syscr & 1 != 0
     }
 
+    /// USART1 TXD/RXD/RTS/CTS pad selections, as written to USART1_PINR.
+    pub fn usart1_pins(&self) -> [u32; 4] {
+        [0, 8, 16, 24].map(|shift| (self.usart1_pinr >> shift) & 0x3f)
+    }
+
     pub fn read(&self, address: u32) -> Result<u32, FaultKind> {
         match address {
             0x5000_b010 => Ok(self.syscr),
             0x5000_b00c => Ok(self.security),
             0x5000_b01c => Ok(self.ulpmcr),
+            0x5000_b058 => Ok(self.usart1_pinr),
             0x5000_b094 => Ok(self.cau2_cr),
             _ => Err(FaultKind::UnmodeledMmio),
         }
@@ -54,6 +62,9 @@ impl SystemConfig {
             0x5000_b01c if value & !0x4013_1ff3 == 0 => self.ulpmcr = value,
             // DLL startup powers the high-performance bandgap. Analog trim
             // controls remain unsupported.
+            // USART1_PINR routes TXD/RXD/RTS/CTS to pads. Each field is six
+            // bits; this records the selection without modelling the pads.
+            0x5000_b058 if value & !0x3f3f_3f3f == 0 => self.usart1_pinr = value,
             0x5000_b094 if value & !3 == 0 => self.cau2_cr = value,
             _ => return Err(FaultKind::UnmodeledMmio),
         }

@@ -93,6 +93,15 @@ sensor workflow gate and the compatibility census were not rerun; the first need
 builds and the second needs SDK 4.33.1 and a native-QEMU reference frame, neither reachable
 from this environment.
 
+Physical SiFli startup now configures USART1
+([Obelix](evidence/obelix-reset-execution.json), [Getafix](evidence/getafix-reset-execution.json)).
+The register subset follows the pinned SiFli SDK; firmware enables the transmitter, sets BRR
+to 48 and routes TXD to pad PA19 on both revisions. Transmission is modeled as instantaneous
+and no receive path exists, so RDR reports rather than inventing a byte. The bounded sequence
+reaches the PA19 pad read at `0x50003080`, 223 instructions further than before on each
+revision; going past it needs pad reset values from UM5201 that this model has only for PA21.
+This is bounded early-init execution, not a working physical boot.
+
 The Flint profile now rejects Armv8-M and FPv5 encodings
 ([evidence](evidence/flint-armv7m-rejections.json)). Flint identifies as a Cortex-M4, an
 Armv7E-M part with no Security Extension and FPv4-SP, but ran on the shared Armv8-M engine.

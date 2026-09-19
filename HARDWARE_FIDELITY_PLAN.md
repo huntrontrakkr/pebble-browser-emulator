@@ -178,8 +178,10 @@ has an integrated regression: guest instructions enable both domains, synchroniz
 LPSYS and observe counters advance from executed cycles, and an undocumented counter command
 faults rather than being accepted. Real firmware drives the timer too: in the deepest run
 both domains are enabled with one synchronization, counting a 32 kHz source. The bounded
-sequence stops at the first USART1 read, `0x50084000`, so modelling USART1 is the next
-boundary.
+sequence now configures USART1 — register layout from the pinned SDK, transmitter enabled,
+BRR 48, TXD routed to pad PA19 — and stops at the read-modify-write of that pad,
+`0x50003080`. Transmission is instantaneous and no receive path is modeled. Advancing needs
+the pad reset values from UM5201, which this model has only for PA21.
 Array/OTP program/erase and full MPI XIP bus behavior are not implemented.
 Remaining oscillator/power/clock sequencing, LCPU/ROM, physical calibration,
 device controllers, full boot, display, installation and phone exchange still

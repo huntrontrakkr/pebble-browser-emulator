@@ -253,8 +253,13 @@ try {
   });
   const boardConfigComplete = state;
   until();
-  assert.equal(state.stop?.address, 0x50084000); // USART1 begins application peripheral setup
+  // USART1 is configured and its pins routed; the next unmodeled access is the
+  // read-modify-write of the PA19 pad, whose reset value needs UM5201.
+  assert.equal(state.stop?.address, 0x50003080);
   assert.equal(state.stop?.kind, 'UnmodeledMmio');
+  assert.equal(state.stop?.operation, 'Read');
+  assert.equal(state.usart1.transmitterEnabled, true);
+  assert.equal(state.usart1.configurations, 1, 'USART1 configuration count');
   assert.deepEqual(state.globalTimer.enabled, [true, true]);
   assert.equal(state.globalTimer.synchronizations, 1);
   assert.equal(state.pmucClock.rc32Ready, true);
@@ -276,8 +281,10 @@ try {
     nextBoundary: state,
     physicalCalibrationVerified: false,
   };
-  report.outcome = 'physical-early-init-reached-usart1';
+  report.outcome = 'physical-early-init-configured-usart1';
   report.limits = [
+    'USART1 transmission is instantaneous and no receive path is modeled; no baud or bit timing',
+    'Pad reset values are known only for PA21, so a read of any other pad stops the sequence',
     'No verified bootloader handoff state; LCPU controls assume an active domain awaiting reset',
     'No factory calibration supplied; synthetic bank transfer is not hardware calibration',
     'No physical reference or calibrated timing',

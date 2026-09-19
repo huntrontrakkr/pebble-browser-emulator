@@ -22,6 +22,7 @@ pub mod sip_pinmux;
 pub mod startup_io;
 pub mod system;
 pub mod system_config;
+pub mod usart;
 mod wasm;
 pub mod watchdog;
 

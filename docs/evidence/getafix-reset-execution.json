@@ -2,14 +2,14 @@
   "format": "pebble-sifli-reset-execution",
   "version": 6,
   "revision": "getafix_dvt2",
-  "outcome": "physical-early-init-reached-usart1",
+  "outcome": "physical-early-init-configured-usart1",
   "bootComplete": false,
   "referenceTarget": "ELF-initializers-and-reset-binary",
   "entryState": "assumed-secure-reset-probe-v2",
   "identity": {
     "elfSha256": "e4c4d411f3c408309f99f8b6e5f8231366dee3685c1f3f7d315c9a48721e1fc4",
     "imageSha256": "49de4261874c5ac93caabf2e1a8be81b3e46298f8e17e256b89653775d1f9245",
-    "wasmSha256": "37f4b0a1a556eba6c0ab9c206c00eb4ac0c68ac2dfb245add7742374359ed018"
+    "wasmSha256": "6ba4ca30b9049b642621f701ef94276c1cf47674add202cd8bf56e2137b4fe4e"
   },
   "startup": {
     "bootComplete": false,
@@ -178,6 +178,20 @@
       ],
       "shcsr": 0,
       "vtor": 302125056
+    },
+    "usart1": {
+      "baudDivisor": 0,
+      "bytesTransmitted": 0,
+      "configurations": 0,
+      "pins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "timingVerified": false,
+      "transmitted": "",
+      "transmitterEnabled": false
     },
     "wakeupSources": {
       "enabledMask": 0,
@@ -380,6 +394,20 @@
       "shcsr": 65536,
       "vtor": 536987648
     },
+    "usart1": {
+      "baudDivisor": 0,
+      "bytesTransmitted": 0,
+      "configurations": 0,
+      "pins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "timingVerified": false,
+      "transmitted": "",
+      "transmitterEnabled": false
+    },
     "wakeupSources": {
       "enabledMask": 0,
       "eventsInjected": 0
@@ -558,6 +586,20 @@
       ],
       "shcsr": 65536,
       "vtor": 536987648
+    },
+    "usart1": {
+      "baudDivisor": 0,
+      "bytesTransmitted": 0,
+      "configurations": 0,
+      "pins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "timingVerified": false,
+      "transmitted": "",
+      "transmitterEnabled": false
     },
     "wakeupSources": {
       "enabledMask": 0,
@@ -744,6 +786,20 @@
       ],
       "shcsr": 65536,
       "vtor": 536987648
+    },
+    "usart1": {
+      "baudDivisor": 0,
+      "bytesTransmitted": 0,
+      "configurations": 0,
+      "pins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "timingVerified": false,
+      "transmitted": "",
+      "transmitterEnabled": false
     },
     "wakeupSources": {
       "enabledMask": 0,
@@ -936,6 +992,20 @@
         "shcsr": 65536,
         "vtor": 536987648
       },
+      "usart1": {
+        "baudDivisor": 0,
+        "bytesTransmitted": 0,
+        "configurations": 0,
+        "pins": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "timingVerified": false,
+        "transmitted": "",
+        "transmitterEnabled": false
+      },
       "wakeupSources": {
         "enabledMask": 0,
         "eventsInjected": 0
@@ -1125,6 +1195,20 @@
         ],
         "shcsr": 65536,
         "vtor": 536987648
+      },
+      "usart1": {
+        "baudDivisor": 0,
+        "bytesTransmitted": 0,
+        "configurations": 0,
+        "pins": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "timingVerified": false,
+        "transmitted": "",
+        "transmitterEnabled": false
       },
       "wakeupSources": {
         "enabledMask": 0,
@@ -1316,6 +1400,20 @@
         ],
         "shcsr": 65536,
         "vtor": 536987648
+      },
+      "usart1": {
+        "baudDivisor": 0,
+        "bytesTransmitted": 0,
+        "configurations": 0,
+        "pins": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "timingVerified": false,
+        "transmitted": "",
+        "transmitterEnabled": false
       },
       "wakeupSources": {
         "enabledMask": 0,
@@ -1520,6 +1618,20 @@
         "shcsr": 65536,
         "vtor": 536987648
       },
+      "usart1": {
+        "baudDivisor": 0,
+        "bytesTransmitted": 0,
+        "configurations": 0,
+        "pins": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "timingVerified": false,
+        "transmitted": "",
+        "transmitterEnabled": false
+      },
       "wakeupSources": {
         "enabledMask": 0,
         "eventsInjected": 0
@@ -1545,10 +1657,10 @@
         "vret": 2101253
       },
       "clock": {
-        "estimatedCoreCycles": 842837,
+        "estimatedCoreCycles": 843199,
         "hxtReady": true,
         "hxtStartupTicks": 48000,
-        "referenceTicks48MHz": 842837,
+        "referenceTicks48MHz": 843199,
         "timingVerified": false
       },
       "dll": {
@@ -1565,8 +1677,8 @@
       },
       "globalTimer": {
         "counters": [
-          145,
-          145
+          146,
+          146
         ],
         "enabled": [
           true,
@@ -1582,7 +1694,7 @@
         "measurementsCompleted": 1,
         "timingVerified": false
       },
-      "instructionsCompleted": 566234,
+      "instructionsCompleted": 566457,
       "lcpuReset": {
         "assertedMask": 0,
         "assertions": 1,
@@ -1614,34 +1726,34 @@
       "psplim": 0,
       "registerState": "last-completed-instruction",
       "registers": [
-        536890544,
+        4294967291,
+        0,
+        1,
+        536885956,
+        33,
+        0,
+        1073741856,
+        1,
+        1342189568,
+        4,
+        0,
+        0,
         8,
-        0,
-        36,
-        536890544,
-        1342717952,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        614400,
-        537062408,
-        303041089,
-        303041096
+        537062392,
+        536883981,
+        536884554
       ],
       "revision": "GetafixDvt2",
       "sipPins": {
         "analogTransitions": 13,
         "electricalBehaviorVerified": false
       },
-      "stepsAttempted": 566235,
+      "stepsAttempted": 566458,
       "stop": {
-        "address": 1342717952,
+        "address": 1342189696,
         "kind": "UnmodeledMmio",
         "operation": "Read",
-        "pc": 303041096,
+        "pc": 536884554,
         "type": "access",
         "width": 4
       },
@@ -1706,6 +1818,20 @@
         "shcsr": 458752,
         "vtor": 302125056
       },
+      "usart1": {
+        "baudDivisor": 48,
+        "bytesTransmitted": 0,
+        "configurations": 1,
+        "pins": [
+          19,
+          0,
+          0,
+          0
+        ],
+        "timingVerified": false,
+        "transmitted": "",
+        "transmitterEnabled": true
+      },
       "wakeupSources": {
         "enabledMask": 198,
         "eventsInjected": 0
@@ -1720,6 +1846,8 @@
     "physicalCalibrationVerified": false
   },
   "limits": [
+    "USART1 transmission is instantaneous and no receive path is modeled; no baud or bit timing",
+    "Pad reset values are known only for PA21, so a read of any other pad stops the sequence",
     "No verified bootloader handoff state; LCPU controls assume an active domain awaiting reset",
     "No factory calibration supplied; synthetic bank transfer is not hardware calibration",
     "No physical reference or calibrated timing",

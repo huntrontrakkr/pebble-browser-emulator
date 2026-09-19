@@ -19,6 +19,7 @@ pub struct StartupIo {
     pub pmuc: crate::pmuc::PmucClock,
     pub sip_pinmux: crate::sip_pinmux::SipPinmux,
     pub watchdog: crate::watchdog::Watchdog,
+    pub usart1: crate::usart::Usart1,
     pub system_config: crate::system_config::SystemConfig,
     pub calibration: crate::calibration::Calibration,
     issr: u32,
@@ -44,6 +45,7 @@ impl Default for StartupIo {
             pmuc: crate::pmuc::PmucClock::default(),
             sip_pinmux: crate::sip_pinmux::SipPinmux::default(),
             watchdog: crate::watchdog::Watchdog::default(),
+            usart1: crate::usart::Usart1::default(),
             system_config: crate::system_config::SystemConfig::default(),
             calibration: crate::calibration::Calibration::default(),
             issr: 0x30,
@@ -79,6 +81,7 @@ impl StartupIo {
         crate::aon_timer::AonGlobalTimer::owns(a)
             || crate::pmuc::PmucClock::owns(a)
             || crate::watchdog::Watchdog::owns(a)
+            || crate::usart::Usart1::owns(a)
             || crate::system_config::SystemConfig::owns(a)
             || crate::lpsys_clock::LpsysClock::owns(a)
             || crate::hrc_calibration::HrcCalibration::owns(a)
@@ -121,6 +124,9 @@ impl StartupIo {
         }
         if crate::pmuc::PmucClock::owns(a) {
             return self.pmuc.read(a);
+        }
+        if crate::usart::Usart1::owns(a) {
+            return self.usart1.read(a);
         }
         if crate::watchdog::Watchdog::owns(a) {
             return self.watchdog.read(a);
@@ -184,6 +190,9 @@ impl StartupIo {
         }
         if crate::pmuc::PmucClock::owns(a) {
             return self.pmuc.write(a, value);
+        }
+        if crate::usart::Usart1::owns(a) {
+            return self.usart1.write(a, value);
         }
         if crate::watchdog::Watchdog::owns(a) {
             return self.watchdog.write(a, value);
