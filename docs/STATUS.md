@@ -56,6 +56,18 @@ settings-page, physical-hardware, or full-service compatibility is claimed.
 Validation: 416 JavaScript/Wasm tests pass (nine optional skips), Rust workspace tests,
 TypeScript, static PWA build, and live Chromium legacy-store browsing/installation pass.
 
+The [generic emulator correction](GENERIC_EMULATOR_CORRECTION.md) fixes a WebAssembly
+signed-`i32` sentinel comparison that let terminal runs continue, and lets CPU-accepted
+BusFaults reach PebbleOS rather than stopping the whole Worker. An identical targeted
+33-case batch fell from 413.3s to 74.7s (5.53×) with no host timeout and unchanged title
+completion totals. Eleven of twelve resulting app-fault UUID/program-counter pairs match
+unchanged packages under pinned native Pebble QEMU; Sports on Gabbro remains an explicit
+host-scheduling/reference difference. Ventoo on all three profiles and Arena3D on Flint
+also reproduce their install timeout natively. This corrects a stall and guest exception
+delivery; it is not cycle-accuracy or universal-compatibility evidence.
+Validation: 417 JavaScript/Wasm tests pass (nine optional fixture skips), the complete
+Rust workspace passes, and the production PWA build passes.
+
 
 ## Hardware fidelity work
 

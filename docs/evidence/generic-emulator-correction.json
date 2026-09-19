@@ -1,0 +1,58 @@
+{
+  "format": "generic-emulator-correction",
+  "version": 1,
+  "measuredAt": "2026-09-18",
+  "scope": "Eleven selected store titles on qemu_flint, qemu_emery and qemu_gabbro with a fixed 20-second virtual input scenario",
+  "baseline": {
+    "wasmSha256": "5d572e09431e1447b43e64c52d240af3dcdd18e9f6811651d1a3ea193981148a",
+    "cases": 33,
+    "workers": 11,
+    "hostMs": 413341.793741,
+    "counts": {
+      "scenario-completed": 11,
+      "firmware-error-observed": 12,
+      "no-compatible-binary": 1,
+      "execution-stopped": 3,
+      "companion-error-observed": 5,
+      "host-timeout": 1
+    }
+  },
+  "corrected": {
+    "wasmSha256": "c4e7cee5ac7001d60546c58973257f4d472593d33052db48ec55ab78685e26fc",
+    "cases": 33,
+    "workers": 11,
+    "hostMs": 74715.055148,
+    "speedup": 5.532242369656666,
+    "counts": {
+      "scenario-completed": 11,
+      "firmware-error-observed": 12,
+      "no-compatible-binary": 1,
+      "execution-stopped": 4,
+      "companion-error-observed": 5
+    }
+  },
+  "nativeReference": {
+    "name": "native Pebble QEMU",
+    "version": "10.1.5-pebble17",
+    "sha256": "977a8e967836b5c10ddfcd2fceb2ebe26d44f5b284ce208c647da09265870c6c",
+    "firmwareVersion": "4.37.0",
+    "faultCasesCompared": 12,
+    "matchingAppUuidAndPc": 11,
+    "unmatched": [
+      "52e04d79d8561de30700002e-qemu_gabbro"
+    ],
+    "matchingInstallTimeouts": [
+      "529289cee07df1fa76000009-qemu_flint",
+      "529289cee07df1fa76000009-qemu_emery",
+      "529289cee07df1fa76000009-qemu_gabbro",
+      "557ed8733c562e76c5000021-qemu_flint"
+    ],
+    "inputScheduling": "host waits; not deterministic virtual-time replay"
+  },
+  "limits": [
+    "Targeted compatibility and throughput evidence, not the full 600-case corpus",
+    "Host timing is not a hardware-cycle measurement",
+    "Native input scheduling is not deterministic instruction-time replay",
+    "No physical-watch timing or sensor calibration is established"
+  ]
+}

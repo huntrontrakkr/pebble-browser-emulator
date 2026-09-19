@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { isWasmRunFailure } from '../src/app/wasm-abi.ts';
 const wasmPath =
   process.env.PEBBLE_RESTART_WASM ?? new URL('../public/wasm/qemu-emery.wasm', import.meta.url);
 test('restart export retains a flash write performed by a synthetic Thumb program', async () => {
@@ -24,7 +25,7 @@ test('restart export retains a flash write performed by a synthetic Thumb progra
   new Uint8Array(e.memory.buffer, ptr, code.length).set(code);
   new Uint8Array(e.memory.buffer, ptr + code.length, flash.length).set(flash);
   assert.equal(e.spike_boot(code.length, flash.length), 1);
-  assert.notEqual(e.spike_run(6), 0xffffffff);
+  assert.equal(isWasmRunFailure(e.spike_run(6)), false);
   assert.equal(e.spike_register(2), 42);
   assert.equal(e.spike_register(3) >>> 0, 0xa5a5a5a5);
   const before = e.spike_ticks();
@@ -33,7 +34,7 @@ test('restart export retains a flash write performed by a synthetic Thumb progra
   assert.equal(e.spike_ticks(), before);
   assert.equal(e.spike_register(2), 0);
   assert.equal(e.spike_pc(), 0x100);
-  assert.notEqual(e.spike_run(2), 0xffffffff);
+  assert.equal(isWasmRunFailure(e.spike_run(2)), false);
   assert.equal(
     e.spike_register(3) >>> 0,
     0x1234abcd,

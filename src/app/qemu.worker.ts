@@ -21,6 +21,7 @@ import { wristShake } from './watch-gestures.ts';
 import { mergeDueSignals } from './scheduled-inputs.ts';
 import { demoRecords, type DemoRecord } from './demo-timeline.ts';
 import { bytesHash } from './resource-cache.ts';
+import { isWasmRunFailure, wasmU32 } from './wasm-abi.ts';
 import {
   startupIdentity,
   loadStartupCheckpoint,
@@ -202,8 +203,8 @@ async function tickOnce(count: number) {
       Math.min(remaining, uartWriter.pending ? 1000 : remaining),
       deadline,
     );
-    if (done === 0xffffffff)
-      throw new Error(`QEMU bus fault at 0x${api.spike_fault().toString(16)}`);
+    if (isWasmRunFailure(done))
+      throw new Error(`QEMU bus fault at 0x${wasmU32(api.spike_fault()).toString(16)}`);
     steps += done;
     remaining -= done;
     serial();
@@ -387,9 +388,9 @@ function serial() {
 }
 function state(force = true) {
   if (!loaded) return;
-  const address = api.spike_fault(),
+  const address = wasmU32(api.spike_fault()),
     fault = api.spike_faulted()
-      ? `Bus ${api.spike_fault_write() ? 'write' : 'read'} at 0x${address.toString(16)}; PC 0x${api.spike_fault_pc().toString(16)}`
+      ? `Bus ${api.spike_fault_write() ? 'write' : 'read'} at 0x${address.toString(16)}; PC 0x${wasmU32(api.spike_fault_pc()).toString(16)}`
       : '';
   if (fault) stop();
   const frame = api.spike_frame_counter();
@@ -400,8 +401,8 @@ function state(force = true) {
       : undefined;
   lastFrame = frame;
   const value: MachineStateUpdate = {
-    registers: Array.from({ length: 16 }, (_, i) => api.spike_register(i)),
-    flags: api.spike_xpsr(),
+    registers: Array.from({ length: 16 }, (_, i) => wasmU32(api.spike_register(i))),
+    flags: wasmU32(api.spike_xpsr()),
     instructions: steps,
     halted: !!fault,
     running,

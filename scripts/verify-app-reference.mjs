@@ -6,9 +6,18 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve, delimiter } from 'node:path';
 import { tmpdir } from 'node:os';
-import { PebbleTransport } from '../src/app/pebble-transport.ts';
+import { getQuickJS } from 'quickjs-emscripten';
+import { VirtualPhone } from '../src/app/virtual-phone.ts';
+import {
+  PebbleTransport,
+  encodeQemuPacket,
+  encodeAppMessage,
+  decodeAppMessage,
+} from '../src/app/pebble-transport.ts';
 import { appPackage } from '../src/app/archives.ts';
+import { signalControl } from '../src/app/signals.ts';
 import { FIRMWARE_PROFILES, APP_PLATFORMS } from '../src/app/watch-profiles.ts';
+import { compatibilitySignals } from './compatibility/scenario.mjs';
 const profile = process.env.PEBBLE_PROFILE ?? 'qemu_emery',
   version = process.env.PEBBLE_FIRMWARE_VERSION ?? '4.37.0';
 if (!FIRMWARE_PROFILES[profile]) throw new Error('Unknown generic profile.');
@@ -88,7 +97,9 @@ const processHandle = spawn(
 let processError = '',
   socket,
   qmp,
-  transport;
+  transport,
+  phone,
+  install;
 processHandle.stderr.on('data', (b) => (processError = (processError + b).slice(-4000)));
 processHandle.on('error', (e) => (processError = String(e)));
 const waitConsole = async (text) => {
@@ -147,7 +158,52 @@ try {
     });
   await command('qmp_capabilities');
   socket = await connect(scratch + '/uart.sock');
-  const controls = [];
+  const controls = [],
+    phoneRecords = [],
+    incoming = [],
+    outgoing = [];
+  const phoneEvents = () => {
+    if (!phone) return;
+    for (const event of phone.drainEvents()) {
+      if (phoneRecords.length < 2000) phoneRecords.push(event);
+      if (event.type === 'outbound') outgoing.push(event);
+    }
+  };
+  let pumping = false;
+  const pumpPhone = async () => {
+    if (pumping) return;
+    pumping = true;
+    try {
+      for (let budget = 0; budget < 64 && (incoming.length || outgoing.length); budget++) {
+        if (incoming.length) {
+          const message = incoming.shift();
+          if (message.kind === 'push') {
+            let accepted = false;
+            if (phone && message.uuid === install?.uuid) {
+              try {
+                phone.injectAppMessage(message.payload);
+                accepted = true;
+              } catch (error) {
+                if (phoneRecords.length < 2000)
+                  phoneRecords.push({ type: 'delivery-error', message: String(error) });
+              }
+            }
+            await transport.send(0x30, Uint8Array.of(accepted ? 255 : 127, message.transactionId));
+          } else phone?.acknowledgeAppMessage(message.transactionId, message.kind === 'ack');
+          phoneEvents();
+        }
+        if (outgoing.length) {
+          const event = outgoing.shift();
+          await transport.send(
+            0x30,
+            encodeAppMessage(event.appId, event.transactionId, event.payload),
+          );
+        }
+      }
+    } finally {
+      pumping = false;
+    }
+  };
   transport = new PebbleTransport(
     {
       writeUart: (bytes) =>
@@ -156,6 +212,16 @@ try {
       nowMs: () => performance.now(),
     },
     {
+      onPacket: (direction, packet) => {
+        if (direction === 'watch' && packet.endpoint === 0x30) {
+          try {
+            incoming.push(decodeAppMessage(packet.payload));
+          } catch (error) {
+            if (phoneRecords.length < 2000)
+              phoneRecords.push({ type: 'decode-error', message: String(error) });
+          }
+        }
+      },
       onControl: (channel, payload) => {
         if (controls.length < 1000) controls.push({ channel, bytes: [...payload] });
       },
@@ -163,10 +229,102 @@ try {
   );
   socket.on('data', (b) => transport.feedUart(b));
   const pbw = await fs.readFile(process.env.PEBBLE_APP_PBW);
+  const parts = appPackage(pbw, platform);
   await transport.setBluetooth(true);
-  await transport.install(appPackage(pbw, platform));
+  install = await transport.install(parts);
   console.log('Native app installed.');
-  await sleep(1000);
+  const phoneEpoch = 1789545600000;
+  let phoneBegan = performance.now();
+  if (parts.script && process.env.PEBBLE_REFERENCE_SCENARIO === 'compatibility') {
+    phone = new VirtualPhone(await getQuickJS(), {
+      appId: install.uuid,
+      nowMs: phoneEpoch,
+      randomSeed: 1,
+      messageKeys: parts.appinfo.appKeys ?? {},
+      appInfo: parts.appinfo,
+      watchInfo: {
+        platform,
+        model: FIRMWARE_PROFILES[profile].model,
+        language: 'en_US',
+        firmware: { major: 4, minor: 37, patch: 0, suffix: '' },
+      },
+      coordinates: { latitude: 40.7128, longitude: -74.006, accuracy: 10 },
+      network: { mode: 'disabled' },
+    });
+    phone.setConnected(true);
+    phone.start(parts.script);
+    phoneEvents();
+    await pumpPhone();
+  }
+  const advancePhone = async (milliseconds) => {
+    const deadline = performance.now() + milliseconds;
+    while (performance.now() < deadline) {
+      await sleep(Math.min(50, Math.max(0, deadline - performance.now())));
+      if (phone) {
+        phone.advanceTime(phoneEpoch + Math.floor(performance.now() - phoneBegan));
+        phoneEvents();
+        await pumpPhone();
+      }
+    }
+  };
+  const scenarioEvents = [];
+  if (process.env.PEBBLE_REFERENCE_SCENARIO === 'compatibility') {
+    const began = performance.now();
+    for (let second = 0; second < 20; second++) {
+      for (const signal of compatibilitySignals(second, platform, width, height)) {
+        scenarioEvents.push({ second, signal });
+        if (signal.kind === 'location') {
+          phone?.setLocation(signal);
+          phoneEvents();
+          await pumpPhone();
+        } else if (signal.kind === 'connection') {
+          phone?.setConnected(signal.connected);
+          phoneEvents();
+        }
+        if (signal.kind === 'buttons') {
+          if (signal.mask === 2)
+            await command('human-monitor-command', { 'command-line': 'sendkey up 1000' });
+          else if (signal.mask === 8)
+            await command('human-monitor-command', { 'command-line': 'sendkey down 1000' });
+        } else if (signal.kind === 'touch') {
+          await command('input-send-event', {
+            events: signal.down
+              ? [
+                  {
+                    type: 'abs',
+                    data: { axis: 'x', value: Math.ceil((signal.x * 32767) / width) },
+                  },
+                  {
+                    type: 'abs',
+                    data: { axis: 'y', value: Math.ceil((signal.y * 32767) / height) },
+                  },
+                  { type: 'btn', data: { button: 'left', down: true } },
+                ]
+              : [{ type: 'btn', data: { button: 'left', down: false } }],
+          });
+        } else {
+          const control = signalControl(signal);
+          if (control)
+            await new Promise((resolve, reject) =>
+              socket.write(encodeQemuPacket(control.channel, control.payload), (error) =>
+                error ? reject(error) : resolve(),
+              ),
+            );
+        }
+      }
+      if (phone && second === 14) {
+        phone.showConfiguration();
+        phoneEvents();
+      }
+      if (phone && second === 15) {
+        phone.closeConfiguration(null);
+        phoneEvents();
+      }
+      const remaining = began + (second + 1) * 1000 - performance.now();
+      if (remaining > 0) await advancePhone(remaining);
+    }
+  }
+  await advancePhone(1000);
   const frameBytes = platform === 'flint' ? 3360 : width * height;
   await command('human-monitor-command', {
     'command-line': `pmemsave 0x50000000 ${frameBytes} "${scratch}/initial.bin"`,
@@ -233,12 +391,15 @@ try {
     frameChangedAfterTouch: !initial.equals(after),
     switchedToClock: true,
     controls,
+    scenarioEvents,
+    phoneRecords,
   };
   await fs.writeFile(out + '/native.json', JSON.stringify(evidence, null, 2) + '\n');
   console.log(
     JSON.stringify({ profile, frameBytes: frame.length, frameSha256: evidence.frameSha256 }),
   );
 } finally {
+  phone?.dispose();
   await fs.writeFile(
     out + '/console.bin',
     await fs.readFile(scratch + '/console.bin').catch(() => Buffer.alloc(0)),

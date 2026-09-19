@@ -16,6 +16,8 @@ import { FIRMWARE_PROFILES, APP_PLATFORMS } from '../../src/app/watch-profiles.t
 import { signalControl } from '../../src/app/signals.ts';
 import { signalRoute } from '../../src/app/board-registry.ts';
 import { sha, targetTicks } from './common.mjs';
+import { compatibilitySignals } from './scenario.mjs';
+import { isWasmRunFailure, wasmU32 } from '../../src/app/wasm-abi.ts';
 const job = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const out = resolve(job.out),
   profile = FIRMWARE_PROFILES[job.profile],
@@ -150,9 +152,9 @@ async function advance(deadline = api.spike_ticks() + 640000, trace = false) {
       api.spike_trace_configure(0, 0);
     }
   }
-  if (done === 0xffffffff)
+  if (isWasmRunFailure(done))
     throw Error(
-      `Bus fault at 0x${api.spike_fault().toString(16)}, PC 0x${api.spike_pc().toString(16)}`,
+      `Bus fault at 0x${wasmU32(api.spike_fault()).toString(16)}, PC 0x${wasmU32(api.spike_pc()).toString(16)}`,
     );
   steps += done;
   for (const port of [0, 1, 2]) {
@@ -356,65 +358,7 @@ try {
   phase = 'scenario';
   const beganTicks = api.spike_ticks();
   for (let second = 0; second < job.durationMs / 1000; second++) {
-    const events =
-      second === 0
-        ? [{ kind: 'battery', percent: 69, charging: false }]
-        : second === 2
-          ? [
-              { kind: 'acceleration', x: 1800, y: -450, z: 900 },
-              { kind: 'tap', axis: 0, direction: 1 },
-            ]
-          : second === 3
-            ? [
-                { kind: 'acceleration', x: 0, y: 0, z: -1000 },
-                { kind: 'compass', heading: 90, calibration: 2 },
-              ]
-            : second === 4
-              ? [
-                  { kind: 'heart-rate', bpm: 72, quality: 3 },
-                  ...Array.from({ length: 7 }, (_, metric) => ({
-                    kind: 'health',
-                    metric,
-                    value: [3200, 900, 1200, 130, 2100, 25200, 18000][metric],
-                  })),
-                ]
-              : second === 5
-                ? [{ kind: 'location', latitude: 51.5072, longitude: -0.1276, accuracy: 10 }]
-                : second === 6
-                  ? [{ kind: 'battery', percent: 15, charging: false }]
-                  : second === 7
-                    ? [{ kind: 'battery', percent: 85, charging: true }]
-                    : second === 8
-                      ? [{ kind: 'buttons', mask: 2 }]
-                      : second === 9
-                        ? [{ kind: 'buttons', mask: 0 }]
-                        : second === 10
-                          ? [{ kind: 'buttons', mask: 8 }]
-                          : second === 11
-                            ? [{ kind: 'buttons', mask: 0 }]
-                            : second === 12 && platform !== 'flint'
-                              ? [
-                                  {
-                                    kind: 'touch',
-                                    down: true,
-                                    x: Math.floor(width / 2),
-                                    y: Math.floor(height / 2),
-                                  },
-                                ]
-                              : second === 13 && platform !== 'flint'
-                                ? [
-                                    {
-                                      kind: 'touch',
-                                      down: false,
-                                      x: Math.floor(width / 2),
-                                      y: Math.floor(height / 2),
-                                    },
-                                  ]
-                                : second === 16
-                                  ? [{ kind: 'connection', connected: false }]
-                                  : second === 17
-                                    ? [{ kind: 'connection', connected: true }]
-                                    : [];
+    const events = compatibilitySignals(second, platform, width, height);
     for (const value of events) await signal(value);
     if (phone && second === 14) {
       event('configuration-request');

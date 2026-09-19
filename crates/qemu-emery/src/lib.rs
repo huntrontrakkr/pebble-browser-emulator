@@ -176,7 +176,11 @@ impl CoreBus for PebbleBus {
         self.atomics.bus_fault_addr(c as usize)
     }
     fn clear_bus_fault(&mut self, c: u8) {
-        self.atomics.clear_bus_fault(c as usize)
+        self.atomics.clear_bus_fault(c as usize);
+        // CortexM33::step has recorded BFAR/CFSR and entered the guest's
+        // BusFault or HardFault handler at this point. The adapter latch is
+        // only for accesses the CPU has not accepted as a synchronous fault.
+        self.failed = None;
     }
     fn set_burst_mode(&mut self, _: bool) {}
     fn add_extra_wait_states(&mut self, n: u32) {
@@ -929,6 +933,29 @@ pub extern "C" fn spike_faulted() -> u32 {
 #[cfg(test)]
 mod board_tests {
     use super::*;
+    #[test]
+    fn synchronous_bus_fault_is_delivered_to_the_guest() {
+        // LDR r0, [pc, #4]; LDR r1, [r0]; loop. The second load targets
+        // unmapped memory and escalates to the configured HardFault handler.
+        let mut code = image(&[0x4801, 0x6801, 0xe7fe, 0x0000, 0x0000, 0x6000]);
+        code[12..16].copy_from_slice(&0x121u32.to_le_bytes());
+        code.resize(0x120, 0);
+        for word in [0x3401u16, 0xe7fe] {
+            code.extend_from_slice(&word.to_le_bytes());
+        }
+        let (mut cpu, mut bus) = boot(code);
+        board_step(&mut cpu, &mut bus);
+        board_step(&mut cpu, &mut bus);
+        assert_eq!(bus.failed, None);
+        assert_eq!(cpu.regs.ipsr(), 3);
+        // The byte-wise adapter retains its established last-byte BFAR for a
+        // failed 32-bit transfer while its diagnostic tuple keeps the base.
+        assert_eq!(cpu.ppb.bfar, 0x6000_0003);
+        assert_eq!(cpu.ppb.cfsr & ((1 << 9) | (1 << 15)), (1 << 9) | (1 << 15));
+        board_step(&mut cpu, &mut bus);
+        assert_eq!(cpu.regs.r[4], 1);
+    }
+
     #[test]
     fn systick_exact_zero_pends() {
         let (mut c, _) = boot(image(&[0xbf00]));

@@ -7,6 +7,7 @@ import { setImmediate as yieldTask } from 'node:timers/promises';
 import { PebbleTransport } from '../src/app/pebble-transport.ts';
 import { appPackage } from '../src/app/archives.ts';
 import { FIRMWARE_PROFILES, APP_PLATFORMS } from '../src/app/watch-profiles.ts';
+import { isWasmRunFailure, wasmU32 } from '../src/app/wasm-abi.ts';
 import {
   canonicalJson,
   validateFidelityRun,
@@ -165,9 +166,9 @@ async function capture() {
     if (canceled || performance.now() - started > maximumMs)
       throw new Error(canceled ? 'Run canceled.' : 'Host execution deadline exceeded.');
     const done = api.spike_run_until(count, deadline);
-    if (done === 0xffffffff)
+    if (isWasmRunFailure(done))
       throw new Error(
-        `Bus fault at 0x${api.spike_fault().toString(16)}, PC 0x${api.spike_pc().toString(16)}`,
+        `Bus fault at 0x${wasmU32(api.spike_fault()).toString(16)}, PC 0x${wasmU32(api.spike_pc()).toString(16)}`,
       );
     steps += done;
     if (activeProbe) {

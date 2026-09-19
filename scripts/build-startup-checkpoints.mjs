@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { bundledFirmware } from '../src/app/preview-firmware.ts';
 import { FIRMWARE_PROFILES } from '../src/app/watch-profiles.ts';
 import { PebbleTransport, encodeQemuPacket } from '../src/app/pebble-transport.ts';
+import { isWasmRunFailure } from '../src/app/wasm-abi.ts';
 import {
   encodeStartupCheckpoint,
   startupIdentity,
@@ -76,7 +77,7 @@ function drain(api) {
 }
 function advance(api, count) {
   const done = api.spike_run_until(count, Number.MAX_SAFE_INTEGER);
-  assert.notEqual(done, 0xffffffff, 'Firmware bus fault');
+  assert.equal(isWasmRunFailure(done), false, 'Firmware bus fault');
   return done;
 }
 for (const profile of ['qemu_flint', 'qemu_emery', 'qemu_gabbro']) {

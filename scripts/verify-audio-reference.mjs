@@ -7,6 +7,7 @@ import { mkdtemp, open, readFile, rm, writeFile, mkdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
+import { isWasmRunFailure } from '../src/app/wasm-abi.ts';
 
 const out = resolve(process.env.PEBBLE_TRACE_DIR ?? 'tmp/audio-reference');
 await mkdir(out, { recursive: true });
@@ -87,7 +88,7 @@ async function browserCore(micro, flash) {
   new Uint8Array(api.memory.buffer, ptr, micro.length).set(micro);
   new Uint8Array(api.memory.buffer, ptr + micro.length, flash.length).set(flash);
   if (!api.spike_boot_profile(2, micro.length, flash.length)) throw new Error('Wasm boot rejected.');
-  if (api.spike_run_until(10000, 640000) === 0xffff_ffff)
+  if (isWasmRunFailure(api.spike_run_until(10000, 640000)))
     throw new Error('Wasm bus fault in audio reference program.');
   const length = api.spike_uart_tx_len(2);
   return new Uint8Array(api.memory.buffer, api.spike_uart_tx_ptr(2), length).slice();
