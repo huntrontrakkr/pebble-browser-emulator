@@ -82,6 +82,7 @@
         [watchLoaded]="isFirmware() && loaded() && !restartRequired()"
         [sessionBusy]="previewBusy()"
         [sessionStatus]="previewStatus()"
+        [installedRole]="activeAppRole()"
         (launch)="startPreview($event)"
         (source)="openPreviewSource($event)"
         (tools)="showTools($event)"
@@ -195,7 +196,7 @@
             ></canvas>
             @if (!loaded()) {
               <div class="empty-display">
-                {{ workbench() ? 'No firmware loaded' : 'Choose a watchface to start' }}
+                {{ workbench() ? 'No firmware loaded' : 'Choose something to run' }}
               </div>
             }
           </div>

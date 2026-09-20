@@ -45,14 +45,14 @@ interface SavedWatchface {
   imports: [FormsModule, StoreBrowser],
   template: `
     <div class="section-heading">
-      <h2>{{ title() ? 'Watchface' : 'Open watchface' }}</h2>
+      <h2>{{ title() ? loadedLabel() : 'Open' }}</h2>
     </div>
     <details
       class="preview-chooser"
       [open]="expanded()"
       (toggle)="expanded.set($any($event.target).open)"
     >
-      <summary [hidden]="!title()">Choose another watchface</summary>
+      <summary [hidden]="!title()">Choose something else</summary>
       <label
         >Watch<select
           aria-label="Watch"
@@ -75,7 +75,7 @@ interface SavedWatchface {
         </button>
         <button (click)="example()" [disabled]="busy() || sessionBusy">Try example</button>
         <label class="file-button"
-          >Open watchface .pbw<input
+          >Open .pbw<input
             type="file"
             accept=".pbw"
             (change)="openPackage($event)"
@@ -94,7 +94,7 @@ interface SavedWatchface {
       }
       @if (recent(); as saved) {
         <button class="recent-watchface" (click)="openRecent()" [disabled]="busy() || sessionBusy">
-          <span>Open saved watchface</span><strong>{{ saved.name }}</strong>
+          <span>Open saved</span><strong>{{ saved.name }}</strong>
         </button>
       }
       <details class="repository-disclosure">
@@ -172,7 +172,7 @@ interface SavedWatchface {
             /></label>
           </li>
         </ol>
-        <p class="help">Choose both files together. The selected watchface starts automatically.</p>
+        <p class="help">Choose both files together. The selection starts automatically.</p>
         <button (click)="tools.emit('Firmware')">Use different firmware</button>
       </section>
     }
@@ -239,6 +239,10 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   setup = signal(false);
   status = signal('');
   failure = signal('');
+  /** What the watch is running, for labelling. Capability never varies. */
+  @Input() installedRole: 'watchface' | 'app' = 'app';
+  /** The word for what is loaded: its own kind once the watch reports one. */
+  loadedLabel = () => (this.installedRole === 'watchface' ? 'Watchface' : 'App');
   title = signal('');
   target = signal<PreviewTarget | null>(null);
   package = signal<PreviewPackage | null>(null);
@@ -367,7 +371,7 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
       target.kind === 'example'
         ? 'Clock'
         : target.kind === 'store'
-          ? 'Store watchface'
+          ? 'Store package'
           : `${target.repository.owner}/${target.repository.repository}`,
     );
     history.replaceState(null, '', previewLink(location.href, target));

@@ -77,6 +77,8 @@ export class App implements AfterViewInit, OnDestroy {
   previewBusy = signal(false);
   previewStatus = signal('');
   activeAppName = signal('Watch preview');
+  /** What the installed package is, for labelling only. */
+  activeAppRole = signal<'watchface' | 'app'>('app');
   previewSource = signal<SourceSnapshot | null>(null);
   private pendingPreview?: PreviewLaunch['package'];
   private firmwareToSave?: PreviewFirmware;
@@ -1071,6 +1073,10 @@ export class App implements AfterViewInit, OnDestroy {
       this.activeAppName.set(
         String(data.appinfo.shortName ?? data.appinfo.displayName ?? data.name),
       );
+      // A watchface is the idle screen; a watchapp is launched from the
+      // launcher. Both drive the whole watch, so this only decides what the
+      // interface calls the thing it just installed.
+      this.activeAppRole.set(data.appinfo?.watchapp?.watchface === true ? 'watchface' : 'app');
       this.installStatus.set(
         'Installed and launched: ' +
           data.uuid +
