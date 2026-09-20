@@ -1355,8 +1355,22 @@ export class App implements AfterViewInit, OnDestroy {
         this.phoneStatus.set(data.status);
         if (data.phoneGeneration !== undefined) this.phoneGeneration = data.phoneGeneration;
       }
-      if (data.type === 'network-result' || data.type === 'websocket-result')
+      if (data.type === 'network-result' || data.type === 'websocket-result') {
         this.recordPhoneNetwork(data);
+        // A blocked or failed request is the usual reason a phone script sits on
+        // a spinner forever. The Phone tab keeps the raw record; say plainly in
+        // the log that the request failed, and for which host.
+        if ('error' in data && typeof data['error'] === 'string') {
+          const id = (data as { requestId?: number }).requestId;
+          const target = id === undefined ? undefined : this.phoneRequestHosts.get(id);
+          if (id !== undefined) this.phoneRequestHosts.delete(id);
+          this.log(
+            'PHONE',
+            `Network request${target ? ' to ' + target : ''} failed (${data['error']}): ` +
+              String((data as { message?: unknown }).message ?? 'no detail'),
+          );
+        }
+      }
       if (data.type === 'error') {
         this.clearConfiguration();
         this.phoneAccepting = false;
@@ -1399,6 +1413,7 @@ export class App implements AfterViewInit, OnDestroy {
           event.type === 'websocket-command'
         )
           this.recordPhoneNetwork(event);
+        if (event.type === 'network-request') this.rememberPhoneRequest(event.request);
         this.log(
           'PHONE',
           event.type === 'configuration'
@@ -1524,6 +1539,20 @@ export class App implements AfterViewInit, OnDestroy {
     this.configuration.set(null);
     this.phoneAccepting = false;
     this.phoneWorker?.postMessage({ type: 'stop' });
+  }
+  /** Request hosts, kept only long enough to name the target of a failure. */
+  private phoneRequestHosts = new Map<number, string>();
+  private rememberPhoneRequest(request: { id?: number; url?: string }) {
+    if (typeof request?.id !== 'number' || typeof request.url !== 'string') return;
+    let host: string;
+    try {
+      host = new URL(request.url).host;
+    } catch {
+      return;
+    }
+    if (this.phoneRequestHosts.size >= 64)
+      this.phoneRequestHosts.delete(this.phoneRequestHosts.keys().next().value!);
+    this.phoneRequestHosts.set(request.id, host);
   }
   private recordPhoneNetwork(value: unknown) {
     const text = JSON.stringify(value);
