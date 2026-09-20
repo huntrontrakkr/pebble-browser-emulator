@@ -108,6 +108,10 @@ export interface CorsNetworkLimits {
   responseBytes?: number;
   timeoutMs?: number;
 }
+export interface CorsNetworkOptions extends CorsNetworkLimits {
+  /** Optional service that can read hosts the browser refuses. */
+  relay?: { endpoint: string; key: string };
+}
 /** The only optional network capability. It remains outside QuickJS and requires CORS. */
 export class PhoneCorsNetwork {
   private readonly pending = new Map<
@@ -116,21 +120,25 @@ export class PhoneCorsNetwork {
   >();
   private closed = false;
   private readonly limits: Required<CorsNetworkLimits>;
+  private readonly relay?: { endpoint: string; key: string };
   private readonly deliver: (requestId: number, result: PhoneNetworkResult) => void;
   private readonly fetcher: typeof fetch;
   constructor(
     deliver: (requestId: number, result: PhoneNetworkResult) => void,
-    options: CorsNetworkLimits = {},
+    options: CorsNetworkOptions = {},
     fetcher: typeof fetch = (input, init) => globalThis.fetch(input, init),
   ) {
+    // The relay is not a numeric limit and must stay out of the bounds below.
+    const { relay, ...limits } = options;
     this.deliver = deliver;
     this.fetcher = fetcher;
+    this.relay = relay;
     this.limits = {
       pendingRequests: 8,
       requestBytes: 8192,
       responseBytes: 1024 * 1024,
       timeoutMs: 30000,
-      ...options,
+      ...limits,
     };
     for (const value of Object.values(this.limits))
       if (!Number.isSafeInteger(value) || value <= 0)
@@ -199,7 +207,8 @@ export class PhoneCorsNetwork {
     };
     this.pending.set(id, item);
     try {
-      const response = await this.fetcher(url.href, {
+      let relayed = false;
+      let response = await this.fetcher(url.href, {
         method: request.method,
         headers: request.headers,
         body: request.body,
@@ -208,9 +217,35 @@ export class PhoneCorsNetwork {
         credentials: 'omit',
         redirect: 'follow',
         referrerPolicy: 'no-referrer',
+      }).catch(async (error: unknown) => {
+        // The browser refused it. A configured relay may still be able to read
+        // this host; anything it cannot do surfaces as the relay's own reason.
+        const retry = this.relayRequestFor(url, request);
+        if (!retry) throw error;
+        relayed = true;
+        return this.fetcher(retry.href, {
+          method: request.method,
+          headers: { 'X-Pebble-Relay-Key': this.relay!.key },
+          signal: controller.signal,
+          mode: 'cors',
+          credentials: 'omit',
+          redirect: 'follow',
+          referrerPolicy: 'no-referrer',
+        });
       });
       if (response.type === 'opaque' || response.type === 'opaqueredirect' || response.status === 0)
         throw new Error('The response is unavailable through browser CORS.');
+      if (relayed && response.status === 502) {
+        const detail = await response
+          .clone()
+          .json()
+          .catch(() => null);
+        throw new Error(
+          `The download service could not reach this host: ${detail?.error ?? response.status}`,
+        );
+      }
+      if (relayed && (response.status === 401 || response.status === 404))
+        throw new Error('The download service is not relaying app requests for this site.');
       const binary = request.responseType === 'arraybuffer' || request.responseType === 'blob';
       const maximum = binary
         ? Math.min(this.limits.responseBytes, 256 * 1024)
@@ -286,5 +321,19 @@ export class PhoneCorsNetwork {
         message: `Browser CORS/network request failed: ${String(error)}`,
       });
     }
+  }
+  /**
+   * The relay URL for a request the browser refused, or undefined when relaying
+   * is unconfigured or the request is not one the relay accepts. Only plain
+   * GET/HEAD without a body qualifies, matching what the service will perform.
+   */
+  private relayRequestFor(url: URL, request: PhoneNetworkRequest): URL | undefined {
+    if (!this.relay?.endpoint || !this.relay.key) return undefined;
+    if (!['GET', 'HEAD'].includes(request.method)) return undefined;
+    if (request.body) return undefined;
+    if (url.protocol !== 'https:') return undefined;
+    const target = new URL(`${this.relay.endpoint}/v1/app-fetch`);
+    target.searchParams.set('url', url.href);
+    return target;
   }
 }
