@@ -1476,6 +1476,12 @@ h1 {
   height: 100%;
   pointer-events: none;
 }
+/* In the 3D view this layout is only the control overlay: the watch itself is
+   the rendered model in the sibling canvas underneath. Drawing the flat shell
+   here would cover it. */
+.watch-layout.model-controls::before {
+  content: none;
+}
 .model-controls .watch-control {
   transform: translate(-50%, -50%);
   right: auto;

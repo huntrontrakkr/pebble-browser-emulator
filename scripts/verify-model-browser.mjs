@@ -76,6 +76,40 @@ try {
       await ready();
       await page.getByRole('button', { name: '3D watch', exact: true }).click();
       await modelReady();
+      // The canvas can hold a correct render and still show nothing, because the
+      // control overlay is a sibling drawn on top of it. Assert that no element
+      // or pseudo-element in the stage paints over the middle of the model.
+      assert.deepEqual(
+        await page.evaluate(() => {
+          const canvas = document.querySelector('.model-host canvas');
+          const box = canvas.getBoundingClientRect();
+          const midX = box.left + box.width / 2;
+          const midY = box.top + box.height / 2;
+          const opaque = (style) => {
+            const parts = /^rgba?\(([^)]+)\)$/.exec(style.backgroundColor);
+            if (!parts) return false;
+            // rgb() carries no alpha and is opaque; rgba() with alpha 0 is not,
+            // and 0 must not be read as "missing".
+            const alpha = Number.parseFloat(parts[1].split(',')[3]);
+            return Number.isNaN(alpha) ? true : alpha > 0.05;
+          };
+          const over = [];
+          for (const element of document.querySelector('.display-stage').querySelectorAll('*')) {
+            if (element === canvas || element.contains(canvas)) continue;
+            const rect = element.getBoundingClientRect();
+            if (rect.left > midX || rect.right < midX) continue;
+            if (rect.top > midY || rect.bottom < midY) continue;
+            for (const pseudo of [null, '::before', '::after']) {
+              const style = getComputedStyle(element, pseudo);
+              if (pseudo && style.content === 'none') continue;
+              if (opaque(style)) over.push((element.className || element.tagName) + (pseudo ?? ''));
+            }
+          }
+          return over;
+        }),
+        [],
+        'Nothing may paint over the middle of the rendered watch model',
+      );
       const canvas = await page.locator('.model-host canvas').elementHandle();
       for (const profile of ['qemu_gabbro', 'qemu_emery', 'qemu_flint']) {
         const select = page.getByRole('combobox', { name: 'Watch', exact: true });
