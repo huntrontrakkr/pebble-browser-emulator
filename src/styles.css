@@ -1752,6 +1752,9 @@ h1 {
   box-shadow: none;
   opacity: 1;
 }
+/* Over the model these are panel chips, not moulded keys, so they take the
+   panel's ink. Keeping the key ink made the glyph the same colour as the chip
+   it sits on: identical in dark, indistinguishable when pressed in light. */
 .model-controls .watch-control-icon {
   width: 28px;
   height: 28px;
@@ -1760,6 +1763,7 @@ h1 {
   border-radius: 50%;
   font-size: 18px;
   background: var(--panel);
+  color: var(--text);
   border: 1px solid var(--line);
   box-shadow: 0 2px 5px #0002;
 }
@@ -1771,6 +1775,7 @@ h1 {
 }
 .model-controls .watch-control.pressed .watch-control-icon {
   background: var(--accent);
+  color: var(--accent-ink);
   border-color: var(--accent);
 }
 .display-stage.model-view {
