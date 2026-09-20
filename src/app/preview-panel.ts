@@ -289,20 +289,46 @@ export class PreviewPanel implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     const generation = this.generation;
     void readLocal<SavedWatchface>('preview:recent')
-      .then((saved) => {
+      .then(async (saved) => {
         if (
-          generation === this.generation &&
-          saved &&
-          isFirmwareProfile(saved.profile) &&
-          typeof saved.name === 'string' &&
-          ((saved.bytes instanceof Blob && saved.bytes.size <= 8 * 1048576) ||
-            (saved.bytes instanceof Uint8Array && saved.bytes.byteLength <= 8 * 1048576))
+          generation !== this.generation ||
+          !saved ||
+          !isFirmwareProfile(saved.profile) ||
+          typeof saved.name !== 'string' ||
+          !(
+            (saved.bytes instanceof Blob && saved.bytes.size <= 8 * 1048576) ||
+            (saved.bytes instanceof Uint8Array && saved.bytes.byteLength <= 8 * 1048576)
+          )
         )
-          this.recent.set(saved);
+          return;
+        this.recent.set(saved);
+        if (await this.canResume(saved)) {
+          if (generation !== this.generation) return;
+          await this.openRecent();
+        }
       })
       .catch(() => {});
     addEventListener('hashchange', this.route);
     queueMicrotask(this.route);
+  }
+
+  /**
+   * Whether the last session can be put back on screen without fetching
+   * anything. A first visit stays idle on purpose: the firmware pair is about
+   * 1.5 MB, and a page nobody has asked anything of should not spend a
+   * stranger's bandwidth or start a Worker. Once both the firmware and the
+   * package are already in local storage, resuming costs no request at all, so
+   * a returning viewer gets their watch back instead of an empty stage.
+   */
+  private async canResume(saved: SavedWatchface): Promise<boolean> {
+    // A preview link addresses its own target; let the route own the session.
+    if (location.hash && location.hash !== '#' && location.hash !== '#/') return false;
+    if (this.busy() || this.sessionBusy) return false;
+    try {
+      return !!(await savedFirmware(saved.profile));
+    } catch {
+      return false;
+    }
   }
   ngOnDestroy() {
     this.controller?.abort();

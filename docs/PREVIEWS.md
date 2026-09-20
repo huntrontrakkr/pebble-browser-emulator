@@ -15,7 +15,11 @@ use. No firmware file picker is required. The selected model's two images downlo
 from the same static site, expand with a bounded streaming gzip decoder, and must
 match their exact sizes and official SHA-256 digests before boot. Time 2 downloads
 about 1.52 MB compressed; its original 32 MiB SPI image is unchanged after expansion.
-No firmware download or Worker starts on the idle page.
+No firmware download or Worker starts on a first visit: a page nobody has asked
+anything of spends no bandwidth and starts no Worker. Once a previous session has left
+both its firmware pair and its package in local storage, opening the site puts that
+session back on screen by itself, which costs no request at all. A preview link addresses
+its own target and takes precedence over the resumed session.
 
 After checksum verification, the images are stored locally in IndexedDB (Blobs, with a typed-array
 fallback for WebKit). A saved firmware pair takes precedence over the bundled default.
