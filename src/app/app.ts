@@ -427,6 +427,7 @@ export class App implements AfterViewInit, OnDestroy {
       this.accuracy = settings.accuracy;
       this.altitude = this.locationHeading = this.speed = null;
     }
+    if (notificationId === undefined) this.deliverLocationAvailability(settings.location);
     this.qemuWorker?.postMessage({
       type: notificationId === undefined ? 'demo-settings' : 'demo-notification',
       settings,
@@ -1502,14 +1503,9 @@ export class App implements AfterViewInit, OnDestroy {
         timelineToken: this.timelineToken,
         network: { mode: this.phoneNetworkMode, fixtures },
         storage,
-        coordinates: {
-          latitude: this.latitude,
-          longitude: this.longitude,
-          accuracy: this.accuracy,
-          altitude: this.altitude,
-          heading: this.locationHeading,
-          speed: this.speed,
-        },
+        // Omitted when location is switched off, so the script is told the
+        // position is unavailable rather than handed one it was denied.
+        coordinates: this.demoSettings().location ? this.currentCoordinates() : undefined,
         connected: this.linked(),
         clock: this.isFirmware() ? 'watch' : 'wall',
         nowMs: this.isFirmware() ? Math.floor(this.watchEpochMs) : Date.now(),
@@ -1657,17 +1653,30 @@ export class App implements AfterViewInit, OnDestroy {
       this.log('PHONE', 'Location saved. Start a phone script to deliver it.');
       return;
     }
-    this.phoneWorker?.postMessage({
-      type: 'location',
-      coordinates: {
-        latitude: this.latitude,
-        longitude: this.longitude,
-        accuracy: this.accuracy,
-        altitude: this.altitude,
-        heading: this.locationHeading,
-        speed: this.speed,
-      },
-    });
+    this.phoneWorker?.postMessage({ type: 'location', coordinates: this.currentCoordinates() });
+  }
+  private currentCoordinates() {
+    return {
+      latitude: this.latitude,
+      longitude: this.longitude,
+      accuracy: this.accuracy,
+      altitude: this.altitude,
+      heading: this.locationHeading,
+      speed: this.speed,
+    };
+  }
+  /** Brings a running phone in line with the location switch. */
+  private deliverLocationAvailability(available: boolean) {
+    if (this.phoneStatus() !== 'Running') return;
+    this.phoneWorker?.postMessage(
+      available
+        ? { type: 'location', coordinates: this.currentCoordinates() }
+        : {
+            type: 'location-error',
+            code: 2,
+            message: 'Location is switched off in simulated inputs.',
+          },
+    );
   }
   setClock() {
     const epoch = new Date(this.epochValue + 'Z').getTime() / 1000;
