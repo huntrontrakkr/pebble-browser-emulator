@@ -80,7 +80,7 @@ try {
       for (const profile of ['qemu_gabbro', 'qemu_emery', 'qemu_flint']) {
         const select = page.getByRole('combobox', { name: 'Watch', exact: true });
         if (!(await select.isVisible()))
-          await page.getByText('Choose another watchface', { exact: true }).click();
+          await page.getByText('Choose something else', { exact: true }).click();
         await select.selectOption(profile);
         await page.waitForFunction((p) => window.modelQa.profiles.at(-1) === p, profile);
         await ready();
