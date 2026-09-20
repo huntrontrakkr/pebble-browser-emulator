@@ -96,9 +96,10 @@ export class VirtualPhone {
         options.randomSeed > 4294967295)
     )
       throw new Error('Invalid random seed.');
-    const coordinates = normalizeCoordinates(
-      options.coordinates ?? { latitude: 0, longitude: 0, accuracy: 0 },
-    );
+    // No coordinates means no fix. Reporting 0,0 as a successful reading would
+    // hand the script a real-looking position in the Gulf of Guinea; the guest
+    // starts with POSITION_UNAVAILABLE instead, until a location is delivered.
+    const coordinates = options.coordinates ? normalizeCoordinates(options.coordinates) : null;
     const language = options.language ?? 'en-US';
     if (!/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/.test(language) || language.length > 64)
       throw new Error('Invalid phone language tag.');
@@ -536,7 +537,7 @@ const BOOTSTRAP = String.raw`function(config) {
   const network = (${NETWORK_BOOTSTRAP})({emit, schedule, cancelTimer:id=>timers.delete(id), byteLength, limits, mode:config.network.mode, fixtures:config.network.fixtures});
   const sockets = (${WEBSOCKET_BOOTSTRAP})({emit,schedule,cancelTimer:id=>timers.delete(id),byteLength,limits,mode:config.network.mode,normalizeUrl:value=>parse(socketUrlHost(value))});
   function locationValue() { return {coords:{...coordinates},timestamp:now}; }
-  let locationError=null;
+  let locationError=coordinates?null:{code:2,message:'No location fix is available for this phone.'};
   function locationResult(success,error) {if(locationError){if(typeof error==='function')error({...locationError,PERMISSION_DENIED:1,POSITION_UNAVAILABLE:2,TIMEOUT:3});}else success(locationValue());}
   globalThis.navigator = Object.freeze({language:config.language,languages:Object.freeze([config.language]),geolocation:Object.freeze({
     getCurrentPosition(success,error,_options) { if (typeof success !== 'function') throw new TypeError('Geolocation success callback is required.'); schedule(() => locationResult(success,error),0,false,[]); },
