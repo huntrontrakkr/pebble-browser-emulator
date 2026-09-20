@@ -6,6 +6,7 @@ import { resolve, join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { crc32 } from '../../src/app/integrity.ts';
 import { verifySeal, json, save, pool, sha } from './common.mjs';
+import { classifyPhoneFailure, summariseFailureClasses } from './classify.mjs';
 const dir = resolve(process.argv[2] ?? 'tmp/compatibility-census'),
   { manifest, seal } = await verifySeal(dir);
 const capture = await json(join(dir, 'capture.json'));
@@ -186,8 +187,18 @@ const results = await pool(seal.terminals, 8, async (terminal) => {
   if (
     row.outcome === 'scenario-completed' &&
     (row.diagnostics.phoneErrors.length || row.diagnostics.phoneLimits.length)
-  )
+  ) {
     row.outcome = 'companion-error-observed';
+    // Previously these carried no reason at all, so every companion failure
+    // looked the same and the census could not say what would fix them.
+    const classified = classifyPhoneFailure([
+      ...row.diagnostics.phoneErrors,
+      ...row.diagnostics.phoneLimits,
+    ]);
+    row.failureClass = classified.failureClass;
+    row.failureSummary = classified.summary;
+    if (!row.reason) row.reason = classified.reason;
+  }
   if (
     row.outcome === 'scenario-completed' &&
     (row.droppedEvents || row.droppedConsoleBytes || row.diagnostics.traceDropped)
@@ -197,6 +208,11 @@ const results = await pool(seal.terminals, 8, async (terminal) => {
 });
 const counts = {};
 for (const r of results) counts[r.outcome] = (counts[r.outcome] ?? 0) + 1;
+// What the companion failures actually were, so the census answers which fixes
+// would move the number rather than only how many cases failed.
+const failureClasses = summariseFailureClasses(
+  results.filter((r) => r.failureClass).map((r) => ({ failureClass: r.failureClass })),
+);
 const titles = manifest.entries.map((e) => {
   const cases = results.filter((r) => r.entryId === e.id);
   return {
@@ -248,6 +264,7 @@ const report = {
     artifactBytes: seal.files.reduce((n, f) => n + f.bytes, 0),
   },
   counts,
+  failureClasses,
   titleCounts: {
     total: titles.length,
     downloaded: titles.filter((t) => t.downloaded).length,
@@ -281,6 +298,7 @@ await writeFile(
 );
 const summary = `# Generic emulator compatibility census\n\nCaptured ${manifest.entries.length} titles across ${manifest.profiles.length} profiles (${results.length} cases). Raw capture sealed ${seal.finishedAt}; evaluation began afterwards.\n\n${manifest.ranking}\n\n| Outcome | Cases |\n|---|---:|\n${Object.entries(
   counts,
+  failureClasses,
 )
   .map(([k, v]) => `| ${k} | ${v} |`)
   .join('\n')}\n\n${Object.entries(report.titleCounts)
