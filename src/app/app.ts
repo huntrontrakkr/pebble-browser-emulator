@@ -1361,16 +1361,27 @@ export class App implements AfterViewInit, OnDestroy {
         // A blocked or failed request is the usual reason a phone script sits on
         // a spinner forever. The Phone tab keeps the raw record; say plainly in
         // the log that the request failed, and for which host.
-        if ('error' in data && typeof data['error'] === 'string') {
-          const id = (data as { requestId?: number }).requestId;
-          const target = id === undefined ? undefined : this.phoneRequestHosts.get(id);
-          if (id !== undefined) this.phoneRequestHosts.delete(id);
+        const id = (data as { requestId?: number }).requestId;
+        const target = id === undefined ? undefined : this.phoneRequestHosts.get(id);
+        if (id !== undefined) this.phoneRequestHosts.delete(id);
+        const where = target ? ' to ' + target : '';
+        if ('error' in data && typeof data['error'] === 'string')
           this.log(
             'PHONE',
-            `Network request${target ? ' to ' + target : ''} failed (${data['error']}): ` +
+            `Network request${where} failed (${data['error']}): ` +
               String((data as { message?: unknown }).message ?? 'no detail'),
           );
-        }
+        // A reply is logged too. Without it a trace shows a request and then
+        // nothing, and whether the host answered cannot be told apart from
+        // whether the app ignored what it received.
+        else if ('status' in data)
+          this.log(
+            'PHONE',
+            `Network request${where} answered ${data['status']}` +
+              ((data as { responseBytes?: number }).responseBytes === undefined
+                ? ''
+                : `, ${(data as { responseBytes?: number }).responseBytes} bytes`),
+          );
       }
       if (data.type === 'error') {
         this.clearConfiguration();
