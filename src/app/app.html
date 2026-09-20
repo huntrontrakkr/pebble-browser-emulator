@@ -795,32 +795,32 @@
         </div>
       </section>
     }
-  </div>
-  @if (workbench()) {
-    <section class="console panel">
-      <div class="console-heading">
-        <h2>
-          Session log <span>{{ trace().length }}</span>
-        </h2>
-        <div class="actions">
-          <button (click)="clearTrace()">Clear</button
-          ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
-        </div>
-      </div>
-      <div class="console-lines" role="log">
-        @for (event of trace(); track event.index) {
-          <div>
-            <span>{{ event.index }}</span
-            ><strong>{{ event.kind }}</strong
-            ><code>{{ event.text }}</code>
+    @if (workbench()) {
+      <section class="console panel">
+        <div class="console-heading">
+          <h2>
+            Session log <span>{{ trace().length }}</span>
+          </h2>
+          <div class="actions">
+            <button (click)="clearTrace()">Clear</button
+            ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
           </div>
-        }
-        @if (!trace().length) {
-          <p class="help">Execution, compiler, and device events appear here.</p>
-        }
-      </div>
-    </section>
-  }
+        </div>
+        <div class="console-lines" role="log">
+          @for (event of trace(); track event.index) {
+            <div>
+              <span>{{ event.index }}</span
+              ><strong>{{ event.kind }}</strong
+              ><code>{{ event.text }}</code>
+            </div>
+          }
+          @if (!trace().length) {
+            <p class="help">Execution, compiler, and device events appear here.</p>
+          }
+        </div>
+      </section>
+    }
+  </div>
   <footer>
     <span>Local compilation and emulation</span>
     <a href="licenses/NOTICE.md" target="_blank" rel="noopener">Licenses</a>

@@ -381,6 +381,28 @@ main {
   gap: 20px;
   align-items: start;
 }
+/* Developer tools: the watch is much shorter than the tool column, so the log
+   takes the space beside the tools instead of stranding itself below both. */
+.workspace:not(.preview-workspace) {
+  grid-template-areas: 'display tools' 'log tools';
+  grid-template-rows: auto 1fr;
+}
+.workspace:not(.preview-workspace) > .display-panel {
+  grid-area: display;
+}
+.workspace:not(.preview-workspace) > .tools-panel {
+  grid-area: tools;
+}
+.workspace:not(.preview-workspace) > .console {
+  grid-area: log;
+  align-self: stretch;
+  margin-top: 0;
+}
+.workspace:not(.preview-workspace) > .console .console-lines {
+  height: auto;
+  flex: 1;
+  min-height: 180px;
+}
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -710,6 +732,9 @@ main {
 }
 .console {
   margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 .console-heading {
   padding: 14px 18px;
@@ -850,6 +875,24 @@ footer {
   }
   .workspace {
     grid-template-columns: 1fr;
+  }
+  .workspace:not(.preview-workspace) {
+    grid-template-areas: none;
+    grid-template-rows: auto;
+  }
+  /* Clearing the areas is not enough: the names would otherwise resolve against
+     implicit lines and stack the panels on top of each other. */
+  .workspace:not(.preview-workspace) > .display-panel,
+  .workspace:not(.preview-workspace) > .tools-panel,
+  .workspace:not(.preview-workspace) > .console {
+    grid-area: auto;
+  }
+  .workspace:not(.preview-workspace) > .console {
+    margin-top: 0;
+  }
+  .workspace:not(.preview-workspace) > .console .console-lines {
+    flex: none;
+    height: 180px;
   }
   .display-panel {
     position: static;
