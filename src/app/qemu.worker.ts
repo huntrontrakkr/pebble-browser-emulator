@@ -1,4 +1,5 @@
 import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './watch-profiles.ts';
+import { PressFloor } from './press-floor.ts';
 /// <reference lib="webworker" />
 import {
   PebbleTransport,
@@ -112,6 +113,23 @@ function validateDeviceSignal(signal: DeviceSignal) {
       throw new Error('Touch coordinates are outside the display.');
   }
 }
+/** Extends brief presses so the firmware's debounce can observe them. */
+const pressFloor = new PressFloor();
+
+/** Push the effective mask, extending presses that have not met their floor. */
+function applyButtons() {
+  const effective = pressFloor.effective(api.spike_ticks() / 64);
+  if (effective === buttons) return;
+  buttons = effective;
+  api.spike_button(buttons);
+}
+
+/** Record a new held mask and push the result. */
+function requestButtons(mask: number) {
+  pressFloor.request(mask, api.spike_ticks() / 64);
+  applyButtons();
+}
+
 function applySignal(value: DeviceSignal, scheduledUs = api.spike_ticks() / 64) {
   const signal = normalizeSignal(value);
   validateDeviceSignal(signal);
@@ -144,8 +162,7 @@ function applySignal(value: DeviceSignal, scheduledUs = api.spike_ticks() / 64) 
     return;
   }
   if (signal.kind === 'buttons') {
-    buttons = signal.mask;
-    api.spike_button(buttons);
+    requestButtons(signal.mask);
     report('applied to GPIO');
     return;
   }
@@ -197,6 +214,9 @@ async function tickOnce(count: number) {
         ? 1280000
         : Number.MAX_SAFE_INTEGER - api.spike_ticks());
   while (remaining > 0) {
+    // Virtual time has moved, so a press that was extended to meet its floor
+    // may now be released.
+    applyButtons();
     flushScheduledSignals();
     flushUart();
     const deadline = Math.min(
@@ -391,8 +411,7 @@ function serial() {
       consoleTail = (consoleTail + text).slice(-16384);
       if (installing) {
         launchConsoleTail = (launchConsoleTail + text).slice(-16384);
-        if (!launchDiagnostic)
-          launchDiagnostic = diagnoseFirmwareLaunch(launchConsoleTail) ?? '';
+        if (!launchDiagnostic) launchDiagnostic = diagnoseFirmwareLaunch(launchConsoleTail) ?? '';
       }
       if (!firmwareReady && consoleTail.includes('Ready for communication.')) {
         firmwareReady = true;
@@ -488,6 +507,7 @@ function resetSession() {
   loaded = true;
   steps = 0;
   buttons = 0;
+  pressFloor.reset();
   lastFrame = -1;
   firmwareReady = false;
   announceReady = false;
@@ -726,8 +746,7 @@ self.onmessage = async ({ data }) => {
         state();
         break;
       case 'inputs':
-        buttons = data.buttons;
-        api.spike_button(buttons);
+        requestButtons(data.buttons);
         state();
         break;
       case 'epoch':
