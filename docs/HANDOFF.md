@@ -9,18 +9,18 @@ static application must work with no service; hosting needs a request.
 
 ## 1. The finding that should drive the next decisions
 
-The census can now say *why* companion runs fail. Applied to the sealed
+The census can now say _why_ companion runs fail. Applied to the sealed
 `docs/compatibility/2026-09-18-legacy` capture, the 114 companion failures are:
 
-| cases | class |
-| ---: | --- |
-| 89 | `configuration-empty-response` |
-| 11 | `missing-api` |
-| 7 | `appmessage-rejected` |
-| 3 | `configuration-unsupported-url` |
-| 2 | `network-unsupported` |
-| 2 | `script-error` |
-| **0** | **`network-refused` (CORS)** |
+| cases | class                           |
+| ----: | ------------------------------- |
+|    89 | `configuration-empty-response`  |
+|    11 | `missing-api`                   |
+|     7 | `appmessage-rejected`           |
+|     3 | `configuration-unsupported-url` |
+|     2 | `network-unsupported`           |
+|     2 | `script-error`                  |
+| **0** | **`network-refused` (CORS)**    |
 
 Across all 600 cases, 187 issued 415 phone network requests and **none**
 produced a CORS-shaped error.
@@ -46,7 +46,7 @@ silent.
 
 `scripts/verify-all.mjs` now serves `dist/client` once and runs every gate it
 discovers, so adding a gate file is enough to gate it. Gates needing locally
-supplied material report *not run, needs X* rather than failing.
+supplied material report _not run, needs X_ rather than failing.
 
 **Open work here:**
 
