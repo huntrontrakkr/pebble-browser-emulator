@@ -16,8 +16,11 @@ Progress and cancellation work during large downloads. Readiness requires every 
 asset to be present. It does not indicate that arbitrary firmware or applications are supported.
 
 Once the download completes, the example can boot and its local configuration page can
-save settings without a network connection. **Open saved watchface** reopens the most recent
-PBW from IndexedDB, with its selected watch profile. Local PBWs can also be imported offline.
+save settings without a network connection. Returning to the page reopens the most recent
+PBW from IndexedDB, with its selected watch profile, because by then nothing has to be
+fetched to do it; **Open saved watchface** reopens it by hand when the firmware for that
+profile is not stored yet. A first visit, with nothing saved, still stays idle and downloads
+nothing. Local PBWs can also be imported offline.
 The one saved PBW replaces the previous one; this is not a watchface library. Firmware and
 app settings use their existing local stores. A pristine firmware startup checkpoint can
 accelerate reopening. An active phone/watch session is not saved: reopening still installs

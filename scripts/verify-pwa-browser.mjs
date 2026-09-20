@@ -187,7 +187,9 @@ try {
       await shot('offline-phone');
       await page.getByRole('button', { name: 'Close app settings', exact: true }).click();
       await page.goto(base);
-      await page.getByRole('button', { name: /Open saved watchface/ }).click();
+      // The landing page restores the last session once the firmware and the
+      // package are both already stored, so offline it comes back on its own
+      // and the saved-watchface button is not needed to reach the watch.
       await ready();
       assert.equal(await page.locator('.watch-session h1').innerText(), 'Clock');
       await shot('offline-saved-watchface');
@@ -238,7 +240,8 @@ try {
       await done();
       await setOffline(true);
       await page.reload();
-      await page.getByRole('button', { name: /Open saved watchface/ }).click();
+      // Same restore after the worker update: the stored session comes back
+      // without a request, which is what makes the update safe offline.
       await ready();
       assert.deepEqual(errors, []);
       results.push({
