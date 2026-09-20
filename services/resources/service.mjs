@@ -28,6 +28,14 @@ export class MemoryResourceCache {
       this.entries.delete(this.entries.keys().next().value);
   }
 }
+/** Length-independent comparison, so a wrong key leaks no timing signal. */
+function matchesKey(offered, expected) {
+  if (typeof offered !== 'string' || offered.length !== expected.length) return false;
+  let differences = 0;
+  for (let i = 0; i < expected.length; i++)
+    differences |= offered.charCodeAt(i) ^ expected.charCodeAt(i);
+  return differences === 0;
+}
 function redirectAllowed(value, original) {
   const url = new URL(value),
     source = new URL(original);
@@ -81,8 +89,18 @@ export function createResourceService({
   maximum = MAX_BYTES,
   timeoutMs = 30000,
   maxActive = 2,
+  // Relaying watchface API calls is off unless a deployment supplies both a key
+  // and a relay, so a service that is merely started cannot become an open one.
+  relay = null,
+  relayKey = '',
+  relayMaxBytes = 1048576,
+  relayTimeoutMs = 20000,
 } = {}) {
+  const relayEnabled = typeof relay === 'function' && relayKey.length >= 16;
   let active = 0;
+  // A separate budget: relayed calls must not spend the download allowance.
+  let relayTokens = 60,
+    relayRefillAt = now();
   // One shared service budget; no client-controlled IP headers or unbounded limiter map.
   let tokens = 120,
     refillAt = now();
@@ -116,9 +134,50 @@ export function createResourceService({
       return json({
         protocol: 'pebble-resources-v1',
         maximumBytes: maximum,
-        capabilities: ['public-downloads', 'content-hashes', 'cache'],
+        capabilities: [
+          'public-downloads',
+          'content-hashes',
+          'cache',
+          ...(relayEnabled ? ['app-relay'] : []),
+        ],
         execution: 'browser',
       });
+    if (path.pathname === '/v1/app-fetch') {
+      if (!relayEnabled) return json({ error: 'This service does not relay app requests.' }, 404);
+      if (!matchesKey(incoming.headers.get('x-pebble-relay-key'), relayKey))
+        return json({ error: 'A valid relay key is required.' }, 401);
+      const target = path.searchParams.get('url');
+      if (!target || target.length > 4096 || path.searchParams.getAll('url').length !== 1)
+        return json({ error: 'One url parameter is required.' }, 400);
+      relayTokens = Math.min(60, relayTokens + Math.max(0, now() - relayRefillAt) / 2000);
+      relayRefillAt = now();
+      if (relayTokens < 1 || active >= maxActive) {
+        headers.set('Retry-After', '2');
+        return json({ error: 'Service is busy. Retry shortly.' }, 429);
+      }
+      relayTokens--;
+      active++;
+      try {
+        const result = await relay(target, {
+          method: incoming.method === 'HEAD' ? 'HEAD' : 'GET',
+          headers: { accept: incoming.headers.get('accept') ?? '*/*' },
+          maxBytes: relayMaxBytes,
+          timeoutMs: relayTimeoutMs,
+        });
+        for (const [name, value] of Object.entries(result.headers))
+          if (name === 'content-type') headers.set('Content-Type', String(value));
+        headers.set('X-Relay-Status', String(result.status));
+        return new Response(incoming.method === 'HEAD' ? null : result.body, {
+          status: result.status,
+          headers,
+        });
+      } catch (error) {
+        // The reason is reported; a refused request is never dressed as a reply.
+        return json({ error: String(error?.message ?? error) }, 502);
+      } finally {
+        active--;
+      }
+    }
     const blob = path.pathname.match(/^\/v1\/blobs\/([a-f0-9]{64})$/);
     let url;
     if (!blob) {
