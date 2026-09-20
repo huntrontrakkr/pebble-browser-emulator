@@ -45,6 +45,17 @@ jobs:
       - run: node scripts/verify-preview-inputs.mjs
       - run: node scripts/verify-optics-browser.mjs
       - run: node scripts/verify-layered-optics.mjs
+      # The configuration round trip: open, edit, save, cancel, native Back and
+      # reopen. It existed without ever running here, which is why a broken save
+      # could reach a release. Its failure class is the one the census records
+      # most often, so it is gated rather than run by hand.
+      - run: node scripts/verify-phone-app-browser.mjs
+        env:
+          PEBBLE_BROWSERS: chromium
+      - run: node scripts/verify-preview-browser.mjs
+        env:
+          PEBBLE_BROWSERS: chromium
+      - run: node scripts/verify-phone-port-contract.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
