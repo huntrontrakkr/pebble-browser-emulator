@@ -35,27 +35,14 @@ jobs:
       - run: npm test
       - run: npm run build:web
       - run: npx playwright install --with-deps chromium
-      - run: node scripts/verify-pwa-browser.mjs
+      # Every gate, discovered rather than listed. Naming them here is what let
+      # nineteen of twenty-five never run, including the configuration round
+      # trip, so the suite now serves the built application once and runs
+      # whatever is in scripts/. A gate needing locally supplied firmware or a
+      # licensed package reports itself as not run instead of failing.
+      - run: node scripts/verify-all.mjs
         env:
           PEBBLE_BROWSERS: chromium
-      - run: node scripts/verify-phone-websocket-browser.mjs
-        env:
-          PEBBLE_BROWSERS: chromium
-      - run: node scripts/verify-model-browser.mjs
-      - run: node scripts/verify-preview-inputs.mjs
-      - run: node scripts/verify-optics-browser.mjs
-      - run: node scripts/verify-layered-optics.mjs
-      # The configuration round trip: open, edit, save, cancel, native Back and
-      # reopen. It existed without ever running here, which is why a broken save
-      # could reach a release. Its failure class is the one the census records
-      # most often, so it is gated rather than run by hand.
-      - run: node scripts/verify-phone-app-browser.mjs
-        env:
-          PEBBLE_BROWSERS: chromium
-      - run: node scripts/verify-preview-browser.mjs
-        env:
-          PEBBLE_BROWSERS: chromium
-      - run: node scripts/verify-phone-port-contract.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
