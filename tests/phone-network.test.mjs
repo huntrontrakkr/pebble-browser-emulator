@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { getQuickJS } from 'quickjs-emscripten';
 import { VirtualPhone } from '../src/app/virtual-phone.ts';
 import { PhoneCorsNetwork } from '../src/app/phone-network.ts';
+import { withTestLimits } from './phone-limits.mjs';
 const module = await getQuickJS();
 const make = (options = {}) =>
-  new VirtualPhone(module, { appId: 'weather-test', nowMs: 1000, ...options });
+  new VirtualPhone(module, { appId: 'weather-test', nowMs: 1000, ...withTestLimits(options) });
 const logs = (vm) =>
   vm
     .drainEvents()

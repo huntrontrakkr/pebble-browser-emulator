@@ -4,14 +4,18 @@ import { getQuickJS } from 'quickjs-emscripten';
 import { VirtualPhone } from '../src/app/virtual-phone.ts';
 import { renderPixels } from '../src/app/display.ts';
 import { BufferedHistory } from '../src/app/buffered-history.ts';
+import { withTestLimits } from './phone-limits.mjs';
 
 test('storage snapshots follow all mutations even when diagnostic events overflow', async () => {
-  const vm = new VirtualPhone(await getQuickJS(), {
-    appId: 'storage-revisions',
-    nowMs: 0,
-    storage: { original: 'yes' },
-    limits: { eventCount: 2 },
-  });
+  const vm = new VirtualPhone(
+    await getQuickJS(),
+    withTestLimits({
+      appId: 'storage-revisions',
+      nowMs: 0,
+      storage: { original: 'yes' },
+      limits: { eventCount: 2 },
+    }),
+  );
   try {
     vm.start(`console.log('fill output');
       setTimeout(()=>localStorage.setItem('theme','dark'),10);

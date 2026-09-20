@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { getQuickJS } from 'quickjs-emscripten';
+import { TEST_LIMITS } from './phone-limits.mjs';
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
 const { bundlePhone } = await import(
   pathToFileURL(process.env.PEBBLE_BUNDLER ?? resolve(repo, 'public/compiler/pkjs-bundler.mjs'))
@@ -35,6 +36,7 @@ const files = (entries) =>
 const module = await getQuickJS();
 const phone = () =>
   new VirtualPhone(module, {
+    limits: TEST_LIMITS,
     appId: '00112233-4455-6677-8899-aabbccddeeff',
     messageKeys: { NAME: 10000 },
     watchInfo: {

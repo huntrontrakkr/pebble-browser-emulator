@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getQuickJS } from 'quickjs-emscripten';
 import { VirtualPhone } from '../src/app/virtual-phone.ts';
+import { withTestLimits } from './phone-limits.mjs';
 const module = await getQuickJS();
 const make = (options = {}) =>
   new VirtualPhone(module, {
     appId: '00112233-4455-6677-8899-aabbccddeeff',
     nowMs: 1000,
-    ...options,
+    ...withTestLimits(options),
   });
 const logs = (vm) =>
   vm
