@@ -40,9 +40,37 @@ jobs:
       # trip, so the suite now serves the built application once and runs
       # whatever is in scripts/. A gate needing locally supplied firmware or a
       # licensed package reports itself as not run instead of failing.
-      - run: node scripts/verify-all.mjs
+      - name: Prepare phone contract fixture
+        run: |
+          mkdir -p tmp/verify-all
+          curl --fail --location --retry 3 --max-time 120 \
+            https://registry.npmjs.org/pebble-clay/-/pebble-clay-1.0.4.tgz \
+            --output tmp/pebble-clay-1.0.4.tgz
+          # The phone contract verifies this archive against its pinned SHA-512.
+      - name: Run browser gates with the download service
+        run: |
+          node services/resources/server.mjs > tmp/verify-all/resource-service.log 2>&1 &
+          service_pid=$!
+          trap 'kill "$service_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent "$PEBBLE_RESOURCE_SERVICE/v1/status"; then
+              break
+            fi
+            kill -0 "$service_pid"
+            sleep 1
+          done
+          curl --fail --silent "$PEBBLE_RESOURCE_SERVICE/v1/status"
+          node scripts/verify-all.mjs
         env:
           PEBBLE_BROWSERS: chromium
+          PEBBLE_CLAY_ARCHIVE: tmp/pebble-clay-1.0.4.tgz
+          PEBBLE_RESOURCE_SERVICE: http://127.0.0.1:4318
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-gate-logs
+          path: tmp/verify-all/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: always()
         with:

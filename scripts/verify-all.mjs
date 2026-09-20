@@ -5,7 +5,9 @@
 // state, and regressions they would have caught reached releases. This
 // discovers every scripts/verify-*.mjs instead, so adding a gate is enough to
 // make it run, and a gate that cannot run says so rather than passing quietly.
-import { readdir } from 'node:fs/promises';
+import { readdir, mkdir, writeFile } from 'node:fs/promises';
+import { createWriteStream } from 'node:fs';
+import { finished } from 'node:stream/promises';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -15,6 +17,7 @@ import { argv, env, exit } from 'node:process';
 const ROOT = resolve('dist/client');
 const PORT = Number(env.PEBBLE_VERIFY_PORT ?? 4201);
 const TIMEOUT_MS = Number(env.PEBBLE_VERIFY_TIMEOUT_MS ?? 600000);
+const OUTPUT = resolve('tmp/verify-all');
 
 /**
  * Gates needing locally supplied material. Each key was taken from the gate's
@@ -32,6 +35,8 @@ const REQUIREMENTS = {
   'verify-fidelity-run': ['PEBBLE_FIRMWARE_DIR'],
   'verify-linux-arm-build': ['PEBBLE_LINUX_IMAGE', 'PEBBLE_LINUX_APKS'],
   'verify-linux-browser': ['PEBBLE_LINUX_IMAGE'],
+  'verify-phone-port-contract': ['PEBBLE_CLAY_ARCHIVE'],
+  'verify-resource-service-browser': ['PEBBLE_RESOURCE_SERVICE'],
   'verify-sensor-reference': ['PEBBLE_FIRMWARE_DIR', 'PEBBLE_SENSOR_PBW'],
   'verify-store-watchface-browser': ['PEBBLE_STORE_PBW'],
 };
@@ -92,15 +97,26 @@ function run(script) {
   return new Promise((done) => {
     const started = Date.now();
     const child = spawn(process.execPath, [...process.execArgv, script], {
-      env: { PEBBLE_BROWSERS: env.PEBBLE_BROWSERS ?? 'chromium', ...env },
+      env: {
+        ...env,
+        PEBBLE_BROWSERS: env.PEBBLE_BROWSERS ?? 'chromium',
+        PEBBLE_BROWSER_URL: env.PEBBLE_BROWSER_URL ?? `http://127.0.0.1:${PORT}/`,
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
-    child.stdout.on('data', (c) => (output += c));
-    child.stderr.on('data', (c) => (output += c));
+    const log = createWriteStream(join(OUTPUT, script.split('/').at(-1) + '.log'));
+    const record = (chunk) => {
+      log.write(chunk);
+      output = (output + chunk).slice(-4000);
+    };
+    child.stdout.on('data', record);
+    child.stderr.on('data', record);
     const timer = setTimeout(() => child.kill('SIGKILL'), TIMEOUT_MS);
-    child.on('close', (code, signal) => {
+    child.on('close', async (code, signal) => {
       clearTimeout(timer);
+      log.end();
+      await finished(log);
       done({
         code: code ?? 1,
         signal,
@@ -120,6 +136,7 @@ const names = (await readdir('scripts'))
   .sort();
 
 const server = await serve();
+await mkdir(OUTPUT, { recursive: true });
 console.log(`Serving ${ROOT} on http://127.0.0.1:${PORT} for ${names.length} gates\n`);
 
 const results = [];
@@ -162,4 +179,5 @@ console.log(
     ` of ${results.length} gates`,
 );
 for (const r of failed) console.log(`  failed: ${r.name} — ${r.detail}`);
+await writeFile(join(OUTPUT, 'results.json'), JSON.stringify(results, null, 2) + '\n');
 exit(failed.length ? 1 : 0);

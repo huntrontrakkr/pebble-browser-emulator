@@ -7,6 +7,24 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## Browser-suite CI prerequisites
+
+The discovered browser suite includes the phone port contract and download-service
+smoke test. CI now downloads the pinned Clay 1.0.4 archive and starts the local resource
+service, waits for `/v1/status`, and stops it when the suite exits. Both gates remain
+enabled in CI; local runs without their explicit prerequisites report skips. Full gate
+output and the result summary are retained in the `browser-gate-logs` artifact. A custom
+suite port is also passed to browser gates through `PEBBLE_BROWSER_URL`.
+
+Validation of this correction: the three suite-runner regression tests pass and the
+workflow parses. The full test run records 463 tests, 452 passes, 11 skips and no
+failures. The readiness probe and the Clay archive's pinned SHA-512 are exercised by the
+workflow rather than checked here: this environment cannot download the archive, build the
+Gradle companion or install Chromium, so the complete browser suite is confirmed only by a
+GitHub Actions run. The preceding run of the discovered suite recorded 11 passes, 12 skips
+and two failures, both of which were the absent prerequisites this section supplies. No new
+firmware or browser compatibility claim is made by this correction.
+
 ## Generic release and compatibility census
 
 Physical-device bring-up is paused at its existing evidence gates. The three generic
@@ -146,7 +164,6 @@ stayed blank until a reload. Both commands are now handled without the core. The
 predates the MPU work and reproduced in about half of scripted cancel-then-restart attempts
 on the previous commit; the fix passed eight consecutive attempts, and a regression test
 drives the race directly through a blocked `init` fetch.
-
 
 ## Hardware fidelity work
 
@@ -420,7 +437,7 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
 | Capability                 | Verified scope                                                                                                                                                                                                                                                                                 |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Firmware execution         | Unchanged official `qemu_flint`, `qemu_emery`, `qemu_gabbro` PebbleOS 4.37.0; Emery 4.36.0 also passes the installation/input workflow.                                                                                                                                                        |
-| Physical and older watches | Obelix PVT/Getafix DVT2 execute unchanged through bounded early clocks, PMU, watchdog, pin and wake setup to USART1; full physical and legacy firmware boots remain unimplemented.                                                                                                                         |
+| Physical and older watches | Obelix PVT/Getafix DVT2 execute unchanged through bounded early clocks, PMU, watchdog, pin and wake setup to USART1; full physical and legacy firmware boots remain unimplemented.                                                                                                             |
 | GitHub source              | Public repositories, commit-pinned downloads, branches/subfolders, local ZIP and folder import; unsupported build behavior reports an error.                                                                                                                                                   |
 | Linux build sandbox        | Local container2wasm WASI image, custom YAML/shell commands, imported dependencies, quotas, cancellation and artifact export. Python + actual ARM GCC object generation verified; full SDK/Waf PBW gate remains open.                                                                          |
 | Native C builds            | SDK 4.33.1 headers/libraries/defines/limits for Aplite, Basalt, Chalk, Diorite, Emery, Flint and Gabbro; modern and legacy SDK 3 metadata.                                                                                                                                                     |
