@@ -117,6 +117,14 @@ jobs:
           ENDPOINT: ${{ vars.PEBBLE_SERVICE_ENDPOINT }}
           RELAY_KEY: ${{ secrets.PEBBLE_RELAY_KEY }}
         run: node scripts/write-service-config.mjs dist/client/service-config.json
+      # Writes the CNAME Pages needs and repoints the absolute link-preview
+      # URLs. With the variable unset this is a no-op and the copy publishes at
+      # the default address.
+      - name: Prepare the published copy for its domain
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          SITE_DOMAIN: ${{ vars.PEBBLE_SITE_DOMAIN }}
+        run: node scripts/publish-site.mjs dist/client
       - name: Package tested website for GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4

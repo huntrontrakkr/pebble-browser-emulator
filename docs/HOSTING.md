@@ -37,7 +37,48 @@ Saved files, offline downloads and settings belong to the site's origin. They do
 automatically from the previous Sites address, or to a future custom domain. Reimport local
 files and download the desired offline watch at the new address.
 
+## Publishing at your own domain
+
+A subdomain, not an apex: a subdomain is a single `CNAME` record, while an apex needs Pages'
+`A`/`AAAA` addresses and has to be revisited whenever they change.
+
+1. At the DNS provider for the domain, add
+
+   ```
+   pebble.example.com.   CNAME   huntrontrakkr.github.io.
+   ```
+
+   The target is the account's Pages host, not the project path, and it keeps the trailing
+   dot if the provider expects fully qualified names.
+
+2. Set the repository variable `PEBBLE_SITE_DOMAIN` to the bare hostname, `pebble.example.com`.
+   The next `main` deploy writes the `CNAME` file Pages needs into the artifact and repoints
+   the absolute link-preview URLs. Leaving the variable unset publishes at the default
+   address and changes nothing.
+
+3. In **Settings → Pages**, set the custom domain to the same hostname, wait for the DNS
+   check, then enable **Enforce HTTPS**. The certificate is issued automatically and can take
+   a few minutes.
+
+Order matters only in that the DNS record should exist before the Pages check runs;
+publishing the `CNAME` file first is harmless.
+
+The application itself needs no change. Its base URL is relative, the service worker is
+scoped, and preview routes are fragments, so a domain root works exactly as the repository
+subdirectory did. Two consequences are worth stating plainly. Saved files, offline downloads
+and settings belong to an origin and do **not** follow the move; visitors reimport at the new
+address. And `verify-hosted-site.mjs` checks whatever `page_url` the deployment reports, so it
+follows the custom domain without configuration.
+
 ## Optional service and domains
+
+The relay and download service is a Node process and GitHub Pages cannot run it, so it needs
+a host of its own -- `relay.example.com` alongside the site, on any platform that runs a
+container or a Node process. Do not move it to an edge runtime: its SSRF defence replaces DNS
+resolution at connect time, which those runtimes do not offer, and porting it there drops that
+protection silently. Its `RESOURCE_ALLOWED_ORIGINS` must name the site's new origin exactly,
+and `PEBBLE_SERVICE_ENDPOINT` plus `PEBBLE_RELAY_KEY` point the published copy at it. Read the
+operational cost in [optional services](OPTIONAL_SERVICES.md) before exposing one publicly.
 
 GitHub Pages does not run the Node download/cache service. The hosted application keeps it
 disabled by default. Browser downloads work when upstream CORS permits them; local files,
