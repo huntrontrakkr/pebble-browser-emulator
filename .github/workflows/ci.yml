@@ -18,10 +18,18 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      # Caching the Gradle home keeps the distribution and dependencies off the
+      # network on later runs. Without it every run re-downloaded the whole
+      # distribution, and one slow response from services.gradle.org failed the
+      # build before anything was compiled.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            phone-app/**/*.gradle*
+            phone-app/**/gradle-wrapper.properties
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
