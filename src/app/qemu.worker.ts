@@ -19,6 +19,14 @@ import {
 } from './signals.ts';
 import { UartWriter } from './uart-writer.ts';
 import { healthPreferences } from './watch-preferences.ts';
+import {
+  SIMULATED_LOCATION_KEY,
+  WATCH_APP_PREFS_DATABASE,
+  WEATHER_DATABASE,
+  WEATHER_PREFERENCE_KEY,
+  weatherLocationsPreference,
+  weatherRecord,
+} from './weather-records.ts';
 import { ClockBarrier } from './clock-barrier.ts';
 import { signalRoute } from './board-registry.ts';
 import { PresentationBudget, yieldWorker } from './worker-scheduler.ts';
@@ -177,6 +185,7 @@ function applySignal(value: DeviceSignal, scheduledUs = api.spike_ticks() / 64) 
     if (signal.kind === 'connection') {
       linked = signal.connected;
       phoneNeedsUi = true;
+      if (linked) announceCapabilities();
       postMessage({ type: 'connection', connected: linked });
     }
   });
@@ -408,6 +417,22 @@ function createTransport() {
 const CAPABILITY_RUN_STATE = 1n << 0n;
 const CAPABILITY_WEATHER_APP = 1n << 11n;
 const PHONE_CAPABILITIES = CAPABILITY_RUN_STATE | CAPABILITY_WEATHER_APP;
+/**
+ * Tells the watch what this phone supports, without waiting to be asked.
+ *
+ * The firmware requests this once, during a full boot, so a restored startup
+ * checkpoint never sees the request and would keep whatever capability word it
+ * was captured with -- zero, in every checkpoint built before the phone
+ * answered at all. session_remote_version.c handles the response with no
+ * matching request, and comm_session_set_capabilities writes the cached copy
+ * the capability-gated services read, so announcing on every link-up is what
+ * makes weather work on the fast path as well as the slow one.
+ */
+function announceCapabilities(): void {
+  void transport
+    ?.sendPhoneVersion(PHONE_CAPABILITIES)
+    .catch((e) => postMessage({ type: 'error', message: String(e) }));
+}
 function upload(bytes: Uint8Array) {
   const p = api.spike_upload(bytes.length);
   if (!p) throw new Error('Image exceeds the emulator upload limit.');
@@ -747,6 +772,47 @@ self.onmessage = async ({ data }) => {
           heartRate: data.heartRate,
         });
         break;
+      case 'weather': {
+        if (!firmwareReady) throw new Error('Wait for firmware boot before setting the weather.');
+        if (installing || demoApplying)
+          throw new Error('Wait for the current watch operation to finish.');
+        const port = transport!;
+        // The forecast and the location list are only useful together:
+        // weather_service skips an entry whose key the list does not carry.
+        // Publishing the record first and withdrawing the list first keeps the
+        // watch from ever listing a location it has no reading for.
+        if (data.reading) {
+          // The watch's own clock decides whether an entry is stale, so the
+          // record is stamped from it rather than from the browser's clock.
+          const record = weatherRecord({
+            ...data.reading,
+            updatedUtc: Math.floor(api.spike_epoch_ms() / 1000),
+          });
+          await port.insertBlob(WEATHER_DATABASE, SIMULATED_LOCATION_KEY, record);
+          if (commandGeneration !== generation) return;
+          await port.insertBlob(
+            WATCH_APP_PREFS_DATABASE,
+            WEATHER_PREFERENCE_KEY,
+            weatherLocationsPreference([SIMULATED_LOCATION_KEY]),
+          );
+        } else {
+          await port.insertBlob(
+            WATCH_APP_PREFS_DATABASE,
+            WEATHER_PREFERENCE_KEY,
+            weatherLocationsPreference([]),
+          );
+          if (commandGeneration !== generation) return;
+          await port.deleteBlob(WEATHER_DATABASE, SIMULATED_LOCATION_KEY);
+        }
+        if (commandGeneration !== generation) return;
+        postMessage({
+          type: 'weather-applied',
+          generation,
+          revision: data.revision,
+          published: Boolean(data.reading),
+        });
+        break;
+      }
       case 'scenario': {
         if (!firmwareReady) throw new Error('Wait for firmware boot before loading a scenario.');
         const scenario = normalizeScenario(data.scenario);
@@ -787,6 +853,7 @@ self.onmessage = async ({ data }) => {
         if (commandGeneration !== generation) return;
         linked = data.connected;
         phoneNeedsUi = true;
+        if (linked) announceCapabilities();
         postMessage({ type: 'connection', connected: linked });
         break;
       case 'appmessage':
@@ -922,7 +989,10 @@ self.onmessage = async ({ data }) => {
         let outcome = 'Installation failed';
         postMessage({ type: 'install-status', busy: true, message: 'Connecting virtual phone…' });
         try {
-          if (!linked) await transport!.setBluetooth(true);
+          if (!linked) {
+            await transport!.setBluetooth(true);
+            announceCapabilities();
+          }
           linked = true;
           phoneNeedsUi = true;
           postMessage({ type: 'connection', connected: true });

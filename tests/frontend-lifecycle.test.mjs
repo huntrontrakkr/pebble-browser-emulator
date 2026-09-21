@@ -15,6 +15,8 @@ import {
 import { watchModelSpec, modelSource } from '../src/app/watch-model-specs.ts';
 import { boardDescriptor } from '../src/app/board-registry.ts';
 import { screenPoint } from '../src/app/watch-gestures.ts';
+import { WEATHER_CONDITIONS } from '../src/app/weather-records.ts';
+import { coordinateName, fetchForecast, weatherReading } from '../src/app/weather-source.ts';
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
 const { default: ts } = await import(
   pathToFileURL(resolve(repo, 'node_modules/typescript/lib/typescript.js'))
@@ -101,6 +103,10 @@ function makeApp() {
     isFirmwareProfile,
     boardDescriptor,
     screenPoint,
+    WEATHER_CONDITIONS,
+    coordinateName,
+    fetchForecast,
+    weatherReading,
     saveFirmware: async (firmware) => {
       savedFirmwares.push(firmware);
     },

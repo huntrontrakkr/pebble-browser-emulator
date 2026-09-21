@@ -42,6 +42,13 @@ import type { LightingEnvironment } from './watch-lighting.ts';
 import type { OpticalStyle } from './watch-optics.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
+import { WEATHER_CONDITIONS, type WeatherCondition } from './weather-records.ts';
+import {
+  coordinateName,
+  fetchForecast,
+  weatherReading,
+  type WeatherUnits,
+} from './weather-source.ts';
 
 /** The operating system's colour-scheme preference, false where unsupported. */
 function prefersDarkTheme(): boolean {
@@ -211,6 +218,22 @@ export class App implements AfterViewInit, OnDestroy {
   altitude: number | null = null;
   locationHeading: number | null = null;
   speed: number | null = null;
+  /** Off until asked for: the watch should not show weather nobody set. */
+  weatherMode: 'off' | 'live' | 'manual' = 'off';
+  weatherUnits: WeatherUnits = 'celsius';
+  /** Blank follows the simulated position, shown as its coordinates. */
+  weatherLocationName = '';
+  weatherPhrase = 'Partly cloudy';
+  weatherCondition: WeatherCondition = 'PartlyCloudy';
+  weatherTemperature = 18;
+  weatherTodayHigh = 21;
+  weatherTodayLow = 12;
+  weatherTomorrowCondition: WeatherCondition = 'Sun';
+  weatherTomorrowHigh = 23;
+  weatherTomorrowLow = 13;
+  weatherStatus = signal('');
+  weatherBusy = signal(false);
+  readonly weatherConditions = Object.keys(WEATHER_CONDITIONS) as WeatherCondition[];
   phoneStatus = signal('Stopped');
   watchReady = signal(false);
   linked = signal(false);
@@ -969,6 +992,12 @@ export class App implements AfterViewInit, OnDestroy {
       this.demoStatus.set('Demo signal stream stopped by the developer scenario.');
     if (data.type === 'health-settings' && data.generation === this.watchGeneration)
       this.healthStatus.set('Firmware accepted the health preferences.');
+    if (data.type === 'weather-applied' && data.generation === this.watchGeneration)
+      this.weatherStatus.set(
+        data.published
+          ? 'Firmware stored the forecast. Open the Weather app on the watch.'
+          : 'Forecast removed from the watch.',
+      );
     if (data.type === 'clock' && data.generation === this.watchGeneration) {
       this.watchEpochMs = data.epochMs;
       if (!data.direct && this.phoneAccepting)
@@ -1217,6 +1246,90 @@ export class App implements AfterViewInit, OnDestroy {
   }
   cancelSignals() {
     this.qemuWorker?.postMessage({ type: 'scenario-stop' });
+  }
+  /**
+   * Publishes one forecast to the watch's weather database. Live readings come
+   * from Open-Meteo for the simulated position, which is the location the rest
+   * of the emulator reports; manual values go through the same record, so what
+   * the watch reads is identical either way.
+   */
+  async applyWeather() {
+    if (!this.watchReady()) {
+      this.weatherStatus.set('Wait for the watch to finish booting.');
+      return;
+    }
+    if (this.weatherMode === 'off') {
+      this.withdrawWeather();
+      return;
+    }
+    const name = this.weatherLocationName.trim();
+    if (
+      !name &&
+      (!Number.isFinite(this.latitude) || !Number.isFinite(this.longitude))
+    ) {
+      this.weatherStatus.set('Set a location name or valid coordinates first.');
+      return;
+    }
+    this.weatherBusy.set(true);
+    try {
+      let reading;
+      if (this.weatherMode === 'live') {
+        this.weatherStatus.set('Fetching the forecast…');
+        const forecast = await fetchForecast({
+          latitude: this.latitude,
+          longitude: this.longitude,
+          units: this.weatherUnits,
+        });
+        reading = weatherReading(
+          forecast,
+          name || coordinateName(this.latitude, this.longitude),
+          true,
+        );
+        // Show the user what was actually received rather than leaving the
+        // manual fields saying something else.
+        this.weatherCondition = forecast.condition;
+        this.weatherPhrase = forecast.shortPhrase;
+        this.weatherTemperature = forecast.currentTemperature;
+        this.weatherTodayHigh = forecast.todayHigh;
+        this.weatherTodayLow = forecast.todayLow;
+        this.weatherTomorrowCondition = forecast.tomorrowCondition;
+        this.weatherTomorrowHigh = forecast.tomorrowHigh;
+        this.weatherTomorrowLow = forecast.tomorrowLow;
+      } else {
+        reading = weatherReading(
+          {
+            locationName: name,
+            shortPhrase: this.weatherPhrase.trim(),
+            condition: this.weatherCondition,
+            currentTemperature: Math.round(this.weatherTemperature),
+            todayHigh: Math.round(this.weatherTodayHigh),
+            todayLow: Math.round(this.weatherTodayLow),
+            tomorrowCondition: this.weatherTomorrowCondition,
+            tomorrowHigh: Math.round(this.weatherTomorrowHigh),
+            tomorrowLow: Math.round(this.weatherTomorrowLow),
+          },
+          name || coordinateName(this.latitude, this.longitude),
+          false,
+        );
+      }
+      this.weatherStatus.set('Sending to the watch…');
+      this.qemuWorker?.postMessage({ type: 'weather', reading });
+    } catch (error) {
+      // A forecast we could not fetch is reported, never replaced with one we
+      // made up.
+      this.weatherStatus.set(`Weather unavailable: ${(error as Error).message}`);
+    } finally {
+      this.weatherBusy.set(false);
+    }
+  }
+  /** Takes the forecast back off the watch, leaving no stale reading behind. */
+  withdrawWeather() {
+    if (!this.watchReady()) {
+      this.weatherStatus.set('Wait for the watch to finish booting.');
+      return;
+    }
+    this.weatherStatus.set('Removing the forecast…');
+    this.qemuWorker?.postMessage({ type: 'weather', reading: null });
   }
   locationUnavailable() {
     this.phoneWorker?.postMessage({
