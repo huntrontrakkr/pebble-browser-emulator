@@ -984,6 +984,8 @@ export class App implements AfterViewInit, OnDestroy {
         );
         if (!data.popup) {
           this.demoPrepared = true;
+          // Reinstalling ends in the ready report, which publishes the
+          // forecast. Sending it from here as well only races that install.
           this.installPreview();
         }
       }
@@ -1123,6 +1125,7 @@ export class App implements AfterViewInit, OnDestroy {
       if (data.script) this.startPhone();
       this.previewBusy.set(false);
       this.previewStatus.set('Ready. Use the watch buttons to interact.');
+      this.publishSampleWeather();
       this.preview?.collapseOnPhone();
       if (typeof matchMedia === 'function' && matchMedia('(max-width: 780px)').matches)
         requestAnimationFrame(() =>
@@ -1246,6 +1249,36 @@ export class App implements AfterViewInit, OnDestroy {
   }
   cancelSignals() {
     this.qemuWorker?.postMessage({ type: 'scenario-stop' });
+  }
+  /**
+   * Sends the drawer's sample forecast once the watch is actually ready for it.
+   *
+   * It does not travel with the rest of the demo data. That is applied while
+   * the restored startup state is still settling, and the weather database
+   * refuses a record that early with BLOB_DB_INVALID_DATABASE_ID while
+   * accepting the identical one later in the same session, so the forecast
+   * waits for the point the preview declares itself ready.
+   */
+  private publishSampleWeather() {
+    if (!this.watchReady()) return;
+    const settings = this.demoSettings();
+    const w = settings.weather;
+    const reading =
+      settings.enabled && w.enabled
+        ? {
+            locationName: w.locationName,
+            shortPhrase: w.phrase,
+            currentTemperature: w.temperature,
+            condition: w.condition,
+            todayHigh: w.todayHigh,
+            todayLow: w.todayLow,
+            tomorrowCondition: w.tomorrowCondition,
+            tomorrowHigh: w.tomorrowHigh,
+            tomorrowLow: w.tomorrowLow,
+            isCurrentLocation: settings.location,
+          }
+        : null;
+    this.qemuWorker?.postMessage({ type: 'weather', reading });
   }
   /**
    * Publishes one forecast to the watch's weather database. Live readings come

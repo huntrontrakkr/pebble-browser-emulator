@@ -1,4 +1,5 @@
 import { normalizeSignal, type DeviceSignal } from './signals.ts';
+import { WEATHER_CONDITIONS, type WeatherCondition } from './weather-records.ts';
 
 export interface DemoNotification {
   id: number;
@@ -13,6 +14,25 @@ export interface DemoCalendarEvent {
   startMinutes: number;
   duration: number;
   enabled: boolean;
+}
+/**
+ * A sample forecast, in the same spirit as the sample battery and messages:
+ * plainly simulated values the user can edit, not a reading from anywhere.
+ * Live weather is a separate, explicit action rather than a stored preference,
+ * so opening the preview never reaches a third party on its own.
+ */
+export interface DemoWeather {
+  enabled: boolean;
+  units: 'celsius' | 'fahrenheit';
+  locationName: string;
+  phrase: string;
+  condition: WeatherCondition;
+  temperature: number;
+  todayHigh: number;
+  todayLow: number;
+  tomorrowCondition: WeatherCondition;
+  tomorrowHigh: number;
+  tomorrowLow: number;
 }
 export interface DemoSettings {
   version: 1;
@@ -31,6 +51,24 @@ export interface DemoSettings {
   accuracy: number;
   notifications: DemoNotification[];
   calendar: DemoCalendarEvent[];
+  weather: DemoWeather;
+}
+
+/** Matches the default coordinates above, in the units that region uses. */
+export function defaultDemoWeather(): DemoWeather {
+  return {
+    enabled: true,
+    units: 'fahrenheit',
+    locationName: 'San Francisco',
+    phrase: 'Partly cloudy',
+    condition: 'PartlyCloudy',
+    temperature: 64,
+    todayHigh: 70,
+    todayLow: 55,
+    tomorrowCondition: 'Sun',
+    tomorrowHigh: 73,
+    tomorrowLow: 57,
+  };
 }
 
 export function defaultDemoSettings(): DemoSettings {
@@ -71,6 +109,7 @@ export function defaultDemoSettings(): DemoSettings {
         enabled: true,
       },
     ],
+    weather: defaultDemoWeather(),
   };
 }
 
@@ -100,6 +139,37 @@ const text = (value: unknown, max: number, label: string) => {
   )
     throw new Error(`${label} must contain 1–${max} UTF-8 bytes of text.`);
   return value;
+};
+
+/**
+ * Weather arrived after the first settings were saved, so an absent block is
+ * the documented default rather than a reason to discard everything the user
+ * had configured. Present-but-wrong is still an error.
+ */
+const weather = (value: unknown): DemoWeather => {
+  if (value === undefined) return defaultDemoWeather();
+  const w = value as DemoWeather;
+  if (!w || typeof w !== 'object') throw new Error('Invalid sample weather.');
+  const condition = (input: unknown, label: string): WeatherCondition => {
+    if (typeof input !== 'string' || !(input in WEATHER_CONDITIONS))
+      throw new Error(`${label} must be a weather type the watch can draw.`);
+    return input as WeatherCondition;
+  };
+  if (w.units !== 'celsius' && w.units !== 'fahrenheit')
+    throw new Error('Temperature units must be celsius or fahrenheit.');
+  return {
+    enabled: flag(w.enabled),
+    units: w.units,
+    locationName: text(w.locationName, 62, 'Weather location name'),
+    phrase: w.phrase === '' ? '' : text(w.phrase, 30, 'Weather condition wording'),
+    condition: condition(w.condition, 'Weather condition'),
+    temperature: number(w.temperature, -32768, 32767, 'Temperature'),
+    todayHigh: number(w.todayHigh, -32768, 32767, "Today's high"),
+    todayLow: number(w.todayLow, -32768, 32767, "Today's low"),
+    tomorrowCondition: condition(w.tomorrowCondition, 'Tomorrow weather condition'),
+    tomorrowHigh: number(w.tomorrowHigh, -32768, 32767, "Tomorrow's high"),
+    tomorrowLow: number(w.tomorrowLow, -32768, 32767, "Tomorrow's low"),
+  };
 };
 
 /** Rebuild untrusted persisted/Worker input; never merge unknown object properties. */
@@ -146,6 +216,7 @@ export function normalizeDemoSettings(value: unknown): DemoSettings {
       title: text(n.title, 96, 'Notification title'),
       body: text(n.body, 512, 'Notification body'),
     })),
+    weather: weather(v.weather),
     calendar: rows(v.calendar, (e) => ({
       id: number(e?.id, 0, 7, 'Calendar ID'),
       enabled: flag(e.enabled),

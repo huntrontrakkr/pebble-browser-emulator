@@ -483,7 +483,10 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
   asserts the firmware's BlobDB answers for publication and withdrawal. Readings are either
   fetched live from Open-Meteo for the simulated position or set by hand; a field the
   forecast omits is stored as the firmware's unknown-temperature sentinel and a failed
-  request writes nothing. The live fetch is verified against Open-Meteo's published OpenAPI
+  request writes nothing. The preview ships a sample forecast in the simulated-inputs
+  drawer, so a visitor who configures nothing still sees weather on the watch, and opening
+  the preview reaches no third party on its own. The live fetch is verified against
+  Open-Meteo's published OpenAPI
   schema and through an injected transport, not against the live service: the development
   environment's egress policy blocks `api.open-meteo.com`. The richer v4 record, and with it
   the seven-day forecast, hourly data and per-day precipitation, wind and UV, is not written;

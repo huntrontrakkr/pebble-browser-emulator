@@ -49,7 +49,27 @@ try {
     await page
       .getByText('Ready. Use the watch buttons to interact.', { exact: true })
       .waitFor({ timeout: 300000 });
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
+
+    // A first-time visitor configures nothing, so the drawer's sample forecast
+    // has to reach the watch on its own. It is deliberately not sent with the
+    // rest of the demo data: that early, the weather database refuses a record
+    // with BLOB_DB_INVALID_DATABASE_ID and accepts the identical one later, so
+    // this also guards the timing.
+    const unprompted = await page.evaluate(() => window.qa.blob);
+    const published = unprompted.filter((p) => p.direction === 'phone').map((p) => p.bytes[3]);
+    assert.ok(published.includes(WEATHER_DATABASE), 'sample forecast published unprompted');
+    assert.ok(published.includes(WATCH_APP_PREFS_DATABASE), 'its location listed unprompted');
+    for (const reply of unprompted.filter((p) => p.direction === 'watch'))
+      assert.equal(reply.bytes[2], 1, `firmware accepted the sample forecast: ${reply.bytes[2]}`);
+    assert.deepEqual(
+      await page.evaluate(() => window.qa.errors),
+      [],
+      'publishing the sample forecast raises nothing',
+    );
+    result.unpromptedDatabases = published.filter((db) =>
+      [WEATHER_DATABASE, WATCH_APP_PREFS_DATABASE].includes(db),
+    );
 
     await page.getByRole('button', { name: 'Developer tools' }).click();
     await page.getByRole('button', { name: 'Inputs', exact: true }).click();
@@ -63,7 +83,12 @@ try {
 
     await page.evaluate(() => (window.qa.blob.length = 0));
     await page.getByRole('button', { name: 'Send weather to watch' }).click();
-    await page.getByText('Firmware stored the forecast.', { exact: false }).waitFor();
+    // Wait on the firmware answering both writes. The status line already says
+    // the forecast was stored, from the sample published when the preview came
+    // up, so waiting for that text would not wait at all.
+    await page.waitForFunction(
+      () => window.qa.blob.filter((p) => p.direction === 'watch').length >= 2,
+    );
 
     // The firmware's own answers, not ours: BLOB_DB_SUCCESS is 0x01.
     const blob = await page.evaluate(() => window.qa.blob);
@@ -86,7 +111,9 @@ try {
     await page.evaluate(() => (window.qa.blob.length = 0));
     await page.getByLabel('Weather source', { exact: true }).first().selectOption('off');
     await page.getByRole('button', { name: 'Remove forecast' }).click();
-    await page.getByText('Forecast removed from the watch.', { exact: true }).waitFor();
+    await page.waitForFunction(
+      () => window.qa.blob.filter((p) => p.direction === 'watch').length >= 2,
+    );
     const withdrawal = await page.evaluate(() => window.qa.blob);
     const withdrawn = withdrawal.filter((p) => p.direction === 'phone');
     assert.equal(withdrawn.length, 2, 'the list is emptied and the record deleted');

@@ -26,6 +26,7 @@ import {
   WEATHER_PREFERENCE_KEY,
   weatherLocationsPreference,
   weatherRecord,
+  type WeatherReading,
 } from './weather-records.ts';
 import { ClockBarrier } from './clock-barrier.ts';
 import { signalRoute } from './board-registry.ts';
@@ -428,6 +429,40 @@ const PHONE_CAPABILITIES = CAPABILITY_RUN_STATE | CAPABILITY_WEATHER_APP;
  * the capability-gated services read, so announcing on every link-up is what
  * makes weather work on the fast path as well as the slow one.
  */
+/**
+ * Publishes or withdraws the one forecast this phone owns.
+ *
+ * The record and the location list are only useful together: weather_service
+ * skips an entry whose key the list does not carry. Publishing the record
+ * first and withdrawing the list first keeps the watch from ever listing a
+ * location it has no reading for.
+ */
+async function publishWeather(
+  port: PebbleTransport,
+  reading: Omit<WeatherReading, 'updatedUtc'> | null,
+): Promise<void> {
+  if (reading) {
+    // The watch's own clock decides whether an entry is stale, so the record
+    // is stamped from it rather than from the browser's clock.
+    const record = weatherRecord({
+      ...reading,
+      updatedUtc: Math.floor(api.spike_epoch_ms() / 1000),
+    });
+    await port.insertBlob(WEATHER_DATABASE, SIMULATED_LOCATION_KEY, record);
+    await port.insertBlob(
+      WATCH_APP_PREFS_DATABASE,
+      WEATHER_PREFERENCE_KEY,
+      weatherLocationsPreference([SIMULATED_LOCATION_KEY]),
+    );
+    return;
+  }
+  await port.insertBlob(
+    WATCH_APP_PREFS_DATABASE,
+    WEATHER_PREFERENCE_KEY,
+    weatherLocationsPreference([]),
+  );
+  await port.deleteBlob(WEATHER_DATABASE, SIMULATED_LOCATION_KEY);
+}
 function announceCapabilities(): void {
   void transport
     ?.sendPhoneVersion(PHONE_CAPABILITIES)
@@ -776,34 +811,7 @@ self.onmessage = async ({ data }) => {
         if (!firmwareReady) throw new Error('Wait for firmware boot before setting the weather.');
         if (installing || demoApplying)
           throw new Error('Wait for the current watch operation to finish.');
-        const port = transport!;
-        // The forecast and the location list are only useful together:
-        // weather_service skips an entry whose key the list does not carry.
-        // Publishing the record first and withdrawing the list first keeps the
-        // watch from ever listing a location it has no reading for.
-        if (data.reading) {
-          // The watch's own clock decides whether an entry is stale, so the
-          // record is stamped from it rather than from the browser's clock.
-          const record = weatherRecord({
-            ...data.reading,
-            updatedUtc: Math.floor(api.spike_epoch_ms() / 1000),
-          });
-          await port.insertBlob(WEATHER_DATABASE, SIMULATED_LOCATION_KEY, record);
-          if (commandGeneration !== generation) return;
-          await port.insertBlob(
-            WATCH_APP_PREFS_DATABASE,
-            WEATHER_PREFERENCE_KEY,
-            weatherLocationsPreference([SIMULATED_LOCATION_KEY]),
-          );
-        } else {
-          await port.insertBlob(
-            WATCH_APP_PREFS_DATABASE,
-            WEATHER_PREFERENCE_KEY,
-            weatherLocationsPreference([]),
-          );
-          if (commandGeneration !== generation) return;
-          await port.deleteBlob(WEATHER_DATABASE, SIMULATED_LOCATION_KEY);
-        }
+        await publishWeather(transport!, data.reading ?? null);
         if (commandGeneration !== generation) return;
         postMessage({
           type: 'weather-applied',

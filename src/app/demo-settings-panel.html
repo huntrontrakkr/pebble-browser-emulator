@@ -120,6 +120,77 @@
             Delivered to a running watch app’s phone script when it requests location.
           </p>
         </details>
+        <details>
+          <summary>Weather</summary>
+          <label class="check"
+            ><input type="checkbox" [(ngModel)]="draft.weather.enabled" /> Supply a sample
+            forecast</label
+          >
+          <div class="input-grid">
+            <label
+              >Location name<input [(ngModel)]="draft.weather.locationName" maxlength="62" /></label
+            ><label
+              >Units<select aria-label="Temperature units" [(ngModel)]="draft.weather.units">
+                <option value="fahrenheit">Fahrenheit</option>
+                <option value="celsius">Celsius</option>
+              </select></label
+            >
+          </div>
+          <div class="input-grid">
+            <label>Now (&deg;)<input type="number" [(ngModel)]="draft.weather.temperature" /></label
+            ><label
+              >Condition<select
+                aria-label="Weather condition"
+                [(ngModel)]="draft.weather.condition"
+              >
+                @for (name of conditions; track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select></label
+            >
+          </div>
+          <label
+            >Condition wording<input [(ngModel)]="draft.weather.phrase" maxlength="30"
+          /></label>
+          <div class="input-grid">
+            <label
+              >Today high (&deg;)<input
+                type="number"
+                [(ngModel)]="draft.weather.todayHigh" /></label
+            ><label
+              >Today low (&deg;)<input type="number" [(ngModel)]="draft.weather.todayLow"
+            /></label>
+          </div>
+          <div class="input-grid">
+            <label
+              >Tomorrow high (&deg;)<input
+                type="number"
+                [(ngModel)]="draft.weather.tomorrowHigh" /></label
+            ><label
+              >Tomorrow low (&deg;)<input
+                type="number"
+                [(ngModel)]="draft.weather.tomorrowLow" /></label
+            ><label
+              >Tomorrow condition<select
+                aria-label="Tomorrow weather condition"
+                [(ngModel)]="draft.weather.tomorrowCondition"
+              >
+                @for (name of conditions; track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select></label
+            >
+          </div>
+          <button type="button" [disabled]="!ready || busy || liveBusy()" (click)="useLive()">
+            Use live weather for this location
+          </button>
+          <p class="help">
+            Saved values are sample data, like the messages above, and reach the watch's own Weather
+            app through its weather database. Live weather fetches the real forecast for the
+            coordinates above from Open-Meteo, once, when you press the button; nothing is requested
+            otherwise.
+          </p>
+        </details>
       </section>
       <section class="settings-section">
         <div class="settings-section-heading">

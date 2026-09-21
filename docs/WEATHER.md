@@ -83,6 +83,17 @@ draw. A code outside that table is reported as `Unknown`, not guessed at.
 
 Manual mode sets every field by hand and needs no network. Off withdraws both records.
 
+The preview ships a sample forecast in the **Simulated inputs** drawer, beside the sample
+battery, messages and calendar events, so the Weather app has something to draw without
+anyone hunting for a switch. It is plainly simulated and fully editable, and **Use live
+weather for this location** replaces it with the real forecast for the sample coordinates,
+once, when pressed. Opening the preview reaches no third party on its own.
+
+The sample forecast does not travel with the rest of the demo data. That is applied while
+restored startup state is still settling, and at that point the weather database refuses a
+record with `BLOB_DB_INVALID_DATABASE_ID` while accepting the identical one later in the
+same session, so the forecast is published when the preview reports itself ready.
+
 Nothing here invents a reading. A temperature the forecast omits is stored as
 `WEATHER_SERVICE_LOCATION_FORECAST_UNKNOWN_TEMP` (`INT16_MAX`), which the watch draws as
 `--°`, and a failed request is reported with nothing written to the watch.
@@ -93,14 +104,17 @@ Nothing here invents a reading. A temperature the forecast omits is stored as
 size and range refusals, the WMO mapping, the request shape and the failure paths.
 
 `node scripts/verify-weather-browser.mjs` boots `qemu_emery` from a restored checkpoint in
-the production UI, publishes a manual forecast and withdraws it, and asserts the firmware's
+the production UI. It first asserts that a visitor who configures nothing still gets the
+sample forecast into the watch, which is what the publication timing above protects. It
+then publishes a manual forecast and withdraws it, and asserts the firmware's
 own BlobDB answers: both records accepted with `BLOB_DB_SUCCESS`, written to databases 5 and
 9, withdrawn list-first and record-second. It leaves a watch screenshot beside its results as
 evidence; the drawn forecast is checked by eye, not asserted.
 
 Observed on `qemu_emery` 4.37.0: the launcher lists `Palo Alto / 68° - Sunny` with the sun
 icon, and the Weather app draws the location, current temperature, condition, date and the
-two-day high/low chart with the values that were sent.
+two-day high/low chart with the values that were sent. On a phone-sized viewport with no
+stored settings and nothing clicked, it draws the sample forecast the same way.
 
 The live path is verified against Open-Meteo's published OpenAPI schema and through an
 injected transport. It has **not** been run against the live service, because the

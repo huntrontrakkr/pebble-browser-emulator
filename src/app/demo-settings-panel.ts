@@ -12,6 +12,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { defaultDemoSettings, normalizeDemoSettings, type DemoSettings } from './demo-settings.ts';
 import { HEALTH_METRICS, type DeviceSignal } from './signals.ts';
+import { WEATHER_CONDITIONS, type WeatherCondition } from './weather-records.ts';
+import { coordinateName, fetchForecast } from './weather-source.ts';
 
 @Component({
   selector: 'demo-settings-panel',
@@ -32,6 +34,8 @@ export class DemoSettingsPanel implements OnInit, AfterViewInit {
   draft = defaultDemoSettings();
   error = signal('');
   metrics = HEALTH_METRICS;
+  conditions = Object.keys(WEATHER_CONDITIONS) as WeatherCondition[];
+  liveBusy = signal(false);
   ngOnInit() {
     this.draft = structuredClone(this.settings);
   }
@@ -59,6 +63,44 @@ export class DemoSettingsPanel implements OnInit, AfterViewInit {
       this.error.set('');
     } catch (e) {
       this.error.set(String(e));
+    }
+  }
+  /**
+   * Replaces the sample forecast with the real one for these coordinates. The
+   * reading is written into the draft rather than sent straight to the watch,
+   * so what the user sees is what is saved, and a failure leaves the previous
+   * sample values alone instead of half-applying.
+   */
+  async useLive() {
+    this.liveBusy.set(true);
+    try {
+      const forecast = await fetchForecast({
+        latitude: this.draft.latitude,
+        longitude: this.draft.longitude,
+        units: this.draft.weather.units,
+      });
+      this.draft.weather = {
+        ...this.draft.weather,
+        enabled: true,
+        locationName:
+          this.draft.weather.locationName.trim() ||
+          coordinateName(this.draft.latitude, this.draft.longitude),
+        phrase: forecast.shortPhrase,
+        condition: forecast.condition,
+        temperature: forecast.currentTemperature,
+        todayHigh: forecast.todayHigh,
+        todayLow: forecast.todayLow,
+        tomorrowCondition: forecast.tomorrowCondition,
+        tomorrowHigh: forecast.tomorrowHigh,
+        tomorrowLow: forecast.tomorrowLow,
+      };
+      this.error.set('');
+      this.save();
+    } catch (e) {
+      // Reported, never replaced with a forecast we made up.
+      this.error.set(`Live weather unavailable: ${(e as Error).message}`);
+    } finally {
+      this.liveBusy.set(false);
     }
   }
   addNotification() {

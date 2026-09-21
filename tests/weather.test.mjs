@@ -19,6 +19,11 @@ import {
   parseForecast,
   weatherReading,
 } from '../src/app/weather-source.ts';
+import {
+  defaultDemoSettings,
+  defaultDemoWeather,
+  normalizeDemoSettings,
+} from '../src/app/demo-settings.ts';
 
 const hex = (bytes) => Buffer.from(bytes).toString('hex');
 const base = {
@@ -264,4 +269,45 @@ test('a successful request is parsed through the same path', async () => {
 test('coordinates make a readable location name in both hemispheres', () => {
   assert.equal(coordinateName(37.7749, -122.4194), '37.77°N 122.42°W');
   assert.equal(coordinateName(-33.8688, 151.2093), '33.87°S 151.21°E');
+});
+
+test('settings saved before weather existed keep the rest of their configuration', () => {
+  const stored = defaultDemoSettings();
+  delete stored.weather;
+  stored.battery = 42;
+  stored.notifications = [{ id: 0, title: 'Kept', body: 'Still here.', enabled: true }];
+  const settings = normalizeDemoSettings(stored);
+  // The absent block is the documented default, not a reason to discard a
+  // configuration the user had already saved.
+  assert.deepEqual(settings.weather, defaultDemoWeather());
+  assert.equal(settings.battery, 42);
+  assert.equal(settings.notifications[0].title, 'Kept');
+});
+
+test('a present but malformed weather block is still an error', () => {
+  const bad = (weather) => () => normalizeDemoSettings({ ...defaultDemoSettings(), weather });
+  assert.throws(bad({ ...defaultDemoWeather(), units: 'kelvin' }), /celsius or fahrenheit/);
+  assert.throws(bad({ ...defaultDemoWeather(), condition: 'Drizzle' }), /weather type/);
+  assert.throws(bad({ ...defaultDemoWeather(), temperature: 1.5 }), /whole number/);
+  assert.throws(bad({ ...defaultDemoWeather(), locationName: '' }), /location name/);
+  assert.throws(bad({ ...defaultDemoWeather(), enabled: 'yes' }), /Invalid demo switch/);
+});
+
+test('the sample forecast the drawer ships is one the watch will accept', () => {
+  const w = defaultDemoWeather();
+  const record = weatherRecord({
+    locationName: w.locationName,
+    shortPhrase: w.phrase,
+    currentTemperature: w.temperature,
+    condition: w.condition,
+    todayHigh: w.todayHigh,
+    todayLow: w.todayLow,
+    tomorrowCondition: w.tomorrowCondition,
+    tomorrowHigh: w.tomorrowHigh,
+    tomorrowLow: w.tomorrowLow,
+    updatedUtc: 1789947300,
+    isCurrentLocation: true,
+  });
+  assert.equal(record[0], 3);
+  assert.ok(record.length >= 20 && record.length <= 116);
 });
