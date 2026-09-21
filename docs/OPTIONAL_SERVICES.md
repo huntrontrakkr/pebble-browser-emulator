@@ -18,11 +18,11 @@ enter `http://127.0.0.1:4318`, enable **Use a download service**, and select **T
 Remote endpoints require HTTPS. The same Preferences section can disable the service or
 clear the separate device cache of public downloads.
 
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `RESOURCE_PORT` | `4318` | Local HTTP port |
+| Setting                    | Default                                                                                   | Meaning                                |
+| -------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------- |
+| `RESOURCE_PORT`            | `4318`                                                                                    | Local HTTP port                        |
 | `RESOURCE_ALLOWED_ORIGINS` | `http://localhost:4201,http://127.0.0.1:4201,http://localhost:4202,http://127.0.0.1:4202` | Comma-separated exact frontend origins |
-| `RESOURCE_CACHE_DIR` | `tmp/resource-service-cache` | Local disk cache directory |
+| `RESOURCE_CACHE_DIR`       | `tmp/resource-service-cache`                                                              | Local disk cache directory             |
 
 For Angular's default port 4200, include its exact origin in `RESOURCE_ALLOWED_ORIGINS`.
 An HTTPS site needs an HTTPS endpoint rather than a localhost HTTP service. Deployment,
@@ -45,11 +45,11 @@ The portable Fetch handler has an optional bounded 16 MiB memory cache; artifact
 than that still download but are not retained in memory. Edge hosting and its memory limits
 have not been validated.
 
-| Endpoint | Purpose |
-| --- | --- |
-| `GET /v1/status` | Versioned protocol/capability discovery |
+| Endpoint                 | Purpose                                                               |
+| ------------------------ | --------------------------------------------------------------------- |
+| `GET /v1/status`         | Versioned protocol/capability discovery                               |
 | `GET /v1/resource?url=…` | Approved public resource, with SHA-256, ETag and cache status headers |
-| `GET /v1/blobs/{sha256}` | Immutable content lookup while those bytes remain cached |
+| `GET /v1/blobs/{sha256}` | Immutable content lookup while those bytes remain cached              |
 
 Only GET/HEAD/OPTIONS are supported. The service permits specific GitHub API/raw/release and
 Pebble store/asset hosts and paths. Every redirect is checked, including known GitHub release
@@ -59,9 +59,53 @@ limits concurrency to one. Incoming cookies, authorization headers and request b
 never forwarded. CORS uses an exact configured origin list; it is not authentication.
 
 Remote HTML is rejected and responses are attachments with `nosniff`. The endpoint is not
-an arbitrary URL proxy. It does not host configuration pages, relay guest phone APIs, execute
-repositories, compile PBWs or run firmware. It receives the public URLs it handles, so enable
+an arbitrary URL proxy. It does not host configuration pages, execute repositories, compile
+PBWs or run firmware. Relaying a watchface's own phone requests is a **separate** endpoint
+with separate rules, described below, and a service may offer downloads while refusing it. It receives the public URLs it handles, so enable
 only a service you trust. No service endpoint, credential or token is included in preview links.
+
+## Relaying a watchface's phone requests
+
+A watchface's phone script can only reach sites that permit browser requests. On a real
+Pebble its JavaScript ran inside a native app, where no such rule exists, so authors had no
+reason to send CORS headers and most did not. In a browser those requests fail, and no
+amount of work inside this application can change that: it is enforced outside our reach.
+
+`/v1/app-fetch` is the way out, and it is off unless a relay key is configured. A request
+the browser refuses is retried through it; with no key, the request simply fails and nothing
+is sent anywhere. That is the contract the static application keeps.
+
+Configure it in **Preferences → Download service** by entering the service URL and its relay
+key. A hosted copy may supply its own by serving `service-config.json` beside the
+application; a visitor's own entry wins over it. An endpoint and a key are always taken as a
+pair from the same source, never mixed, because a key is issued for one service and pairing
+it with another's endpoint would hand that service a credential it was not given.
+
+The key is not a password. A hosted copy ships one to every visitor's browser, so treat it
+as a revocation handle: publishing a new file rotates it. It exists to make casual use of
+someone else's relay inconvenient, not to authenticate anyone.
+
+Relayed requests are `GET`/`HEAD` only, bounded to 1 MiB and 20 seconds, spend a request
+budget separate from the download allowance, and never carry cookies, authorization headers
+or request bodies. Because a watchface may call any weather or transit API, the relay cannot
+allowlist hosts; the protection is the address it ends up talking to, not the name it asked
+for. Every connection resolves through a lookup that refuses private, loopback, link-local,
+carrier and cloud-metadata space, and each redirect hop is validated the same way. This
+needs connection-level control, so the relay is Node-only: moving it to an edge runtime
+would silently drop that defence.
+
+Two things it cannot do. It cannot revive a backend that no longer exists -- a dead host
+returns 502 through the relay and the watchface still shows nothing, which at least says
+plainly whose server failed. And running one publicly means operating an open proxy:
+requests leave your address, so abuse is attributed to you. Read `docs/HOSTING.md` before
+pointing the public at one.
+
+### Publishing a copy that uses a relay
+
+Set the repository variable `PEBBLE_SERVICE_ENDPOINT` and the secret `PEBBLE_RELAY_KEY`. The
+deploy writes `service-config.json` only when both are present; with either missing it
+publishes a copy with no service and says so in the log. A malformed value fails the build
+rather than reaching visitors. The file is absent from the repository by design.
 
 ## Firmware and package workflows
 

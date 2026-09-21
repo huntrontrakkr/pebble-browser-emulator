@@ -3,6 +3,14 @@ export const RESOURCE_SETTINGS_KEY = 'pebble:resource-service:v1';
 export interface ResourceSettings {
   enabled: boolean;
   endpoint: string;
+  /**
+   * Authorizes the app-request relay, which is a separate capability from
+   * public downloads: a service may offer downloads and refuse to relay.
+   * Empty means downloads only, which is what a service that never issued a
+   * key gets. It is not a secret -- a hosted copy ships one to every visitor
+   * -- so it is a revocation handle, not an access control.
+   */
+  relayKey: string;
 }
 export function normalizeResourceSettings(value: unknown): ResourceSettings {
   const input = value as Partial<ResourceSettings> | null;
@@ -22,7 +30,12 @@ export function normalizeResourceSettings(value: unknown): ResourceSettings {
     endpoint = url.href.replace(/\/$/, '');
   }
   if (enabled && !endpoint) throw new Error('Enter the download service URL.');
-  return { enabled, endpoint };
+  const relayKey = typeof input?.relayKey === 'string' ? input.relayKey.trim() : '';
+  // Short keys are refused rather than sent: the service would reject them and
+  // the request would look like a relay failure instead of a typing mistake.
+  if (relayKey && relayKey.length < 16) throw new Error('A relay key is at least 16 characters.');
+  if (relayKey.length > 256) throw new Error('That relay key is too long.');
+  return { enabled, endpoint, relayKey };
 }
 export function resourceSettings(): ResourceSettings {
   try {
@@ -30,7 +43,7 @@ export function resourceSettings(): ResourceSettings {
       JSON.parse(localStorage.getItem(RESOURCE_SETTINGS_KEY) ?? 'null'),
     );
   } catch {
-    return { enabled: false, endpoint: '' };
+    return { enabled: false, endpoint: '', relayKey: '' };
   }
 }
 export function saveResourceSettings(value: ResourceSettings): void {

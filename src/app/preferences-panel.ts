@@ -153,6 +153,20 @@ interface InstallEvent extends Event {
             Direct downloads are tried first. An enabled service receives the public download URLs
             it handles.
           </p>
+          <label
+            >Relay key (optional)<input
+              [(ngModel)]="serviceRelayKey"
+              (change)="serviceChanged()"
+              placeholder="Leave empty for downloads only"
+              type="password"
+              autocomplete="off"
+          /></label>
+          <p class="help">
+            A watchface's phone script can only reach sites that permit browser requests. With a
+            relay key, requests the browser refuses are retried through the service above. Without
+            one they simply fail, and nothing is sent anywhere. The key authorizes the relay; it is
+            not a password, and a hosted copy may supply its own.
+          </p>
           <div class="actions">
             <button
               (click)="checkService()"
@@ -222,11 +236,16 @@ export class PreferencesPanel implements OnInit, OnDestroy {
     }
   }
   serviceEndpoint = resourceSettings().endpoint;
+  serviceRelayKey = resourceSettings().relayKey;
   serviceNotice = signal('');
   checkingService = signal(false);
   serviceChanged() {
     try {
-      saveResourceSettings({ enabled: this.serviceEnabled, endpoint: this.serviceEndpoint });
+      saveResourceSettings({
+        enabled: this.serviceEnabled,
+        endpoint: this.serviceEndpoint,
+        relayKey: this.serviceRelayKey,
+      });
       this.serviceNotice.set(
         this.serviceEnabled
           ? 'Service enabled for supported public downloads.'
@@ -239,7 +258,11 @@ export class PreferencesPanel implements OnInit, OnDestroy {
   async checkService() {
     this.checkingService.set(true);
     try {
-      const settings = normalizeResourceSettings({ enabled: true, endpoint: this.serviceEndpoint });
+      const settings = normalizeResourceSettings({
+        enabled: true,
+        endpoint: this.serviceEndpoint,
+        relayKey: this.serviceRelayKey,
+      });
       const response = await fetch(settings.endpoint + '/v1/status', {
         credentials: 'omit',
         signal: AbortSignal.timeout(10000),

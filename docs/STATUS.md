@@ -493,6 +493,19 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
   `weather_db_v4_support` is deliberately left unclaimed. [Layout, capability bits and
   references](WEATHER.md).
 
+- A watchface's own phone requests can now be relayed, which is what stood between the
+  emulator and any watchface calling a weather or transit API that sends no CORS headers.
+  The relay endpoint existed but was unreachable on every path: `service-defaults.ts` was
+  imported by nothing, `PhoneCorsNetwork` was constructed with no options, and no build step
+  wrote the config file it reads. All three are wired, with the endpoint and key taken as a
+  pair from one source so a visitor's endpoint is never sent a hosted copy's key. It stays
+  off unless configured: an unconfigured session makes no off-origin request at all and
+  sends no relay to its phone, verified in the browser. Publishing a copy that uses one
+  needs a repository variable and secret; with either missing the deploy publishes no
+  service config and says so. This does not revive a backend that no longer exists, and
+  running one publicly means operating an open proxy.
+  [Endpoint rules and deployment](OPTIONAL_SERVICES.md).
+
 ## Independent evidence
 
 - All three **shipped Rust/Wasm** profiles match frozen native QEMU frame checkpoints exactly:

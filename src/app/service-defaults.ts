@@ -69,6 +69,24 @@ export function serviceDefaults(
   return cached;
 }
 
+/**
+ * The relay this session should use, or none.
+ *
+ * A key is issued for one endpoint, so a pair is taken whole and never mixed:
+ * combining a visitor's endpoint with the deployment's key would send one
+ * service's credential to another. A visitor's own entry wins outright.
+ */
+export function resolveRelay(
+  settings: { enabled: boolean; endpoint: string; relayKey: string },
+  defaults: ServiceDefaults,
+): { endpoint: string; key: string } | undefined {
+  if (settings.enabled && settings.endpoint && settings.relayKey)
+    return { endpoint: settings.endpoint, key: settings.relayKey };
+  if (defaults.endpoint && defaults.relayKey)
+    return { endpoint: defaults.endpoint, key: defaults.relayKey };
+  return undefined;
+}
+
 /** Test seam: forgets what was read so a later call reads again. */
 export function resetServiceDefaults(): void {
   cached = undefined;

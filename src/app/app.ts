@@ -42,6 +42,8 @@ import type { LightingEnvironment } from './watch-lighting.ts';
 import type { OpticalStyle } from './watch-optics.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
+import { resolveRelay, serviceDefaults } from './service-defaults.ts';
+import { resourceSettings } from './resource-fetch.ts';
 import { WEATHER_CONDITIONS, type WeatherCondition } from './weather-records.ts';
 import {
   coordinateName,
@@ -231,6 +233,13 @@ export class App implements AfterViewInit, OnDestroy {
   weatherTomorrowCondition: WeatherCondition = 'Sun';
   weatherTomorrowHigh = 23;
   weatherTomorrowLow = 13;
+  /**
+   * The relay that can read hosts the browser refuses, or none. Read once at
+   * startup from the visitor's own setting or the deployment's config file; a
+   * session with neither simply fails those requests, which is the contract
+   * the static build keeps.
+   */
+  private relay?: { endpoint: string; key: string };
   weatherStatus = signal('');
   weatherBusy = signal(false);
   readonly weatherConditions = Object.keys(WEATHER_CONDITIONS) as WeatherCondition[];
@@ -283,6 +292,16 @@ export class App implements AfterViewInit, OnDestroy {
   protected hex = (n: number) => '0x' + (n >>> 0).toString(16).padStart(8, '0');
   ngAfterViewInit() {
     this.demoSettings.set(readDemoSettings());
+    // Resolved once, before any phone starts. A failure to read the
+    // deployment's file is not an error: it means this copy has no service,
+    // which every other path already handles.
+    void (async () => {
+      try {
+        this.relay = resolveRelay(resourceSettings(), await serviceDefaults());
+      } catch {
+        this.relay = undefined;
+      }
+    })();
     try {
       // Follow the operating system until the viewer picks a theme, so a
       // dark desktop does not open to a full-brightness page.
@@ -1655,7 +1674,7 @@ export class App implements AfterViewInit, OnDestroy {
         accountToken: this.accountToken,
         watchToken: this.watchToken,
         timelineToken: this.timelineToken,
-        network: { mode: this.phoneNetworkMode, fixtures },
+        network: { mode: this.phoneNetworkMode, fixtures, relay: this.relay },
         storage,
         // Omitted when location is switched off, so the script is told the
         // position is unavailable rather than handed one it was denied.

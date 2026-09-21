@@ -18,6 +18,26 @@ let module: QuickJSWASMModule | undefined,
   generation = 0,
   desiredConnection = false;
 let network: PhoneCorsNetwork | undefined;
+/**
+ * Accepts a relay only when both halves are present and well formed. An
+ * endpoint without its key, or a key without its endpoint, is no relay: the
+ * request would be sent and refused, which reads like the host failing rather
+ * than a half-finished setting.
+ */
+function relayOptions(value: unknown): { relay?: { endpoint: string; key: string } } {
+  const relay = value as { endpoint?: unknown; key?: unknown } | null | undefined;
+  const endpoint = typeof relay?.endpoint === 'string' ? relay.endpoint : '';
+  const key = typeof relay?.key === 'string' ? relay.key : '';
+  if (!endpoint || key.length < 16) return {};
+  try {
+    const url = new URL(endpoint);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) return {};
+  } catch {
+    return {};
+  }
+  return { relay: { endpoint, key } };
+}
 let socketNetwork: PhoneWebSocketNetwork | undefined;
 let externalClock = false,
   clockOriginUs = 0,
@@ -177,6 +197,9 @@ async function handleMessage(data: any, fromClockPort = false) {
             fail(error);
           }
         });
+        // Relaying is off unless the session supplied an endpoint and its key.
+        // Without one a host the browser refuses simply fails, which is the
+        // no-service contract the static build is held to.
         network = new PhoneCorsNetwork((requestId, result) => {
           if (job !== generation || phone !== owner) return;
           try {
@@ -197,7 +220,7 @@ async function handleMessage(data: any, fromClockPort = false) {
           } catch (e) {
             fail(e);
           }
-        });
+        }, relayOptions(data.network?.relay));
       }
       phone.setConnected(desiredConnection);
       phone.start(data.source, data.name);
