@@ -107,21 +107,16 @@ jobs:
       # contract the static application is held to. The key reaches every
       # visitor's browser by design: it authorizes the relay and can be rotated
       # by publishing a new file, and is not a password.
-      # The presence check is inside the step, not in its `if`: the secrets
-      # context is not dependably available to a step-level condition, and a
-      # condition that silently evaluated empty would publish a copy with no
-      # service while looking like it had one.
+      # Rewrites the service config the build already wrote. With neither
+      # variable set the build's own "no service" file stands, so there is
+      # nothing to branch on here and no chance of a condition quietly
+      # evaluating empty.
       - name: Point the published copy at a relay
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           ENDPOINT: ${{ vars.PEBBLE_SERVICE_ENDPOINT }}
           RELAY_KEY: ${{ secrets.PEBBLE_RELAY_KEY }}
-        run: |
-          if [ -n "$ENDPOINT" ] && [ -n "$RELAY_KEY" ]; then
-            node scripts/write-service-config.mjs dist/client/service-config.json
-          else
-            echo 'No relay configured; publishing a copy with no service.'
-          fi
+        run: node scripts/write-service-config.mjs dist/client/service-config.json
       - name: Package tested website for GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4

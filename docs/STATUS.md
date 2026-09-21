@@ -506,6 +506,12 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
   running one publicly means operating an open proxy.
   [Endpoint rules and deployment](OPTIONAL_SERVICES.md).
 
+- The published page carries the commit it was built from, linked to that commit in the
+  repository, and says so in the footer. The stamp is written into the page rather than
+  fetched separately, so it describes the bundle that is running rather than whatever the
+  server holds now; a build from a tree with uncommitted changes is marked modified, and a
+  copy built with no commit available carries no stamp instead of a guessed one.
+
 ## Independent evidence
 
 - All three **shipped Rust/Wasm** profiles match frozen native QEMU frame checkpoints exactly:

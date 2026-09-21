@@ -42,6 +42,7 @@ import type { LightingEnvironment } from './watch-lighting.ts';
 import type { OpticalStyle } from './watch-optics.ts';
 import { registerInspector, type InspectorRegistry } from './inspector-tools';
 import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.types';
+import { buildStamp } from './build-stamp.ts';
 import { resolveRelay, serviceDefaults } from './service-defaults.ts';
 import { resourceSettings } from './resource-fetch.ts';
 import { WEATHER_CONDITIONS, type WeatherCondition } from './weather-records.ts';
@@ -240,6 +241,8 @@ export class App implements AfterViewInit, OnDestroy {
    * the static build keeps.
    */
   private relay?: { endpoint: string; key: string };
+  /** Which build is running, or null on a development server. */
+  readonly build = buildStamp();
   weatherStatus = signal('');
   weatherBusy = signal(false);
   readonly weatherConditions = Object.keys(WEATHER_CONDITIONS) as WeatherCondition[];

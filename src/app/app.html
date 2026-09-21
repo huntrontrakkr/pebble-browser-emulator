@@ -904,6 +904,13 @@
   </div>
   <footer>
     <span>Local compilation and emulation</span>
+    @if (build) {
+      <a [href]="build.commitUrl || null" target="_blank" rel="noopener"
+        >Build {{ build.shortCommit }}{{ build.modified ? ' (modified)' : '' }} ↗</a
+      >
+    } @else {
+      <span>Development build</span>
+    }
     <a href="licenses/NOTICE.md" target="_blank" rel="noopener">Licenses</a>
     <a
       href="https://github.com/huntrontrakkr/pebble-browser-emulator/blob/main/docs/STATUS.md"

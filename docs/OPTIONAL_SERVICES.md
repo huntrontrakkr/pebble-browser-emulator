@@ -102,10 +102,15 @@ pointing the public at one.
 
 ### Publishing a copy that uses a relay
 
-Set the repository variable `PEBBLE_SERVICE_ENDPOINT` and the secret `PEBBLE_RELAY_KEY`. The
-deploy writes `service-config.json` only when both are present; with either missing it
-publishes a copy with no service and says so in the log. A malformed value fails the build
-rather than reaching visitors. The file is absent from the repository by design.
+Set the repository variable `PEBBLE_SERVICE_ENDPOINT` and the secret `PEBBLE_RELAY_KEY`.
+
+Every build writes `service-config.json`, and with neither variable set it writes an empty
+object: an explicit "no service". The file is absent from the repository but never from a
+build, because the application asks for it on startup and a copy that did not publish it
+answered 404 -- which the browser logs as an error in every visitor's console on every load.
+Setting one variable without the other fails the build rather than publishing a copy that
+looks configured and relays nothing, as does a malformed endpoint or a key that is too
+short.
 
 ## Firmware and package workflows
 

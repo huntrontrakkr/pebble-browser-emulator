@@ -15,6 +15,7 @@ import {
 import { watchModelSpec, modelSource } from '../src/app/watch-model-specs.ts';
 import { boardDescriptor } from '../src/app/board-registry.ts';
 import { screenPoint } from '../src/app/watch-gestures.ts';
+import { buildStamp } from '../src/app/build-stamp.ts';
 import { WEATHER_CONDITIONS } from '../src/app/weather-records.ts';
 import { coordinateName, fetchForecast, weatherReading } from '../src/app/weather-source.ts';
 const repo = process.env.PEBBLE_REPO ?? fileURLToPath(new URL('../', import.meta.url));
@@ -103,6 +104,7 @@ function makeApp() {
     isFirmwareProfile,
     boardDescriptor,
     screenPoint,
+    buildStamp,
     WEATHER_CONDITIONS,
     coordinateName,
     fetchForecast,

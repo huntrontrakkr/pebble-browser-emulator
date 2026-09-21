@@ -97,6 +97,27 @@ test('the deploy step writes a config the application accepts', async () => {
   assert.deepEqual(normalizeServiceDefaults(written), written);
 });
 
+test('a build with no service still publishes an explicit empty config', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'relay-'));
+  const target = join(dir, 'service-config.json');
+  await run(process.execPath, [script, target], {
+    env: { ...process.env, ENDPOINT: '', RELAY_KEY: '' },
+  });
+  // Absent, the application's startup request answers 404, which the browser
+  // logs as an error in every visitor's console. An explicit empty file is the
+  // same "no service" without the noise.
+  const written = JSON.parse(await readFile(target, 'utf8'));
+  assert.deepEqual(written, {});
+  assert.deepEqual(normalizeServiceDefaults(written), { endpoint: '', relayKey: '' });
+  assert.equal(
+    resolveRelay(
+      { enabled: false, endpoint: '', relayKey: '' },
+      written.endpoint ? written : { endpoint: '', relayKey: '' },
+    ),
+    undefined,
+  );
+});
+
 test('the deploy step fails the build rather than publishing a bad config', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'relay-'));
   const target = join(dir, 'service-config.json');
@@ -109,8 +130,11 @@ test('the deploy step fails the build rather than publishing a bad config', asyn
       },
     );
   };
-  await fails({ ENDPOINT: '', RELAY_KEY: KEY }, /Both ENDPOINT and RELAY_KEY/);
-  await fails({ ENDPOINT: 'https://a.example', RELAY_KEY: '' }, /Both ENDPOINT and RELAY_KEY/);
+  await fails({ ENDPOINT: '', RELAY_KEY: KEY }, /both ENDPOINT and RELAY_KEY, or neither/i);
+  await fails(
+    { ENDPOINT: 'https://a.example', RELAY_KEY: '' },
+    /both ENDPOINT and RELAY_KEY, or neither/i,
+  );
   await fails({ ENDPOINT: 'http://a.example', RELAY_KEY: KEY }, /must be HTTPS/);
   await fails({ ENDPOINT: 'https://u:p@a.example', RELAY_KEY: KEY }, /credentials/);
   await fails({ ENDPOINT: 'https://a.example', RELAY_KEY: 'short' }, /16 to 256/);

@@ -16,8 +16,21 @@ if (!target) throw new Error('Usage: write-service-config.mjs <path>');
 
 const endpoint = (process.env.ENDPOINT ?? '').trim();
 const relayKey = (process.env.RELAY_KEY ?? '').trim();
-if (!endpoint || !relayKey)
-  throw new Error('Both ENDPOINT and RELAY_KEY are required to write a service config.');
+
+await mkdir(dirname(target), { recursive: true });
+
+// Every build writes this file, even when there is no service. The application
+// asks for it on startup, and a copy that did not publish it answered 404 --
+// which the browser logs as an error in every visitor's console on every load.
+// An explicit "no service" is both quieter and clearer than an absent file.
+if (!endpoint && !relayKey) {
+  await writeFile(target, JSON.stringify({}, null, 2) + '\n');
+  console.log(`Wrote ${target} with no service configured.`);
+  process.exit(0);
+}
+// One half on its own is a mistake worth failing on: it would publish a copy
+// that looks configured and relays nothing.
+if (!endpoint || !relayKey) throw new Error('Set both ENDPOINT and RELAY_KEY, or neither.');
 
 // The same rules the application applies when it reads the file back, checked
 // here so a malformed value fails the build rather than being silently ignored
@@ -31,7 +44,6 @@ if (url.username || url.password || url.search || url.hash)
 if (relayKey.length < 16 || relayKey.length > 256)
   throw new Error('The relay key must be 16 to 256 characters.');
 
-await mkdir(dirname(target), { recursive: true });
 await writeFile(
   target,
   JSON.stringify({ endpoint: url.href.replace(/\/$/, ''), relayKey }, null, 2) + '\n',
