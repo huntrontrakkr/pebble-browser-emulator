@@ -373,9 +373,7 @@ function createTransport() {
           virtualSeconds: api.spike_ticks() / 64000000,
         });
         // The watch asks which capabilities the phone has; leaving it
-        // unanswered is why capability-gated services refuse. Bit 11 is
-        // weather_app_support in PebbleOS session_remote_version.h, counting
-        // run_state_support as bit 0.
+        // unanswered is why capability-gated services refuse.
         if (direction === 'watch' && packet.endpoint === 0x11 && packet.payload[0] === 0)
           void transport
             ?.sendPhoneVersion(PHONE_CAPABILITIES)
@@ -397,11 +395,19 @@ function createTransport() {
   );
 }
 /**
- * What this phone genuinely provides. Only bits backed by an implementation
- * belong here: advertising a capability we do not serve would have the firmware
- * wait for data that never arrives.
+ * What this phone genuinely provides, in the bit order of
+ * PebbleProtocolCapabilities in PebbleOS session_remote_version.h.
+ *
+ * Only bits backed by an implementation belong here: advertising a capability
+ * we do not serve would have the firmware wait for data that never arrives.
+ * Omitting one we do serve is just as wrong. Answering with weather alone
+ * cleared run_state_support, and app_run_state.c then routed app state to the
+ * deprecated launcher endpoint 0x31 instead of 0x34, which the installer waits
+ * on, so every launch timed out.
  */
-const PHONE_CAPABILITIES = 1n << 11n; // weather_app_support
+const CAPABILITY_RUN_STATE = 1n << 0n;
+const CAPABILITY_WEATHER_APP = 1n << 11n;
+const PHONE_CAPABILITIES = CAPABILITY_RUN_STATE | CAPABILITY_WEATHER_APP;
 function upload(bytes: Uint8Array) {
   const p = api.spike_upload(bytes.length);
   if (!p) throw new Error('Image exceeds the emulator upload limit.');
