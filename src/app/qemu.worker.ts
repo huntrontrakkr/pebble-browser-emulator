@@ -372,6 +372,14 @@ function createTransport() {
           bytes: packet.payload,
           virtualSeconds: api.spike_ticks() / 64000000,
         });
+        // The watch asks which capabilities the phone has; leaving it
+        // unanswered is why capability-gated services refuse. Bit 11 is
+        // weather_app_support in PebbleOS session_remote_version.h, counting
+        // run_state_support as bit 0.
+        if (direction === 'watch' && packet.endpoint === 0x11 && packet.payload[0] === 0)
+          void transport
+            ?.sendPhoneVersion(PHONE_CAPABILITIES)
+            .catch((e) => postMessage({ type: 'error', message: String(e) }));
         if (direction === 'watch' && packet.endpoint === 0x30) {
           phoneNeedsUi = true;
           try {
@@ -388,6 +396,12 @@ function createTransport() {
     },
   );
 }
+/**
+ * What this phone genuinely provides. Only bits backed by an implementation
+ * belong here: advertising a capability we do not serve would have the firmware
+ * wait for data that never arrives.
+ */
+const PHONE_CAPABILITIES = 1n << 11n; // weather_app_support
 function upload(bytes: Uint8Array) {
   const p = api.spike_upload(bytes.length);
   if (!p) throw new Error('Image exceeds the emulator upload limit.');

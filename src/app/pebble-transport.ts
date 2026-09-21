@@ -280,6 +280,35 @@ export class PebbleTransport {
   setBluetooth(connected: boolean): Promise<void> {
     return this.control(3, Uint8Array.of(Number(connected)));
   }
+  /**
+   * Answers the watch's phone-version request on endpoint 0x11.
+   *
+   * Until this existed the request went unanswered, so the firmware kept the
+   * capability word it had cached, which is zero, and every capability-gated
+   * service refused: `weather_service_supported_by_phone` logs "No weather
+   * support on phone" for exactly that reason.
+   *
+   * Layout is VersionsPhoneResponseV3 from PebbleOS
+   * src/fw/services/comm_session/session_remote_version.c. The firmware selects
+   * the version by payload length and requires response_version 2. It reads
+   * protocol_capabilities straight out of the packed struct, so that field is
+   * little-endian, while platform_bitfield is passed through ntohl and is
+   * big-endian.
+   */
+  sendPhoneVersion(capabilities: bigint, platform = 0): Promise<void> {
+    const payload = new Uint8Array(25),
+      data = view(payload);
+    payload[0] = 1; // CommSessionVersionCommandResponse
+    data.setUint32(1, 0, true); // pebble_library_version, deprecated
+    data.setUint32(5, 0, true); // session_capabilities_bitfield, deprecated
+    data.setUint32(9, platform, false); // platform_bitfield, read with ntohl
+    payload[13] = 2; // response_version: must be exactly 2
+    payload[14] = 4; // major
+    payload[15] = 4; // minor
+    payload[16] = 0; // bugfix
+    data.setBigUint64(17, capabilities, true); // protocol_capabilities
+    return this.send(0x11, payload);
+  }
   setBattery(percent: number, charging: boolean): Promise<void> {
     uint(percent, 100, 'battery percent');
     return this.control(5, Uint8Array.of(percent, Number(charging)));
