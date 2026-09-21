@@ -137,44 +137,39 @@ key baked into `service-config.json` with a Preferences override.
   message. If a gate's message changes, the table silently goes stale; there is
   no test binding them together.
 
-## 6a. Weather: why no watchface gets it, and what it needs
+## 6a. Weather: done, and what is still missing
 
-A watchface reading PebbleOS's own weather service gets nothing, and the
-firmware says so five times before an app even installs:
-`service_weather: No weather support on phone`. The virtual phone implements no
-weather at all; the only occurrence of the word in the application is a
-fixtures example string.
+This section used to describe an unsolved problem. It is solved; the detail
+moved to [WEATHER.md](WEATHER.md), which carries the record layout, the
+capability bits and the pinned references. The short version of how it went:
 
-Established from the firmware source and from captured protocol traffic, not
-from memory:
+- The capability gate was real, and answering it was not enough. The firmware
+  asks once during a full boot, so a restored startup checkpoint never sees the
+  request. The phone now announces itself on every link-up, which
+  `session_remote_version.c` accepts unsolicited.
+- Advertising `weather_app_support` alone broke boot. The capability word is
+  replaced wholesale, so claiming bit 11 and nothing else cleared bit 0,
+  `run_state_support`, and `app_run_state.c` moved app state onto the
+  deprecated launcher endpoint `0x31`. The installer waits on `0x34`, so every
+  launch timed out. Both bits are set now.
+- The location list is a second record and it does not live in database 7. It
+  is `BlobDBIdWatchAppPrefs` (9), key `weatherApp`; database 7 refuses it with
+  `BLOB_DB_INVALID_DATA`. `weather_service` skips a forecast whose key the list
+  does not carry, so the two records are only useful together.
+- `weather_service.c` under `CONFIG_QEMU` was a red herring. The shipped
+  qemu_emery 4.37.0 does not define it, and once the capability arrived the
+  warning stopped without any of that mattering.
 
-- The gate is a capability the phone advertises, not the data.
-  `weather_service_supported_by_phone()` in
-  `src/fw/services/weather/weather_service.c` reads cached system capabilities
-  and logs exactly that line when `weather_app_support` is clear. Writing
-  weather records while the bit is clear would be ignored.
-- `weather_app_support` is **bit 11** of the 64-bit capability word in
-  `include/pbl/services/comm_session/session_remote_version.h`, counting
-  `run_state_support` as bit 0. `weather_db_v4_support` is bit 24.
-- Weather data is a BlobDB record in **database 5**. A capture of a running
-  preview shows the phone already writing databases 1 (Pins), 2 (Apps),
-  4 (Notifs) and 7 (Prefs) through `insertBlob(database, key, value)` in
-  `src/app/pebble-transport.ts`, so database 5 is the same one-line call.
-- The record format is in `include/pbl/services/blob_db/weather_db.h`. The
-  firmware parses both v3 and v4; **v3 is frozen** ("Do not change") and is a
-  short packed struct, so v3 is the sensible target. The key is a `Uuid`.
-- Unresolved: where the capability word reaches the firmware. It is read from
-  _cached_ storage, and a captured preview session shows no version-exchange
-  traffic at all, so the negotiation may happen inside the restored startup
-  checkpoint. Note also that `weather_service.c` returns true unconditionally
-  under `CONFIG_QEMU`; the shipped qemu_emery v4.37.0 evidently does not define
-  it, since the warning appears. Settle this before writing code: advertise the
-  bit, confirm the warning stops, and only then write records.
+Still open: the v4 record, which is what the current firmware prefers and what
+would fill the seven-day forecast, hourly data and per-day precipitation, wind
+and UV that the watch currently draws as `--`. Writing it means claiming bit 24,
+`weather_db_v4_support`, and filling every field it defines. Multiple locations
+and reverse geocoding are also unimplemented.
 
-Do not fabricate a forecast. Weather belongs with the other simulated inputs
-(battery, heart rate, notifications, calendar, location) as user-controlled
-values that are plainly simulated, optionally filled from a real request when
-network access is on.
+The live Open-Meteo fetch has never run against the live service, only against
+the vendor's published schema and an injected transport, because this
+environment blocks `api.open-meteo.com`. That is the first thing to check from a
+machine with open network.
 
 ## 7. Environment notes for whoever picks this up
 

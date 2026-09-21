@@ -560,10 +560,10 @@
           <hr />
           <h3>Weather</h3>
           <p class="help">
-            Writes the firmware's weather database, which is what the Weather app and timeline
-            read. Live readings come from Open-Meteo for the coordinates above and need no account
-            or service of ours; off and manual need no network at all. A reading the forecast does
-            not carry is stored as unknown, which the watch draws as &ldquo;--&deg;&rdquo;.
+            Writes the firmware's weather database, which is what the Weather app and timeline read.
+            Live readings come from Open-Meteo for the coordinates above and need no account or
+            service of ours; off and manual need no network at all. A reading the forecast does not
+            carry is stored as unknown, which the watch draws as &ldquo;--&deg;&rdquo;.
           </p>
           <div class="field-grid">
             <label
@@ -573,7 +573,11 @@
                 <option value="manual">Manual</option>
               </select></label
             ><label
-              >Units<select aria-label="Temperature units" [(ngModel)]="weatherUnits" [disabled]="weatherMode === 'off'">
+              >Units<select
+                aria-label="Temperature units"
+                [(ngModel)]="weatherUnits"
+                [disabled]="weatherMode === 'off'"
+              >
                 <option value="celsius">Celsius</option>
                 <option value="fahrenheit">Fahrenheit</option>
               </select></label
@@ -589,8 +593,7 @@
           /></label>
           @if (weatherMode === 'manual') {
             <div class="field-grid">
-              <label
-                >Now (&deg;)<input type="number" [(ngModel)]="weatherTemperature" /></label
+              <label>Now (&deg;)<input type="number" [(ngModel)]="weatherTemperature" /></label
               ><label
                 >Condition<select aria-label="Weather condition" [(ngModel)]="weatherCondition">
                   @for (name of weatherConditions; track name) {
@@ -600,10 +603,7 @@
               >
             </div>
             <label
-              >Condition wording<input
-                type="text"
-                maxlength="30"
-                [(ngModel)]="weatherPhrase"
+              >Condition wording<input type="text" maxlength="30" [(ngModel)]="weatherPhrase"
             /></label>
             <div class="field-grid">
               <label>Today high (&deg;)<input type="number" [(ngModel)]="weatherTodayHigh" /></label
@@ -611,13 +611,18 @@
             </div>
             <div class="field-grid">
               <label
-                >Tomorrow high (&deg;)<input type="number" [(ngModel)]="weatherTomorrowHigh" /></label
+                >Tomorrow high (&deg;)<input
+                  type="number"
+                  [(ngModel)]="weatherTomorrowHigh" /></label
               ><label
                 >Tomorrow low (&deg;)<input type="number" [(ngModel)]="weatherTomorrowLow"
               /></label>
             </div>
             <label
-              >Tomorrow condition<select aria-label="Tomorrow weather condition" [(ngModel)]="weatherTomorrowCondition">
+              >Tomorrow condition<select
+                aria-label="Tomorrow weather condition"
+                [(ngModel)]="weatherTomorrowCondition"
+              >
                 @for (name of weatherConditions; track name) {
                   <option [value]="name">{{ name }}</option>
                 }

@@ -1263,10 +1263,7 @@ export class App implements AfterViewInit, OnDestroy {
       return;
     }
     const name = this.weatherLocationName.trim();
-    if (
-      !name &&
-      (!Number.isFinite(this.latitude) || !Number.isFinite(this.longitude))
-    ) {
+    if (!name && (!Number.isFinite(this.latitude) || !Number.isFinite(this.longitude))) {
       this.weatherStatus.set('Set a location name or valid coordinates first.');
       return;
     }

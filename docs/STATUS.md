@@ -473,6 +473,22 @@ claim. [Method and limits](BROWSER_PERFORMANCE.md) and [raw evidence](evidence/b
   actual Linux Python execution, artifact/record downloads and cancellation, with no external
   requests. Full SDK/Waf/PBW builds in this backend, custom font generation, Python 2 and arbitrary
   dependencies still need acceptance coverage. The existing fast compiler remains usable.
+- The watch's own weather service is served for the first time. The phone answers the
+  capability request on endpoint `0x11` and announces itself again on every link-up, which a
+  restored startup checkpoint needs because it never sees the request. `qemu_emery` 4.37.0
+  then accepts a version 3 `WeatherDBEntry` into `BlobDBIdWeather` and its key into the
+  `weatherApp` list in `BlobDBIdWatchAppPrefs`, both with `BLOB_DB_SUCCESS`; the launcher
+  lists the location and current conditions and the Weather app draws the location, current
+  temperature, condition, date and two-day high/low chart. `scripts/verify-weather-browser.mjs`
+  asserts the firmware's BlobDB answers for publication and withdrawal. Readings are either
+  fetched live from Open-Meteo for the simulated position or set by hand; a field the
+  forecast omits is stored as the firmware's unknown-temperature sentinel and a failed
+  request writes nothing. The live fetch is verified against Open-Meteo's published OpenAPI
+  schema and through an injected transport, not against the live service: the development
+  environment's egress policy blocks `api.open-meteo.com`. The richer v4 record, and with it
+  the seven-day forecast, hourly data and per-day precipitation, wind and UV, is not written;
+  `weather_db_v4_support` is deliberately left unclaimed. [Layout, capability bits and
+  references](WEATHER.md).
 
 ## Independent evidence
 
@@ -548,7 +564,9 @@ it requires the deterministic PBW hash recorded in `evidence/firmware-acceptance
    libraries, additional SDK versions and remaining app types. Arbitrary GitHub projects are not yet universal.
 4. Complete microphone/audio, physical sensor controllers (including raw optical/gyro/light/
    temperature paths where actually present), notifications/timeline, full replay/snapshots,
-   and remaining native companion services. Logical Bluetooth packets are supported;
+   and remaining native companion services. Weather delivers the frozen v3 record only; the
+   v4 record, multiple locations and reverse geocoding are not implemented, and no live
+   Open-Meteo request has been run from an environment that permits it. Logical Bluetooth packets are supported;
    physical radio behavior and universal browser-to-watch Bluetooth are not.
 5. Measure actual watches and complete browser interaction/optical comparisons. No battery
    chemistry, RF or screen-material accuracy is inferred from a successful app or boot test.

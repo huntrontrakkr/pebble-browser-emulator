@@ -204,10 +204,7 @@ test('a forecast response becomes a record the watch accepts', () => {
   const reading = weatherReading(forecast, 'Test City', true);
   assert.equal(reading.updatedUtc, undefined);
   assert.throws(() => weatherRecord(reading), /positive whole number/);
-  assert.equal(
-    weatherRecord({ ...reading, updatedUtc: 1789947300 }).length,
-    20 + 2 + 9 + 2 + 10,
-  );
+  assert.equal(weatherRecord({ ...reading, updatedUtc: 1789947300 }).length, 20 + 2 + 9 + 2 + 10);
 });
 
 test('missing fields stay unknown instead of becoming a plausible number', () => {
@@ -222,7 +219,9 @@ test('missing fields stay unknown instead of becoming a plausible number', () =>
   assert.equal(forecast.condition, 'Unknown');
   // A day with no forecast is unknown, and the record still serializes.
   assert.equal(forecast.tomorrowCondition, 'Unknown');
-  assert.ok(weatherRecord({ ...weatherReading(forecast, 'Nowhere', false), updatedUtc: 42 }).length > 0);
+  assert.ok(
+    weatherRecord({ ...weatherReading(forecast, 'Nowhere', false), updatedUtc: 42 }).length > 0,
+  );
 });
 
 test('an empty or malformed body is an error, not an empty forecast', () => {
