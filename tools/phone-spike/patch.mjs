@@ -40,10 +40,9 @@ await edit('blobannotations/build.gradle.kts', addBrowserTarget);
 
 // Libraries with no browser variant move to a source set only the Android,
 // desktop and iOS targets use (round 3), so the browser compile names every file
-// that depends on them. With Room 2, Room itself is one of them: the browser
-// gets the shim instead.
+// that depends on them. Room stays in common code as upstream has it: blobdbgen's
+// common pass needs its annotations (round 19 generated 4 of 9 entities without).
 const nonWeb = [
-  ...(room === '2' ? ['implementation(libs.room.runtime)', 'api(libs.room.paging)'] : []),
   'implementation(libs.sqlite.bundled)',
   'implementation(libs.kmpio)',
 ];
@@ -97,6 +96,27 @@ if (room === '3') {
   const sources = resolve(process.env.ROOM2_SOURCES ?? 'tmp/phone-spike/room2');
   await writeFile(join(dir, 'room2web', 'sources.path'), sources + '\n');
   await edit('settings.gradle.kts', (s) => s + '\ninclude(":room2web")\n');
+  // Only the browser build resolves Room and androidx.sqlite to the shim; the
+  // processor classpaths (ksp*) keep the real Room compiler.
+  await edit('libpebble3/build.gradle.kts', (s) =>
+    s +
+      `
+// Phone spike: Room 2 has no browser build, so the browser target resolves it to
+// room2web, built from Room's and androidx.sqlite's released sources.
+configurations.matching { it.name.startsWith("wasmJs") }.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        listOf(
+            "androidx.room:room-runtime",
+            "androidx.room:room-common",
+            "androidx.room:room-paging",
+            "androidx.sqlite:sqlite",
+        ).forEach {
+            substitute(module(it)).using(project(":room2web")).because("no browser build of Room 2")
+        }
+    }
+}
+`,
+  );
   // Browser adapters for libpebble3 itself, in a source set upstream never edits.
   await cp(join(here, 'libpebble3-web'), join(dir, 'libpebble3/src/wasmJsMain/kotlin'), {
     recursive: true,
