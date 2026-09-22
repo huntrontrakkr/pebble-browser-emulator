@@ -45,6 +45,12 @@ jobs:
       - name: Blockers
         if: always()
         run: node tools/phone-spike/summarize.mjs tmp/phone-spike/build.log
+      # Annotation-processor failures name only the element, so the processor's
+      # own output and the failing tasks are shown in full.
+      - name: Processor output
+        if: always()
+        run: |
+          grep -n -E '\[ksp\]|^> Task .*FAILED|What went wrong' -A 12 tmp/phone-spike/build.log | head -200 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
