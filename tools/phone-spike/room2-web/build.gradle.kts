@@ -44,6 +44,8 @@ kotlin {
             dependsOn(commonMain.get())
             kotlin.srcDir(released("room-runtime/jvmNativeMain"))
             kotlin.srcDir(released("room-paging/jvmNativeMain"))
+            // Dispatchers.IO for that runtime (round 18).
+            kotlin.srcDir("src/jvmNativeMain/kotlin")
         }
         wasmJsMain.get().dependsOn(jvmNativeMain)
     }

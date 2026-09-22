@@ -32,9 +32,9 @@ public actual class AtomicBoolean actual constructor(initialValue: Boolean) {
 // alias of Any; with one thread there is nothing to exclude, so these are classes
 // whose locking does nothing.
 internal actual class ReentrantLock actual constructor() {
-    fun lock() {}
-    fun unlock() {}
-    fun tryLock(): Boolean = true
+    actual fun lock() {}
+    actual fun unlock() {}
+    actual fun tryLock(): Boolean = true
 }
 
 internal actual open class SynchronizedObject actual constructor()
