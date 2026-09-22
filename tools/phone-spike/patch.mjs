@@ -13,7 +13,9 @@ const dir = process.argv[2];
 if (!dir) throw new Error('Usage: patch.mjs <upstream checkout>');
 const room = process.env.PHONE_SPIKE_ROOM ?? '2';
 if (room !== '2' && room !== '3') throw new Error(`PHONE_SPIKE_ROOM must be 2 or 3, not ${room}`);
-const roomProcessor = process.env.PHONE_SPIKE_ROOM_PROCESSOR !== 'off';
+// Room 3's processor handles the browser target; Room 2's code is generated for
+// the desktop target and reused (see PHONE_SPIKE_BROWSER below).
+const roomProcessor = (process.env.PHONE_SPIKE_ROOM_PROCESSOR ?? (room === '3' ? 'on' : 'off')) === 'on';
 const edit = async (path, change) => {
   const file = join(dir, path);
   const before = await readFile(file, 'utf8');
@@ -28,9 +30,23 @@ await edit('settings.gradle.kts', (s) =>
   s.replace(/^include\(":(?!libpebble3"|blobdbgen"|blobannotations")[^"]+"\)\n/gm, ''),
 );
 
-// PHONE_SPIKE_BROWSER=off stops here: upstream's own targets, for the blobdbgen
-// pass the browser build reuses (build.sh).
-if (process.env.PHONE_SPIKE_BROWSER === 'off') process.exit(0);
+// PHONE_SPIKE_BROWSER=off stops here with upstream's own targets, for the
+// generated code the browser build reuses (build.sh): blobdbgen's entities, and
+// Room 2's code generated for the desktop (JVM) target, which uses the same
+// multiplatform runtime as the browser. Room 2's processor cannot process the
+// browser target itself: it reads Kotlin/Wasm's internal Any._hashCode as a
+// column of every entity (round 21).
+if (process.env.PHONE_SPIKE_BROWSER === 'off') {
+  await edit('libpebble3/build.gradle.kts', (s) =>
+    s
+      .replace(/^\/\/(\s*add\("kspJvm", libs\.room\.compiler\))/m, '$1')
+      .replace(
+        /(\n\s*tasks\.named\("kspAndroidMain"\) \{\n\s*dependsOn\("kspCommonMainKotlinMetadata"\)\n\s*\})/,
+        '$1\n    tasks.named("kspKotlinJvm") {\n        dependsOn("kspCommonMainKotlinMetadata")\n    }',
+      ),
+  );
+  process.exit(0);
+}
 
 // libpebble3 and the annotation module it compiles against both need the target;
 // round 1 stopped at blobannotations having none.
