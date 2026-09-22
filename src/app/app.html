@@ -8,16 +8,25 @@
       aria-hidden="true"
       focusable="false"
     >
-      <mask id="identity-screen">
-        <rect width="64" height="64" fill="#fff" />
-        <rect x="18" y="15" width="28" height="34" rx="4" fill="#000" />
-      </mask>
-      <g mask="url(#identity-screen)" fill="currentColor">
-        <rect x="11" y="7" width="42" height="50" rx="11" />
-        <rect x="5" y="27" width="6" height="10" rx="2" />
-        <rect x="53" y="15.5" width="6" height="9" rx="2" />
-        <rect x="53" y="27.5" width="6" height="9" rx="2" />
-        <rect x="53" y="39.5" width="6" height="9" rx="2" />
+      <!-- A clock whose hour marks are pebbles. -->
+      <g fill="currentColor">
+        <ellipse cx="32.0" cy="7.0" rx="4.2" ry="3.11" transform="rotate(0 32.0 7.0)" />
+        <ellipse cx="44.5" cy="10.3" rx="3.1" ry="2.29" transform="rotate(37 44.5 10.3)" />
+        <ellipse cx="53.7" cy="19.5" rx="3.1" ry="2.29" transform="rotate(74 53.7 19.5)" />
+        <ellipse cx="57.0" cy="32.0" rx="4.2" ry="3.11" transform="rotate(111 57.0 32.0)" />
+        <ellipse cx="53.7" cy="44.5" rx="3.1" ry="2.29" transform="rotate(148 53.7 44.5)" />
+        <ellipse cx="44.5" cy="53.7" rx="3.1" ry="2.29" transform="rotate(5 44.5 53.7)" />
+        <ellipse cx="32.0" cy="57.0" rx="4.2" ry="3.11" transform="rotate(42 32.0 57.0)" />
+        <ellipse cx="19.5" cy="53.7" rx="3.1" ry="2.29" transform="rotate(79 19.5 53.7)" />
+        <ellipse cx="10.3" cy="44.5" rx="3.1" ry="2.29" transform="rotate(116 10.3 44.5)" />
+        <ellipse cx="7.0" cy="32.0" rx="4.2" ry="3.11" transform="rotate(153 7.0 32.0)" />
+        <ellipse cx="10.3" cy="19.5" rx="3.1" ry="2.29" transform="rotate(10 10.3 19.5)" />
+        <ellipse cx="19.5" cy="10.3" rx="3.1" ry="2.29" transform="rotate(47 19.5 10.3)" />
+        <circle cx="32" cy="32" r="3.2" />
+      </g>
+      <g stroke="currentColor" stroke-width="3.6" stroke-linecap="round">
+        <path d="M32 32 V15" />
+        <path d="M32 32 L42.5 37.5" />
       </g></svg
     ><span>Pebble<span class="identity-detail">Browser emulator</span></span></a
   >
