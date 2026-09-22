@@ -39,12 +39,7 @@ jobs:
         env:
           PHONE_UPSTREAM_TAG: ${{ inputs.tag }}
       - name: Compile libpebble3 for the browser
-        working-directory: tmp/phone-spike/upstream
-        run: |
-          set +e
-          ./gradlew :libpebble3:compileKotlinWasmJs --continue --no-daemon --console=plain \
-            > ../build.log 2>&1
-          echo "gradle exit $?"
+        run: bash tools/phone-spike/build.sh tmp/phone-spike/upstream tmp/phone-spike/build.log
       - name: Blockers
         if: always()
         run: node tools/phone-spike/summarize.mjs tmp/phone-spike/build.log
@@ -55,10 +50,7 @@ jobs:
         run: |
           set +e
           PHONE_SPIKE_ROOM_PROCESSOR=off bash tools/phone-spike/prepare.sh tmp/phone-spike/no-room
-          (cd tmp/phone-spike/no-room &&
-            ./gradlew :libpebble3:compileKotlinWasmJs --continue --no-daemon --console=plain \
-              > ../no-room.log 2>&1)
-          echo "gradle exit $?"
+          bash tools/phone-spike/build.sh tmp/phone-spike/no-room tmp/phone-spike/no-room.log
           node tools/phone-spike/summarize.mjs tmp/phone-spike/no-room.log
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.

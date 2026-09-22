@@ -28,6 +28,10 @@ await edit('settings.gradle.kts', (s) =>
   s.replace(/^include\(":(?!libpebble3"|blobdbgen"|blobannotations")[^"]+"\)\n/gm, ''),
 );
 
+// PHONE_SPIKE_BROWSER=off stops here: upstream's own targets, for the blobdbgen
+// pass the browser build reuses (build.sh).
+if (process.env.PHONE_SPIKE_BROWSER === 'off') process.exit(0);
+
 // libpebble3 and the annotation module it compiles against both need the target;
 // round 1 stopped at blobannotations having none.
 const addBrowserTarget = (s) =>
