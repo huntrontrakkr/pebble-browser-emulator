@@ -44,7 +44,9 @@ await edit('gradle/libs.versions.toml', (s) =>
     ),
 );
 await edit('blobdbgen/src/main/kotlin/coredev/BlobDbEntityProcessor.kt', (s) =>
-  s.replaceAll('ClassName("androidx.room"', 'ClassName("androidx.room3"'),
+  // Every generated reference, including the ForeignKey import added with
+  // addImport (round 10 found generated entities still importing androidx.room).
+  s.replaceAll('"androidx.room"', '"androidx.room3"'),
 );
 const kotlinFiles = async function* (path) {
   for (const entry of await readdir(join(dir, path), { withFileTypes: true })) {
