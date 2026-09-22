@@ -109,6 +109,13 @@ same stack serves Developer tools and CI; there is no second phone implementatio
       every dependency and platform gap recorded, with bundle size. `tools/phone-spike/`.
 - [ ] Browser transport: `libpebble3` connected to the emulated watch over the existing
       firmware byte stream; Clock installs and launches through it with current gates passing.
+- [ ] Simulated Bluetooth link: browser `BleScanner` and `GattClient` implementations over a
+      simulated radio, so the real scanning, pairing, PPoGATT, MTU and reconnection code runs
+      unmodified. QEMU firmware has no Bluetooth stack, so the watch end of the link terminates
+      PPoGATT and forwards the payload to the firmware's serial channel; that endpoint is a
+      modeled link, labeled as such, and the firmware still produces every response. Range
+      loss, packet loss and latency become inputs. Selectable beside the direct link; the
+      default in Preview once proven, with the direct link kept for tools and CI.
 - [ ] PebbleKit JS through `libpebble3`'s runner inside the existing isolated engine, with
       the current sandboxed configuration frame.
 - [ ] Phone surface beside the watch in Preview: watch home, locker, notifications and watch
@@ -121,9 +128,10 @@ same stack serves Developer tools and CI; there is no second phone implementatio
       chosen version is cached offline; phone data is kept per version and never read by an
       older one. A release the adapters no longer build is reported, not offered.
 
-Not ported: real Bluetooth, account sign-in and cloud backends, the operating system's
-notification listener, and voice/AI features. Each is simulated explicitly or absent,
-never presented as the native behavior.
+Not ported: native Bluetooth hardware (Web Bluetooth to a physical watch is a possible
+later link), account sign-in and cloud backends, the operating system's notification
+listener, and voice/AI features. Each is simulated explicitly or absent, never presented
+as the native behavior.
 
 ## 4. Physical-watch fidelity across the family
 
