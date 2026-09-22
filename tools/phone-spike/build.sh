@@ -33,7 +33,7 @@ if [ "${PHONE_SPIKE_ROOM:-2}" = 2 ]; then
   cp -r "$room/." "$checkout/libpebble3/src/wasmJsMain/kotlin/generated-room/"
   # The JVM output carries javax's @Generated marker, which the browser lacks.
   find "$checkout/libpebble3/src/wasmJsMain/kotlin/generated-room" -name '*.kt' -exec sed -i \
-    -e '/^import javax\.annotation\.processing\.Generated$/d' -e '/^@Generated(/d' {} +
+    -e '/^import javax\.annotation\.processing\.Generated/d' -e '/^@Generated(/d' {} +
 fi
 (cd "$checkout" &&
   ./gradlew :libpebble3:compileKotlinWasmJs -x :libpebble3:kspCommonMainKotlinMetadata \
