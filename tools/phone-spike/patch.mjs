@@ -19,9 +19,12 @@ await edit('settings.gradle.kts', (s) =>
   s.replace(/^include\(":(?!libpebble3"|blobdbgen"|blobannotations")[^"]+"\)\n/gm, ''),
 );
 
-await edit('libpebble3/build.gradle.kts', (s) =>
+// libpebble3 and the annotation module it compiles against both need the target;
+// round 1 stopped at blobannotations having none.
+const addBrowserTarget = (s) =>
   s.replace(
     /^(\s*)jvm\(\)\s*$/m,
     '$1jvm()\n$1@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)\n$1wasmJs { browser() }',
-  ),
-);
+  );
+await edit('libpebble3/build.gradle.kts', addBrowserTarget);
+await edit('blobannotations/build.gradle.kts', addBrowserTarget);
