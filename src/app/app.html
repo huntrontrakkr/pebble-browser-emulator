@@ -893,7 +893,7 @@
             ><button [disabled]="!trace().length" (click)="exportTrace()">Export JSON</button>
           </div>
         </div>
-        <div class="console-lines" role="log">
+        <div class="console-lines" role="log" #consoleLines>
           @for (event of trace(); track event.index) {
             <div>
               <span>{{ event.index }}</span

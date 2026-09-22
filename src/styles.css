@@ -389,6 +389,8 @@ main {
 }
 .workspace:not(.preview-workspace) > .display-panel {
   grid-area: display;
+  /* Taller than most windows here, so pinning it only slid it over the log. */
+  position: static;
 }
 .workspace:not(.preview-workspace) > .tools-panel {
   grid-area: tools;
@@ -397,11 +399,18 @@ main {
   grid-area: log;
   align-self: stretch;
   margin-top: 0;
+  /* The log scrolls inside itself and stays in view beside a long tool tab,
+     instead of growing with every entry and scrolling with the page. */
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
 }
 .workspace:not(.preview-workspace) > .console .console-lines {
   height: auto;
-  flex: 1;
-  min-height: 180px;
+  /* A zero basis keeps the entries from sizing the row they sit in. */
+  flex: 1 1 0;
+  min-height: 240px;
+  overscroll-behavior: contain;
 }
 .panel {
   background: var(--panel);
@@ -889,10 +898,13 @@ footer {
   }
   .workspace:not(.preview-workspace) > .console {
     margin-top: 0;
+    position: static;
+    max-height: none;
   }
   .workspace:not(.preview-workspace) > .console .console-lines {
     flex: none;
-    height: 180px;
+    height: 240px;
+    min-height: 0;
   }
   .display-panel {
     position: static;
@@ -921,7 +933,7 @@ footer {
     padding: 16px 8px;
   }
   .console-lines > div {
-    grid-template-columns: 25px 50px 1fr;
+    grid-template-columns: 22px 72px 1fr;
     gap: 8px;
   }
   .display-options {

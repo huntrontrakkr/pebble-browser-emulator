@@ -9,7 +9,17 @@ import { AppMessageRouter } from './app-message-router.ts';
 import { BufferedHistory } from './buffered-history.ts';
 import { PreferencesPanel } from './preferences-panel.ts';
 import { startupCheckpointsEnabled } from './startup-checkpoint.ts';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Injector,
+  OnDestroy,
+  ViewChild,
+  afterNextRender,
+  inject,
+  signal,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirmwarePanel } from './firmware-panel.ts';
@@ -185,6 +195,8 @@ export class App implements AfterViewInit, OnDestroy {
   private modelRevision = 0;
   private destroyed = false;
   @ViewChild('modelHost') modelHost!: ElementRef<HTMLElement>;
+  @ViewChild('consoleLines') consoleLines?: ElementRef<HTMLElement>;
+  private injector = inject(Injector);
   private phoneWorker?: Worker;
   private phoneAccepting = false;
   private watchGeneration = -1;
@@ -282,8 +294,25 @@ export class App implements AfterViewInit, OnDestroy {
   private screenImage?: ImageData;
   private traceUpdates = new BufferedHistory<{ index: number; kind: string; text: string }>(
     200,
-    (items) => this.trace.update((rows) => [...rows, ...items].slice(-200)),
+    (items) => {
+      // Follow new entries only while the reader is already at the end; someone
+      // scrolled up to read an earlier line keeps their place.
+      const lines = this.consoleLines?.nativeElement;
+      const following = !lines || lines.scrollHeight - lines.scrollTop - lines.clientHeight < 24;
+      this.trace.update((rows) => [...rows, ...items].slice(-200));
+      if (following) this.scrollLogToEnd();
+    },
   );
+  /** Scrolls the session log to its newest entry once it has rendered. */
+  private scrollLogToEnd() {
+    afterNextRender(
+      () => {
+        const lines = this.consoleLines?.nativeElement;
+        if (lines) lines.scrollTop = lines.scrollHeight;
+      },
+      { injector: this.injector },
+    );
+  }
   private packetUpdates = new BufferedHistory<{
     id: number;
     direction: string;
@@ -396,6 +425,8 @@ export class App implements AfterViewInit, OnDestroy {
     this.packetUpdates.flush();
     this.toolsOpened.set(true);
     this.workbench.set(true);
+    // The log is created fresh each time the tools open.
+    this.scrollLogToEnd();
     if (tab) this.tab.set(tab);
     this.startDiagnosticCore();
   }

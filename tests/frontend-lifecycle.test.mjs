@@ -91,6 +91,11 @@ function makeApp() {
   const context = vm.createContext({
     exports,
     signal,
+    // Rendering hooks have nothing to render here; the log's scroll position
+    // is checked in the browser, not by this harness.
+    inject: () => undefined,
+    Injector: class {},
+    afterNextRender: () => {},
     AppMessageRouter,
     BufferedHistory,
     MessageChannel,
