@@ -61,6 +61,12 @@ await edit('libpebble3/build.gradle.kts', (s) =>
   s
     // Room 3's Gradle extension is named room3 (round 6 stopped here).
     .replace(/^room \{/m, 'room3 {')
+    // Room's processor needs the entities blobdbgen generates first, as the
+    // Android and iOS processors already do (round 7 stopped here).
+    .replace(
+      /(\n\s*tasks\.named\("kspAndroidMain"\) \{\n\s*dependsOn\("kspCommonMainKotlinMetadata"\)\n\s*\})/,
+      '$1\n    tasks.named("kspKotlinWasmJs") {\n        dependsOn("kspCommonMainKotlinMetadata")\n    }',
+    )
     .replace(
       /(\n\s*add\("kspAndroid", libs\.room\.compiler\))/,
       '$1\n    add("kspWasmJs", libs.room.compiler)',
