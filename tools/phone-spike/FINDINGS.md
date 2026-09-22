@@ -15,7 +15,7 @@ own platform code. No bundle size yet: the browser compile does not finish.
 | 3 | Browser target; non-browser libraries set aside | 850 errors in 67 files, ~80% storage |
 | 4–5 | Probe Maven | Room 2.8.x: JVM/native only. Room 3 (`androidx.room3`, stable 3.0.3) and `sqlite-web` 2.7.1: wasmJs and js |
 | 6–12 | Storage moved to Room 3 on every target | Room's browser processor: 2 errors. Without it: 103 errors in 20 files |
-| 13–24 | Room 2 kept; browser-only Room 2 shim | Database layer and shim compile; ~99 errors remain, all upstream platform gaps |
+| 13–25 | Room 2 kept; browser-only Room 2 shim | Shim and all generated database code compile; 99 errors in 20 files remain, all upstream platform gaps |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -29,7 +29,7 @@ instead of passing silently.
   source set, and the generated code reused from upstream's own targets.
 - `PHONE_SPIKE_ROOM=3`: the rounds 6–12 rewrite to Room 3 on every target.
 
-## Remaining gaps (round 23)
+## Remaining gaps (round 25: 99 errors in 20 files)
 
 All in upstream's shared code; none in storage:
 
@@ -45,7 +45,7 @@ All in upstream's shared code; none in storage:
 - Okio `FileSystem.SYSTEM` / `openZip` for PBW and PBZ files, ~6 errors; needs a browser
   file system.
 
-## Room 2 in the browser (rounds 13–24)
+## Room 2 in the browser (rounds 13–25)
 
 Upstream keeps the Room 2.8.4 it ships, unchanged, on Android, desktop and iOS. Only the
 browser build differs, and its database code compiles as released:
@@ -67,9 +67,11 @@ browser build differs, and its database code compiles as released:
   target, reads Kotlin/Wasm's internal `Any._hashCode` as a column of every entity. Both
   passes therefore run once on upstream's Android and desktop targets, and the browser
   build reuses the ten blobdbgen entities and Room's 54 generated files for the desktop
-  target, which uses the same multiplatform runtime (javax's `@Generated` marker removed).
+  target, which uses the same multiplatform runtime (javax's `@Generated` marker and its
+  import removed).
 
-Round 23: no remaining error is in the database layer or the shim. The Room 3 rewrite
+Round 25: no remaining error is in the shim or the generated database code; the two in
+`Database.kt` are its `Dispatchers.IO` references. The Room 3 rewrite
 (rounds 6–12) remains available with `PHONE_SPIKE_ROOM=3` for comparison.
 
 ## Scope that follows from the purpose
