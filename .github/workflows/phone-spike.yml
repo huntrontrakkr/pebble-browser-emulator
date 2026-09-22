@@ -28,6 +28,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Browser builds of the storage libraries
+        # Round 3 showed storage (Room over SQLite) is the one deep blocker.
+        # Lists each library's latest release and the Kotlin targets it ships.
+        run: bash tools/phone-spike/storage-versions.sh
       - run: bash tools/phone-spike/prepare.sh
         env:
           PHONE_UPSTREAM_TAG: ${{ inputs.tag }}
