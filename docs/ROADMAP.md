@@ -105,6 +105,13 @@ compiled from upstream source to Kotlin/Wasm, the way the settings screen alread
 hand-written phone services retire as the real ones replace them. A headless mode of the
 same stack serves Developer tools and CI; there is no second phone implementation.
 
+Purpose (2026-09-22): prove watchfaces and apps work end to end with the latest phone app
+release. The phone is a disposable test fixture, not a phone to develop for: its state
+lives in memory for one session and nothing of it persists or migrates. Platform services
+the app takes from Android (notifications, calls, contacts) come from a small browser
+implementation of just the Android APIs upstream uses, so upstream's own Android code runs;
+that layer is modeled behavior and labeled as such.
+
 - [ ] Feasibility spike: `libpebble3` at a tagged release compiled with a browser target;
       every dependency and platform gap recorded, with bundle size. `tools/phone-spike/`.
 - [ ] Browser transport: `libpebble3` connected to the emulated watch over the existing
@@ -119,14 +126,14 @@ same stack serves Developer tools and CI; there is no second phone implementatio
 - [ ] PebbleKit JS through `libpebble3`'s runner inside the existing isolated engine, with
       the current sandboxed configuration frame.
 - [ ] Phone surface beside the watch in Preview: watch home, locker, notifications and watch
-      settings, with browser storage and a documented data format.
+      settings, starting clean each session.
 - [ ] Phone services as simulation inputs: notifications from named apps, weather, calendar
       and timeline, music and calls, flowing through the real stack.
 - [ ] Versioned builds: CI builds each upstream release tag with the browser adapters,
       tests it against the emulated watch, and hosts passing versions side by side. Visitors
-      choose a phone version as they choose firmware; preview links record it; only the
-      chosen version is cached offline; phone data is kept per version and never read by an
-      older one. A release the adapters no longer build is reported, not offered.
+      choose a phone version as they choose firmware, the latest release by default; preview
+      links record it; only the chosen version is cached offline. A release the adapters no
+      longer build is reported, not offered.
 
 Not ported: native Bluetooth hardware (Web Bluetooth to a physical watch is a possible
 later link), account sign-in and cloud backends, the operating system's notification

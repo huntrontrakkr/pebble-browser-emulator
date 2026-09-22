@@ -49,6 +49,14 @@ Platform gaps, which are code changes rather than renames:
 - `BundledSQLiteDriver` in `getRoomDatabase`; the browser uses the `sqlite-web` driver
   through a platform database builder.
 
+## Scope that follows from the purpose
+
+The phone only has to prove watchfaces work with the latest app release, and its state is
+thrown away after each session. Storage therefore needs an in-memory SQLite database, not
+browser persistence, schema migrations or a data format. The order of work follows what a
+watchface developer exercises: installing through the real stack, the PebbleKit JS bridge
+and configuration pages, then notifications, weather and timeline as inputs.
+
 ## Maintenance
 
 Regex rewrites were the fastest way to measure the gap and are not a product
