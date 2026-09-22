@@ -1,0 +1,210 @@
+/* Preview: the column beside the watch for choosing, opening and sharing an app. */
+@layer components {
+  .preview-launcher {
+    padding: 24px;
+    @media (max-width: 1020px) {
+      padding: 20px;
+    }
+    @media (max-width: 780px) {
+      padding: 18px;
+      &.phone-open {
+        order: -2;
+      }
+    }
+    & h2 {
+      margin: 0;
+      font-size: var(--text-lg);
+    }
+    & .section-heading {
+      margin-bottom: 20px;
+      @media (max-width: 780px) {
+        margin-bottom: 16px;
+      }
+    }
+  }
+  /* In Preview the launcher is bare content beside the watch, not a card. */
+  .preview-workspace > .preview-launcher {
+    grid-area: content;
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    @media (max-width: 780px) {
+      padding: 8px;
+    }
+  }
+  @media (max-width: 780px) {
+    .preview-workspace:not(.preview-active) .preview-launcher {
+      justify-self: center;
+      width: 100%;
+      max-width: 440px;
+      padding: 16px 8px;
+    }
+  }
+
+  .preview-chooser {
+    & summary {
+      padding: 4px 0 12px;
+      color: var(--muted);
+      font-size: var(--text-md);
+      cursor: pointer;
+    }
+    & > summary {
+      margin-left: 16px;
+      list-style-position: outside;
+    }
+    & label {
+      margin-top: 14px;
+    }
+  }
+  .launch-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+    & > * {
+      width: 100%;
+      margin: 0;
+    }
+  }
+  .preview-launcher .launch-actions {
+    gap: 10px;
+    margin-top: 16px;
+    & > * {
+      min-height: 46px;
+    }
+  }
+  /* Comes after the launch actions it sits among, so its own margin wins. */
+  .recent-watchface {
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    & span {
+      color: var(--muted);
+      font-size: var(--text-sm);
+      font-weight: 400;
+    }
+    & strong {
+      font-size: var(--text-md);
+    }
+  }
+
+  .repository-disclosure {
+    margin-top: 24px;
+    padding-block: 16px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    & > summary {
+      font-size: var(--text-md);
+      font-weight: 550;
+      cursor: pointer;
+    }
+  }
+  .repository-launch {
+    margin-top: 24px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+    & > button {
+      width: 100%;
+      margin-top: 8px;
+    }
+    & details {
+      margin: 8px 0;
+    }
+  }
+  .repository-disclosure .repository-launch {
+    margin-top: 8px;
+    border: 0;
+  }
+
+  .preview-selection {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 20px 0 12px;
+    overflow-wrap: anywhere;
+    & a {
+      font-size: var(--text-md);
+    }
+    @media (max-width: 780px) {
+      margin: 12px 0;
+    }
+  }
+  .preview-progress {
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel-alt);
+    font-size: var(--text-md);
+    line-height: 1.6;
+    @media (max-width: 780px) {
+      margin: 12px 0;
+    }
+  }
+
+  /* Shown when the chosen watch needs firmware the visitor must supply. */
+  .firmware-setup {
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel-alt);
+    & p,
+    & li {
+      font-size: var(--text-md);
+      line-height: 1.65;
+    }
+    & ol {
+      padding-left: 20px;
+    }
+    & li {
+      margin: 12px 0;
+    }
+    & .file-button {
+      text-align: center;
+      white-space: normal;
+    }
+  }
+  .download-pair {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0;
+    & a {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  .preview-sharing {
+    margin-top: 20px;
+    & .actions {
+      gap: 8px;
+    }
+    @media (max-width: 780px) {
+      margin-top: 12px;
+    }
+  }
+  .preview-launcher .preview-sharing {
+    & .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    & button {
+      min-height: 44px;
+      font-weight: 450;
+      white-space: normal;
+    }
+  }
+  .preview-note {
+    margin: 16px 0 0;
+    font-size: var(--text-md);
+  }
+}

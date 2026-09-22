@@ -1,0 +1,150 @@
+/* Element defaults. Anything with a class belongs to a component layer, which
+   wins over these regardless of selector weight. */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  :root {
+    font-family: var(--font-sans);
+    /* Fixed, so every rem in the type scale is an exact pixel size. */
+    font-size: 16px;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+  }
+  [hidden] {
+    display: none !important;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Text */
+  h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+  }
+  h2 {
+    margin: 0 0 16px;
+    font-size: var(--text-lg);
+    font-weight: 650;
+    letter-spacing: -0.2px;
+  }
+  h3 {
+    margin: 0 0 10px;
+    font-size: var(--text-base);
+    font-weight: 650;
+  }
+  p {
+    margin-top: 0;
+  }
+  a {
+    color: var(--link);
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  code {
+    font-family: var(--font-mono);
+  }
+  pre {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+  }
+  hr {
+    height: 1px;
+    margin: 24px 0;
+    border: 0;
+    background: var(--line);
+  }
+
+  /* Controls */
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel);
+    color: var(--text);
+    font-size: var(--text-md);
+    font-weight: 550;
+    line-height: 18px;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  label {
+    display: block;
+    margin: 15px 0 10px;
+    font-size: var(--text-md);
+    font-weight: 550;
+  }
+  label > input,
+  label > select {
+    display: block;
+    margin-top: 7px;
+  }
+  input:not([type='range']):not([type='file']):not([type='checkbox']),
+  select {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel);
+    color: var(--text);
+  }
+  textarea {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel);
+    color: var(--text);
+    resize: vertical;
+  }
+  input[type='range'] {
+    width: 100%;
+    margin: 8px 0;
+    accent-color: var(--accent);
+  }
+  /* Visually hidden; the styled label beside it is what people press. */
+  input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+  }
+  /* 16px on phones keeps iOS from zooming the page when a field takes focus. */
+  @media (max-width: 780px) {
+    input:not([type='range']),
+    select,
+    textarea {
+      font-size: var(--text-base);
+    }
+  }
+}

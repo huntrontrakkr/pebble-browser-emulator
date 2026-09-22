@@ -1,0 +1,100 @@
+/* Design tokens: every colour, type size, radius and shared shadow the
+   interface uses. Components refer to these names rather than raw values, and
+   the dark theme only redefines tokens. */
+
+/* Inter, variable weight, latin subset. SIL Open Font License 1.1 —
+   see public/fonts/INTER-LICENSE.txt. Self-hosted so the static app needs no
+   font service. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../../public/fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@layer tokens {
+  :root {
+    color-scheme: light;
+
+    --font-sans:
+      'Inter Variable', Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+    /* Type scale. The root is fixed at 16px, so these are exact pixel sizes. */
+    --text-2xs: 0.6875rem; /* 11px */
+    --text-xs: 0.75rem; /* 12px */
+    --text-sm: 0.8125rem; /* 13px */
+    --text-md: 0.875rem; /* 14px */
+    --text-base: 1rem; /* 16px */
+    --text-lg: 1.125rem; /* 18px */
+    --text-xl: 1.25rem; /* 20px */
+    --text-2xl: 1.375rem; /* 22px */
+
+    --radius-sm: 5px; /* controls and inset boxes */
+    --radius-md: 8px; /* panels */
+    --radius-lg: 16px; /* the preview's device surface and dialogs */
+
+    /* Surfaces */
+    --bg: #f3efe9;
+    --panel: #fffdfa;
+    --panel-alt: #f8f4ee;
+    --selected: #ebe6dd;
+    --stage: #ebe6de;
+    --line: #e3ddd3;
+
+    /* Ink */
+    --text: #211e19;
+    --muted: #6d6459;
+    --accent: #2a2521;
+    --accent-hover: #100e0c;
+    --accent-ink: #fffdfa;
+    --link: #3d5a78;
+    --error: #9e2b20;
+    --error-bg: #fdf0ed;
+
+    /* Device shell: a surface distinct from panels, so the watch reads as an
+       object sitting on the stage rather than another card. */
+    --device: #34302a;
+    --device-edge: #1e1b17;
+    --device-ink: #efe9e0;
+    --key: #bdb5a7;
+    --key-edge: #8e867a;
+    --key-ink: #24211d;
+    --shadow-raise: inset 0 1px 0 #ffffffcc, 0 10px 24px -12px #2a211540;
+    --shadow-well: inset 0 2px 7px #00000024, inset 0 -1px 0 #ffffff66;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+
+    --bg: #141210;
+    --panel: #1c1a17;
+    --panel-alt: #23201c;
+    --selected: #2b2723;
+    --stage: #100e0c;
+    --line: #332e28;
+
+    --text: #ece6dd;
+    --muted: #a69c8e;
+    --accent: #ece5da;
+    --accent-hover: #fffaf2;
+    --accent-ink: #1a1815;
+    --link: #9cb8d4;
+    --error: #ff9d92;
+    --error-bg: #3a221f;
+
+    --device: #3b3733;
+    --device-edge: #171512;
+    --device-ink: #e9e3da;
+    --key: #a49b8e;
+    --key-edge: #6d6659;
+    --key-ink: #1c1a17;
+    --shadow-raise: inset 0 1px 0 #ffffff12, 0 12px 28px -14px #000000b0;
+    --shadow-well: inset 0 2px 9px #00000088, inset 0 -1px 0 #ffffff0f;
+  }
+}
