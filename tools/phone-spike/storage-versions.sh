@@ -24,6 +24,13 @@ for artifact in androidx/room/room-runtime androidx/room/room-paging \
     sort | uniq -c | sed "s/^/    $latest /"
 done
 
-# Anything else under the androidx.room3 group, in case the names differ.
-curl -fsS "$maven/androidx/room3/group-index.xml" 2>/dev/null | head -30 ||
-  echo "androidx/room3: no group index"
+# Round 5 found Room 3 with browser builds; the spike builds against these
+# stable releases, so their own targets are listed as well.
+for pinned in androidx/room3/room3-runtime/3.0.3 androidx/room3/room3-paging/3.0.3 \
+  androidx/sqlite/sqlite-web/2.7.1; do
+  artifact=${pinned%/*} version=${pinned##*/} name=${artifact##*/}
+  echo "$artifact $version:"
+  curl -fsS "$maven/$artifact/$version/$name-$version.module" 2>/dev/null |
+    grep -o '"org.jetbrains.kotlin.platform.type": "[a-z_]*"' | sort | uniq -c |
+    sed 's/^/    /' || echo "    not published"
+done

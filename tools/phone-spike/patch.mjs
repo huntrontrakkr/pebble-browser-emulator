@@ -1,6 +1,6 @@
 // Applies the spike's changes to an upstream checkout: only libpebble3 and the
 // two modules it builds from are included, and libpebble3 gains a browser target.
-import { readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const dir = process.argv[2];
@@ -29,12 +29,50 @@ const addBrowserTarget = (s) =>
 await edit('libpebble3/build.gradle.kts', addBrowserTarget);
 await edit('blobannotations/build.gradle.kts', addBrowserTarget);
 
-// Round 3: the four libraries with no browser variant (Room, its paging add-on,
-// bundled SQLite and kmp-io) move to a source set only the native targets use,
-// so the browser compile names every file that depends on them.
+// Round 6: Room 2 has no browser build, but Room 3 (androidx.room3) ships
+// wasmJs and js, and androidx.sqlite has a web driver. Storage moves to Room 3
+// for every target: same annotations and DAOs under a renamed package.
+await edit('gradle/libs.versions.toml', (s) =>
+  s
+    .replace(/^room = "[^"]+"/m, 'room = "3.0.3"')
+    .replace(/^sqlite = "[^"]+"/m, 'sqlite = "2.7.1"')
+    .replace('id = "androidx.room"', 'id = "androidx.room3"')
+    .replace(/"androidx\.room:room-/g, '"androidx.room3:room3-')
+    .replace(
+      /^(sqlite-bundled = .*)$/m,
+      '$1\nsqlite-web = { module = "androidx.sqlite:sqlite-web", version.ref = "sqlite" }',
+    ),
+);
+await edit('blobdbgen/src/main/kotlin/coredev/BlobDbEntityProcessor.kt', (s) =>
+  s.replaceAll('ClassName("androidx.room"', 'ClassName("androidx.room3"'),
+);
+const kotlinFiles = async function* (path) {
+  for (const entry of await readdir(join(dir, path), { withFileTypes: true })) {
+    const child = join(path, entry.name);
+    if (entry.isDirectory()) yield* kotlinFiles(child);
+    else if (entry.name.endsWith('.kt')) yield child;
+  }
+};
+for await (const file of kotlinFiles('libpebble3/src')) {
+  const source = await readFile(join(dir, file), 'utf8');
+  if (/\bandroidx\.room\./.test(source)) await edit(file, (s) => s.replace(/\bandroidx\.room\./g, 'androidx.room3.'));
+}
+await edit('libpebble3/build.gradle.kts', (s) =>
+  s
+    .replace(
+      /(\n\s*add\("kspAndroid", libs\.room\.compiler\))/,
+      '$1\n    add("kspWasmJs", libs.room.compiler)',
+    )
+    .replace(
+      /(\n\s*commonTest\.dependencies \{)/,
+      '\n        wasmJsMain.dependencies {\n            implementation(libs.sqlite.web)\n        }\n$1',
+    ),
+);
+
+// Round 3: libraries with no browser variant (now bundled SQLite and kmp-io)
+// move to a source set only the native targets use, so the browser compile
+// names every file that depends on them.
 const nonWeb = [
-  'implementation(libs.room.runtime)',
-  'api(libs.room.paging)',
   'implementation(libs.sqlite.bundled)',
   'implementation(libs.kmpio)',
 ];
