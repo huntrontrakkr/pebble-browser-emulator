@@ -1,7 +1,7 @@
 // Browser (wasmJs) counterparts of Room 2.8.4's nativeMain concurrency files. The
 // browser runs Kotlin/Wasm on one thread, so atomics are plain fields, there is
 // one thread-local slot, and the lock and synchronized use atomicfu as native
-// does. Room's multiplatform runtime (Apache License 2.0) defines the contracts.
+// and a lock needs no exclusion. Room's multiplatform runtime (Apache License 2.0) defines the contracts.
 @file:androidx.annotation.RestrictTo(androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP)
 
 package androidx.room.concurrent
@@ -28,12 +28,18 @@ public actual class AtomicBoolean actual constructor(initialValue: Boolean) {
         (value == expect).also { if (it) value = update }
 }
 
-internal actual typealias ReentrantLock = kotlinx.atomicfu.locks.SynchronizedObject
+// Native aliases atomicfu's SynchronizedObject, which on the browser is only an
+// alias of Any; with one thread there is nothing to exclude, so these are classes
+// whose locking does nothing.
+internal actual class ReentrantLock actual constructor() {
+    fun lock() {}
+    fun unlock() {}
+    fun tryLock(): Boolean = true
+}
 
-internal actual typealias SynchronizedObject = kotlinx.atomicfu.locks.SynchronizedObject
+internal actual open class SynchronizedObject actual constructor()
 
-internal actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T =
-    kotlinx.atomicfu.locks.synchronized(lock, block)
+internal actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T = block()
 
 @androidx.annotation.RestrictTo(androidx.annotation.RestrictTo.Scope.LIBRARY)
 public actual class ThreadLocal<T> {

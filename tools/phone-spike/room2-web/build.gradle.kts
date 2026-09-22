@@ -37,10 +37,14 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:atomicfu:${libs.versions.atomicfu.get()}")
             }
         }
-        wasmJsMain {
-            // Room's runtime shared by its desktop and native targets.
+        // Room's runtime shared by its desktop and native targets, kept in a shared
+        // source set as in Room's own build: it uses annotations such as JvmName
+        // that Kotlin accepts only outside a platform source set (round 17).
+        val jvmNativeMain by creating {
+            dependsOn(commonMain.get())
             kotlin.srcDir(released("room-runtime/jvmNativeMain"))
             kotlin.srcDir(released("room-paging/jvmNativeMain"))
         }
+        wasmJsMain.get().dependsOn(jvmNativeMain)
     }
 }
