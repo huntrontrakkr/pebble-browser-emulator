@@ -92,10 +92,11 @@ Reported on a Pixel 9 against the hosted build, not reproduced:
   network failures now appear in the session log with the host and reason,
   which should identify it on the reporter's device.
 
-A large share of "it doesn't work" reports are likely the service worker: it
-never auto-activates, so a device keeps serving the previously cached build
-until **Preferences → Restart & update**. Confirm which build a reporter is on
-before investigating anything.
+A share of "it doesn't work" reports may be a stale build. The service worker
+now switches to a downloaded version at the next launch when only one emulator
+tab is open, so a device is at most one visit behind; with several tabs open it
+waits for **Reload all tabs**. Confirm which build a reporter is on (the footer
+names the commit) before investigating anything.
 
 ## 5. The relay, as built
 

@@ -148,6 +148,13 @@ self.addEventListener('fetch', (event) => {
   );
 });
 const tasks = new Map();
+// Top-level emulator tabs. The phone's settings page is a nested frame of a
+// tab, not a watch session of its own.
+async function emulatorTabs() {
+  return (await self.clients.matchAll({ type: 'window', includeUncontrolled: true })).filter(
+    (c) => c.frameType !== 'nested' && c.url.startsWith(scope.href),
+  );
+}
 async function status() {
   const cache = await caches.open(cacheName);
   const saved = new Set((await cache.keys()).map((request) => request.url));
@@ -215,11 +222,12 @@ self.addEventListener('message', (event) => {
             await cache.delete(urlFor(asset.path));
           for (const profile of profiles) await cache.delete(marker(profile));
           port.postMessage({ done: true, value: await status() });
+        } else if (data.type === 'TABS') {
+          port.postMessage({ done: true, value: (await emulatorTabs()).length });
         } else if (data.type === 'APPLY_UPDATE') {
-          const tabs = (
-            await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-          ).filter((c) => c.frameType !== 'nested' && c.url.startsWith(scope.href));
-          if (tabs.length > 1) throw new Error('Close the other emulator tabs before updating.');
+          // Every open tab reloads when this version takes over, so none keeps
+          // running old code against the new cache. The page asks first when
+          // other tabs would be affected.
           port.postMessage({ done: true });
           await self.skipWaiting();
         } else throw new Error('Unknown offline request.');

@@ -51,10 +51,21 @@ Use the browser's site-data controls to remove everything for this origin.
 
 ## Updates
 
-An available update waits while the current app is in use. **Review update → Restart &
-update** activates it and reloads the requesting tab. **Later** dismisses the notice for
-the current visit. Other open emulator tabs must be closed first; a nested phone
-configuration iframe is not treated as another watch session.
+The app looks for a new version at launch, when a tab comes back into view or back
+online (at most every five minutes), and every 30 minutes. A new version downloads in the
+background and never interrupts a running watch.
+
+- **At launch.** If a downloaded version is waiting and this is the only emulator tab, it
+  takes over before the app starts and the page reloads once. Nothing is running yet, so
+  nothing is lost, and the second visit after a deployment is always current.
+- **While the app is open.** A notice offers **Reload** (or **Reload all tabs** when other
+  emulator tabs are open, since they reload too). **Later** hides it for this visit; the next
+  launch still applies the update. **Preferences → Reload & update** does the same.
+
+When a new version takes over, every emulator tab that was running the old one reloads.
+The cache then holds only the new build, and fixed-name files such as the Wasm runtimes must
+never be served to code from another build. A nested phone configuration iframe is not
+counted as another tab.
 
 An update preserves watches explicitly downloaded for offline use. Unchanged assets are
 copied after SHA-256 verification; changed assets must download and verify before the

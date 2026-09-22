@@ -35,8 +35,13 @@ interface InstallEvent extends Event {
     <button class="preferences-trigger" (click)="open()" aria-haspopup="dialog">Preferences</button>
     @if (updateReady() && !deferred()) {
       <aside class="pwa-update" aria-label="Application update">
-        <span>An update is available.</span>
-        <button (click)="open()">Review update</button
+        <span
+          >A new version is ready.{{
+            otherTabs() ? ' Your other emulator tabs reload too.' : ''
+          }}</span
+        >
+        <button (click)="applyUpdate()" [disabled]="downloading()">
+          {{ otherTabs() ? 'Reload all tabs' : 'Reload' }}</button
         ><button class="text-button" (click)="deferred.set(true)">Later</button>
       </aside>
     }
@@ -197,10 +202,11 @@ interface InstallEvent extends Event {
           <section>
             <h3>Application update</h3>
             <p class="help">
-              Updating restarts the watch. Saved app settings are kept. Close other emulator tabs
-              first.
+              Updating reloads every open emulator tab and restarts the watch. Saved app settings,
+              firmware and offline downloads are kept. It also happens by itself the next time you
+              open the app.
             </p>
-            <button (click)="applyUpdate()" [disabled]="downloading()">Restart &amp; update</button>
+            <button (click)="applyUpdate()" [disabled]="downloading()">Reload &amp; update</button>
           </section>
         }
         @if (message()) {
@@ -220,6 +226,8 @@ export class PreferencesPanel implements OnInit, OnDestroy {
   online = signal(navigator.onLine);
   updateReady = signal(false);
   deferred = signal(false);
+  /** Other open emulator tabs that an update would also reload. */
+  otherTabs = signal(0);
   offlineStatus = signal<OfflineStatus | null>(null);
   offlineNotice = signal('Preparing offline support…');
   downloading = signal(false);
@@ -290,6 +298,9 @@ export class PreferencesPanel implements OnInit, OnDestroy {
   private registration?: ServiceWorkerRegistration;
   private downloadId?: string;
   private reloadForUpdate = false;
+  /** Whether this page was already served by a worker when it loaded. */
+  private hadController = !!navigator.serviceWorker?.controller;
+  private lastCheck = 0;
   private destroyed = false;
   private cleanup: (() => void)[] = [];
   private network = () => this.online.set(navigator.onLine);
@@ -301,9 +312,23 @@ export class PreferencesPanel implements OnInit, OnDestroy {
     this.installed.set(true);
     this.installPrompt.set(null);
   };
+  // A new version took over, from this tab or another. The cache now holds
+  // only the new build, so this page reloads rather than keep running old code
+  // that could fetch mismatched files. A first install is not an update.
   private controller = () => {
-    if (this.reloadForUpdate) location.reload();
+    if (this.reloadForUpdate || this.hadController) location.reload();
     else void this.refresh();
+  };
+  // Looks for a new deployment when the tab comes back into view or back
+  // online, and on a timer, not only at page load. At most every five minutes.
+  private checkForUpdate = () => {
+    if (document.visibilityState !== 'visible') return;
+    // Tabs may have opened or closed while this one was in the background.
+    if (this.updateReady()) void this.countTabs();
+    if (!navigator.onLine) return;
+    if (Date.now() - this.lastCheck < 5 * 60_000) return;
+    this.lastCheck = Date.now();
+    void this.registration?.update().catch(() => {});
   };
   async ngOnInit() {
     this.installed.set(matchMedia('(display-mode: standalone)').matches);
@@ -330,6 +355,7 @@ export class PreferencesPanel implements OnInit, OnDestroy {
       const inspect = () => {
         if (this.destroyed) return;
         this.updateReady.set(!!registration.waiting && !!navigator.serviceWorker.controller);
+        void this.countTabs();
         if (registration.active?.state === 'activated') void this.refresh();
       };
       const watch = () => {
@@ -350,7 +376,16 @@ export class PreferencesPanel implements OnInit, OnDestroy {
       registration.addEventListener('updatefound', watch);
       this.cleanup.push(() => registration.removeEventListener('updatefound', watch));
       watch();
+      this.lastCheck = Date.now();
       await registration.update().catch(() => {});
+      document.addEventListener('visibilitychange', this.checkForUpdate);
+      addEventListener('online', this.checkForUpdate);
+      const timer = setInterval(this.checkForUpdate, 30 * 60_000);
+      this.cleanup.push(() => {
+        document.removeEventListener('visibilitychange', this.checkForUpdate);
+        removeEventListener('online', this.checkForUpdate);
+        clearInterval(timer);
+      });
     } catch {
       this.offlineNotice.set('Offline support could not start. Try reopening the app online.');
     }
@@ -458,6 +493,15 @@ export class PreferencesPanel implements OnInit, OnDestroy {
       );
     } finally {
       this.installPrompt.set(null);
+    }
+  }
+  private async countTabs() {
+    const waiting = this.registration?.waiting;
+    if (!waiting || !navigator.serviceWorker.controller) return;
+    try {
+      this.otherTabs.set(Math.max(0, (await this.request('TABS', {}, waiting)) - 1));
+    } catch {
+      this.otherTabs.set(0);
     }
   }
   async applyUpdate() {

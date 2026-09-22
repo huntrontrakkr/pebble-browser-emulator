@@ -276,12 +276,16 @@ test('updates preserve selected offline watches, verify replacements and leave t
   assert.ok(!(await next.caches.keys()).includes('pebble-offline:/emulator/:one'));
 });
 
-test('an explicit update cannot replace another open watch session; the nested phone is not a separate tab', async () => {
+test('tabs are counted so the page can say who reloads; the nested phone is not a separate tab', async () => {
   const w = worker();
+  assert.equal((await w.message('TABS')).value, 1);
+  w.tabs.push({ url: scope + 'phone-app/index.html', frameType: 'nested' });
+  w.tabs.push({ url: 'https://example.com/elsewhere', frameType: 'top-level' });
+  assert.equal((await w.message('TABS')).value, 1, 'Nested frames and other sites are not tabs');
   w.tabs.push({ url: scope + '#/example/clock', frameType: 'top-level' });
-  assert.match((await w.message('APPLY_UPDATE')).error, /other emulator tabs/);
-  assert.equal(w.skipWaiting, 0);
-  w.tabs[1] = { url: scope + 'phone-app/index.html', frameType: 'nested' };
+  assert.equal((await w.message('TABS')).value, 2);
+  assert.equal(w.skipWaiting, 0, 'Counting never activates anything');
+  // Applying is explicit and reloads every tab, so another open tab no longer blocks it.
   assert.equal((await w.message('APPLY_UPDATE')).error, undefined);
   assert.equal(w.skipWaiting, 1);
   assert.match(

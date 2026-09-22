@@ -205,11 +205,30 @@ try {
       page.on('framenavigated', (frame) => {
         if (frame === page.mainFrame()) navigations++;
       });
-      revision = 2;
-      await page.evaluate(async () => {
-        await (await navigator.serviceWorker.getRegistration()).update();
-      });
-      await page.getByRole('button', { name: 'Review update', exact: true }).waitFor();
+      const update = (to) => {
+        revision = to;
+        return page.evaluate(async () => {
+          await (await navigator.serviceWorker.getRegistration()).update();
+        });
+      };
+      // Polled from here rather than inside the page: the page reloads while
+      // the new version takes over, which would discard an in-page wait.
+      const cachedVersion = async (version) => {
+        for (const deadline = Date.now() + 60000; Date.now() < deadline;) {
+          const keys = await page
+            .evaluate(async () =>
+              (await caches.keys()).filter((key) => key.startsWith('pebble-offline:')),
+            )
+            .catch(() => []);
+          if (keys.length === 1 && keys[0].endsWith('-qa-' + version)) return;
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+        throw new Error(`Version qa-${version} did not take over`);
+      };
+      await update(2);
+      // With another tab open the notice says both reload, and nothing restarts
+      // until someone asks.
+      await page.getByRole('button', { name: 'Reload all tabs', exact: true }).waitFor();
       assert.equal(navigations, 0, 'Update availability cannot restart a running watch');
       assert.equal(
         await page.getByRole('button', { name: 'Pause', exact: true }).isVisible(),
@@ -219,20 +238,31 @@ try {
         await page.evaluate(() => navigator.serviceWorker.controller.scriptURL),
         initialController,
       );
-      await page.getByRole('button', { name: 'Review update', exact: true }).click();
-      await page.getByRole('button', { name: 'Restart & update', exact: true }).click();
-      await page
-        .getByText('Close the other emulator tabs before updating.', { exact: true })
-        .waitFor();
-      assert.equal(navigations, 0);
-      await other.close();
-      await page.getByRole('button', { name: 'Restart & update', exact: true }).click();
-      await page.waitForFunction(async () => {
-        const keys = await caches.keys();
-        return (
-          keys.some((key) => key.endsWith('-qa-2')) && !keys.some((key) => key.endsWith('-qa-1'))
-        );
+      let otherNavigations = 0;
+      other.on('framenavigated', (frame) => {
+        if (frame === other.mainFrame()) otherNavigations++;
       });
+      const reloaded = page.waitForEvent('load');
+      const otherReloaded = other.waitForEvent('load');
+      await page.getByRole('button', { name: 'Reload all tabs', exact: true }).click();
+      await Promise.all([reloaded, otherReloaded]);
+      await cachedVersion(2);
+      assert.ok(navigations > 0, 'The requesting tab reloads onto the new version');
+      assert.ok(otherNavigations > 0, 'The other tab reloads too instead of running old code');
+      await other.close();
+      await ready();
+      // With only this tab, a version that finished downloading takes over at
+      // the next launch by itself, before the app starts.
+      await update(3);
+      await page.getByRole('button', { name: 'Reload', exact: true }).waitFor();
+      await page.reload();
+      await cachedVersion(3);
+      await ready();
+      assert.equal(
+        await page.getByRole('button', { name: 'Reload', exact: true }).count(),
+        0,
+        'No update notice remains after the launch switch',
+      );
       await page.getByRole('button', { name: 'Preferences', exact: true }).waitFor();
       await preferences();
       await page.getByText(/Ready offline ·/).waitFor();
@@ -261,8 +291,9 @@ try {
           'offline firmware boot',
           'offline companion settings',
           'saved PBW reopen',
-          'explicit update',
-          'other tab guard',
+          'update notice names other tabs',
+          'reload updates every tab',
+          'launch applies a waiting version',
           'offline choice survives update',
         ],
       });
