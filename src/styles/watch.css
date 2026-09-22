@@ -137,7 +137,12 @@
     min-width: 0;
     height: 526px;
     overflow: auto;
-    background: var(--stage);
+    /* A granite slab: soft vignette over dark and light flecks and grain. */
+    background-color: var(--stage);
+    background-image:
+      radial-gradient(ellipse at 50% 45%, transparent 40%, var(--stage-vignette)),
+      var(--texture-flecks-dark), var(--texture-flecks-light), var(--texture-stone-grain);
+    box-shadow: inset 0 1px 3px #0000001f;
     &:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 4px;

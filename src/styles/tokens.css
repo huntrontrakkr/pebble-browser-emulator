@@ -44,7 +44,7 @@
     --panel: #fffdfa;
     --panel-alt: #f8f4ee;
     --selected: #ebe6dd;
-    --stage: #ebe6de;
+    --stage: #e6e0d6;
     --line: #e3ddd3;
 
     /* Ink */
@@ -67,6 +67,18 @@
     --key-ink: #24211d;
     --shadow-raise: inset 0 1px 0 #ffffffcc, 0 10px 24px -12px #2a211540;
     --shadow-well: inset 0 2px 7px #00000024, inset 0 -1px 0 #ffffff66;
+
+    /* Stone textures. Each is a small SVG noise tile generated in the browser,
+       so there is no image to download. They sit behind panels and on the
+       watch stage, never behind text people read. Grain: fine speckle, like
+       limestone. Flecks: sparse dark and light peaks of coarser noise, like
+       granite. Strata: faint sediment lines for the header band. */
+    --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.13 0 0 0 0 0.1 0.14 0 0 0 -0.063'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-stone-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.13 0 0 0 0 0.1 0.2 0 0 0 -0.090'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-flecks-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='1' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.13 0 0 0 0 0.1 5.88 0 0 0 -3.948'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-flecks-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='1' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 4.90 0 0 0 -3.290'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-strata: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='64' fill='none' stroke='%232a252112' stroke-width='1'%3E%3Cpath d='M0 10 C 260 2 520 18 800 9 S 1340 5 1600 10'/%3E%3Cpath d='M0 21 C 260 16 520 29 800 24 S 1340 16.5 1600 21'/%3E%3Cpath d='M0 32 C 260 30 520 40 800 31 S 1340 28 1600 32'/%3E%3Cpath d='M0 43 C 260 35 520 51 800 46 S 1340 39.5 1600 43'/%3E%3Cpath d='M0 54 C 260 49 520 62 800 53 S 1340 51 1600 54'/%3E%3C/svg%3E");
+    --stage-vignette: #2a25210f;
   }
 
   :root[data-theme='dark'] {
@@ -76,7 +88,7 @@
     --panel: #1c1a17;
     --panel-alt: #23201c;
     --selected: #2b2723;
-    --stage: #100e0c;
+    --stage: #1f1c19;
     --line: #332e28;
 
     --text: #ece6dd;
@@ -96,5 +108,26 @@
     --key-ink: #1c1a17;
     --shadow-raise: inset 0 1px 0 #ffffff12, 0 12px 28px -14px #000000b0;
     --shadow-well: inset 0 2px 9px #00000088, inset 0 -1px 0 #ffffff0f;
+
+    /* Basalt: chalky grain and flecks on a dark stone. */
+    --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.86 0.1 0 0 0 -0.045'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-stone-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.86 0.1 0 0 0 -0.045'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-flecks-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='1' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5.60 0 0 0 -3.760'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-flecks-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='1' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.86 3.08 0 0 0 -2.068'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --texture-strata: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='64' fill='none' stroke='%23ffffff12' stroke-width='1'%3E%3Cpath d='M0 10 C 260 2 520 18 800 9 S 1340 5 1600 10'/%3E%3Cpath d='M0 21 C 260 16 520 29 800 24 S 1340 16.5 1600 21'/%3E%3Cpath d='M0 32 C 260 30 520 40 800 31 S 1340 28 1600 32'/%3E%3Cpath d='M0 43 C 260 35 520 51 800 46 S 1340 39.5 1600 43'/%3E%3Cpath d='M0 54 C 260 49 520 62 800 53 S 1340 51 1600 54'/%3E%3C/svg%3E");
+    --stage-vignette: #0000004d;
+  }
+
+  /* High-contrast modes get flat surfaces. */
+  @media (forced-colors: active), (prefers-contrast: more) {
+    :root,
+    :root[data-theme='dark'] {
+      --texture-grain: none;
+      --texture-stone-grain: none;
+      --texture-flecks-dark: none;
+      --texture-flecks-light: none;
+      --texture-strata: none;
+      --stage-vignette: transparent;
+    }
   }
 }

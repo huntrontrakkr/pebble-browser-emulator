@@ -11,7 +11,7 @@
     height: 72px;
     padding: 0 28px;
     border-bottom: 1px solid var(--line);
-    background: var(--panel);
+    background: var(--panel) var(--texture-strata) center / auto 100% repeat-x;
     @media (max-width: 1020px) {
       padding: 0 16px;
     }

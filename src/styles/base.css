@@ -11,7 +11,7 @@
   }
   body {
     margin: 0;
-    background: var(--bg);
+    background: var(--bg) var(--texture-grain);
     color: var(--text);
   }
   [hidden] {
