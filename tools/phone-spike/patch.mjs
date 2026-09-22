@@ -57,7 +57,14 @@ const kotlinFiles = async function* (path) {
 };
 for await (const file of kotlinFiles('libpebble3/src')) {
   const source = await readFile(join(dir, file), 'utf8');
-  if (/\bandroidx\.room\./.test(source)) await edit(file, (s) => s.replace(/\bandroidx\.room\./g, 'androidx.room3.'));
+  if (/\bandroidx\.room\./.test(source))
+    await edit(file, (s) =>
+      s
+        .replace(/\bandroidx\.room\./g, 'androidx.room3.')
+        // Room 3 renamed the column converter annotations (round 10).
+        .replace(/\bTypeConverters\b/g, 'ColumnTypeConverters')
+        .replace(/\bTypeConverter\b/g, 'ColumnTypeConverter'),
+    );
 }
 await edit('libpebble3/build.gradle.kts', (s) =>
   s
