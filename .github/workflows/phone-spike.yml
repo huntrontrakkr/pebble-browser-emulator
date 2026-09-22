@@ -32,6 +32,9 @@ jobs:
         # Round 3 showed storage (Room over SQLite) is the one deep blocker.
         # Lists each library's latest release and the Kotlin targets it ships.
         run: bash tools/phone-spike/storage-versions.sh
+      - name: Room 2 release sources
+        # Round 13: whether the Room 2 upstream ships can be built for the browser.
+        run: bash tools/phone-spike/room2-sources.sh
       - run: bash tools/phone-spike/prepare.sh
         env:
           PHONE_UPSTREAM_TAG: ${{ inputs.tag }}
