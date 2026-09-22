@@ -14,7 +14,7 @@ for (const [i, line] of lines.entries())
 const errors = lines
   .filter((l) => /^e: /.test(l))
   .map((l) => {
-    const m = l.match(/^e: file:\/\/.*?\/libpebble3\/src\/([^:]+):(\d+):\d+ (.*)$/);
+    const m = l.match(/^e: file:\/\/.*?\/libpebble3\/(?:src\/)?([^:]+):(\d+):\d+ (.*)$/);
     return m ? { file: m[1], line: +m[2], message: m[3] } : { file: '?', line: 0, message: l };
   });
 const count = (key) => {
@@ -26,6 +26,7 @@ const count = (key) => {
 console.log(`== Unresolved dependencies (${unresolved.size})`);
 for (const u of unresolved) console.log('  ' + u);
 console.log(`\n== Compile errors: ${errors.length}`);
+console.log(`   in ${new Set(errors.map((e) => e.file)).size} files`);
 console.log('\n-- by package');
 for (const [k, n] of count((e) => e.file.split('/').slice(0, -1).slice(-2).join('/')).slice(0, 40))
   console.log(`  ${String(n).padStart(4)}  ${k}`);

@@ -23,8 +23,36 @@ await edit('settings.gradle.kts', (s) =>
 // round 1 stopped at blobannotations having none.
 const addBrowserTarget = (s) =>
   s.replace(
-    /^(\s*)jvm\(\)\s*$/m,
+    /^([ \t]*)jvm\(\)[ \t]*$/m,
     '$1jvm()\n$1@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)\n$1wasmJs { browser() }',
   );
 await edit('libpebble3/build.gradle.kts', addBrowserTarget);
 await edit('blobannotations/build.gradle.kts', addBrowserTarget);
+
+// Round 3: the four libraries with no browser variant (Room, its paging add-on,
+// bundled SQLite and kmp-io) move to a source set only the native targets use,
+// so the browser compile names every file that depends on them.
+const nonWeb = [
+  'implementation(libs.room.runtime)',
+  'api(libs.room.paging)',
+  'implementation(libs.sqlite.bundled)',
+  'implementation(libs.kmpio)',
+];
+await edit('libpebble3/build.gradle.kts', (s) => {
+  for (const line of nonWeb)
+    s = s.replace(new RegExp('^\\s*' + line.replace(/[().]/g, '\\$&') + '\\s*\\n', 'm'), '');
+  return s.replace(
+    /(\n\s*commonTest\.dependencies \{)/,
+    `
+        val nonWebMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+${nonWeb.map((l) => '                ' + l).join('\n')}
+            }
+        }
+        androidMain.get().dependsOn(nonWebMain)
+        jvmMain.get().dependsOn(nonWebMain)
+        findByName("iosMain")?.dependsOn(nonWebMain)
+$1`,
+  );
+});
