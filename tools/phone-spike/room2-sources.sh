@@ -62,3 +62,27 @@ for module in sqlite sqlite-web; do
     xargs -0 grep -nE '(fun|interface|class) .*(SQLiteDriver|SQLiteConnection|SQLiteStatement)|fun (open|prepare|step|close|execSQL)\b' 2>/dev/null |
     sed "s|^$dir/||" | head -60 | sed 's/^/  /'
 done
+
+# Round 15: the shim needs the exact platform files it replaces for the browser, and
+# each module's dependencies on its non-Android, non-JVM variant.
+for module in room-common room-runtime room-paging sqlite; do
+  dir="$work/$module"
+  [ -d "$dir" ] || continue
+  for set in nativeMain; do
+    find "$dir/$set" -name '*.kt' 2>/dev/null | sort | while read -r file; do
+      echo "===== FILE $module/${file#$dir/}"
+      grep -vE '^\s*$|^ \*|^/\*|^\s*\*' "$file"
+    done
+  done
+done
+for module in room/room-common room/room-runtime room/room-paging sqlite/sqlite; do
+  name=${module#*/}
+  ver=$version
+  [ "$name" = sqlite ] && ver=$sqlite
+  echo "===== DEPS $name $ver linuxX64"
+  curl -fsS "https://dl.google.com/android/maven2/androidx/$module/$ver/$name-$ver.module" |
+    node -e 'const m=JSON.parse(require("fs").readFileSync(0,"utf8"));
+      const v=m.variants.find(v=>/linuxX64.*Api|linuxx64.*api/i.test(v.name))||m.variants.find(v=>/linux/i.test(v.name));
+      console.log("  variant", v&&v.name);
+      for (const d of (v&&v.dependencies)||[]) console.log("  ", d.group+":"+d.module, d.version&&(d.version.requires||d.version.strictly||d.version.prefers));'
+done
