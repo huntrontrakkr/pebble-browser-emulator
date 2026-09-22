@@ -97,6 +97,10 @@ if (room === '3') {
   const sources = resolve(process.env.ROOM2_SOURCES ?? 'tmp/phone-spike/room2');
   await writeFile(join(dir, 'room2web', 'sources.path'), sources + '\n');
   await edit('settings.gradle.kts', (s) => s + '\ninclude(":room2web")\n');
+  // Browser adapters for libpebble3 itself, in a source set upstream never edits.
+  await cp(join(here, 'libpebble3-web'), join(dir, 'libpebble3/src/wasmJsMain/kotlin'), {
+    recursive: true,
+  });
 }
 
 await edit('libpebble3/build.gradle.kts', (s) => {

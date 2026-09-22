@@ -49,7 +49,11 @@ find "$work/room-runtime" -name '*.kt' -not -path '*/androidMain/*' -print0 |
   sed "s|^$work/room-runtime/||" | head -30 | sed 's/^/  /'
 echo "-- room-runtime $version jvmNativeMain files"
 find "$work/room-runtime" -path '*jvmNativeMain*' -name '*.kt' | sed "s|^$work/room-runtime/||" | sed 's/^/  /'
-sqlite="${SQLITE_VERSION:-2.7.1}"
+# Room 2.8.4 was built against androidx.sqlite before 2.7 moved the blocking API out
+# of common code (round 16), so the shim uses the newest 2.6 release.
+sqlite="${SQLITE_VERSION:-$(curl -fsS https://dl.google.com/android/maven2/androidx/sqlite/sqlite/maven-metadata.xml |
+  grep -o '<version>2\.6\.[0-9]*</version>' | sed 's/<[^>]*>//g' | tail -1)}"
+echo "== androidx.sqlite for the shim: $sqlite"
 for module in sqlite sqlite-web; do
   jar="$work/$module-sources.jar"
   curl -fsS -o "$jar" "https://dl.google.com/android/maven2/androidx/sqlite/$module/$sqlite/$module-$sqlite-sources.jar" || {

@@ -25,6 +25,7 @@ kotlin {
     sourceSets {
         commonMain {
             kotlin.srcDir(released("room-common/commonMain"))
+            // androidx.sqlite 2.6, the blocking API Room 2.8.4 was built against.
             kotlin.srcDir(released("sqlite/commonMain"))
             kotlin.srcDir(released("room-runtime/commonMain"))
             kotlin.srcDir(released("room-paging/commonMain"))
@@ -37,8 +38,6 @@ kotlin {
             }
         }
         wasmJsMain {
-            // Blocking statements: the browser driver runs SQLite in-thread.
-            kotlin.srcDir(released("sqlite/nonWebMain"))
             // Room's runtime shared by its desktop and native targets.
             kotlin.srcDir(released("room-runtime/jvmNativeMain"))
             kotlin.srcDir(released("room-paging/jvmNativeMain"))
