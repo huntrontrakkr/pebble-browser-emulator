@@ -45,6 +45,18 @@ jobs:
       - name: Blockers
         if: always()
         run: node tools/phone-spike/summarize.mjs tmp/phone-spike/build.log
+      # Round 9: Room's browser processor reports a missing type without naming
+      # it, so the same source is also compiled without that processor.
+      - name: Compile without Room's browser processor
+        if: always()
+        run: |
+          set +e
+          PHONE_SPIKE_ROOM_PROCESSOR=off bash tools/phone-spike/prepare.sh tmp/phone-spike/no-room
+          (cd tmp/phone-spike/no-room &&
+            ./gradlew :libpebble3:compileKotlinWasmJs --continue --no-daemon --console=plain \
+              > ../no-room.log 2>&1)
+          echo "gradle exit $?"
+          node tools/phone-spike/summarize.mjs tmp/phone-spike/no-room.log
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.
       - name: Processor output

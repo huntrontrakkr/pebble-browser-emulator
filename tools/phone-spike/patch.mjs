@@ -65,11 +65,14 @@ await edit('libpebble3/build.gradle.kts', (s) =>
     // Android and iOS processors already do (round 7 stopped here).
     .replace(
       /(\n\s*tasks\.named\("kspAndroidMain"\) \{\n\s*dependsOn\("kspCommonMainKotlinMetadata"\)\n\s*\})/,
-      '$1\n    tasks.named("kspKotlinWasmJs") {\n        dependsOn("kspCommonMainKotlinMetadata")\n    }',
+      '$1\n    tasks.matching { it.name == "kspKotlinWasmJs" }.configureEach {\n        dependsOn("kspCommonMainKotlinMetadata")\n    }',
     )
-    .replace(
-      /(\n\s*add\("kspAndroid", libs\.room\.compiler\))/,
-      '$1\n    add("kspWasmJs", libs.room.compiler)',
+    // Round 10: with PHONE_SPIKE_ROOM_PROCESSOR=off the browser build skips
+    // Room's processor, so the compiler names the types it reports missing.
+    .replace(/(\n\s*add\("kspAndroid", libs\.room\.compiler\))/, (line) =>
+      process.env.PHONE_SPIKE_ROOM_PROCESSOR === 'off'
+        ? line
+        : line + '\n    add("kspWasmJs", libs.room.compiler)',
     )
     .replace(
       /(\n\s*commonTest\.dependencies \{)/,
