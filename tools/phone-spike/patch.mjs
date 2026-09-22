@@ -59,6 +59,8 @@ for await (const file of kotlinFiles('libpebble3/src')) {
 }
 await edit('libpebble3/build.gradle.kts', (s) =>
   s
+    // Room 3's Gradle extension is named room3 (round 6 stopped here).
+    .replace(/^room \{/m, 'room3 {')
     .replace(
       /(\n\s*add\("kspAndroid", libs\.room\.compiler\))/,
       '$1\n    add("kspWasmJs", libs.room.compiler)',
