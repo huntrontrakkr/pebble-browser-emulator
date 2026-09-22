@@ -1,5 +1,6 @@
 import { FIRMWARE_PROFILES, isFirmwareProfile, type FirmwareProfile } from './watch-profiles.ts';
 import { PressFloor } from './press-floor.ts';
+import { PulseLogDecoder } from './pulse-log.ts';
 /// <reference lib="webworker" />
 import {
   PebbleTransport,
@@ -61,6 +62,7 @@ let api: any,
   lastFrame = -1;
 let profile: FirmwareProfile = 'qemu_emery';
 const decoder = new TextDecoder();
+const consoleLog = new PulseLogDecoder();
 let transport: PebbleTransport | undefined,
   firmwareReady = false,
   consoleTail = '',
@@ -497,7 +499,8 @@ function serial() {
         firmwareReady = true;
         announceReady = true;
       }
-      postMessage({ type: 'serial', port, bytes, text }, [bytes.buffer]);
+      const lines = consoleLog.push(bytes);
+      postMessage({ type: 'serial', port, bytes, text, lines }, [bytes.buffer]);
     }
   }
 }
@@ -593,6 +596,7 @@ function resetSession() {
   announceReady = false;
   startupOwner = undefined;
   consoleTail = '';
+  consoleLog.reset();
   launchConsoleTail = '';
   launchDiagnostic = '';
   linked = false;

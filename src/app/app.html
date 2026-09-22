@@ -629,6 +629,12 @@
               </select></label
             >
           }
+          @if (weatherMode === 'off' && demoSettings().enabled && demoSettings().weather.enabled) {
+            <p class="help">
+              The sample forecast from Simulated inputs is on the watch. Choose a source here to
+              replace it, or remove it.
+            </p>
+          }
           <button
             (click)="applyWeather()"
             [disabled]="!isFirmware() || !watchReady() || weatherBusy()"

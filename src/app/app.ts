@@ -173,7 +173,9 @@ export class App implements AfterViewInit, OnDestroy {
   opticalNotice = signal('');
   lightAzimuth = -35;
   finish = 'silver';
-  zoom = 2;
+  // Developer zoom is literal, and 2× plus the side keys is wider than a phone
+  // screen, so a narrow viewport starts at 1× instead of opening cropped.
+  zoom = typeof matchMedia === 'function' && matchMedia('(max-width: 520px)').matches ? 1 : 2;
   modelStatus = signal('');
   private model?: WatchModel;
   private modelAbort?: AbortController;
@@ -926,7 +928,7 @@ export class App implements AfterViewInit, OnDestroy {
               if (data.state.framebuffer) this.draw(data.state.framebuffer);
             }
             if (data.type === 'serial') {
-              if (data.port === 2) this.log('UART', data.text);
+              if (data.port === 2) for (const line of data.lines) this.log('UART', line);
               else
                 this.log(
                   'PACKET',
