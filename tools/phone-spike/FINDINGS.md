@@ -49,6 +49,31 @@ Platform gaps, which are code changes rather than renames:
 - `BundledSQLiteDriver` in `getRoomDatabase`; the browser uses the `sqlite-web` driver
   through a platform database builder.
 
+## Room 2 in the browser (rounds 13–14)
+
+Upstream could keep the Room 2.8.4 it ships, with only the browser build getting a
+browser-only Room built from Room's released sources jars (Apache-2.0):
+
+- room-common: 41 common files, 1 native; no platform APIs. room-paging: 2 common, 1
+  shared JVM/native. room-runtime: 37 common, 11 shared JVM/native, 8 native, whose only
+  platform API is posix file locking. Its platform hooks are atomics, a reentrant lock,
+  `synchronized`, a thread-local, a thread id and a file lock: trivial on one thread with
+  an in-memory database. The shared runtime never blocks; `Dispatchers.IO` appears only as
+  a default query context.
+- room-compiler raises nothing specific to the browser. Its non-Android rules (suspend
+  DAOs, `@ConstructedBy`, no raw queries, Kotlin output) are ones upstream already meets
+  for iOS.
+- The obstacle is SQLite. androidx.sqlite 2.7.1 declares blocking `open`, `prepare` and
+  `step` only for non-web targets; its web API and the `sqlite-web` worker driver are
+  suspend-only. Room 2's runtime and generated code call the blocking API.
+
+Because the phone's database is in memory, SQLite need not run in a worker: the official
+SQLite Wasm build can be called synchronously in the same thread. The browser build would
+therefore compile androidx.sqlite's blocking interfaces from its released sources and
+supply a synchronous in-memory driver over SQLite Wasm, offered as the bundled driver
+upstream already names. Upstream's database code then compiles unchanged, and the
+Room 3 rewrite (rounds 6–12) is no longer needed.
+
 ## Scope that follows from the purpose
 
 The phone only has to prove watchfaces work with the latest app release, and its state is
