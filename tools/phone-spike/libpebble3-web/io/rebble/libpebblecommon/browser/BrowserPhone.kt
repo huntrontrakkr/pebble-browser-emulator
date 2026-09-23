@@ -4,6 +4,7 @@ package io.rebble.libpebblecommon.browser
 
 import com.russhwolf.settings.Settings
 import io.rebble.libpebblecommon.LibPebbleConfig
+import io.rebble.libpebblecommon.metadata.WatchType
 import io.rebble.libpebblecommon.connection.AppContext
 import io.rebble.libpebblecommon.connection.ConnectedPebbleDevice
 import io.rebble.libpebblecommon.connection.FirmwareUpdateCheckResult
@@ -91,6 +92,20 @@ fun phoneAttachSerial(sink: JsAny?) = WatchSerialLink.install(sink)
 /** Serial bytes (`Uint8Array`) from the watch; false when no connection is reading them. */
 @JsExport
 fun phoneSerialFromWatch(bytes: JsAny): Boolean = WatchSerialLink.received(bytes.uint8ArrayToByteArray())
+
+/**
+ * The platform LibPebble assumes for a watch whose hardware revision it does not list
+ * (upstream's `WatchConfig.unknownWatchTypePlatform`, which defaults to Emery). The QEMU
+ * emulator firmware reports a revision LibPebble does not list, so the host names the
+ * emulated profile's platform by codename ("emery", "flint", "gabbro") before connecting.
+ */
+@JsExport
+fun phoneSetUnknownWatchPlatform(codename: String): String = report {
+    val libPebble = phone ?: error("The phone has not started")
+    val type = WatchType.entries.firstOrNull { it.codename == codename } ?: error("No platform $codename")
+    val current = libPebble.config.value
+    libPebble.updateConfig(current.copy(watchConfig = current.watchConfig.copy(unknownWatchTypePlatform = type)))
+}
 
 /** Adds the emulated watch and asks LibPebble's watch manager to connect to it. */
 @JsExport

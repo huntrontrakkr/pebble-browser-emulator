@@ -19,6 +19,7 @@ export interface LibPebbleModule {
   phoneStart(): string;
   phoneAttachSerial(sink: ((bytes: Uint8Array) => void) | null): void;
   phoneSerialFromWatch(bytes: Uint8Array): boolean;
+  phoneSetUnknownWatchPlatform(codename: string): string;
   phoneConnectWatch(): string;
   phoneInstall(bytes: Uint8Array, fileName: string): Promise<string>;
   phoneRunningApp(): string;
@@ -78,6 +79,7 @@ export function asLibPebbleModule(module: Record<string, unknown>): LibPebbleMod
     'phoneStart',
     'phoneAttachSerial',
     'phoneSerialFromWatch',
+    'phoneSetUnknownWatchPlatform',
     'phoneConnectWatch',
     'phoneInstall',
     'phoneRunningApp',
@@ -111,6 +113,16 @@ export class LibPebbleLink {
     const failure = this.phone.phoneStart();
     if (failure) throw new Error(`libpebble3 did not start: ${failure}`);
     this.started = true;
+  }
+
+  /**
+   * Names the emulated watch's platform ('emery', 'flint', 'gabbro') for libpebble3's
+   * own fallback: the QEMU firmware reports a hardware revision libpebble3 does not list.
+   */
+  setUnknownWatchPlatform(codename: string): void {
+    if (!this.started) throw new Error('Start the phone before configuring it.');
+    const failure = this.phone.phoneSetUnknownWatchPlatform(codename);
+    if (failure) throw new Error(`libpebble3 did not take platform ${codename}: ${failure}`);
   }
 
   connect(port: SerialPort): void {

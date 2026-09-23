@@ -14,6 +14,8 @@ import io.ktor.http.content.OutgoingContent
 import io.ktor.util.date.GMTDate
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
+import io.rebble.libpebblecommon.util.blockingCalls
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -34,9 +36,13 @@ import kotlin.io.encoding.Base64
  * does. The manager and its `XMLHttpRequest` class are upstream's, unchanged; only the
  * transport under ktor is the browser's. A request the host cannot make fails as an
  * exception, which upstream reports to the app as an `error` event.
+ *
+ * Upstream makes a synchronous XMLHttpRequest with `runBlocking`. Inside one, the
+ * engine asks the host to block on the worker's own request, and ktor runs inline
+ * (the engine's dispatcher is unconfined), so the call completes without suspending.
  */
 internal class HostHttpEngine : HttpClientEngineBase("pkjs-host") {
-    override val config = HttpClientEngineConfig()
+    override val config = HttpClientEngineConfig().apply { dispatcher = Dispatchers.Unconfined }
 
     @InternalAPI
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
@@ -61,7 +67,8 @@ internal class HostHttpEngine : HttpClientEngineBase("pkjs-host") {
             put("body", body)
         }.toString()
 
-        val reply = suspendCancellableCoroutine<String> { continuation ->
+        val reply = if (blockingCalls > 0) hostRequestSync(request)
+        else suspendCancellableCoroutine<String> { continuation ->
             val id = hostRequest(request) { result -> if (continuation.isActive) continuation.resume(result) }
             continuation.invokeOnCancellation { hostCancel(id) }
         }
@@ -88,5 +95,8 @@ internal class HostHttpEngine : HttpClientEngineBase("pkjs-host") {
 
 private fun hostRequest(json: String, done: (String) -> Unit): Int =
     js("globalThis.pebblePhoneHost.network.request(json, done)")
+
+private fun hostRequestSync(json: String): String =
+    js("globalThis.pebblePhoneHost.network.requestSync(json)")
 
 private fun hostCancel(id: Int): Unit = js("{ globalThis.pebblePhoneHost.network.cancel(id); }")

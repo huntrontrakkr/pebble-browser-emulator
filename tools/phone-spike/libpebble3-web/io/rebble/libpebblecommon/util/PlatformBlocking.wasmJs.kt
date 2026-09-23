@@ -8,19 +8,33 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 /**
+ * How many [runBlocking] calls are running on this thread. Work that can answer without
+ * suspending when asked to (the PebbleKit JS HTTP engine, whose worker can make a
+ * blocking browser request) checks it.
+ */
+internal var blockingCalls = 0
+    private set
+
+/**
  * The browser has one thread and cannot block. [block] runs immediately and must
  * finish without suspending, which holds for the phone's in-memory database: its
- * SQLite runs synchronously in the same thread. A block that would wait on other
- * work fails here instead of deadlocking; the browser adapters override those paths
- * (the PebbleKit JS bridge answers asynchronously).
+ * SQLite runs synchronously in the same thread, and for synchronous XMLHttpRequest,
+ * whose engine blocks on the worker's own request while [blockingCalls] is set. A block
+ * that would wait on other work fails here instead of deadlocking; the browser
+ * adapters override those paths (the PebbleKit JS bridge answers asynchronously).
  */
 internal actual fun <T> runBlocking(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> T,
 ): T {
     var outcome: Result<T>? = null
-    val job = CoroutineScope(context + Dispatchers.Unconfined).launch(start = CoroutineStart.UNDISPATCHED) {
-        outcome = runCatching { block() }
+    blockingCalls++
+    val job = try {
+        CoroutineScope(context + Dispatchers.Unconfined).launch(start = CoroutineStart.UNDISPATCHED) {
+            outcome = runCatching { block() }
+        }
+    } finally {
+        blockingCalls--
     }
     outcome?.let { return it.getOrThrow() }
     job.cancel()

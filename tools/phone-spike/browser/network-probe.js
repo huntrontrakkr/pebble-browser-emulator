@@ -27,7 +27,12 @@ function xhr(method, path, options, done) {
   var finish = function (outcome) {
     if (finished) return;
     finished = true;
-    done(request, outcome);
+    try {
+      done(request, outcome);
+    } catch (error) {
+      // The check's watchdog in run() moves the probe on.
+      fail(method + ' ' + path, 'check threw ' + error);
+    }
   };
   request.open(method, path.indexOf('http') === 0 ? path : BASE + path);
   if (options.responseType) request.responseType = options.responseType;
@@ -72,7 +77,10 @@ var checks = [
         body: JSON.stringify({ city: 'Zürich', n: 3 }),
       },
       function (r, outcome) {
-        var body = outcome === 'load' ? JSON.parse(r.responseText) : {};
+        var body = {};
+        try {
+          body = JSON.parse(r.responseText);
+        } catch (_) {}
         check(
           'xhr post body',
           body.method === 'POST' &&
@@ -132,15 +140,31 @@ var checks = [
     }, 100);
   },
   function synchronous(next) {
+    // Upstream's manager blocks in send() until the response arrives, then delivers it
+    // as events, as it does on iOS.
     var request = new XMLHttpRequest();
+    var returned = false;
+    request.onload = function () {
+      check(
+        'sync xhr',
+        returned && request.status === 200 && request.responseText === 'hello sync, probe none',
+        returned + ' ' + request.status + ' ' + JSON.stringify(request.responseText),
+      );
+      next();
+    };
+    request.onerror = function () {
+      fail('sync xhr', 'error event');
+      next();
+    };
     request.open('GET', BASE + '/net/text?q=sync', false);
     try {
       request.send();
-      fail('sync xhr is refused', 'send returned, status ' + request.status);
+      returned = true;
     } catch (error) {
-      check('sync xhr is refused', /blocking call/.test(String(error)), String(error));
+      fail('sync xhr', 'send threw ' + error);
+      request.onload = request.onerror = null;
+      next();
     }
-    next();
   },
   function socket(next) {
     var events = [];
@@ -195,13 +219,23 @@ var checks = [
 
 function run(index) {
   if (index < checks.length) {
+    var moved = false;
+    var advance = function () {
+      if (moved) return;
+      moved = true;
+      clearTimeout(watchdog);
+      run(index + 1);
+    };
+    // A check that never reports fails by name instead of stalling the probe.
+    var watchdog = setTimeout(function () {
+      fail(checks[index].name, 'no result within 20 s');
+      advance();
+    }, 20000);
     try {
-      checks[index](function () {
-        run(index + 1);
-      });
+      checks[index](advance);
     } catch (error) {
       fail(checks[index].name, 'threw ' + error);
-      run(index + 1);
+      advance();
     }
     return;
   }

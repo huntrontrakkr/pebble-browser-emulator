@@ -74,9 +74,10 @@ const bytes = async (url) => new Uint8Array(await (await fetch(url)).arrayBuffer
 async function probePackage() {
   const files = unzipSync(await bytes('clock-emery.pbw'));
   const script = (await (await fetch('network-probe.js')).text()).replace(
-    '__BASE__',
-    `http://localhost:${location.port}`,
+    "var BASE = '__BASE__';",
+    `var BASE = ${JSON.stringify(`http://localhost:${location.port}`)};`,
   );
+  if (!script.includes(`localhost:${location.port}`)) throw new Error('probe base not set');
   const info = JSON.parse(new TextDecoder().decode(files['appinfo.json']));
   info.versionLabel = '1.2';
   files['appinfo.json'] = strToU8(JSON.stringify(info));
@@ -115,7 +116,7 @@ try {
   const channel = new MessageChannel();
   qemu.postMessage({ type: 'phone-link', port: channel.port2 }, [channel.port2]);
   await wait('qemu', (d) => d.type === 'phone-link' && d.attached);
-  await ask({ type: 'link', port: channel.port1 }, [channel.port1]);
+  await ask({ type: 'link', port: channel.port1, platform: 'emery' }, [channel.port1]);
   const first = await wait('phone', (d) => d.type === 'running-app' && d.uuid);
   step(`connected; watch running ${first.uuid}`);
 

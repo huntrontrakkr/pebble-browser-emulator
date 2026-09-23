@@ -322,18 +322,26 @@ export class PhoneCorsNetwork {
       });
     }
   }
-  /**
-   * The relay URL for a request the browser refused, or undefined when relaying
-   * is unconfigured or the request is not one the relay accepts. Only plain
-   * GET/HEAD without a body qualifies, matching what the service will perform.
-   */
   private relayRequestFor(url: URL, request: PhoneNetworkRequest): URL | undefined {
-    if (!this.relay?.endpoint || !this.relay.key) return undefined;
-    if (!['GET', 'HEAD'].includes(request.method)) return undefined;
-    if (request.body) return undefined;
-    if (url.protocol !== 'https:') return undefined;
-    const target = new URL(`${this.relay.endpoint}/v1/app-fetch`);
-    target.searchParams.set('url', url.href);
-    return target;
+    return relayRequestFor(this.relay, url, request);
   }
+}
+
+/**
+ * The relay URL for a request the browser refused, or undefined when relaying
+ * is unconfigured or the request is not one the relay accepts. Only plain
+ * GET/HEAD without a body qualifies, matching what the service will perform.
+ */
+export function relayRequestFor(
+  relay: { endpoint: string; key: string } | undefined,
+  url: URL,
+  request: { method: string; body: string | null },
+): URL | undefined {
+  if (!relay?.endpoint || !relay.key) return undefined;
+  if (!['GET', 'HEAD'].includes(request.method)) return undefined;
+  if (request.body) return undefined;
+  if (url.protocol !== 'https:') return undefined;
+  const target = new URL(`${relay.endpoint}/v1/app-fetch`);
+  target.searchParams.set('url', url.href);
+  return target;
 }

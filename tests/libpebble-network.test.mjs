@@ -159,3 +159,71 @@ test('a refused WebSocket reports an error, then a close', async () => {
     { type: 'close', code: 1006, reason: '', wasClean: false },
   ]);
 });
+
+class FakeSyncRequest {
+  static fail = false;
+  static made = [];
+  headers = {};
+  constructor() {
+    FakeSyncRequest.made.push(this);
+  }
+  open(method, url, async) {
+    Object.assign(this, { method, url, async });
+  }
+  setRequestHeader(name, value) {
+    this.headers[name] = value;
+  }
+  send(body) {
+    if (FakeSyncRequest.fail) throw new Error('NetworkError: Failed to execute send');
+    this.body = body;
+    this.status = 200;
+    this.statusText = 'OK';
+    this.response = Uint8Array.of(104, 105).buffer;
+  }
+  getAllResponseHeaders() {
+    return 'content-type: text/plain\r\nset-cookie: a=b\r\nx-probe-server: yes\r\n';
+  }
+}
+
+test('synchronous requests block on the browser request and follow the same rules', () => {
+  const get = JSON.stringify({
+    method: 'get',
+    url: 'https://sync.test/a',
+    headers: { 'X-A': '1' },
+    body: null,
+  });
+  const host = libPebbleNetworkHost({ mode: 'cors' }, { syncRequest: () => new FakeSyncRequest() });
+  assert.deepEqual(JSON.parse(host.requestSync(get)), {
+    status: 200,
+    statusText: 'OK',
+    headers: { 'content-type': 'text/plain', 'x-probe-server': 'yes' },
+    bodyBase64: 'aGk=',
+  });
+  const made = FakeSyncRequest.made.at(-1);
+  assert.deepEqual(
+    [made.method, made.url, made.async, made.headers, made.responseType, made.timeout],
+    ['GET', 'https://sync.test/a', false, { 'X-A': '1' }, 'arraybuffer', 30000],
+  );
+
+  FakeSyncRequest.fail = true;
+  const refused = JSON.parse(host.requestSync(get));
+  FakeSyncRequest.fail = false;
+  assert.equal(refused.error, 'network');
+  assert.match(refused.message, /Failed to execute send/);
+
+  const off = libPebbleNetworkHost(
+    { mode: 'disabled' },
+    { syncRequest: () => new FakeSyncRequest() },
+  );
+  assert.equal(JSON.parse(off.requestSync(get)).error, 'disabled');
+  const nowhere = libPebbleNetworkHost({ mode: 'cors' });
+  assert.match(JSON.parse(nowhere.requestSync(get)).message, /need the phone worker/);
+  assert.match(
+    JSON.parse(
+      host.requestSync(
+        JSON.stringify({ method: 'GET', url: 'file:///etc/passwd', headers: {}, body: null }),
+      ),
+    ).message,
+    /Only HTTP/,
+  );
+});

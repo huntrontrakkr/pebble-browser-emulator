@@ -61,9 +61,11 @@ export class UpstreamPhone {
    * Connects the upstream phone to the QEMU watch: starts the phone worker if needed and
    * hands it the QEMU worker's `phone-link` port. The built-in phone must already be
    * off the link; the QEMU worker refuses the link otherwise. Apps' PebbleKit JS gets
-   * the session's phone network setting, as the built-in phone's scripts do.
+   * the session's phone network setting, as the built-in phone's scripts do. `platform`
+   * is the emulated watch's codename ('emery', 'flint', 'gabbro'), which libpebble3
+   * cannot tell from the emulator's hardware revision.
    */
-  async connect(qemu: Worker, network: PhoneNetworkSetting): Promise<void> {
+  async connect(qemu: Worker, network: PhoneNetworkSetting, platform: string): Promise<void> {
     const manifest = this.manifest();
     if (!manifest) throw new Error('This build does not include the upstream phone.');
     await this.run('Starting the upstream phone…', async () => {
@@ -75,7 +77,7 @@ export class UpstreamPhone {
       });
       qemu.postMessage({ type: 'phone-link', port: channel.port2 }, [channel.port2]);
       await attached;
-      await this.ask({ type: 'link', port: channel.port1 }, [channel.port1]);
+      await this.ask({ type: 'link', port: channel.port1, platform }, [channel.port1]);
       this.connected.set(true);
       this.status.set('Connected');
     });

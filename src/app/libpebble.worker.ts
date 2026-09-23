@@ -12,7 +12,8 @@
  * Apps' PebbleKit JS reaches the network only as the session's phone network setting
  * allows (`network`, libpebble-network.ts): off unless it is `cors`.
  *
- * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl, network?} · network {id, setting} · link {port}
+ * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl, network?} · network {id, setting}
+ *     · link {port, platform?} (platform: the emulated watch's codename, e.g. 'flint')
  *     · unlink · install {id, bytes, name} · configure {id} · configuration-closed {id, url} · status {id}
  * Out: ready · done {id, value?} · failed {id?, message} · running-app {uuid}
  *     · pkjs-console {app, level, text}
@@ -97,6 +98,7 @@ self.onmessage = async ({ data }: MessageEvent) => {
       case 'link': {
         const phone = ready();
         phone.close();
+        if (data.platform) phone.setUnknownWatchPlatform(data.platform);
         phone.connect(data.port);
         watchRunningApp(phone);
         postMessage({ type: 'done', id });

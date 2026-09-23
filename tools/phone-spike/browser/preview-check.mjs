@@ -1,40 +1,18 @@
 // Opens the built application (with public/libpebble3 published into it) in Chromium and
 // checks that Preview's Phone tab found the upstream phone and names its build.
 // Usage: node preview-check.mjs <built site, e.g. dist/client>
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { extname, join, normalize, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { serve } from './serve.mjs';
 
-const root = resolve(process.argv[2]);
-const types = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.wasm': 'application/wasm',
-};
-const server = createServer(async (request, response) => {
-  let path = normalize(decodeURIComponent(new URL(request.url, 'http://x').pathname));
-  if (path.endsWith('/')) path += 'index.html';
-  try {
-    const body = await readFile(join(root, path));
-    response.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
-    response.end(body);
-  } catch {
-    response.writeHead(404).end();
-  }
-});
-await new Promise((ready) => server.listen(0, '127.0.0.1', ready));
+const { url, close } = await serve(resolve(process.argv[2]));
 const browser = await chromium.launch({
   headless: true,
   ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 });
 const page = await browser.newPage();
 page.on('pageerror', (error) => console.log(`[pageerror] ${error.message}`));
-await page.goto(`http://127.0.0.1:${server.address().port}/`);
+await page.goto(url);
 // The developer tools load when first opened; the upstream phone is on their Phone tab.
 await page.getByRole('button', { name: 'Developer tools' }).click();
 await page.locator('nav.tabs button', { hasText: 'Phone' }).click();
@@ -59,7 +37,7 @@ try {
 }
 console.log('PREVIEW', JSON.stringify(result));
 await browser.close();
-server.close();
+close();
 process.exit(
   result.status === 'Not connected' && /coredevices\/mobileapp/.test(result.build) ? 0 : 1,
 );

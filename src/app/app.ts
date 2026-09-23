@@ -1064,7 +1064,11 @@ export class App implements AfterViewInit, OnDestroy {
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
     try {
-      await this.upstreamPhone.connect(qemu, { mode: this.phoneNetworkMode, relay: this.relay });
+      await this.upstreamPhone.connect(
+        qemu,
+        { mode: this.phoneNetworkMode, relay: this.relay },
+        this.appPlatform(),
+      );
     } catch (error) {
       this.error.set(
         `The upstream phone did not connect: ${error instanceof Error ? error.message : error}`,

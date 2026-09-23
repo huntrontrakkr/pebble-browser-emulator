@@ -107,6 +107,23 @@ jobs:
           npx ng build > tmp/phone-spike/ng.log 2>&1 || { tail -60 tmp/phone-spike/ng.log; exit 0; }
           tail -25 tmp/phone-spike/ng.log
           timeout 300 node tools/phone-spike/browser/preview-check.mjs dist/client || echo "preview exit $?"
+      # Round 45: Preview's own controls, end to end. JustTheTime is the pinned store
+      # download (docs/STORE_WATCHFACE_TEST.md), fetched for this run only and checked
+      # by hash; it is not kept or published.
+      - name: Preview end to end
+        run: |
+          [ -f dist/client/libpebble3/libpebble3.js ] || { echo "no published phone"; exit 0; }
+          curl -fsSL -o tmp/phone-spike/JustTheTime-1.2.pbw \
+            'https://appstore-api.repebble.com/api/assets/pbw/50bdea7ee3ff48308157c046/1.2/1b2bf26b-122f-43f5-842f-1f852487a16f.pbw' \
+            && export PEBBLE_STORE_PBW=tmp/phone-spike/JustTheTime-1.2.pbw || echo "store download failed"
+          timeout 1800 node tools/phone-spike/browser/preview-e2e.mjs dist/client qemu_emery,qemu_flint,qemu_gabbro \
+            || echo "preview e2e exit $?"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preview-e2e-screenshots
+          path: preview-e2e-*.png
+          if-no-files-found: ignore
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.
       - name: Processor output

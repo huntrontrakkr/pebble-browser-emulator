@@ -9,7 +9,7 @@
  * Calls from `HostHttpEngine` and `BrowserWebSocketManager` (tools/phone-spike) cross
  * as JSON strings.
  */
-import { PhoneCorsNetwork, type CorsNetworkOptions } from './phone-network.ts';
+import { PhoneCorsNetwork, relayRequestFor, type CorsNetworkOptions } from './phone-network.ts';
 import { PhoneWebSocketNetwork, type PhoneSocketLimits } from './phone-websocket.ts';
 import type { PhoneNetworkResult, PhoneSocketEvent } from './virtual-phone.types.ts';
 
@@ -26,6 +26,12 @@ export interface LibPebbleNetworkHost {
    * `{error, message}` as JSON, once.
    */
   request(json: string, done: (result: string) => void): number;
+  /**
+   * The same request made synchronously, for upstream's synchronous XMLHttpRequest: the
+   * phone's worker waits on the browser's own blocking request. Same setting, limits,
+   * CORS and relay; the result is returned instead of passed to a callback.
+   */
+  requestSync(json: string): string;
   cancel(id: number): void;
   /**
    * Opens a WebSocket; `protocols` is comma-separated, as upstream passes it. `event`
@@ -47,6 +53,8 @@ export interface LibPebbleNetworkOptions {
   socketLimits?: Partial<PhoneSocketLimits>;
   fetcher?: typeof fetch;
   socketFactory?: (url: string, protocols: string[]) => WebSocket;
+  /** A blocking-capable XMLHttpRequest; by default the worker's own, none elsewhere. */
+  syncRequest?: () => XMLHttpRequest;
 }
 
 const OFF_MESSAGE = 'Phone network access is off in this session.';
@@ -137,6 +145,98 @@ export function libPebbleNetworkHost(
     }
   }
 
+  const limits = {
+    requestBytes: 8192,
+    responseBytes: 1024 * 1024,
+    timeoutMs: 30000,
+    ...options.requestLimits,
+  };
+  const syncRequest =
+    options.syncRequest ??
+    ('WorkerGlobalScope' in globalThis && typeof XMLHttpRequest === 'function'
+      ? () => new XMLHttpRequest()
+      : undefined);
+
+  function requestSync(json: string): PhoneNetworkResult {
+    const refusal = refused();
+    if (refusal) return { error: 'disabled', message: refusal };
+    if (!syncRequest)
+      return { error: 'network', message: 'Synchronous requests need the phone worker.' };
+    let request: {
+      method: string;
+      url: string;
+      headers: Record<string, string>;
+      body: string | null;
+    };
+    let url: URL;
+    try {
+      request = JSON.parse(json);
+      request.method = String(request.method).toUpperCase();
+      url = new URL(request.url);
+      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password)
+        throw new Error('Only HTTP(S) URLs without embedded credentials are supported.');
+      if (!/^(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)$/.test(request.method))
+        throw new Error('Unsupported HTTP method.');
+      if (new TextEncoder().encode(json).length > limits.requestBytes + 256)
+        throw new Error('Network request size limit exceeded.');
+    } catch (error) {
+      return { error: 'network', message: String(error) };
+    }
+    const attempt = (target: URL, headers: Record<string, string>, body: string | null) => {
+      const xhr = syncRequest();
+      xhr.open(request.method, target.href, false);
+      xhr.responseType = 'arraybuffer';
+      xhr.timeout = limits.timeoutMs;
+      for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
+      xhr.send(body);
+      return xhr;
+    };
+    let xhr: XMLHttpRequest;
+    let relayed = false;
+    try {
+      xhr = attempt(url, request.headers ?? {}, request.body ?? null);
+    } catch (error) {
+      // The browser refused it; a configured relay may still read this host, as for
+      // asynchronous requests.
+      const retry = relayRequestFor(setting.relay, url, request);
+      if (!retry)
+        return {
+          error: 'network',
+          message: `Browser CORS/network request failed: ${String(error)}`,
+        };
+      try {
+        xhr = attempt(retry, { 'X-Pebble-Relay-Key': setting.relay!.key }, null);
+        relayed = true;
+      } catch (relayError) {
+        return {
+          error: 'network',
+          message: `Browser CORS/network request failed: ${String(relayError)}`,
+        };
+      }
+    }
+    if (xhr.status === 0)
+      return { error: 'network', message: 'The response is unavailable through browser CORS.' };
+    if (relayed && xhr.status === 502)
+      return { error: 'network', message: 'The download service could not reach this host.' };
+    if (relayed && (xhr.status === 401 || xhr.status === 404))
+      return {
+        error: 'network',
+        message: 'The download service is not relaying app requests for this site.',
+      };
+    const bytes = new Uint8Array(xhr.response ?? new ArrayBuffer(0));
+    if (bytes.length > Math.min(limits.responseBytes, 256 * 1024))
+      return { error: 'limit', message: 'Network response size limit exceeded.' };
+    const headers: Record<string, string> = {};
+    for (const line of xhr.getAllResponseHeaders().trim().split(/\r?\n/)) {
+      const colon = line.indexOf(':');
+      if (colon <= 0) continue;
+      const name = line.slice(0, colon).trim().toLowerCase();
+      if (name === 'set-cookie' || name === 'set-cookie2') continue;
+      headers[name] = line.slice(colon + 1).trim();
+    }
+    return { status: xhr.status, statusText: xhr.statusText, headers, bodyBase64: toBase64(bytes) };
+  }
+
   start();
   return {
     request(json, done) {
@@ -174,6 +274,13 @@ export function libPebbleNetworkHost(
         },
       });
       return id;
+    },
+    requestSync(json) {
+      let reply = '';
+      const id = nextId++;
+      waiting.set(id, (result) => (reply = result));
+      settle(id, requestSync(json));
+      return reply;
     },
     cancel(id) {
       if (!waiting.has(id)) return;

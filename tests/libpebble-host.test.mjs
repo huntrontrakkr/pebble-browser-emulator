@@ -20,6 +20,7 @@ function fakePhone({ reading = true, install = '', configUrl = 'data:text/html,x
       calls.push(fn ? 'attach' : 'detach');
     },
     phoneSerialFromWatch: (bytes) => (calls.push(['watch', [...bytes]]), reading),
+    phoneSetUnknownWatchPlatform: (codename) => (calls.push(['platform', codename]), ''),
     phoneConnectWatch: () => (calls.push('connect'), ''),
     phoneInstall: async (bytes, name) => (calls.push(['install', bytes.length, name]), install),
     phoneStatus: () => 'status',
@@ -108,4 +109,17 @@ test('configuration goes through the running app PebbleKit JS', async () => {
   );
   const none = new LibPebbleLink(asLibPebbleModule(fakePhone({ configUrl: '' })));
   await assert.rejects(none.requestConfiguration(), /no configuration page/);
+});
+
+test('the emulated watch platform is handed to libpebble3 before it connects', () => {
+  const phone = fakePhone();
+  const link = new LibPebbleLink(asLibPebbleModule(phone));
+  assert.throws(() => link.setUnknownWatchPlatform('flint'), /Start the phone/);
+  link.start();
+  link.setUnknownWatchPlatform('flint');
+  assert.deepEqual(phone.calls.at(-1), ['platform', 'flint']);
+  const refusing = { ...fakePhone(), phoneSetUnknownWatchPlatform: () => 'No platform pebble' };
+  const other = new LibPebbleLink(asLibPebbleModule(refusing));
+  other.start();
+  assert.throws(() => other.setUnknownWatchPlatform('pebble'), /did not take platform pebble/);
 });
