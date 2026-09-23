@@ -16,12 +16,14 @@ fun released(path: String) = released.resolve(path).also {
 
 kotlin {
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs { browser() }
+    wasmJs {
+        browser()
+        // Other libraries were compiled against the published module; keep its name.
+        compilerOptions { moduleName.set("org.jetbrains.kotlinx:kotlinx-io-core") }
+    }
 
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
-        // Other libraries were compiled against the published module; keep its name.
-        moduleName.set("org.jetbrains.kotlinx:kotlinx-io-core")
         optIn.addAll(
             "kotlinx.io.InternalIoApi",
             "kotlinx.io.unsafe.UnsafeIoApi",
