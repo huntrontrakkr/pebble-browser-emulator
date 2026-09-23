@@ -35,9 +35,18 @@ export async function loadPhone(dist, deps, onConsole = () => {}) {
     if ((await readFile(join(dist, name), 'utf8')).includes('phoneStart')) entries.push(name);
   }
   if (entries.length !== 1) throw new Error(`expected one entry module in ${dist}: ${entries}`);
-  // Compose's ImageBitmap brings imports from skiko, the Compose graphics runtime, which a
-  // library distribution does not ship. List what the bundle imports from it and stand in
-  // with functions that throw when called, so a use of it fails loudly instead of passing.
+  await stubMissingModules(dist);
+  const phone = await import(pathToFileURL(resolve(dist, entries[0])));
+  console.log('exports', Object.keys(phone).sort().join(', '));
+  return asLibPebbleModule(phone);
+}
+
+/**
+ * Compose's ImageBitmap brings imports from skiko, the Compose graphics runtime, which a
+ * library distribution does not ship. Lists what the bundle imports from each missing
+ * module and stands in functions that throw when called, so a use fails loudly.
+ */
+export async function stubMissingModules(dist) {
   const present = new Set(await readdir(dist));
   for (const name of present) {
     if (!name.endsWith('.import-object.mjs')) continue;
@@ -75,7 +84,4 @@ export async function loadPhone(dist, deps, onConsole = () => {}) {
       );
     }
   }
-  const phone = await import(pathToFileURL(resolve(dist, entries[0])));
-  console.log('exports', Object.keys(phone).sort().join(', '));
-  return asLibPebbleModule(phone);
 }

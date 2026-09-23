@@ -10,6 +10,7 @@ on:
       - '.github/workflows/phone-spike.yml'
       - 'src/app/libpebble-host.ts'
       - 'src/app/libpebble-pkjs.ts'
+      - 'src/app/libpebble.worker.ts'
       - 'src/app/qemu.worker.ts'
   workflow_dispatch:
     inputs:
@@ -80,6 +81,16 @@ jobs:
           dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -not -path '*/node_modules/*' -name '*.mjs' 2>/dev/null | head -1)
           [ -n "$dist" ] || { echo "no linked library"; exit 0; }
           timeout 900 node tools/phone-spike/e2e.mjs "$(dirname "$dist")" tmp/phone-spike/run tmp/phone-spike/firmware || echo "e2e exit $?"
+      # Round 40: the same run in Chromium, with the application's own QEMU and
+      # libpebble3 phone workers.
+      - name: In a browser
+        run: |
+          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -not -path '*/node_modules/*' -name '*.mjs' 2>/dev/null | head -1)
+          [ -n "$dist" ] || { echo "no linked library"; exit 0; }
+          npx playwright install --with-deps chromium > /dev/null
+          node tools/phone-spike/browser/bundle.mjs "$(dirname "$dist")" \
+            tmp/phone-spike/run/node_modules/@sqlite.org/sqlite-wasm tmp/phone-spike/firmware tmp/phone-spike/browser
+          timeout 900 node tools/phone-spike/browser/run.mjs tmp/phone-spike/browser 420 || echo "browser exit $?"
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.
       - name: Processor output
