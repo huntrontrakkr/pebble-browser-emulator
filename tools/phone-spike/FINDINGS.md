@@ -24,8 +24,9 @@ version (v4.37.0, 9399f56), factory data, the phone's app version (the firmware 
 `plf=0x2`, which is Android), time, the running app, BlobDB version and app order. The
 same flow also runs in Node (`e2e.mjs`).
 
-The linked library is 2.57 MB (774 KB gzipped) of Wasm as of round 30. The phone worker
-is not yet loaded by the application; the page that drives it is the spike's harness.
+The linked library is 2.57 MB (774 KB gzipped) of Wasm as of round 30. Since round 42,
+Preview's Phone tab loads the phone worker in builds that publish the library (6.1 MB
+with SQLite Wasm); other builds say it is not included.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -47,6 +48,9 @@ is not yet loaded by the application; the page that drives it is the spike's har
 | 39 | PebbleKit JS runner on QuickJS | Clock's configuration round trip: AppMessage sent, watch ACK reaches Clock's callback |
 | 40 | Phone worker; browser run in Chromium | Bundling stopped on `node:module` / `node:net` imports |
 | 41 | Node's own modules left external | The whole flow runs in Chromium |
+| 42–43 | Published into the site; Phone tab section | Preview detects the build (`coredevices/mobileapp 1.13.0.2`) |
+| 44 | XMLHttpRequest over the page's phone network; WebSocket | The pipeline runs; the probe's own base URL was not substituted |
+| 45 | Synchronous XHR; watch platforms; Preview driven through its controls | Probe 11/11 in Chromium; libpebble3 installs Clock and JustTheTime on all three profiles; the settings screen was not built |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -106,7 +110,7 @@ iOS-only.
   skiko's runtime ships with it or the browser build leaves out the image paths that use
   it.
 
-Still open: synchronous XHR and `LazyLock` need review. File access is resolved in
+Still open: `LazyLock` needs review. Synchronous XHR is resolved in round 45. File access is resolved in
 rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalThis.sqlite3` and
 `globalThis.fflate` before `phoneStart`.
 
@@ -128,8 +132,8 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
 - **Hardware revision**: `qemu_emery` 4.37.0 reports hardware revision 245, which
   libpebble3 1.13.0.2 does not list, so the platform reads as unknown. libpebble3 then
   uses its own `WatchConfig.unknownWatchTypePlatform`, which defaults to Emery: right
-  for `qemu_emery`. For `qemu_flint` and `qemu_gabbro`, the host must set that
-  upstream option per profile before installing apps. No patch is needed.
+  for `qemu_emery`. For `qemu_flint` and `qemu_gabbro`, the host sets that upstream
+  option per profile (round 45). No patch is needed.
 
 ## The phone as a browser worker (rounds 40–41)
 
@@ -149,6 +153,50 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
 - **Harness** (`browser/harness.mjs`, `browser/run.mjs`): boots the firmware, starts
   and links the phone, installs Clock and runs its settings round trip. Chromium runs it
   through Playwright in the spike workflow.
+
+## Network for apps' PebbleKit JS (rounds 44–45)
+
+- **Same network as the built-in phone.** Upstream's own `XMLHttpRequest` and
+  `XMLHTTPRequestManager` run unchanged. Only the transport under ktor changes:
+  `HostHttpEngine` hands each request to the page's phone network
+  (`src/app/libpebble-network.ts`). That network uses the built-in phone's layer
+  (`phone-network.ts`, `phone-websocket.ts`), so the session's **Network access**
+  setting, limits, CORS and optional relay apply to both phones. It is off by default,
+  and "test responses" apply to the built-in phone only. Nothing is answered locally:
+  a request the browser refuses reaches the app as an `error` event. Preview reads the
+  setting on **Connect**.
+- **WebSocket**: apps get upstream's iOS `WebSocket.js`, unchanged. Under it,
+  `BrowserWebSocketManager` ports upstream's iOS `WebSocketManager`, which delivers the
+  same `_onOpen`, `_onMessage`, `_onError` and `_onClose` calls, from the phone's
+  coroutines.
+- **Synchronous XHR**: upstream calls `runBlocking`. The browser version counts blocking
+  calls. Inside one, the engine asks the host to block on the worker's own synchronous
+  request, with the same setting, limits, CORS and relay, and ktor runs inline, so
+  `send()` returns after the network answers. As on iOS, upstream's manager then
+  delivers the response as events just after `send()` returns.
+- **Base64**: upstream's binary paths call `Uint8Array.fromBase64` and `toBase64`
+  (ECMAScript 2026), which this QuickJS release lacks. The engine installs standard
+  versions (`BASE64_BUILTINS`, unit-tested) only where they are missing.
+- **Probe** (`browser/network-probe.js`, `probe-server.mjs`): the browser run installs
+  Clock's watch binary with a test PebbleKit JS in place of Clock's own, with the
+  network on. The probe calls the run's server through another origin (`localhost`
+  instead of `127.0.0.1`), so CORS applies. In Chromium, **11 of 11** checks passed:
+  text with a request header, an exposed response header, a UTF-8 POST body, `json`,
+  256 exact bytes as `arraybuffer`, a 404 delivered as a response, refusal of a host
+  without CORS, abort, synchronous XHR, and a WebSocket with a subprotocol, text and
+  binary both ways and a 4001 close. A refused upgrade was reported as `error` then
+  `close` 1006. The probe then sent its summary to the watch.
+- **Not covered**: binary request bodies. Upstream's bridge passes text, and a typed
+  array reaches its manager as a JSON object, which it drops. The `timeout` property
+  (unimplemented upstream), and HTTP interception, also absent on iOS.
+
+## Watch platforms (round 45)
+
+The QEMU firmware reports a hardware revision that libpebble3 1.13.0.2 does not list.
+`phoneSetUnknownWatchPlatform` sets upstream's own `WatchConfig.unknownWatchTypePlatform`
+to the emulated profile ('emery', 'flint', 'gabbro'), and Preview passes its profile on
+**Connect**. In CI, libpebble3 installed Clock and the JustTheTime store watchface on
+`qemu_emery`, `qemu_flint` and `qemu_gabbro`, and each watch reported the app running.
 
 ## In Preview (rounds 42–43)
 
@@ -201,10 +249,9 @@ JavaScriptCore.
   ACK or NACK under it; `startup.js` uses the ID only to match them.
 - **Configuration**: `phoneRequestConfiguration` and `phoneConfigurationClosed` do what
   the phone app's settings button and `pebblejs://close` deep-link handler do.
-- **Not yet**: WebSocket (apps see no `WebSocket`), intercepted HTTP responses (also
-  unsupported on iOS), and reporting unhandled promise rejections, which QuickJS does
-  not surface. XMLHttpRequest goes through ktor's fetch engine, so page CORS rules
-  apply; the emulator's network relay is not connected to it yet.
+- **Not yet**: intercepted HTTP responses (also unsupported on iOS), and reporting
+  unhandled promise rejections, which QuickJS does not surface. XMLHttpRequest and
+  WebSocket arrived in rounds 44–45.
 
 ## Files in the browser (rounds 34–36)
 
