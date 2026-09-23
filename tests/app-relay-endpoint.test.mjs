@@ -128,3 +128,11 @@ test('browsers may send the relay key: the preflight allows its header', async (
   assert.match(preflight.headers.get('access-control-allow-headers') ?? '', /x-pebble-relay-key/i);
   assert.match(preflight.headers.get('access-control-allow-methods') ?? '', /\bGET\b/);
 });
+
+test('a page can read which status came from the target', async () => {
+  const { relay } = relayReturning('{"gone":true}');
+  const handler = createResourceService({ origins: [ORIGIN], relay, relayKey: KEY });
+  const response = await ask(handler, '/v1/app-fetch?url=https://api.example/x', { key: KEY });
+  assert.equal(response.headers.get('x-relay-status'), '200');
+  assert.match(response.headers.get('access-control-expose-headers') ?? '', /x-relay-status/i);
+});

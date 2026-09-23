@@ -306,9 +306,11 @@ export function libPebbleNetworkHost(
     }
     if (xhr.status === 0)
       return { error: 'network', message: 'The response is unavailable through browser CORS.' };
-    if (relayed && xhr.status === 502)
+    // X-Relay-Status marks the target's own answer; the relay's refusals lack it.
+    const fromTarget = relayed && xhr.getResponseHeader('x-relay-status') !== null;
+    if (relayed && !fromTarget && xhr.status === 502)
       return { error: 'network', message: 'The download service could not reach this host.' };
-    if (relayed && (xhr.status === 401 || xhr.status === 404))
+    if (relayed && !fromTarget && (xhr.status === 401 || xhr.status === 404))
       return {
         error: 'network',
         message: 'The download service is not relaying app requests for this site.',

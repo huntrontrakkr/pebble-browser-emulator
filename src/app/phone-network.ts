@@ -239,7 +239,9 @@ export class PhoneCorsNetwork {
       });
       if (response.type === 'opaque' || response.type === 'opaqueredirect' || response.status === 0)
         throw new Error('The response is unavailable through browser CORS.');
-      if (relayed && response.status === 502) {
+      // X-Relay-Status marks the target's own answer; the relay's refusals lack it.
+      const fromTarget = relayed && response.headers.has('x-relay-status');
+      if (relayed && !fromTarget && response.status === 502) {
         const detail = await response
           .clone()
           .json()
@@ -248,7 +250,7 @@ export class PhoneCorsNetwork {
           `The download service could not reach this host: ${detail?.error ?? response.status}`,
         );
       }
-      if (relayed && (response.status === 401 || response.status === 404))
+      if (relayed && !fromTarget && (response.status === 401 || response.status === 404))
         throw new Error('The download service is not relaying app requests for this site.');
       const binary = request.responseType === 'arraybuffer' || request.responseType === 'blob';
       const maximum = binary

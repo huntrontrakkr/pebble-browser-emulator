@@ -148,3 +148,26 @@ test('a rejected relay key is reported as the service refusing, not as the host 
     assert.match(results[0].result.message, /not relaying app requests/, `status ${status}`);
   }
 });
+
+test("a target's own 404 or 502 through the relay reaches the app as that response", async () => {
+  // The relay marks answers from the target with X-Relay-Status; its own refusals lack it.
+  for (const status of [404, 502]) {
+    const fetcher = async (url) => {
+      if (url.startsWith('https://api.example')) throw CORS_FAILURE;
+      const response = { ...ok('{"message":"no such user"}', status), status, ok: false };
+      response.headers = new Headers({
+        'content-type': 'application/json',
+        'x-relay-status': String(status),
+      });
+      return response;
+    };
+    const { net, results } = harness(fetcher, { relay: RELAY });
+    net.handle({
+      type: 'network-request',
+      request: { id: 1, method: 'GET', url: 'https://api.example/friends', headers: {} },
+    });
+    await settle();
+    assert.equal(results[0].result.status, status, `status ${status}`);
+    assert.equal(results[0].result.body, '{"message":"no such user"}');
+  }
+});

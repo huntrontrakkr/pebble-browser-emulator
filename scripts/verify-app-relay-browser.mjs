@@ -67,7 +67,7 @@ try {
             redirect: 'follow',
             referrerPolicy: 'no-referrer',
           });
-          return { status: response.status };
+          return { status: response.status, target: response.headers.get('x-relay-status') };
         } catch (error) {
           return { threw: String(error) };
         }
@@ -80,9 +80,16 @@ try {
     undefined,
     `the page must receive the relay's answer: ${relayed.threw}`,
   );
+  // The target's own status is marked and readable; only the relay's own failures lack it.
+  assert.ok(
+    relayed.target !== null || relayed.status === 502,
+    `a relayed answer names the target's status (got ${relayed.status}, marked ${relayed.target})`,
+  );
   const refused = await ask('not-the-key-not-the-key');
   assert.equal(refused.status, 401, 'a wrong key is refused, and the page can read that');
-  console.log(`relay reached from the page: status ${relayed.status}; wrong key 401`);
+  console.log(
+    `relay reached from the page: status ${relayed.status} (target ${relayed.target ?? 'unreached'}); wrong key 401`,
+  );
 } finally {
   await browser.close();
   relay.kill();

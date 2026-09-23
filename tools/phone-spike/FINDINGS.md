@@ -57,6 +57,9 @@ with SQLite Wasm); other builds say it is not included.
 | 51–52 | Binary request bodies; BlobDB timeline from Connect | Probe 13/13; the install ran before libpebble3 listed the watch as connected |
 | 53 | Connected means libpebble3 has connected | 6 of 6; the app relaunches right after the install (settled in 5.0 s, the run's quiet window, down from 36–38 s) |
 | 54 | Location for apps; network activity; store survey | 12 of 12 store apps install and run; TimeStyle and Maptastic get real data to the watch; old hosts fail |
+| 55 | All 44 qualifying store apps; failed targets checked from the CI host | 43 of 44 run; 8 get real data to the watch directly |
+| 56 | The relay for hosts that refuse CORS | No change: the relay's preflight refused its own key header in every browser |
+| 57 | The relay's preflight fixed | Relayed answers reach 8 apps (Real Weather, Weather Land, Love Weather, Rain, Maptastic, Touchy Weather and two error statuses) |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -203,7 +206,7 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
   leaves the rejection-tracker hook unimplemented (`promiseRejectionHandler` is a
   `TODO` type), so they cannot be reported without replacing `Promise`.
 
-## Store apps that use the network (rounds 54–55)
+## Store apps that use the network (rounds 54–57)
 
 `browser/store-survey.mjs` uses the store's Most Loved collections, the corpus tool's
 download of 100 watchfaces and 100 apps with package hashes. It keeps the apps whose
@@ -234,10 +237,68 @@ Round 54, the first 12 of 44 qualifying apps:
 | Watchie-Talkie (app #38) | `watchie-talkie.herokuapp.com` failed 5 times (PUT and GET) |
 | Timer, Weather, Note To Self, Thin, Clean & Smart | no request within 45 s |
 
-All 12 installed through libpebble3 and ran. A browser reports a refused or unreachable
-host only as "Failed to fetch", so round 55 asks each failed target again from the CI
-host, where CORS does not apply, to tell a service that is gone from one that refuses
-cross-origin reads.
+All 12 installed through libpebble3 and ran.
+
+**Round 55, all 44 qualifying apps** (Most Loved, 100 watchfaces and 100 apps; 183
+downloaded; 45 had no PebbleKit JS, 26 made no network calls, 68 had no emery binary):
+
+- **43 of 44 install and run.** Get Back To never reported running, and the watch
+  refused its one AppMessage.
+- **Real data reaches the watch directly (CORS)** in 8 apps, each with every AppMessage
+  acknowledged:
+  - TimeStyle, Quartz, LCARS and HealthView: open-meteo forecasts.
+  - Touchy Weather: open-meteo forecasts, air quality, and bigdatacloud reverse
+    geocoding.
+  - Consensus: OpenWeatherMap.
+  - Maptastic: OpenStreetMap tiles.
+  - Drunk O' Clock: `api.lignite.io` POST and GET, plus a WebSocket that opens.
+    Modulite opens the same WebSocket.
+- **The browser's "Failed to fetch" has many causes.** Each failed target was asked
+  again from the CI host, where CORS does not apply:
+  - alive without `Access-Control-Allow-Origin`: `renowatch.herokuapp.com` (200, the
+    backend of Real Weather, Weather Land and Love Weather) and `x.setpebble.com` (200);
+  - alive with errors: Watchie-Talkie 404, Muninn 404, `api.vaw.be` 500 without the
+    app's query, Google Apps Script 403, and Touchy Weather's proxy 401;
+  - an `http://` URL that redirects to HTTPS without CORS: `nominatim.openstreetmap.org`;
+  - gone (no DNS): Yahoo YQL, the old `api.yr.no`, rhcloud, stathat and `my-habits.net`.
+- 18 apps made no request within 45 s. Most wait for settings or a user action; the
+  apps' first log lines say so.
+
+**Rounds 56–57, the relay.** The second pass reruns the 12 apps with a target that is
+alive but refuses CORS, with the optional relay (services/resources, `/v1/app-fetch`)
+as the session's relay. In round 56 every relayed request still failed. The relay key
+travels in `X-Pebble-Relay-Key`, which makes browsers preflight, and the service's
+OPTIONS answer did not allow that header. So **the relay had never worked from a
+browser**, for the built-in phone either. Its tests use a stand-in `fetch`, which never
+preflights. Fixed: the preflight allows the header, a unit test checks it, and a new
+Verify gate (`scripts/verify-app-relay-browser.mjs`) makes the relayed request from a
+real Chromium page. Both fail without the fix.
+
+With the fix (round 57):
+
+| App | Without the relay | With it |
+|---|---|---|
+| Real Weather, Weather Land, Love Weather | forecast failed | `renowatch` forecast 200 |
+| Rain | 0 of 2 answered; 4 AppMessages | 2 of 2 answered (200); 24 AppMessages, all acknowledged |
+| Maptastic | 2 of 3 | 3 of 3 (`x.setpebble.com` 200) |
+| Touchy Weather | 3 of 5 | 4 of 5 (pollen 200) |
+| Solanum, Weathergraph | failed | the target's own 403 and 400 reach the app |
+| Watchie-Talkie | failed | reported as the relay refusing (below) |
+
+The relay does not carry POST or PUT (Muninn, Touchy Weather's track call,
+Watchie-Talkie's upload) or `http://` URLs (nominatim). That is its policy, not a fault.
+
+Round 57 also showed that a target's own 404 through the relay (Watchie-Talkie) reached
+the app as "the download service is not relaying app requests". The phone read every
+relayed 401 or 404 as the relay's refusal. The relay marks the target's answers with
+`X-Relay-Status`, and its own refusals lack it. The service now exposes that header, and
+both phones' networks treat 401, 404 and 502 as the relay's own only when it is absent.
+
+**HTTPS sites and `http://` apps.** The survey page is served over HTTP. On the
+application's HTTPS site, browsers block an app's `http://` requests as mixed content,
+so Consensus (OpenWeatherMap over `http://`) would fail there. The relay only takes
+HTTPS targets. Nothing rewrites an app's URLs. Whether to upgrade `http://` requests to
+HTTPS for apps is an open decision.
 
 ## Watch platforms (round 45)
 

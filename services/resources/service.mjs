@@ -114,7 +114,10 @@ export function createResourceService({
     });
     if (origin && allowed) {
       headers.set('Access-Control-Allow-Origin', origin);
-      headers.set('Access-Control-Expose-Headers', 'X-Resource-SHA256, X-Resource-Cache, ETag');
+      headers.set(
+        'Access-Control-Expose-Headers',
+        'X-Resource-SHA256, X-Resource-Cache, ETag, X-Relay-Status',
+      );
     }
     const json = (value, status = 200) =>
       new Response(JSON.stringify(value), {

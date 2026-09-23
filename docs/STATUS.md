@@ -407,7 +407,13 @@ phone, including binary request bodies. A cross-origin probe passed 13 of 13 che
 completes only once libpebble3 lists the watch as connected. Before that fix, an early install
 left the watch on its default watchface for about 28 s. Known gaps: XHR `timeout` and HTTP
 interception (both absent upstream), and unhandled promise rejections, which this QuickJS
-binding cannot report. None of this is in the default site build.
+binding cannot report. A survey of the store's 44 most loved apps that use the network and ship
+emery binaries ran them through the upstream phone. 43 run, and 8 get real data to the watch
+directly. With the optional relay, the three watchfaces behind `renowatch.herokuapp.com`, Rain,
+Maptastic and Touchy Weather get the rest of their GET requests answered. The survey found
+that the relay's preflight had refused its own key header in every browser. That is fixed,
+with a Verify gate that relays from a real page. On an HTTPS site, apps' `http://` requests are
+blocked as mixed content, which is an open decision. None of this is in the default site build.
 
 The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three
 current profiles in Chromium at a mobile viewport: its bundled Clay 1.0.8 form saves a
