@@ -58,6 +58,7 @@ try {
   if (negotiated) {
     const began = Date.now();
     try {
+      await link.whenWatchConnected();
       await link.install(await readFile(app), 'Clock.pbw');
       console.log(`sideload finished after ${((Date.now() - began) / 1000).toFixed(1)} s`);
     } catch (error) {

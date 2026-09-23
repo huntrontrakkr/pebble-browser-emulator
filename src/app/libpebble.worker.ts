@@ -101,6 +101,8 @@ self.onmessage = async ({ data }: MessageEvent) => {
         if (data.platform) phone.setUnknownWatchPlatform(data.platform);
         phone.connect(data.port);
         watchRunningApp(phone);
+        // Done once libpebble3 has negotiated with the watch, not when bytes can flow.
+        await phone.whenWatchConnected();
         postMessage({ type: 'done', id });
         break;
       }

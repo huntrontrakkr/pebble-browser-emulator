@@ -21,6 +21,7 @@ export interface LibPebbleModule {
   phoneSerialFromWatch(bytes: Uint8Array): boolean;
   phoneSetUnknownWatchPlatform(codename: string): string;
   phoneConnectWatch(): string;
+  phoneWatchConnected(): boolean;
   phoneInstall(bytes: Uint8Array, fileName: string): Promise<string>;
   phoneRunningApp(): string;
   phoneRequestConfiguration(): Promise<string>;
@@ -81,6 +82,7 @@ export function asLibPebbleModule(module: Record<string, unknown>): LibPebbleMod
     'phoneSerialFromWatch',
     'phoneSetUnknownWatchPlatform',
     'phoneConnectWatch',
+    'phoneWatchConnected',
     'phoneInstall',
     'phoneRunningApp',
     'phoneRequestConfiguration',
@@ -147,12 +149,32 @@ export class LibPebbleLink {
     }
   }
 
+  /** True once libpebble3 lists the linked watch as connected (negotiation done). */
+  watchConnected(): boolean {
+    return !!this.port && this.phone.phoneWatchConnected();
+  }
+
+  /** Resolves once libpebble3 lists the watch as connected, or rejects after `timeoutMs`. */
+  async whenWatchConnected(timeoutMs = 30000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (!this.watchConnected()) {
+      if (!this.port) throw new Error('The phone is not linked to a watch.');
+      if (Date.now() > deadline)
+        throw new Error('libpebble3 did not finish connecting to the watch.');
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
   /**
    * Sideloads an app bundle through libpebble3, which adds it to the locker, sends it
-   * to the connected watch and launches it, as the phone app's own sideload does.
+   * to the connected watch and launches it, as the phone app's own sideload does. The
+   * watch must be connected in libpebble3's own terms first: before that, libpebble3
+   * has no watch to sync the app to or launch it on, and reports success anyway.
    */
   async install(bytes: Uint8Array, fileName: string): Promise<void> {
     if (!this.port) throw new Error('Connect the phone to a watch before installing.');
+    if (!this.phone.phoneWatchConnected())
+      throw new Error('libpebble3 is still connecting to the watch.');
     const failure = await this.phone.phoneInstall(bytes, fileName);
     if (failure) throw new Error(`libpebble3 did not install ${fileName}: ${failure}`);
   }

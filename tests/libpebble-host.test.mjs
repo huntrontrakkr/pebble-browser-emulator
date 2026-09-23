@@ -8,7 +8,12 @@ import {
 } from '../src/app/libpebble-host.ts';
 
 /** Stands in for the Kotlin build's exports; records what the glue does with them. */
-function fakePhone({ reading = true, install = '', configUrl = 'data:text/html,x' } = {}) {
+function fakePhone({
+  reading = true,
+  install = '',
+  configUrl = 'data:text/html,x',
+  connected = true,
+} = {}) {
   const calls = [];
   let sink = null;
   return {
@@ -22,6 +27,7 @@ function fakePhone({ reading = true, install = '', configUrl = 'data:text/html,x
     phoneSerialFromWatch: (bytes) => (calls.push(['watch', [...bytes]]), reading),
     phoneSetUnknownWatchPlatform: (codename) => (calls.push(['platform', codename]), ''),
     phoneConnectWatch: () => (calls.push('connect'), ''),
+    phoneWatchConnected: () => connected,
     phoneInstall: async (bytes, name) => (calls.push(['install', bytes.length, name]), install),
     phoneStatus: () => 'status',
     phoneRunningApp: () => 'c61ace0a-d61a-47ce-9d04-f46a78849ec6',
@@ -122,4 +128,21 @@ test('the emulated watch platform is handed to libpebble3 before it connects', (
   const other = new LibPebbleLink(asLibPebbleModule(refusing));
   other.start();
   assert.throws(() => other.setUnknownWatchPlatform('pebble'), /did not take platform pebble/);
+});
+
+test('installs wait for libpebble3 to finish connecting to the watch', async () => {
+  let connected = false;
+  const phone = { ...fakePhone(), phoneWatchConnected: () => connected };
+  const link = new LibPebbleLink(asLibPebbleModule(phone));
+  const { port1: worker, port2 } = new MessageChannel();
+  link.start();
+  link.connect(port2);
+  await assert.rejects(link.install(Uint8Array.of(1), 'Clock.pbw'), /still connecting/);
+  setTimeout(() => (connected = true), 150);
+  await link.whenWatchConnected(2000);
+  await link.install(Uint8Array.of(1), 'Clock.pbw');
+  connected = false;
+  await assert.rejects(link.whenWatchConnected(150), /did not finish connecting/);
+  link.close();
+  worker.close();
 });

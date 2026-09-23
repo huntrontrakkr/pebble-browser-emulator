@@ -115,6 +115,14 @@ fun phoneConnectWatch(): String = report {
     libPebble.addQemuWatch(EMULATED_WATCH, connect = true)
 }
 
+/**
+ * True once LibPebble lists the watch as connected (negotiation done). Before that,
+ * `sideloadApp` finds no connected watch to sync to or launch on, and returns at once.
+ */
+@JsExport
+fun phoneWatchConnected(): Boolean =
+    phone?.watches?.value?.any { it is ConnectedPebbleDevice } == true
+
 /** Where sideloaded bundles are written before LibPebble reads them. */
 private val SIDELOAD_DIRECTORY = Path("/sideload")
 
