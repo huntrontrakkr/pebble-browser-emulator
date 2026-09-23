@@ -6,21 +6,23 @@ the workflow's commits on this branch.
 
 ## Result so far
 
-libpebble3 connects to the emulated watch and completes negotiation with the released
-firmware (round 33). The QEMU worker runs `qemu_emery` 4.37.0 in the existing firmware
-harness. The phone is upstream's LibPebble from the linked browser library, on its own
-thread, and the host glue carries raw serial bytes between them. In half a second of
-wall time the phone and firmware exchange these, with the firmware answering each
-request itself:
+Clock installs and launches through libpebble3 on the released firmware (round 38). The
+QEMU worker runs `qemu_emery` 4.37.0 in the existing firmware harness, and the phone is
+upstream's LibPebble from the linked browser library. The host glue carries raw serial
+bytes between them. The firmware answers every step itself:
 
-- the watch version (v4.37.0, 9399f56) and factory data;
-- the phone's app version (the firmware logs `Phone app: is_system=1, plf=0x2`, which is
-  Android);
-- time, the running app (the default watchface), the BlobDB version and the app order.
+- **Negotiation**: the watch version (v4.37.0, 9399f56) and factory data; the phone's app
+  version (the firmware logs `plf=0x2`, which is Android); time; the running app; BlobDB
+  version; app order.
+- **Install**: upstream's `sideloadApp` adds Clock to the locker, and BlobDB inserts it on
+  the watch (`insert: result = Success`). The watch requests it (AppFetch), and PutBytes
+  sends the binary and resources, about 7 KB over the link.
+- **Launch**: the watch reports `AppRunStateStart` for Clock
+  (c61ace0a-d61a-47ce-9d04-f46a78849ec6) 3.5 s after the sideload starts.
 
-The music service then connects, and libpebble3 records the watch as connected and known.
-The linked bundle is 2,571,376 bytes (774,415 gzipped) of Wasm. Nothing has run in a
-browser page yet, and no app has been installed through it.
+Clock's PebbleKit JS does not start: libpebble3 finds no `JsRunner` bound (desktop binds
+none). The linked bundle is 2.57 MB (774 KB gzipped) of Wasm as of round 30. All of this
+runs in Node; nothing has run in a browser page or in the application.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -36,6 +38,9 @@ browser page yet, and no app has been installed through it.
 | 31 | First run: imports listed | One skiko import (`skikoApi`, from Compose's `ImageBitmap`) |
 | 32 | The library's npm dependencies (js-joda, ws) installed | Starts, connects and begins negotiation |
 | 33 | Host glue and the QEMU worker's `phone-link`, with v4.37.0 firmware | Negotiation completes; watch connected |
+| 34–36 | In-memory kotlinx-io files for the browser; `phoneInstall` | kotlinxioweb builds, links and starts |
+| 37 | End-to-end install of Clock | Installed and launched; the check read the wrong status field |
+| 38 | `phoneRunningApp` from libpebble3's own state | Clock reported running; PebbleKit JS has no runner |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -95,9 +100,8 @@ iOS-only.
   skiko's runtime ships with it or the browser build leaves out the image paths that use
   it.
 
-Still open: PebbleKit JS has no runner bound (desktop binds none), kotlinx-io's
-`SystemFileSystem` must reach the same in-memory files as Okio, and synchronous XHR and
-`LazyLock` need review. The page host must publish `globalThis.sqlite3` and
+Still open: PebbleKit JS has no runner bound (desktop binds none), and synchronous XHR
+and `LazyLock` need review. File access is resolved in rounds 34–36. The page host must publish `globalThis.sqlite3` and
 `globalThis.fflate` before `phoneStart`.
 
 ## Host glue (round 33)
@@ -120,6 +124,26 @@ Still open: PebbleKit JS has no runner bound (desktop binds none), kotlinx-io's
   uses its own `WatchConfig.unknownWatchTypePlatform`, which defaults to Emery: right
   for `qemu_emery`. For `qemu_flint` and `qemu_gabbro`, the host must set that
   upstream option per profile before installing apps. No patch is needed.
+
+## Files in the browser (rounds 34–36)
+
+kotlinx-io's wasm build reaches files, paths and the OS only through Node's `fs`, `path`
+and `os` modules, imported only under Node. In a page, every `kotlinx.io.files` call
+fails, including constructing a `Path`. Upstream uses it in 20 files, among them the
+public `sideloadApp(Path)`, the locker cache and firmware updates.
+
+- **kotlinxio-web** compiles the pinned kotlinx-io release's own sources (0.9.1,
+  Apache-2.0). An in-memory POSIX file tree replaces the Node backend, with the released
+  backend's errors, directory creation and listing. It builds with kotlinx-io's own
+  language settings and keeps the published module name, so libraries compiled against
+  kotlinx-io (ktor among them) link unchanged. Only the browser target resolves
+  kotlinx-io-core to it; `patch.mjs` refuses sources whose version differs from
+  upstream's pin.
+- **Okio**: the browser `FileSystem.SYSTEM` is now a view of the same tree, so the zip
+  reader, PBW reader and locker cache share one set of files. Random access and symlinks
+  report themselves unsupported.
+- The browser phone is an Android phone, so paths and line endings are POSIX whatever
+  the host OS.
 
 ## Blocking calls and the PebbleKit JS bridge (round 26)
 
