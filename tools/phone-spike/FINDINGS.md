@@ -51,6 +51,9 @@ with SQLite Wasm); other builds say it is not included.
 | 42–43 | Published into the site; Phone tab section | Preview detects the build (`coredevices/mobileapp 1.13.0.2`) |
 | 44 | XMLHttpRequest over the page's phone network; WebSocket | The pipeline runs; the probe's own base URL was not substituted |
 | 45 | Synchronous XHR; watch platforms; Preview driven through its controls | Probe 11/11 in Chromium; libpebble3 installs Clock and JustTheTime on all three profiles; the settings screen was not built |
+| 46–47 | Settings screen built; close URLs decoded as upstream does | Settings open and save; JustTheTime on `qemu_gabbro` passes; the others close into a restarting PebbleKit JS |
+| 48–49 | Waits; libpebble3's lifecycle lines recorded | The watch shows a system app for ~28 s after the install before relaunching the app |
+| 50 | The run waits for the watch's own relaunch | **6 of 6**: Clock and JustTheTime, all three profiles, through Preview's controls; probe 11/11 |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -198,6 +201,43 @@ to the emulated profile ('emery', 'flint', 'gabbro'), and Preview passes its pro
 **Connect**. In CI, libpebble3 installed Clock and the JustTheTime store watchface on
 `qemu_emery`, `qemu_flint` and `qemu_gabbro`, and each watch reported the app running.
 
+## Preview end to end (rounds 45–50)
+
+`browser/preview-e2e.mjs` drives the built site's own controls in Chromium, as a person
+would, on `qemu_emery`, `qemu_flint` and `qemu_gabbro`:
+
+1. It opens the example (Clock) or the pinned JustTheTime 1.2 store download, which
+   runs on the built-in phone.
+2. It connects the upstream phone on the Phone tab and installs the same package
+   through it.
+3. It opens **App configuration**, changes a setting in the app's own page (Clock's
+   form, and JustTheTime's Clay page) and saves.
+
+It passes only when libpebble3 reports the app running, the app's PebbleKit JS logs the
+watch's acknowledgement (Clock) or Clay's success (JustTheTime), and the watch's
+framebuffer changes. In round 50, all six runs passed. Clock's dark mode took black
+pixels from 5–24% to 92–97%, and JustTheTime's white background took white from 1–6% to
+77–97%. The JustTheTime package is fetched for the run only and checked against its
+pinned hash. It is not kept or published.
+
+What the runs showed:
+
+- **Close URLs**: the settings screen hands back the decoded return data. The upstream
+  phone now sends it as a URL-encoded `pebblejs://close#…`, and `phoneConfigurationClosed`
+  matches and decodes it as upstream's `WatchappSettingsScreen` does, including the
+  legacy `/?` and `/` forms.
+- **Relaunch after install**: installing over the running app (the built-in phone had
+  installed it) makes the watch stop it and show a system app (`dec0424c…`) for about
+  28 s. It then briefly shows `674271bc…` and restarts the app. From the install to a
+  settled watch took 36–38 s on every profile. libpebble3 starts the app's PebbleKit JS
+  for the relaunch, and settings requested before it report no configuration page. The
+  run waits for the watch's own run-state reports. **Open**: the cause of the 28 s.
+  Upstream's `sideloadApp` waits up to 40 s for the watch to report the app synced
+  before it launches it.
+- **Console errors**: libpebble3 logs one watch preference it cannot decode
+  (`automaticTimezoneID`) at error level on every connection. The run reports console
+  errors, and fails only on uncaught exceptions.
+
 ## In Preview (rounds 42–43)
 
 - **Publishing** (`publish.mjs`): writes `public/libpebble3/`, which holds the bundled
@@ -224,8 +264,8 @@ to the emulated profile ('emery', 'flint', 'gabbro'), and Preview passes its pro
   `{"status":"Not connected","build":"coredevices/mobileapp 1.13.0.2"}`. The worker
   chunk is 41 kB, and the library loads only on **Connect**. The main site build does
   not publish libpebble3. Whether it should (6.1 MB plus a ~5 minute upstream
-  compile in CI) is still undecided. Connect, install and configuration from Preview's
-  own buttons are exercised by the harness flow, not yet through the Preview UI.
+  compile in CI) is still undecided. Preview's own buttons are exercised end to end
+  since round 50.
 
 ## PebbleKit JS (round 39)
 

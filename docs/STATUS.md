@@ -397,8 +397,16 @@ experimental **Upstream phone app** section. It connects that phone to the QEMU 
 place of the built-in phone, installs the last opened package through it, and opens the
 running app's configuration page. It is available only in builds that publish
 `public/libpebble3/` (the spike workflow does). Other builds say "Not included in this build".
-CI checks that the section detects a published build. The connect, install and configure
-buttons have no browser gate of their own yet.
+In the spike workflow, Chromium drives Preview's own buttons on `qemu_emery`, `qemu_flint` and
+`qemu_gabbro` for Clock and for the JustTheTime store watchface, which is downloaded for the
+run and checked against its hash. It connects, installs through the upstream phone and saves
+the app's own settings page. The watch acknowledges the settings and its framebuffer changes.
+Apps' PebbleKit JS gets upstream's `XMLHttpRequest` (including synchronous requests) and
+`WebSocket`, over the same network setting, limits, CORS and optional relay as the built-in
+phone. A cross-origin probe passed 11 of 11 checks. Known gaps: after an install over a running
+app, the watch shows a system app for about 28 s before relaunching it (cause not yet found).
+Binary request bodies are not supported, as in upstream's bridge. None of this is in the
+default site build.
 
 The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three
 current profiles in Chromium at a mobile viewport: its bundled Clay 1.0.8 form saves a
