@@ -85,6 +85,24 @@ await edit('blobannotations/build.gradle.kts', addBrowserTarget);
       );
   }
 
+  // Round 29: the browser's platform layer starts from upstream's desktop (JVM)
+  // one, which is small and mostly stubs; files that use Java APIs, or that the
+  // browser gives real values, come from libpebble3-web instead.
+  const browserOwn = [
+    'io/rebble/libpebblecommon/database/Database.jvm.kt',
+    'util/DataBuffer.kt',
+    'io/rebble/libpebblecommon/plugin/BundledPlugins.jvm.kt',
+    'io/rebble/libpebblecommon/locker/Locker.jvm.kt',
+    'io/rebble/libpebblecommon/util/TempFile.jvm.kt',
+    'io/rebble/libpebblecommon/web/FirmwareDownloader.jvm.kt',
+    'io/rebble/libpebblecommon/connection/devconnection/DevConnectionTransport.jvm.kt',
+  ];
+  const jvmMain = join(dir, 'libpebble3/src/jvmMain/kotlin');
+  await cp(jvmMain, join(dir, 'libpebble3/src/wasmJsMain/kotlin'), {
+    recursive: true,
+    filter: (source) => !browserOwn.some((own) => source === join(jvmMain, own)),
+  });
+
   // Round 27: kmp-io has no browser build either. Upstream uses only its byte
   // buffers, BitSet and byte-array extensions, which kmpio-web compiles from kmp-io's
   // released sources; the browser target resolves kmp-io to it, as with Room.
