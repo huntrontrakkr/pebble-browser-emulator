@@ -13,6 +13,8 @@ on:
       - 'src/app/libpebble-network.ts'
       - 'src/app/phone-network.ts'
       - 'src/app/phone-websocket.ts'
+      - 'services/resources/**'
+      - 'scripts/compatibility/corpus.mjs'
       - 'src/app/libpebble.worker.ts'
       - 'src/app/upstream-phone.ts'
       - 'src/app/qemu.worker.ts'
