@@ -92,6 +92,42 @@ var checks = [
       },
     );
   },
+  function binaryBody(next) {
+    // Bytes that are not UTF-8, as a typed array and as an ArrayBuffer.
+    xhr(
+      'POST',
+      '/net/echo-bytes',
+      { body: new Uint8Array([0, 255, 128, 10]) },
+      function (r, outcome) {
+        var body = {};
+        try {
+          body = JSON.parse(r.responseText);
+        } catch (_) {}
+        check(
+          'xhr binary body',
+          outcome === 'load' && body.hex === '00ff800a',
+          outcome + ' ' + r.responseText,
+        );
+        xhr(
+          'PUT',
+          '/net/echo-bytes',
+          { body: new Uint8Array([200, 1, 2]).buffer },
+          function (r2, outcome2) {
+            var body2 = {};
+            try {
+              body2 = JSON.parse(r2.responseText);
+            } catch (_) {}
+            check(
+              'xhr ArrayBuffer body',
+              outcome2 === 'load' && body2.hex === 'c80102',
+              outcome2 + ' ' + r2.responseText,
+            );
+            next();
+          },
+        );
+      },
+    );
+  },
   function json(next) {
     xhr('GET', '/net/json', { responseType: 'json' }, function (r, outcome) {
       check(

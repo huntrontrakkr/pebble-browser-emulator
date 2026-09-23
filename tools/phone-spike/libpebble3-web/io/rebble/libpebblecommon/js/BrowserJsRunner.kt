@@ -32,6 +32,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.put
+import kotlin.io.encoding.Base64
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
 
@@ -89,6 +90,21 @@ class BrowserJsRunner(
     }
 
     private fun registerInterfaces() {
+        // Arguments cross as JSON. Typed arrays and ArrayBuffers go as {"__bytes": base64},
+        // which the dispatcher turns back into a ByteArray, as JavaScriptCore could not and
+        // upstream's XMLHTTPRequestManager.send accepts.
+        evalNow(
+            """
+            Object.defineProperty(globalThis, '__bridgeValue', { value: function (key, value) {
+                if (value instanceof ArrayBuffer) value = new Uint8Array(value);
+                else if (ArrayBuffer.isView(value))
+                    value = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+                else return value;
+                return { __bytes: value.toBase64() };
+            } });
+            """.trimIndent(),
+            "bridge.js",
+        )
         val privateInterface = JSCPrivatePKJSInterface(
             jsPath, this, device, scope, _outgoingAppMessages, logMessages, jsTokenUtil,
             remoteTimelineEmulator, httpInterceptorManager, notificationConfigFlow, pluginRegistry,
@@ -117,7 +133,7 @@ class BrowserJsRunner(
                 var ${iface.name} = globalThis.${iface.name} = {};
                 [$methods].forEach(function (m) {
                     ${iface.name}[m] = function () {
-                        var r = JSON.parse(__nativeDispatch('${iface.name}', m, JSON.stringify(Array.from(arguments))));
+                        var r = JSON.parse(__nativeDispatch('${iface.name}', m, JSON.stringify(Array.from(arguments), __bridgeValue)));
                         if (r.x) (0, eval)(r.x);
                         if ('e' in r) throw new Error(r.e);
                         return r.v;
@@ -336,7 +352,8 @@ private fun JsonElement.toKotlin(): Any? = when (this) {
     JsonNull -> null
     is JsonPrimitive -> if (isString) content else booleanOrNull ?: doubleOrNull ?: content
     is JsonArray -> map { it.toKotlin() }
-    is JsonObject -> mapValues { it.value.toKotlin() }
+    is JsonObject -> (this["__bytes"] as? JsonPrimitive)?.takeIf { size == 1 }?.let { Base64.decode(it.content) }
+        ?: mapValues { it.value.toKotlin() }
 }
 
 private fun Any?.toJson(): JsonElement = when (this) {

@@ -94,6 +94,8 @@ export interface PhoneNetworkRequest {
   url: string;
   headers: Record<string, string>;
   body: string | null;
+  /** A binary body, sent in place of `body` (the libpebble3 phone's XMLHttpRequest). */
+  bodyBytes?: Uint8Array<ArrayBuffer>;
   timeoutMs: number;
   responseType?: 'arraybuffer' | 'blob';
 }

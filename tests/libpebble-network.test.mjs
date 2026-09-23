@@ -227,3 +227,40 @@ test('synchronous requests block on the browser request and follow the same rule
     /Only HTTP/,
   );
 });
+
+test('binary request bodies reach the browser as bytes, on both paths', async () => {
+  const seen = [];
+  const fetcher = async (url, init) => (seen.push(init.body), new Response('ok'));
+  const host = libPebbleNetworkHost(
+    { mode: 'cors' },
+    { fetcher, syncRequest: () => new FakeSyncRequest() },
+  );
+  const binary = {
+    method: 'PUT',
+    url: 'https://bytes.test/',
+    headers: {},
+    body: null,
+    bodyBase64: Buffer.from([0, 255, 128]).toString('base64'),
+  };
+  assert.equal((await request(host, binary)).status, 200);
+  assert.ok(seen[0] instanceof Uint8Array);
+  assert.deepEqual([...seen[0]], [0, 255, 128]);
+  host.requestSync(JSON.stringify(binary));
+  assert.deepEqual([...FakeSyncRequest.made.at(-1).body], [0, 255, 128]);
+});
+
+test('a binary body counts toward the request size limit', async () => {
+  const host = libPebbleNetworkHost(
+    { mode: 'cors' },
+    { fetcher: async () => new Response('ok'), requestLimits: { requestBytes: 1024 } },
+  );
+  const result = await request(host, {
+    method: 'POST',
+    url: 'https://bytes.test/',
+    headers: {},
+    body: null,
+    bodyBase64: Buffer.alloc(4096).toString('base64'),
+  });
+  assert.equal(result.error, 'network');
+  assert.match(result.message, /size limit/);
+});

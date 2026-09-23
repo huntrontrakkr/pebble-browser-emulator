@@ -21,7 +21,8 @@ export interface PhoneNetworkSetting {
 
 export interface LibPebbleNetworkHost {
   /**
-   * Starts one request, `{method, url, headers, body}` (body is text or null), and
+   * Starts one request, `{method, url, headers, body}` or, for bytes, `{…, bodyBase64}`
+   * (body is text or null), and
    * returns its id. `done` receives `{status, statusText, headers, bodyBase64}` or
    * `{error, message}` as JSON, once.
    */
@@ -167,10 +168,16 @@ export function libPebbleNetworkHost(
       url: string;
       headers: Record<string, string>;
       body: string | null;
+      bodyBase64?: string;
     };
     let url: URL;
+    let body: string | Uint8Array | null;
     try {
       request = JSON.parse(json);
+      body =
+        typeof request.bodyBase64 === 'string'
+          ? fromBase64(request.bodyBase64)
+          : (request.body ?? null);
       request.method = String(request.method).toUpperCase();
       url = new URL(request.url);
       if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password)
@@ -182,23 +189,31 @@ export function libPebbleNetworkHost(
     } catch (error) {
       return { error: 'network', message: String(error) };
     }
-    const attempt = (target: URL, headers: Record<string, string>, body: string | null) => {
+    const attempt = (
+      target: URL,
+      headers: Record<string, string>,
+      body: string | Uint8Array | null,
+    ) => {
       const xhr = syncRequest();
       xhr.open(request.method, target.href, false);
       xhr.responseType = 'arraybuffer';
       xhr.timeout = limits.timeoutMs;
       for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
-      xhr.send(body);
+      xhr.send(body as XMLHttpRequestBodyInit | null);
       return xhr;
     };
     let xhr: XMLHttpRequest;
     let relayed = false;
     try {
-      xhr = attempt(url, request.headers ?? {}, request.body ?? null);
+      xhr = attempt(url, request.headers ?? {}, body);
     } catch (error) {
       // The browser refused it; a configured relay may still read this host, as for
       // asynchronous requests.
-      const retry = relayRequestFor(setting.relay, url, request);
+      const retry = relayRequestFor(setting.relay, url, {
+        method: request.method,
+        body: typeof body === 'string' ? body : null,
+        bodyBytes: body instanceof Uint8Array ? body : undefined,
+      });
       if (!retry)
         return {
           error: 'network',
@@ -252,9 +267,12 @@ export function libPebbleNetworkHost(
         url: string;
         headers: Record<string, string>;
         body: string | null;
+        bodyBase64?: string;
       };
+      let bodyBytes: Uint8Array<ArrayBuffer> | undefined;
       try {
         request = JSON.parse(json);
+        if (typeof request.bodyBase64 === 'string') bodyBytes = fromBase64(request.bodyBase64);
       } catch {
         later(() => settle(id, { error: 'network', message: 'Malformed request from the phone.' }));
         return id;
@@ -267,7 +285,8 @@ export function libPebbleNetworkHost(
           method: String(request.method).toUpperCase(),
           url: String(request.url),
           headers: request.headers ?? {},
-          body: request.body ?? null,
+          body: bodyBytes ? null : (request.body ?? null),
+          ...(bodyBytes ? { bodyBytes } : {}),
           timeoutMs: 0,
           // The engine gets exact bytes and decodes them by the response's charset.
           responseType: 'arraybuffer',
@@ -352,6 +371,6 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(text);
 }
 
-function fromBase64(base64: string): Uint8Array {
+function fromBase64(base64: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 }

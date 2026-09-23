@@ -50,6 +50,21 @@ export function handleProbe(request, response) {
       );
       break;
     }
+    case '/net/echo-bytes': {
+      const chunks = [];
+      request.on('data', (chunk) => chunks.push(chunk));
+      request.on('end', () =>
+        reply(
+          200,
+          'application/json',
+          JSON.stringify({
+            hex: Buffer.concat(chunks).toString('hex'),
+            contentType: request.headers['content-type'] ?? null,
+          }),
+        ),
+      );
+      break;
+    }
     case '/net/json':
       reply(200, 'application/json', JSON.stringify({ temperature: 21.5, conditions: 'Cloudy' }));
       break;

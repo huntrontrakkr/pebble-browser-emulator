@@ -174,7 +174,11 @@ export class PhoneCorsNetwork {
         throw new Error('Only HTTP(S) URLs without embedded credentials are supported.');
       if (!/^(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)$/.test(request.method))
         throw new Error('Unsupported HTTP method.');
-      if (byteLength(JSON.stringify(request)) > this.limits.requestBytes + 256)
+      const binary = request.bodyBytes?.length ?? 0;
+      if (
+        byteLength(JSON.stringify({ ...request, bodyBytes: undefined })) + binary >
+        this.limits.requestBytes + 256
+      )
         throw new Error('Network request size limit exceeded.');
       if (this.pending.size >= this.limits.pendingRequests)
         throw new Error('Pending network request limit exceeded.');
@@ -211,7 +215,7 @@ export class PhoneCorsNetwork {
       let response = await this.fetcher(url.href, {
         method: request.method,
         headers: request.headers,
-        body: request.body,
+        body: request.bodyBytes ?? request.body,
         signal: controller.signal,
         mode: 'cors',
         credentials: 'omit',
@@ -335,11 +339,11 @@ export class PhoneCorsNetwork {
 export function relayRequestFor(
   relay: { endpoint: string; key: string } | undefined,
   url: URL,
-  request: { method: string; body: string | null },
+  request: { method: string; body: string | null; bodyBytes?: Uint8Array },
 ): URL | undefined {
   if (!relay?.endpoint || !relay.key) return undefined;
   if (!['GET', 'HEAD'].includes(request.method)) return undefined;
-  if (request.body) return undefined;
+  if (request.body || request.bodyBytes?.length) return undefined;
   if (url.protocol !== 'https:') return undefined;
   const target = new URL(`${relay.endpoint}/v1/app-fetch`);
   target.searchParams.set('url', url.href);

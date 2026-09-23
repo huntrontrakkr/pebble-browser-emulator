@@ -54,17 +54,21 @@ internal class HostHttpEngine : HttpClientEngineBase("pkjs-host") {
             if (!key.equals(HttpHeaders.ContentLength, ignoreCase = true))
                 headers[key] = headers[key]?.let { "$it, $value" } ?: value
         }
-        // Upstream's XMLHttpRequest sends text (encoded as UTF-8) or nothing.
-        val body = when (val content = data.body) {
+        // Upstream's manager encodes a string body as UTF-8 and passes a typed array's bytes.
+        // Valid UTF-8 goes as text, so the browser sets text's default content type as a
+        // WebView's XMLHttpRequest does; anything else goes as bytes.
+        val bytes = when (val content = data.body) {
             is OutgoingContent.NoContent -> null
-            is OutgoingContent.ByteArrayContent -> content.bytes().decodeToString()
+            is OutgoingContent.ByteArrayContent -> content.bytes()
             else -> throw IOException("Request bodies of type ${content::class.simpleName} are not supported")
         }
+        val text = bytes?.let { runCatching { it.decodeToString(throwOnInvalidSequence = true) }.getOrNull() }
         val request = buildJsonObject {
             put("method", data.method.value)
             put("url", data.url.toString())
             put("headers", JsonObject(headers.mapValues { JsonPrimitive(it.value) }))
-            put("body", body)
+            put("body", text)
+            if (bytes != null && text == null) put("bodyBase64", Base64.encode(bytes))
         }.toString()
 
         val reply = if (blockingCalls > 0) hostRequestSync(request)

@@ -86,6 +86,21 @@ async function run(profile, app) {
   page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text().slice(0, 300)));
   // libpebble3's own lines about apps' PebbleKit JS and the running app, for diagnosis.
   const lifecycle = [];
+  // BlobDB and run-state lines since Connect, with milliseconds since the click.
+  const timeline = (mark, at) =>
+    lifecycle
+      .slice(mark)
+      .filter((line) =>
+        /BlobDB|SyncDone|wiping|App synced|Timed out|Timeout|AppRunState(Start|Stop)/.test(line),
+      )
+      .map((line) => {
+        const [time, ...rest] = line.split(' ');
+        return `+${Math.round(Number(time) - at)} ${rest
+          .join(' ')
+          .replace(/\(PebbleProtocolRunner-[^)]*\)\) /, '')
+          .slice(0, 170)}`;
+      })
+      .slice(0, 80);
   page.on('console', (m) => {
     const text = m.text();
     if (
@@ -137,6 +152,8 @@ async function run(profile, app) {
     await page.locator('nav.tabs button', { hasText: 'Phone' }).click();
     const section = page.locator('section.upstream-phone');
     const status = section.locator('[role=status]');
+    const connectAt = performance.now();
+    const connectMark = lifecycle.length;
     await section.getByRole('button', { name: 'Connect upstream phone' }).click();
     await page.waitForFunction(
       () =>
@@ -218,7 +235,7 @@ async function run(profile, app) {
       `framebuffer ${app.becomes} ${before[app.becomes].toFixed(2)} → ${after[app.becomes].toFixed(2)}`,
     );
     if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
-    return { profile, app: app.name, ok: true, steps, consoleErrors };
+    return { profile, app: app.name, ok: true, steps, timeline: timeline(connectMark, connectAt) };
   } catch (error) {
     await page
       .screenshot({ path: `preview-e2e-${profile}-${app.name}.png`, fullPage: true })
