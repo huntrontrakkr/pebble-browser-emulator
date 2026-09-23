@@ -124,6 +124,8 @@ export function createResourceService({
     if (!allowed) return json({ error: 'Origin is not enabled for this service.' }, 403);
     if (incoming.method === 'OPTIONS') {
       headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      // The app relay's key travels as a header, which makes browsers ask first.
+      headers.set('Access-Control-Allow-Headers', 'X-Pebble-Relay-Key');
       headers.set('Access-Control-Max-Age', '600');
       return new Response(null, { status: 204, headers });
     }

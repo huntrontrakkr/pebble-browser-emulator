@@ -114,3 +114,17 @@ test('relayed calls have their own budget and do not spend the download allowanc
   const status = await ask(handler, '/v1/status');
   assert.equal(status.status, 200);
 });
+
+test('browsers may send the relay key: the preflight allows its header', async () => {
+  // The key travels in X-Pebble-Relay-Key, so a page's request is preflighted. Without
+  // this header in the answer, browsers refuse every relayed request before it is sent.
+  const { relay } = relayReturning('{}');
+  const handler = createResourceService({ origins: [ORIGIN], relay, relayKey: KEY });
+  const preflight = await ask(handler, '/v1/app-fetch?url=https://api.example/x', {
+    method: 'OPTIONS',
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), ORIGIN);
+  assert.match(preflight.headers.get('access-control-allow-headers') ?? '', /x-pebble-relay-key/i);
+  assert.match(preflight.headers.get('access-control-allow-methods') ?? '', /\bGET\b/);
+});
