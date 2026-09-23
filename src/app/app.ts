@@ -55,6 +55,7 @@ import type { EmulatorCommand, EmulatorEvent, MachineState } from './emulator.ty
 import { buildStamp } from './build-stamp.ts';
 import { resolveRelay, serviceDefaults } from './service-defaults.ts';
 import { resourceSettings } from './resource-fetch.ts';
+import { UpstreamPhone } from './upstream-phone.ts';
 import { WEATHER_CONDITIONS, type WeatherCondition } from './weather-records.ts';
 import {
   coordinateName,
@@ -71,6 +72,9 @@ function prefersDarkTheme(): boolean {
     return false;
   }
 }
+
+/** Marks a configuration page opened by the upstream phone rather than the built-in one. */
+const UPSTREAM_CONFIGURATION = 'upstream-phone';
 
 @Component({
   selector: 'app-root',
@@ -198,6 +202,10 @@ export class App implements AfterViewInit, OnDestroy {
   @ViewChild('consoleLines') consoleLines?: ElementRef<HTMLElement>;
   private injector = inject(Injector);
   private phoneWorker?: Worker;
+  /** Experimental: upstream's companion library (libpebble3) as the watch's phone. */
+  readonly upstreamPhone = new UpstreamPhone((text) => this.log('UPSTREAM PHONE', text));
+  /** The last bundle installed on the watch, for installing through the upstream phone. */
+  private lastPackage?: { bytes: Uint8Array; name: string };
   private phoneAccepting = false;
   private watchGeneration = -1;
   private phoneMessages = new AppMessageRouter<Worker>();
@@ -326,6 +334,7 @@ export class App implements AfterViewInit, OnDestroy {
   protected hex = (n: number) => '0x' + (n >>> 0).toString(16).padStart(8, '0');
   ngAfterViewInit() {
     this.demoSettings.set(readDemoSettings());
+    void this.upstreamPhone.detect();
     // Resolved once, before any phone starts. A failure to read the
     // deployment's file is not an error: it means this copy has no service,
     // which every other path already handles.
@@ -415,6 +424,7 @@ export class App implements AfterViewInit, OnDestroy {
     this.worker?.terminate();
     this.qemuWorker?.terminate();
     this.phoneWorker?.terminate();
+    this.upstreamPhone.dispose();
     this.modelAbort?.abort();
     this.model?.dispose();
     document.removeEventListener('visibilitychange', this.visibility);
@@ -941,6 +951,7 @@ export class App implements AfterViewInit, OnDestroy {
               return;
             }
             this.handleQemuEvent(data);
+            this.upstreamPhone.handleQemuMessage(data);
             if (data.type === 'state' && this.isFirmware()) {
               if (data.generation !== this.watchGeneration) return;
               const pixels = data.state.framebuffer ?? this.state()?.framebuffer;
@@ -1018,12 +1029,90 @@ export class App implements AfterViewInit, OnDestroy {
       );
       return;
     }
+    if (this.upstreamPhone.connected()) {
+      this.error.set(
+        'The upstream phone is connected to the watch. Install through it on the Phone tab, or disconnect it first.',
+      );
+      return;
+    }
     this.error.set('');
     this.releaseTouch();
     this.stopPhone();
     this.installing.set(true);
     this.trackInstallProgress();
+    this.lastPackage = { bytes: data.bytes.slice(), name: data.name };
     this.qemuWorker?.postMessage({ type: 'install', ...data });
+  }
+  /**
+   * Experimental: moves the watch link from the built-in phone to the upstream phone.
+   * The built-in phone is stopped and disconnected first; the watch keeps what it has
+   * installed.
+   */
+  async connectUpstreamPhone() {
+    const qemu = this.qemuWorker;
+    if (!qemu || !this.isFirmware() || !this.watchReady()) {
+      this.error.set(
+        'Load and run emulator firmware until boot completes, then connect the phone.',
+      );
+      return;
+    }
+    this.error.set('');
+    this.stopPhone();
+    if (this.linked()) {
+      this.setConnection(false);
+      for (let wait = 0; this.linked() && wait < 50; wait++)
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    try {
+      await this.upstreamPhone.connect(qemu);
+    } catch (error) {
+      this.error.set(
+        `The upstream phone did not connect: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+  }
+  async disconnectUpstreamPhone() {
+    await this.upstreamPhone.disconnect(this.qemuWorker);
+  }
+  canInstallThroughUpstreamPhone() {
+    return !!this.lastPackage && this.upstreamPhone.connected() && !this.upstreamPhone.busy();
+  }
+  lastPackageName() {
+    return this.lastPackage?.name ?? '';
+  }
+  async installThroughUpstreamPhone() {
+    const bundle = this.lastPackage;
+    if (!bundle) return;
+    this.error.set('');
+    try {
+      await this.upstreamPhone.install(bundle.bytes, bundle.name);
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : String(error));
+    }
+  }
+  /** The running app's settings, opened in the same sandboxed frame as the built-in phone's. */
+  async upstreamConfiguration() {
+    if (this.configuration() || this.configurationPending()) return;
+    this.configurationNotice.set('');
+    this.configurationPending.set(true);
+    try {
+      const url = await this.upstreamPhone.configure();
+      this.configuration.set({
+        url,
+        requestId: -1,
+        generation: -1,
+        appId: UPSTREAM_CONFIGURATION,
+        title: 'App configuration (upstream phone)',
+      });
+      this.configurationResponse = '';
+      this.showPreview();
+    } catch (error) {
+      this.configurationNotice.set(
+        `The app did not open a settings page: ${error instanceof Error ? error.message : error}`,
+      );
+    } finally {
+      this.configurationPending.set(false);
+    }
   }
   handleQemuEvent(data: any) {
     if (data.type === 'startup-status') this.log('STARTUP', data.message);
@@ -1806,6 +1895,14 @@ export class App implements AfterViewInit, OnDestroy {
   }
   returnConfiguration({ request, response }: PhoneConfigurationResult) {
     const view = this.configuration();
+    if (request.appId === UPSTREAM_CONFIGURATION) {
+      if (view !== request) return;
+      this.clearConfiguration();
+      this.upstreamPhone
+        .configurationClosed(response)
+        .catch((error) => this.error.set(error instanceof Error ? error.message : String(error)));
+      return;
+    }
     if (
       !view ||
       view !== request ||
@@ -1820,6 +1917,14 @@ export class App implements AfterViewInit, OnDestroy {
   closeConfiguration(canceled = false) {
     const view = this.configuration();
     if (!view) return;
+    if (view.appId === UPSTREAM_CONFIGURATION) {
+      this.clearConfiguration();
+      if (!canceled)
+        this.upstreamPhone
+          .configurationClosed(this.configurationResponse)
+          .catch((error) => this.error.set(error instanceof Error ? error.message : String(error)));
+      return;
+    }
     this.phoneWorker?.postMessage({
       type: 'configurationClosed',
       requestId: view.requestId,

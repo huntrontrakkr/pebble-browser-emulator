@@ -11,6 +11,7 @@ on:
       - 'src/app/libpebble-host.ts'
       - 'src/app/libpebble-pkjs.ts'
       - 'src/app/libpebble.worker.ts'
+      - 'src/app/upstream-phone.ts'
       - 'src/app/qemu.worker.ts'
   workflow_dispatch:
     inputs:
@@ -91,6 +92,18 @@ jobs:
           node tools/phone-spike/browser/bundle.mjs "$(dirname "$dist")" \
             tmp/phone-spike/run/node_modules/@sqlite.org/sqlite-wasm tmp/phone-spike/firmware tmp/phone-spike/browser
           timeout 900 node tools/phone-spike/browser/run.mjs tmp/phone-spike/browser 420 || echo "browser exit $?"
+      # Round 42: Preview with the upstream phone published into the site.
+      - name: Preview with the upstream phone
+        run: |
+          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -not -path '*/node_modules/*' -name '*.mjs' 2>/dev/null | head -1)
+          [ -n "$dist" ] || { echo "no linked library"; exit 0; }
+          node tools/phone-spike/publish.mjs "$(dirname "$dist")" \
+            tmp/phone-spike/run/node_modules/@sqlite.org/sqlite-wasm tmp/phone-spike/upstream
+          cat public/libpebble3/manifest.json
+          du -sh public/libpebble3 public/libpebble3/*.wasm public/libpebble3/libpebble3.js
+          npx ng build > tmp/phone-spike/ng.log 2>&1 || { tail -60 tmp/phone-spike/ng.log; exit 0; }
+          tail -25 tmp/phone-spike/ng.log
+          timeout 300 node tools/phone-spike/browser/preview-check.mjs dist/client || echo "preview exit $?"
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.
       - name: Processor output

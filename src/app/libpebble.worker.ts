@@ -9,7 +9,7 @@
  * `phone-link` port. Everything the phone does on the wire comes from libpebble3 and
  * the firmware; this worker reports what libpebble3 reports.
  *
- * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl} · link {port} · install {id, bytes, name}
+ * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl} · link {port} · unlink · install {id, bytes, name}
  *     · configure {id} · configuration-closed {id, url} · status {id}
  * Out: ready · done {id, value?} · failed {id?, message} · running-app {uuid}
  *     · pkjs-console {app, level, text}
@@ -90,6 +90,12 @@ self.onmessage = async ({ data }: MessageEvent) => {
         postMessage({ type: 'done', id });
         break;
       }
+      case 'unlink':
+        clearInterval(watcher);
+        link?.close();
+        runningApp = '';
+        postMessage({ type: 'done', id });
+        break;
       case 'install':
         await ready().install(data.bytes, data.name);
         postMessage({ type: 'done', id });

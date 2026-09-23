@@ -62,6 +62,7 @@ Thumbs.db
 /phone-app/.kotlin/
 /phone-app/build/
 /public/phone-app/
+/public/libpebble3/
 /.openai/phone-build.json
 /scripts/optimization/__pycache__/
 /scripts/optics/__pycache__/

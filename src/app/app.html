@@ -733,6 +733,70 @@
               Advance 1 s</button
             ><button (click)="locationDemo()">Location test</button>
           </div>
+          <section class="upstream-phone" aria-labelledby="upstream-phone-title">
+            <h3 id="upstream-phone-title">Upstream phone app (experimental)</h3>
+            <p class="help">
+              Core Devices' companion library, libpebble3, compiled for the browser and connected to
+              the emulated watch in place of this virtual phone. It installs apps, runs their
+              PebbleKit JS and opens their settings as the phone app does. State lasts for this
+              session only.
+            </p>
+            <dl class="properties">
+              @if (upstreamPhone.manifest(); as build) {
+                <div>
+                  <dt>Build</dt>
+                  <dd>{{ build.upstream }} {{ build.tag }}</dd>
+                </div>
+              }
+              <div>
+                <dt>Status</dt>
+                <dd role="status">{{ upstreamPhone.status() }}</dd>
+              </div>
+              @if (upstreamPhone.runningApp()) {
+                <div>
+                  <dt>Running app</dt>
+                  <dd>{{ upstreamPhone.runningApp() }}</dd>
+                </div>
+              }
+            </dl>
+            @if (upstreamPhone.manifest()) {
+              <div class="actions">
+                @if (!upstreamPhone.connected()) {
+                  <button
+                    (click)="connectUpstreamPhone()"
+                    [disabled]="upstreamPhone.busy() || !isFirmware() || !watchReady()"
+                    [title]="
+                      isFirmware() && watchReady()
+                        ? 'Replaces the virtual phone on the watch link'
+                        : 'Run emulator firmware until boot completes'
+                    "
+                  >
+                    Connect upstream phone
+                  </button>
+                } @else {
+                  <button
+                    (click)="installThroughUpstreamPhone()"
+                    [disabled]="!canInstallThroughUpstreamPhone()"
+                    [title]="lastPackageName() ? '' : 'Install an app in Preview first'"
+                  >
+                    Install {{ lastPackageName() || 'app' }} through it</button
+                  ><button
+                    (click)="upstreamConfiguration()"
+                    [disabled]="
+                      upstreamPhone.busy() ||
+                      !upstreamPhone.runningApp() ||
+                      configurationPending() ||
+                      !!configuration()
+                    "
+                  >
+                    App configuration</button
+                  ><button (click)="disconnectUpstreamPhone()" [disabled]="upstreamPhone.busy()">
+                    Disconnect
+                  </button>
+                }
+              </div>
+            }
+          </section>
           <details class="phone-settings">
             <summary>Phone environment</summary>
             <label

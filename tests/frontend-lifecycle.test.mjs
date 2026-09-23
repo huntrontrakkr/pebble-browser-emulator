@@ -68,6 +68,28 @@ const signal = (initial) => {
   result.update = (fn) => (value = fn(value));
   return result;
 };
+/** Stands in for upstream-phone.ts; records what the App asks of it. */
+class UpstreamPhone {
+  calls = [];
+  connectedValue = false;
+  connected = () => this.connectedValue;
+  busy = () => false;
+  manifest = () => null;
+  status = () => '';
+  runningApp = () => '';
+  detect() {}
+  handleQemuMessage(data) {
+    this.calls.push(['qemu', data.type]);
+  }
+  dispose() {}
+  async configure() {
+    this.calls.push(['configure']);
+    return 'data:text/html,upstream';
+  }
+  async configurationClosed(response) {
+    this.calls.push(['closed', response]);
+  }
+}
 class Port {
   messages = [];
   terminated = false;
@@ -97,6 +119,7 @@ function makeApp() {
     Injector: class {},
     afterNextRender: () => {},
     AppMessageRouter,
+    UpstreamPhone,
     BufferedHistory,
     MessageChannel,
     FIRMWARE_PROFILES,
@@ -465,6 +488,39 @@ test('settings return belongs to its exact page, app and phone generation; repla
   app.returnConfiguration({ request: current, response: 'duplicate' });
   assert.equal(phone.messages.filter((m) => m.type === 'configurationClosed').length, 1);
   app.stopPhone();
+});
+
+test('upstream phone settings return to the upstream phone only, exactly as the frame gives them', async () => {
+  const app = makeApp();
+  app.showPreview = () => {};
+  app.startPhone();
+  const phone = app.phoneWorker;
+  await app.upstreamConfiguration();
+  const view = app.configuration();
+  assert.equal(view.url, 'data:text/html,upstream');
+  app.returnConfiguration({ request: { ...view }, response: 'forged' });
+  assert.deepEqual(
+    app.upstreamPhone.calls.filter((c) => c[0] === 'closed'),
+    [],
+  );
+  app.returnConfiguration({ request: view, response: '{"value":"%25"}' });
+  assert.deepEqual(
+    app.upstreamPhone.calls.filter((c) => c[0] === 'closed'),
+    [['closed', '{"value":"%25"}']],
+  );
+  assert.equal(app.configuration(), null);
+  assert.equal(phone.messages.filter((m) => m.type === 'configurationClosed').length, 0);
+  app.stopPhone();
+});
+
+test('while the upstream phone holds the watch link, Preview does not install over it', () => {
+  const app = makeApp();
+  app.isFirmware = () => true;
+  app.watchReady.set(true);
+  app.upstreamPhone.connectedValue = true;
+  app.installPackage({ bytes: new Uint8Array([1]), name: 'app.pbw' });
+  assert.match(app.error(), /upstream phone is connected/);
+  assert.equal(app.qemuWorker.messages.filter((m) => m.type === 'install').length, 0);
 });
 
 test('changing 3D profile resizes before redraw, retains the renderer and cancels stale loads', async () => {
