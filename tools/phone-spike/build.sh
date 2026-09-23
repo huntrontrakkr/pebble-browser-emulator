@@ -39,4 +39,17 @@ fi
 (cd "$checkout" &&
   ./gradlew :libpebble3:compileKotlinWasmJs -x :libpebble3:kspCommonMainKotlinMetadata \
     --continue --no-daemon --console=plain > "$log" 2>&1)
-echo "gradle exit $?"
+status=$?
+echo "gradle exit $status"
+# Once it compiles, link the production browser bundle and report its size.
+if [ "$status" = 0 ]; then
+  (cd "$checkout" &&
+    ./gradlew :libpebble3:wasmJsBrowserProductionLibraryDistribution -x :libpebble3:kspCommonMainKotlinMetadata \
+      --no-daemon --console=plain >> "$log" 2>&1)
+  echo "link exit $?"
+  grep -E '^e: |What went wrong' -A 4 "$log" | tail -30
+  find "$checkout/libpebble3/build" -name '*.wasm' -path '*productionLibrary*' -o -name '*.wasm' -path '*dist*' |
+    sort -u | while read -r wasm; do
+      printf '%s: %s bytes, %s gzipped\n' "${wasm#$checkout/}" "$(stat -c %s "$wasm")" "$(gzip -9c "$wasm" | wc -c)"
+    done
+fi

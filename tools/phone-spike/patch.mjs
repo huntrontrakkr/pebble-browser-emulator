@@ -55,7 +55,10 @@ const addBrowserTarget = (s) =>
     /^([ \t]*)jvm\(\)[ \t]*$/m,
     '$1jvm()\n$1@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)\n$1wasmJs { browser() }',
   );
-await edit('libpebble3/build.gradle.kts', addBrowserTarget);
+// libpebble3's browser target also links a library bundle, for its size (round 28).
+await edit('libpebble3/build.gradle.kts', (s) =>
+  addBrowserTarget(s).replace('wasmJs { browser() }', 'wasmJs { browser(); binaries.library() }'),
+);
 await edit('blobannotations/build.gradle.kts', addBrowserTarget);
 
 // Round 26: shared code imports libpebble3's own runBlocking and Dispatchers.IO
@@ -101,6 +104,15 @@ configurations.matching { it.name.startsWith("wasmJs") }.configureEach {
 `,
   );
 }
+
+// Round 28: kotlinx-datetime 0.8 deprecates kotlinx.datetime.Instant for
+// kotlin.time.Instant. The two are interchangeable on Android, desktop and iOS,
+// where upstream compiles; in the browser they are distinct, and this file's
+// rounding helper declares the old type but computes the new one. It moves to the
+// new type, as kotlinx-datetime's migration asks.
+await edit('libpebble3/src/commonMain/kotlin/io/rebble/libpebblecommon/health/HealthDateTimeUtils.kt', (s) =>
+  s.replace(/^import kotlinx\.datetime\.Instant$/m, 'import kotlin.time.Instant'),
+);
 
 // Libraries with no browser variant move to a source set only the Android,
 // desktop and iOS targets use (round 3), so the browser compile names every file
