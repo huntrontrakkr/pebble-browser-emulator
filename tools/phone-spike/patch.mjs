@@ -60,7 +60,8 @@ await edit('blobannotations/build.gradle.kts', addBrowserTarget);
 
 // Round 26: shared code imports libpebble3's own runBlocking and Dispatchers.IO
 // (util/PlatformBlocking.kt), which delegate to kotlinx.coroutines on Android,
-// desktop and iOS and have browser versions. Only import lines change.
+// desktop and iOS and have browser versions. Only import lines change. Round 27
+// does the same for Okio's FileSystem.SYSTEM and openZip (util/PlatformFileSystem.kt).
 {
   const here = dirname(fileURLToPath(import.meta.url));
   await cp(join(here, 'libpebble3-common'), join(dir, 'libpebble3/src/commonMain/kotlin'), { recursive: true });
@@ -74,23 +75,43 @@ await edit('blobannotations/build.gradle.kts', addBrowserTarget);
   };
   for await (const file of files('libpebble3/src/commonMain/kotlin')) {
     const source = await readFile(join(dir, file), 'utf8');
-    if (/^import kotlinx\.coroutines\.(runBlocking|IO)$/m.test(source))
+    const swapped = /^import (?:kotlinx\.coroutines\.(runBlocking|IO)|okio\.(SYSTEM|openZip))$/gm;
+    if (swapped.test(source))
       await edit(file, (s) =>
-        s.replace(/^import kotlinx\.coroutines\.(runBlocking|IO)$/gm, 'import io.rebble.libpebblecommon.util.$1'),
+        s.replace(swapped, (_, coroutines, okio) => `import io.rebble.libpebblecommon.util.${coroutines ?? okio}`),
       );
   }
+
+  // Round 27: kmp-io has no browser build either. Upstream uses only its byte
+  // buffers, BitSet and byte-array extensions, which kmpio-web compiles from kmp-io's
+  // released sources; the browser target resolves kmp-io to it, as with Room.
+  await cp(join(here, 'kmpio-web'), join(dir, 'kmpioweb'), { recursive: true });
+  const kmpio = resolve(process.env.KMPIO_SOURCES ?? 'tmp/phone-spike/room2/kmpio');
+  await writeFile(join(dir, 'kmpioweb', 'sources.path'), kmpio + '\n');
+  await edit('settings.gradle.kts', (s) => s + '\ninclude(":kmpioweb")\n');
+  await edit('libpebble3/build.gradle.kts', (s) =>
+    s +
+      `
+// Phone spike: kmp-io has no browser build; the browser target resolves it to kmpioweb.
+configurations.matching { it.name.startsWith("wasmJs") }.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.github.skolson:kmp-io")).using(project(":kmpioweb")).because("no browser build of kmp-io")
+    }
+}
+`,
+  );
 }
 
 // Libraries with no browser variant move to a source set only the Android,
 // desktop and iOS targets use (round 3), so the browser compile names every file
 // that depends on them. Room stays in common code as upstream has it: blobdbgen's
 // common pass needs its annotations (round 19 generated 4 of 9 entities without).
-const nonWeb = [
-  'implementation(libs.sqlite.bundled)',
-  'implementation(libs.kmpio)',
+const nonWeb = ['implementation(libs.sqlite.bundled)'];
+const browserDependencies = [
+  room === '2' ? 'implementation(project(":room2web"))' : 'implementation(libs.sqlite.web)',
+  // The in-memory file system behind the browser's FileSystem.SYSTEM (round 27).
+  'implementation("com.squareup.okio:okio-fakefilesystem:${libs.versions.okio.get()}")',
 ];
-const browserDependencies =
-  room === '2' ? ['implementation(project(":room2web"))'] : ['implementation(libs.sqlite.web)'];
 
 if (room === '3') {
   // Round 6: Room 3 (androidx.room3) ships wasmJs and js, and androidx.sqlite has a

@@ -90,3 +90,12 @@ for module in room/room-common room/room-runtime room/room-paging sqlite/sqlite;
       console.log("  variant", v&&v.name);
       for (const d of (v&&v.dependencies)||[]) console.log("  ", d.group+":"+d.module, d.version&&(d.version.requires||d.version.strictly||d.version.prefers));'
 done
+
+# Round 27: kmp-io's released sources (Apache-2.0, Maven Central) for kmpio-web.
+kmpio="${KMPIO_VERSION:-0.3.0}"
+echo "== kmp-io $kmpio sources"
+mkdir -p "$work/kmpio"
+curl -fsS -o "$work/kmpio-sources.jar" \
+  "https://repo1.maven.org/maven2/io/github/skolson/kmp-io/$kmpio/kmp-io-$kmpio-sources.jar" &&
+  unzip -q -o "$work/kmpio-sources.jar" -d "$work/kmpio" &&
+  find "$work/kmpio" -name '*.kt' | sed "s|^$work/kmpio/||" | cut -d/ -f1 | sort | uniq -c | sed 's/^/  /'
