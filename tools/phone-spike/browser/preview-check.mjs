@@ -35,6 +35,9 @@ const browser = await chromium.launch({
 const page = await browser.newPage();
 page.on('pageerror', (error) => console.log(`[pageerror] ${error.message}`));
 await page.goto(`http://127.0.0.1:${server.address().port}/`);
+// The developer tools load when first opened; the upstream phone is on their Phone tab.
+await page.getByRole('button', { name: 'Developer tools' }).click();
+await page.locator('nav.tabs button', { hasText: 'Phone' }).click();
 const section = page.locator('section.upstream-phone');
 let result;
 try {
