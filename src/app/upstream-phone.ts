@@ -126,13 +126,16 @@ export class UpstreamPhone {
 
   /**
    * The configuration page closed. `response` is the page's return data as the settings
-   * frame decodes it (upstream's own navigation code), which upstream's app passes to
-   * the app's PebbleKit JS as it is; null is a cancellation, which upstream does not
-   * deliver.
+   * frame decodes it (upstream's own navigation code). It goes back as a close URL, which
+   * libpebble3's side decodes as upstream's settings screen does; null is a cancellation,
+   * which upstream does not deliver.
    */
   async configurationClosed(response: string | null): Promise<void> {
     if (response === null || response === '') return;
-    await this.ask({ type: 'configuration-closed', url: 'pebblejs://close#' + response });
+    await this.ask({
+      type: 'configuration-closed',
+      url: 'pebblejs://close#' + encodeURIComponent(response),
+    });
   }
 
   dispose(): void {

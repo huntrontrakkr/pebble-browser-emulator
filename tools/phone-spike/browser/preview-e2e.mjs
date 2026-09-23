@@ -85,7 +85,7 @@ async function run(profile, app) {
   page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text().slice(0, 300)));
   // Records what the phone worker reports, as the page's own log does.
   await page.addInitScript(() => {
-    window.previewE2e = { console: [] };
+    window.previewE2e = { console: [], phone: [] };
     const Original = Worker;
     window.Worker = class extends Original {
       constructor(...args) {
@@ -93,7 +93,18 @@ async function run(profile, app) {
         this.addEventListener('message', ({ data }) => {
           if (data?.type === 'pkjs-console')
             window.previewE2e.console.push(`[${data.app}] ${data.text}`);
+          else if (['done', 'failed', 'ready'].includes(data?.type))
+            window.previewE2e.phone.push(JSON.stringify(data).slice(0, 300));
         });
+      }
+      postMessage(data, ...rest) {
+        if (
+          ['configure', 'configuration-closed', 'install', 'link', 'network'].includes(data?.type)
+        )
+          window.previewE2e.phone.push(
+            '→ ' + JSON.stringify({ ...data, bytes: undefined, port: undefined }).slice(0, 300),
+          );
+        super.postMessage(data, ...rest);
       }
     };
   });
@@ -189,6 +200,11 @@ async function run(profile, app) {
       error: error.message.split('\n')[0],
       steps,
       console: await page.evaluate(() => window.previewE2e.console.slice(-20)).catch(() => []),
+      phone: await page.evaluate(() => window.previewE2e.phone.slice(-20)).catch(() => []),
+      page: await page
+        .locator('[role=alert], .error')
+        .allTextContents()
+        .catch(() => []),
       errors,
       consoleErrors,
     };

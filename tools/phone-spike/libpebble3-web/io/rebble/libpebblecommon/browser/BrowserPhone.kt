@@ -3,6 +3,7 @@
 package io.rebble.libpebblecommon.browser
 
 import com.russhwolf.settings.Settings
+import io.ktor.http.decodeURLPart
 import io.rebble.libpebblecommon.LibPebbleConfig
 import io.rebble.libpebblecommon.metadata.WatchType
 import io.rebble.libpebblecommon.connection.AppContext
@@ -170,14 +171,16 @@ fun phoneRequestConfiguration(): Promise<JsAny?> = hostCalls.promise {
 }
 
 /**
- * The configuration page closed at [url] (`pebblejs://close#<data>`). Delivers the data
- * to the app's PebbleKit JS as the phone app's deep-link handler does. Returns an empty
- * string, or why nothing was delivered.
+ * The configuration page closed at [url] (`pebblejs://close#<data>`, or the legacy `/?`
+ * and `/` forms). Delivers the data to the app's PebbleKit JS as the phone app's settings
+ * screen does (WatchappSettingsScreen's interceptor): the part after the prefix,
+ * URL-decoded. Returns an empty string, or why nothing was delivered.
  */
 @JsExport
 fun phoneConfigurationClosed(url: String): String {
-    if (!url.startsWith("pebblejs://close")) return "Not a configuration close URL: $url"
-    val data = url.substringAfter('#', missingDelimiterValue = "")
+    val match = Regex("""^pebblejs://close(?:#|/\?|/)(.*)$""").find(url)
+        ?: return "Not a configuration close URL: $url"
+    val data = match.groupValues[1].decodeURLPart()
     if (data.isEmpty()) return "The page closed without data"
     val session = currentPkjsSession() ?: return "No PebbleKit JS session is running"
     session.triggerOnWebviewClosed(data)
