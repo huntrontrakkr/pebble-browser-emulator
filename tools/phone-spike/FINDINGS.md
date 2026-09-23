@@ -6,23 +6,27 @@ the workflow's commits on this branch.
 
 ## Result so far
 
-Clock installs and launches through libpebble3 on the released firmware (round 38). The
-QEMU worker runs `qemu_emery` 4.37.0 in the existing firmware harness, and the phone is
-upstream's LibPebble from the linked browser library. The host glue carries raw serial
-bytes between them. The firmware answers every step itself:
+Clock installs, launches and runs its PebbleKit JS through libpebble3 on the released
+firmware (round 39). The QEMU worker runs `qemu_emery` 4.37.0 in the existing firmware
+harness. The phone is upstream's LibPebble from the linked browser library, and the host
+glue carries raw serial bytes between them. The firmware and libpebble3 answer every step
+themselves:
 
 - **Negotiation**: the watch version (v4.37.0, 9399f56) and factory data; the phone's app
   version (the firmware logs `plf=0x2`, which is Android); time; the running app; BlobDB
   version; app order.
 - **Install**: upstream's `sideloadApp` adds Clock to the locker, and BlobDB inserts it on
-  the watch (`insert: result = Success`). The watch requests it (AppFetch), and PutBytes
-  sends the binary and resources, about 7 KB over the link.
-- **Launch**: the watch reports `AppRunStateStart` for Clock
-  (c61ace0a-d61a-47ce-9d04-f46a78849ec6) 3.5 s after the sideload starts.
+  the watch. The watch requests it (AppFetch), PutBytes sends the binary and resources,
+  and the watch reports Clock running (`AppRunStateStart`).
+- **PebbleKit JS**: upstream's `startup.js` and Clock's JS run in QuickJS ("Pebble JS
+  Bridge initialized."; ready confirmed). Asked for its configuration, Clock's
+  `showConfiguration` handler opens its settings page. The page's close URL delivers new
+  settings: Clock's JS stores them in `localStorage` and calls `Pebble.sendAppMessage`,
+  libpebble3 sends the AppMessage, the firmware ACKs it, and Clock's callback logs
+  "Clock settings acknowledged by watch".
 
-Clock's PebbleKit JS does not start: libpebble3 finds no `JsRunner` bound (desktop binds
-none). The linked bundle is 2.57 MB (774 KB gzipped) of Wasm as of round 30. All of this
-runs in Node; nothing has run in a browser page or in the application.
+The linked bundle is 2.57 MB (774 KB gzipped) of Wasm as of round 30. All of this runs in
+Node; nothing has run in a browser page or in the application.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -41,6 +45,7 @@ runs in Node; nothing has run in a browser page or in the application.
 | 34–36 | In-memory kotlinx-io files for the browser; `phoneInstall` | kotlinxioweb builds, links and starts |
 | 37 | End-to-end install of Clock | Installed and launched; the check read the wrong status field |
 | 38 | `phoneRunningApp` from libpebble3's own state | Clock reported running; PebbleKit JS has no runner |
+| 39 | PebbleKit JS runner on QuickJS | Clock's configuration round trip: AppMessage sent, watch ACK reaches Clock's callback |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -100,8 +105,8 @@ iOS-only.
   skiko's runtime ships with it or the browser build leaves out the image paths that use
   it.
 
-Still open: PebbleKit JS has no runner bound (desktop binds none), and synchronous XHR
-and `LazyLock` need review. File access is resolved in rounds 34–36. The page host must publish `globalThis.sqlite3` and
+Still open: synchronous XHR and `LazyLock` need review. File access is resolved in
+rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalThis.sqlite3` and
 `globalThis.fflate` before `phoneStart`.
 
 ## Host glue (round 33)
@@ -124,6 +129,33 @@ and `LazyLock` need review. File access is resolved in rounds 34–36. The page 
   uses its own `WatchConfig.unknownWatchTypePlatform`, which defaults to Emery: right
   for `qemu_emery`. For `qemu_flint` and `qemu_gabbro`, the host must set that
   upstream option per profile before installing apps. No patch is needed.
+
+## PebbleKit JS (round 39)
+
+Upstream runs PebbleKit JS in a WebView on Android and in a bare JavaScriptCore engine on
+iOS. The browser follows iOS: `BrowserJsRunner` is its runner with QuickJS in place of
+JavaScriptCore.
+
+- **Engine**: `src/app/libpebble-pkjs.ts` gives each running app its own QuickJS
+  runtime. It is isolated from the page and from other apps, with memory and stack
+  limits and a deadline per evaluation, so runaway app code is interrupted. It is the
+  QuickJS build the emulator's phone worker already ships.
+- **Upstream's code**: the runner loads upstream's standard library (base64,
+  XMLHttpRequest), timer shim, `startup.js` and the app's JS. Upstream's interfaces sit
+  behind one native dispatcher, as on iOS, and calls cross as JSON. The Pebble, private
+  and geolocation dispatch tables are upstream's iOS files, taken unchanged from the
+  checkout.
+- **Browser versions**: timers run on the phone's coroutines, `localStorage` uses the
+  session's in-memory settings, and `sendAppMessageString` does not block. Upstream
+  blocks until the watch's transaction ID is assigned, which a browser thread cannot
+  do. The browser version returns a local ID at once and later delivers the watch's own
+  ACK or NACK under it; `startup.js` uses the ID only to match them.
+- **Configuration**: `phoneRequestConfiguration` and `phoneConfigurationClosed` do what
+  the phone app's settings button and `pebblejs://close` deep-link handler do.
+- **Not yet**: WebSocket (apps see no `WebSocket`), intercepted HTTP responses (also
+  unsupported on iOS), and reporting unhandled promise rejections, which QuickJS does
+  not surface. XMLHttpRequest goes through ktor's fetch engine, so page CORS rules
+  apply; the emulator's network relay is not connected to it yet.
 
 ## Files in the browser (rounds 34–36)
 

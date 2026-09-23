@@ -389,7 +389,8 @@ and runs it outside the JVM. The QEMU worker has a `phone-link` command that car
 Pebble Protocol UART bytes to it and keeps the built-in phone off the wire, and
 `libpebble-host.ts` is the host glue. In the spike's Node run against released
 `qemu_emery` 4.37.0 firmware, libpebble3 negotiates, sideloads Clock, and the watch
-reports Clock running; its PebbleKit JS has no runner yet. None of this is loaded by
+reports Clock running, and Clock's PebbleKit JS runs in QuickJS: its configuration
+round trip sends an AppMessage that the firmware acknowledges. None of this is loaded by
 the application yet.
 
 The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three
