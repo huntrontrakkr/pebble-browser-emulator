@@ -8,6 +8,7 @@
 // it does the same for that store watchface and its Clay settings page.
 // Usage: node preview-e2e.mjs <built site, e.g. dist/client> [profiles]
 import { createHash } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -83,6 +84,13 @@ async function run(profile, app) {
   const consoleErrors = [];
   page.on('pageerror', (error) => errors.push(String(error)));
   page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text().slice(0, 300)));
+  // libpebble3's own lines about apps' PebbleKit JS and the running app, for diagnosis.
+  const lifecycle = [];
+  page.on('console', (m) => {
+    const text = m.text();
+    if (/PKJSApp|JsRunner|CompanionApp|AppRunState|configuration/i.test(text))
+      lifecycle.push(`${Math.round(performance.now())} ${text.slice(0, 240)}`);
+  });
   // Records what the phone worker reports, as the page's own log does.
   await page.addInitScript(() => {
     window.previewE2e = { console: [], phone: [] };
@@ -219,6 +227,7 @@ async function run(profile, app) {
       steps,
       console: await page.evaluate(() => window.previewE2e.console.slice(-20)).catch(() => []),
       phone: await page.evaluate(() => window.previewE2e.phone.slice(-20)).catch(() => []),
+      lifecycle: lifecycle.slice(-40),
       page: await page
         .locator('[role=alert], .error')
         .allTextContents()
