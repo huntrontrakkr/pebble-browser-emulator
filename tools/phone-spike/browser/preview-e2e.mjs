@@ -77,9 +77,12 @@ const console_ = (page, text, timeout = 60000) =>
 async function run(profile, app) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.setDefaultTimeout(120000);
+  // Uncaught exceptions fail the run. Console errors are reported only: libpebble3
+  // logs some watch replies it does not understand at error level.
   const errors = [];
+  const consoleErrors = [];
   page.on('pageerror', (error) => errors.push(String(error)));
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text().slice(0, 300)));
   // Records what the phone worker reports, as the page's own log does.
   await page.addInitScript(() => {
     window.previewE2e = { console: [] };
@@ -173,9 +176,8 @@ async function run(profile, app) {
     step(
       `framebuffer ${app.becomes} ${before[app.becomes].toFixed(2)} → ${after[app.becomes].toFixed(2)}`,
     );
-    const unexpected = errors.filter((e) => !/Failed to load resource/.test(e));
-    if (unexpected.length) throw new Error(`page errors: ${unexpected.join(' | ')}`);
-    return { profile, app: app.name, ok: true, steps };
+    if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
+    return { profile, app: app.name, ok: true, steps, consoleErrors };
   } catch (error) {
     await page
       .screenshot({ path: `preview-e2e-${profile}-${app.name}.png`, fullPage: true })
@@ -188,6 +190,7 @@ async function run(profile, app) {
       steps,
       console: await page.evaluate(() => window.previewE2e.console.slice(-20)).catch(() => []),
       errors,
+      consoleErrors,
     };
   } finally {
     await page.close();

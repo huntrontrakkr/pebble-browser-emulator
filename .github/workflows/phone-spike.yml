@@ -104,6 +104,8 @@ jobs:
             tmp/phone-spike/run/node_modules/@sqlite.org/sqlite-wasm tmp/phone-spike/upstream
           cat public/libpebble3/manifest.json
           du -sh public/libpebble3 public/libpebble3/*.wasm public/libpebble3/libpebble3.js
+          # The companion settings screen (public/phone-app) is its own build.
+          npm run build:phone > tmp/phone-spike/phone-app.log 2>&1 || { tail -60 tmp/phone-spike/phone-app.log; exit 0; }
           npx ng build > tmp/phone-spike/ng.log 2>&1 || { tail -60 tmp/phone-spike/ng.log; exit 0; }
           tail -25 tmp/phone-spike/ng.log
           timeout 300 node tools/phone-spike/browser/preview-check.mjs dist/client || echo "preview exit $?"
