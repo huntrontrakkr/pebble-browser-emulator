@@ -1,18 +1,119 @@
 package io.rebble.libpebblecommon.util
 
+import kotlinx.io.buffered
+import kotlinx.io.files.SystemFileSystem as KotlinxFiles
+import kotlinx.io.readByteArray
+import okio.Buffer
+import okio.FileHandle
+import okio.FileMetadata
+import okio.FileNotFoundException
 import okio.FileSystem
+import okio.IOException
 import okio.Path
 import okio.Path.Companion.toPath
+import okio.Sink
+import okio.Source
+import okio.Timeout
 import okio.fakefilesystem.FakeFileSystem
+import kotlinx.io.files.Path as KotlinxPath
 
 /**
  * The browser phone's files live in memory and are discarded with the session, like
- * its database. Okio's FakeFileSystem is its reference in-memory implementation.
+ * its database. Upstream reaches them through both kotlinx-io and Okio, so Okio's
+ * system file system here is a view of kotlinx-io's (the browser build of kotlinx-io,
+ * tools/phone-spike/kotlinxio-web): one tree, whichever library a file goes through.
  */
-private val memory = FakeFileSystem()
+private val system: FileSystem = KotlinxIoFileSystem()
 
 internal actual val FileSystem.Companion.SYSTEM: FileSystem
-    get() = memory
+    get() = system
+
+/**
+ * Okio's file system API over kotlinx-io's. Whole-file reads and writes suit the
+ * phone's files (app bundles, caches). Random access, and symlinks, are not
+ * supported and say so.
+ */
+private class KotlinxIoFileSystem : FileSystem() {
+    private fun Path.kotlinx() = KotlinxPath(toString())
+
+    override fun canonicalize(path: Path): Path {
+        if (!KotlinxFiles.exists(path.kotlinx())) throw FileNotFoundException("no such file: $path")
+        return KotlinxFiles.resolve(path.kotlinx()).toString().toPath()
+    }
+
+    override fun metadataOrNull(path: Path): FileMetadata? =
+        KotlinxFiles.metadataOrNull(path.kotlinx())?.let {
+            FileMetadata(
+                isRegularFile = it.isRegularFile,
+                isDirectory = it.isDirectory,
+                size = if (it.isRegularFile) it.size else null,
+            )
+        }
+
+    override fun list(dir: Path): List<Path> = listOrNull(dir) ?: throw FileNotFoundException("no such directory: $dir")
+
+    override fun listOrNull(dir: Path): List<Path>? {
+        val metadata = KotlinxFiles.metadataOrNull(dir.kotlinx()) ?: return null
+        if (!metadata.isDirectory) return null
+        return KotlinxFiles.list(dir.kotlinx()).map { dir / it.name }.sorted()
+    }
+
+    override fun openReadOnly(file: Path): FileHandle =
+        throw IOException("Random access is not supported by the browser phone's files: $file")
+
+    override fun openReadWrite(file: Path, mustCreate: Boolean, mustExist: Boolean): FileHandle =
+        throw IOException("Random access is not supported by the browser phone's files: $file")
+
+    override fun source(file: Path): Source {
+        val bytes = KotlinxFiles.source(file.kotlinx()).buffered().use { it.readByteArray() }
+        return Buffer().write(bytes)
+    }
+
+    override fun sink(file: Path, mustCreate: Boolean): Sink {
+        if (mustCreate && KotlinxFiles.exists(file.kotlinx())) throw IOException("$file already exists.")
+        return KotlinxSink(file.kotlinx(), append = false)
+    }
+
+    override fun appendingSink(file: Path, mustExist: Boolean): Sink {
+        if (mustExist && !KotlinxFiles.exists(file.kotlinx())) throw IOException("$file doesn't exist.")
+        return KotlinxSink(file.kotlinx(), append = true)
+    }
+
+    override fun createDirectory(dir: Path, mustCreate: Boolean) {
+        val metadata = KotlinxFiles.metadataOrNull(dir.kotlinx())
+        if (metadata != null) {
+            if (mustCreate || !metadata.isDirectory) throw IOException("$dir already exists.")
+            return
+        }
+        val parent = dir.parent
+        if (parent != null && KotlinxFiles.metadataOrNull(parent.kotlinx())?.isDirectory != true)
+            throw IOException("parent directory does not exist: $parent")
+        KotlinxFiles.createDirectories(dir.kotlinx())
+    }
+
+    override fun atomicMove(source: Path, target: Path) = KotlinxFiles.atomicMove(source.kotlinx(), target.kotlinx())
+
+    override fun delete(path: Path, mustExist: Boolean) = KotlinxFiles.delete(path.kotlinx(), mustExist)
+
+    override fun createSymlink(source: Path, target: Path): Unit =
+        throw IOException("Symlinks are not supported by the browser phone's files")
+}
+
+/** Writes through to kotlinx-io as each buffer arrives. */
+private class KotlinxSink(path: KotlinxPath, append: Boolean) : Sink {
+    private val sink = KotlinxFiles.sink(path, append)
+
+    override fun write(source: Buffer, byteCount: Long) {
+        val bytes = source.readByteArray(byteCount)
+        sink.write(kotlinx.io.Buffer().apply { write(bytes) }, bytes.size.toLong())
+    }
+
+    override fun flush() = sink.flush()
+
+    override fun timeout(): Timeout = Timeout.NONE
+
+    override fun close() = sink.close()
+}
 
 /**
  * Reads the archive into a separate in-memory file system: the central directory is

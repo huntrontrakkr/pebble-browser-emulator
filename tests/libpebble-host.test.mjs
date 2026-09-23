@@ -8,7 +8,7 @@ import {
 } from '../src/app/libpebble-host.ts';
 
 /** Stands in for the Kotlin build's exports; records what the glue does with them. */
-function fakePhone({ reading = true } = {}) {
+function fakePhone({ reading = true, install = '' } = {}) {
   const calls = [];
   let sink = null;
   return {
@@ -21,6 +21,7 @@ function fakePhone({ reading = true } = {}) {
     },
     phoneSerialFromWatch: (bytes) => (calls.push(['watch', [...bytes]]), reading),
     phoneConnectWatch: () => (calls.push('connect'), ''),
+    phoneInstall: async (bytes, name) => (calls.push(['install', bytes.length, name]), install),
     phoneStatus: () => 'status',
   };
 }
@@ -71,4 +72,20 @@ test('startup failures and wrong modules are reported', () => {
   assert.throws(() => link.connect(new MessageChannel().port1), /Start the phone/);
   assert.throws(() => provideLibPebbleDependencies({ sqlite3: {}, fflate: {} }), /fflate/);
   assert.throws(() => provideLibPebbleDependencies({ fflate: { inflateSync() {} } }), /SQLite/);
+});
+
+test('installs go through libpebble3 and report its failures', async () => {
+  const phone = fakePhone({ install: 'watch disconnected' });
+  const link = new LibPebbleLink(asLibPebbleModule(phone));
+  await assert.rejects(link.install(Uint8Array.of(1), 'Clock.pbw'), /Connect the phone/);
+  const { port1: worker, port2 } = new MessageChannel();
+  link.start();
+  link.connect(port2);
+  await assert.rejects(
+    link.install(Uint8Array.of(1, 2), 'Clock.pbw'),
+    /did not install Clock.pbw: watch disconnected/,
+  );
+  assert.deepEqual(phone.calls.at(-1), ['install', 2, 'Clock.pbw']);
+  link.close();
+  worker.close();
 });

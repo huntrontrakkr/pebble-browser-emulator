@@ -126,6 +126,33 @@ configurations.matching { it.name.startsWith("wasmJs") }.configureEach {
 }
 `,
   );
+
+  // Round 34: kotlinx-io's browser build reaches files, paths and the OS only
+  // through Node's modules, so in a page every kotlinx.io.files call fails, and
+  // upstream keeps app bundles, the locker cache and firmware there. kotlinxioweb
+  // is the pinned release's sources with an in-memory file tree; the browser target
+  // resolves kotlinx-io-core to it. The sources must be the version upstream pins.
+  const kotlinxIo = (await readFile(join(dir, 'gradle/libs.versions.toml'), 'utf8')).match(
+    /^kotlinx-io = "([^"]+)"$/m,
+  )?.[1];
+  const kotlinxIoSources = resolve(process.env.KOTLINXIO_SOURCES ?? 'tmp/phone-spike/room2/kotlinxio');
+  const fetchedIo = (await readFile(join(kotlinxIoSources, '..', 'kotlinxio.version'), 'utf8')).trim();
+  if (kotlinxIo !== fetchedIo)
+    throw new Error(`upstream pins kotlinx-io ${kotlinxIo}; the fetched sources are ${fetchedIo}`);
+  await cp(join(here, 'kotlinxio-web'), join(dir, 'kotlinxioweb'), { recursive: true });
+  await writeFile(join(dir, 'kotlinxioweb', 'sources.path'), kotlinxIoSources + '\n');
+  await edit('settings.gradle.kts', (s) => s + '\ninclude(":kotlinxioweb")\n');
+  await edit('libpebble3/build.gradle.kts', (s) =>
+    s +
+      `
+// Phone spike: kotlinx-io's browser files need Node; the browser target resolves it to kotlinxioweb.
+configurations.matching { it.name.startsWith("wasmJs") }.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("org.jetbrains.kotlinx:kotlinx-io-core")).using(project(":kotlinxioweb")).because("kotlinx-io's browser files need Node")
+    }
+}
+`,
+  );
 }
 
 // Round 28: kotlinx-datetime 0.8 deprecates kotlinx.datetime.Instant for

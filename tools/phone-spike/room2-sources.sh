@@ -99,3 +99,14 @@ curl -fsS -o "$work/kmpio-sources.jar" \
   "https://repo1.maven.org/maven2/io/github/skolson/kmp-io/$kmpio/kmp-io-$kmpio-sources.jar" &&
   unzip -q -o "$work/kmpio-sources.jar" -d "$work/kmpio" &&
   find "$work/kmpio" -name '*.kt' | sed "s|^$work/kmpio/||" | cut -d/ -f1 | sort | uniq -c | sed 's/^/  /'
+
+# Round 34: kotlinx-io's released wasmJs sources (Apache-2.0, Maven Central) for
+# kotlinxio-web. patch.mjs checks this is the version upstream pins.
+kotlinxio="${KOTLINXIO_VERSION:-0.9.1}"
+echo "== kotlinx-io $kotlinxio wasmJs sources"
+mkdir -p "$work/kotlinxio"
+curl -fsS --retry 4 --retry-delay 10 -o "$work/kotlinxio-sources.jar" \
+  "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-io-core-wasm-js/$kotlinxio/kotlinx-io-core-wasm-js-$kotlinxio-sources.jar" &&
+  unzip -q -o "$work/kotlinxio-sources.jar" -d "$work/kotlinxio" &&
+  echo "$kotlinxio" > "$work/kotlinxio.version" &&
+  find "$work/kotlinxio" -name '*.kt' | sed "s|^$work/kotlinxio/||" | cut -d/ -f1 | sort | uniq -c | sed 's/^/  /'

@@ -17,6 +17,7 @@ export interface LibPebbleModule {
   phoneAttachSerial(sink: ((bytes: Uint8Array) => void) | null): void;
   phoneSerialFromWatch(bytes: Uint8Array): boolean;
   phoneConnectWatch(): string;
+  phoneInstall(bytes: Uint8Array, fileName: string): Promise<string>;
   phoneStatus(): string;
 }
 
@@ -63,6 +64,7 @@ export function asLibPebbleModule(module: Record<string, unknown>): LibPebbleMod
     'phoneAttachSerial',
     'phoneSerialFromWatch',
     'phoneConnectWatch',
+    'phoneInstall',
     'phoneStatus',
   ].filter((name) => typeof module[name] !== 'function');
   if (missing.length)
@@ -113,6 +115,16 @@ export class LibPebbleLink {
       this.close();
       throw new Error(`libpebble3 could not connect: ${failure}`);
     }
+  }
+
+  /**
+   * Sideloads an app bundle through libpebble3, which adds it to the locker, sends it
+   * to the connected watch and launches it, as the phone app's own sideload does.
+   */
+  async install(bytes: Uint8Array, fileName: string): Promise<void> {
+    if (!this.port) throw new Error('Connect the phone to a watch before installing.');
+    const failure = await this.phone.phoneInstall(bytes, fileName);
+    if (failure) throw new Error(`libpebble3 did not install ${fileName}: ${failure}`);
   }
 
   /** libpebble3's own description of its watches and their connection state. */

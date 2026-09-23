@@ -4,11 +4,16 @@
 // (src/app/libpebble-host.ts) carries serial bytes between them over a MessagePort.
 // Every response comes from the firmware or from libpebble3.
 import { MessageChannel } from 'node:worker_threads';
+import { readFile } from 'node:fs/promises';
 import { FirmwareHarness } from '../../tests/firmware-harness.mjs';
 import { LibPebbleLink } from '../../src/app/libpebble-host.ts';
 import { loadPhone } from './load.mjs';
 
-const [dist, deps, firmware] = process.argv.slice(2);
+const [dist, deps, firmware, app = 'public/examples/clock-emery.pbw'] = process.argv.slice(2);
+const appUuid = JSON.parse(
+  // The bundle's own appinfo.json, read the way the watch would see it installed.
+  new TextDecoder().decode((await import('fflate')).unzipSync(await readFile(app))['appinfo.json']),
+).uuid;
 const seconds = Number(process.env.PHONE_E2E_SECONDS ?? 60);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const phone = await loadPhone(dist, deps);
@@ -42,9 +47,32 @@ try {
   console.log('link bytes', JSON.stringify(link.counters));
   console.log('status:\n' + status);
   console.log(negotiated ? 'NEGOTIATED' : `not negotiated within ${seconds} s`);
-  console.log('firmware console tail:\n' + harness.serial.slice(-3000));
+
+  // Install through libpebble3's own sideload, which syncs the app to the watch and
+  // launches it; the watch reports the running app itself (AppRunState).
+  let launched = false;
+  if (negotiated) {
+    const began = Date.now();
+    try {
+      await link.install(await readFile(app), 'Clock.pbw');
+      console.log(`sideload finished after ${((Date.now() - began) / 1000).toFixed(1)} s`);
+    } catch (error) {
+      console.log('install failed:', error.message);
+    }
+    const until = Date.now() + seconds * 1000;
+    while (Date.now() < until) {
+      status = link.status();
+      if (status.includes(`runningApp=${appUuid}`)) break;
+      await sleep(500);
+    }
+    launched = status.includes(`runningApp=${appUuid}`);
+    console.log('link bytes', JSON.stringify(link.counters));
+    console.log(launched ? `LAUNCHED ${appUuid}` : `${appUuid} not running within ${seconds} s`);
+    console.log('status:\n' + status);
+  }
+  console.log('firmware console tail:\n' + harness.serial.slice(-4000));
   link.close();
-  code = negotiated ? 0 : 1;
+  code = negotiated && launched ? 0 : 1;
 } catch (error) {
   console.log('e2e failed:', error);
   console.log('firmware console tail:\n' + harness.serial.slice(-3000));

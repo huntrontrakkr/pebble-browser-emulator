@@ -20,8 +20,16 @@ import io.rebble.libpebblecommon.voice.TranscriptionProvider
 import io.rebble.libpebblecommon.voice.TranscriptionResult
 import io.rebble.libpebblecommon.voice.VoiceEncoderInfo
 import io.rebble.libpebblecommon.web.LockerModelWrapper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.promise
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlin.js.Promise
 import org.koin.dsl.module
 import kotlin.uuid.Uuid
 
@@ -88,6 +96,33 @@ fun phoneSerialFromWatch(bytes: JsAny): Boolean = WatchSerialLink.received(bytes
 fun phoneConnectWatch(): String = report {
     val libPebble = phone ?: error("The phone has not started")
     libPebble.addQemuWatch(EMULATED_WATCH, connect = true)
+}
+
+/** Where sideloaded bundles are written before LibPebble reads them. */
+private val SIDELOAD_DIRECTORY = Path("/sideload")
+
+private val hostCalls = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+/**
+ * Installs an app bundle (`Uint8Array`) as the phone app's sideload does: the bundle is
+ * written to the phone's in-memory files and passed to LibPebble's `sideloadApp`, which
+ * adds it to the locker, syncs it to each connected watch and launches it there. The
+ * promise resolves to an empty string, or why the install failed.
+ */
+@JsExport
+fun phoneInstall(bytes: JsAny, fileName: String): Promise<JsAny?> {
+    val bundle = bytes.uint8ArrayToByteArray()
+    return hostCalls.promise {
+        try {
+            val libPebble = phone ?: error("The phone has not started")
+            SystemFileSystem.createDirectories(SIDELOAD_DIRECTORY)
+            val path = Path(SIDELOAD_DIRECTORY, fileName.substringAfterLast('/').ifBlank { "app.pbw" })
+            SystemFileSystem.sink(path).buffered().use { it.write(bundle) }
+            if (libPebble.sideloadApp(path, loadOnWatch = true)) "" else "LibPebble reported the sideload as failed"
+        } catch (e: Throwable) {
+            e.stackTraceToString()
+        }.toJsString()
+    }
 }
 
 /** LibPebble's own description of its watches and their connection state. */
