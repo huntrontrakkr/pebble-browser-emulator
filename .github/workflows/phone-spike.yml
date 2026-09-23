@@ -52,7 +52,7 @@ jobs:
       - name: First run
         if: always()
         run: |
-          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -name '*.mjs' 2>/dev/null | head -1)
+          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -not -path '*/node_modules/*' -name '*.mjs' 2>/dev/null | head -1)
           [ -n "$dist" ] || { echo "no linked library"; exit 0; }
           npm install --silent --no-save --prefix tmp/phone-spike/run @sqlite.org/sqlite-wasm@3.53.4-build1 fflate@0.8.3
           ls -la "$(dirname "$dist")"
@@ -76,7 +76,7 @@ jobs:
           done
       - name: End to end with the released firmware
         run: |
-          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -name '*.mjs' 2>/dev/null | head -1)
+          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -not -path '*/node_modules/*' -name '*.mjs' 2>/dev/null | head -1)
           [ -n "$dist" ] || { echo "no linked library"; exit 0; }
           timeout 900 node tools/phone-spike/e2e.mjs "$(dirname "$dist")" tmp/phone-spike/run tmp/phone-spike/firmware || echo "e2e exit $?"
       # Annotation-processor failures name only the element, so the processor's
