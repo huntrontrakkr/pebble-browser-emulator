@@ -6,27 +6,26 @@ the workflow's commits on this branch.
 
 ## Result so far
 
-Clock installs, launches and runs its PebbleKit JS through libpebble3 on the released
-firmware (round 39). The QEMU worker runs `qemu_emery` 4.37.0 in the existing firmware
-harness. The phone is upstream's LibPebble from the linked browser library, and the host
-glue carries raw serial bytes between them. The firmware and libpebble3 answer every step
-themselves:
+In Chromium, the application's QEMU worker and a libpebble3 phone worker run the whole
+flow against the released firmware (round 41). The QEMU worker runs `qemu_emery` 4.37.0,
+and the phone worker (`src/app/libpebble.worker.ts`) is upstream's LibPebble. They are
+linked by the QEMU worker's `phone-link` port. The page reported these steps:
 
-- **Negotiation**: the watch version (v4.37.0, 9399f56) and factory data; the phone's app
-  version (the firmware logs `plf=0x2`, which is Android); time; the running app; BlobDB
-  version; app order.
-- **Install**: upstream's `sideloadApp` adds Clock to the locker, and BlobDB inserts it on
-  the watch. The watch requests it (AppFetch), PutBytes sends the binary and resources,
-  and the watch reports Clock running (`AppRunStateStart`).
-- **PebbleKit JS**: upstream's `startup.js` and Clock's JS run in QuickJS ("Pebble JS
-  Bridge initialized."; ready confirmed). Asked for its configuration, Clock's
-  `showConfiguration` handler opens its settings page. The page's close URL delivers new
-  settings: Clock's JS stores them in `localStorage` and calls `Pebble.sendAppMessage`,
-  libpebble3 sends the AppMessage, the firmware ACKs it, and Clock's callback logs
-  "Clock settings acknowledged by watch".
+| After | Step |
+|---|---|
+| 17.4 s | Firmware booted |
+| +0.2 s | Phone worker started (SQLite Wasm, QuickJS and the libpebble3 bundle loaded from URLs) |
+| +1.0 s | Connected and negotiated; the watch reports its running app |
+| +3.3 s | Clock installed through libpebble3 (BlobDB, AppFetch, PutBytes) and running |
+| +65 ms | Clock's settings round trip: its PebbleKit JS sends the AppMessage, the firmware ACKs, Clock's callback logs it |
 
-The linked bundle is 2.57 MB (774 KB gzipped) of Wasm as of round 30. All of this runs in
-Node; nothing has run in a browser page or in the application.
+The firmware and libpebble3 answer every step themselves. Negotiation covers the watch
+version (v4.37.0, 9399f56), factory data, the phone's app version (the firmware logs
+`plf=0x2`, which is Android), time, the running app, BlobDB version and app order. The
+same flow also runs in Node (`e2e.mjs`).
+
+The linked library is 2.57 MB (774 KB gzipped) of Wasm as of round 30. The phone worker
+is not yet loaded by the application; the page that drives it is the spike's harness.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -46,6 +45,8 @@ Node; nothing has run in a browser page or in the application.
 | 37 | End-to-end install of Clock | Installed and launched; the check read the wrong status field |
 | 38 | `phoneRunningApp` from libpebble3's own state | Clock reported running; PebbleKit JS has no runner |
 | 39 | PebbleKit JS runner on QuickJS | Clock's configuration round trip: AppMessage sent, watch ACK reaches Clock's callback |
+| 40 | Phone worker; browser run in Chromium | Bundling stopped on `node:module` / `node:net` imports |
+| 41 | Node's own modules left external | The whole flow runs in Chromium |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -129,6 +130,25 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
   uses its own `WatchConfig.unknownWatchTypePlatform`, which defaults to Emery: right
   for `qemu_emery`. For `qemu_flint` and `qemu_gabbro`, the host must set that
   upstream option per profile before installing apps. No patch is needed.
+
+## The phone as a browser worker (rounds 40–41)
+
+- **`src/app/libpebble.worker.ts`** takes `init` with where the libpebble3 build, SQLite's
+  WebAssembly build and the QuickJS binary are served. It also takes `link` (the QEMU
+  worker's `phone-link` port), `install`, `configure`, `configuration-closed` and
+  `status`. It reports `running-app` changes and apps' PebbleKit JS console output.
+  SQLite and the library come from URLs, so the application's build does not bundle
+  them until the phone ships.
+- **Browser bundle** (`browser/bundle.mjs`): esbuild, as the application's build uses,
+  builds the QEMU and phone workers and the harness page. It also turns the Kotlin
+  distribution into one browser module. Its npm imports (js-joda) are bundled. `ws`
+  (Node's WebSocket; ktor uses the page's in a browser) is an empty module, and skiko
+  is throwing stand-ins. Node's own modules (`node:module`, `node:net`), which the
+  runtime imports only under Node, stay as imports, so a browser reaching one fails
+  there.
+- **Harness** (`browser/harness.mjs`, `browser/run.mjs`): boots the firmware, starts
+  and links the phone, installs Clock and runs its settings round trip. Chromium runs it
+  through Playwright in the spike workflow.
 
 ## PebbleKit JS (round 39)
 
