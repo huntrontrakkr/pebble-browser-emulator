@@ -23,7 +23,12 @@ kotlin {
     }
 
     compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.addAll(
+            "-Xexpect-actual-classes",
+            // Language settings kotlinx-io's own build compiles these sources with.
+            "-XXLanguage:+UnnamedLocalVariables",
+            "-Xreturn-value-checker=check",
+        )
         optIn.addAll(
             "kotlinx.io.InternalIoApi",
             "kotlinx.io.unsafe.UnsafeIoApi",
@@ -42,11 +47,9 @@ kotlin {
         }
         wasmJsMain {
             kotlin.srcDir(released("wasmMain"))
-            // Only `try.kt` (withCaughtException) from the Node-shared set; its files and
-            // node directories are the backend this module replaces.
-            kotlin.srcDir(released("nodeFilesystemSharedMain"))
+            // In place of the released wasmJsMain and nodeFilesystemSharedMain, the Node
+            // backend this module replaces.
             kotlin.srcDir("src/wasmJsMain/kotlin")
-            kotlin.exclude("files/**", "node/**")
         }
     }
 }
