@@ -38,6 +38,20 @@ export interface LibPebbleDependencies {
   pkjs: PkjsHost;
   /** Requests and WebSockets for apps' PebbleKit JS (`libPebbleNetworkHost`). */
   network: LibPebbleNetworkHost;
+  /**
+   * The phone's position for apps' geolocation: the session's location setting, or null
+   * when location is off (apps then get an error, as with the built-in phone).
+   */
+  location?: () => PhoneCoordinates | null;
+}
+
+export interface PhoneCoordinates {
+  latitude: number;
+  longitude: number;
+  accuracy?: number | null;
+  altitude?: number | null;
+  heading?: number | null;
+  speed?: number | null;
 }
 
 /** The part of a MessagePort the link uses, so Node's worker ports work as well. */
@@ -71,7 +85,16 @@ export function provideLibPebbleDependencies(dependencies: LibPebbleDependencies
   const scope = globalThis as Record<string, unknown>;
   scope['sqlite3'] = dependencies.sqlite3;
   scope['fflate'] = dependencies.fflate;
-  scope['pebblePhoneHost'] = { pkjs: dependencies.pkjs, network: dependencies.network };
+  const location = dependencies.location ?? (() => null);
+  scope['pebblePhoneHost'] = {
+    pkjs: dependencies.pkjs,
+    network: dependencies.network,
+    // Crosses to Kotlin as JSON, or null.
+    location: () => {
+      const position = location();
+      return position ? JSON.stringify(position) : null;
+    },
+  };
 }
 
 /** Checks that a loaded module is the libpebble3 build this glue was written for. */

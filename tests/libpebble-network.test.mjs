@@ -264,3 +264,48 @@ test('a binary body counts toward the request size limit', async () => {
   assert.equal(result.error, 'network');
   assert.match(result.message, /size limit/);
 });
+
+test('activity reports each request without its query string', async () => {
+  const activity = [];
+  const host = libPebbleNetworkHost(
+    { mode: 'cors' },
+    {
+      fetcher: async () => new Response('four', { status: 200 }),
+      onActivity: (entry) => activity.push(entry),
+    },
+  );
+  await request(host, {
+    method: 'get',
+    url: 'https://api.weather.test/v1/now?lat=1&appid=SECRET#x',
+    headers: {},
+    body: null,
+  });
+  const off = libPebbleNetworkHost(
+    { mode: 'disabled' },
+    { onActivity: (entry) => activity.push(entry) },
+  );
+  await request(off, {
+    method: 'GET',
+    url: 'https://api.weather.test/v1/now',
+    headers: {},
+    body: null,
+  });
+  assert.deepEqual(activity, [
+    {
+      kind: 'request',
+      method: 'GET',
+      target: 'https://api.weather.test/v1/now',
+      synchronous: false,
+      status: 200,
+      bytes: 4,
+    },
+    {
+      kind: 'request',
+      method: 'GET',
+      target: 'https://api.weather.test/v1/now',
+      synchronous: false,
+      error: 'disabled: Phone network access is off in this session.',
+    },
+  ]);
+  assert.ok(!JSON.stringify(activity).includes('SECRET'));
+});

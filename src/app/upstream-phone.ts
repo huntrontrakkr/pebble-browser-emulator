@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
-import type { PhoneNetworkSetting } from './libpebble-network.ts';
+import type { PhoneCoordinates } from './libpebble-host.ts';
+import type { NetworkActivity, PhoneNetworkSetting } from './libpebble-network.ts';
 
 /**
  * Preview's experimental second phone: upstream's companion-app library (libpebble3),
@@ -63,14 +64,21 @@ export class UpstreamPhone {
    * off the link; the QEMU worker refuses the link otherwise. Apps' PebbleKit JS gets
    * the session's phone network setting, as the built-in phone's scripts do. `platform`
    * is the emulated watch's codename ('emery', 'flint', 'gabbro'), which libpebble3
-   * cannot tell from the emulator's hardware revision.
+   * cannot tell from the emulator's hardware revision. `coordinates` is the session's
+   * location, or null when it is off.
    */
-  async connect(qemu: Worker, network: PhoneNetworkSetting, platform: string): Promise<void> {
+  async connect(
+    qemu: Worker,
+    network: PhoneNetworkSetting,
+    platform: string,
+    coordinates: PhoneCoordinates | null = null,
+  ): Promise<void> {
     const manifest = this.manifest();
     if (!manifest) throw new Error('This build does not include the upstream phone.');
     await this.run('Starting the upstream phone…', async () => {
       await this.start(manifest);
       await this.ask({ type: 'network', setting: network });
+      await this.ask({ type: 'location', coordinates });
       const channel = new MessageChannel();
       const attached = new Promise<void>((resolve, reject) => {
         this.linkWaiter = { resolve, reject };
@@ -177,6 +185,7 @@ export class UpstreamPhone {
       this.runningApp.set(data.uuid);
       if (data.uuid) this.log(`Watch reports ${data.uuid} running`);
     } else if (data?.type === 'pkjs-console') this.log(`[${data.app}] ${data.text}`);
+    else if (data?.type === 'network-activity') this.log(describeActivity(data.activity));
   }
 
   private settle(id: number, value: unknown, failure?: string): void {
@@ -217,4 +226,16 @@ export class UpstreamPhone {
       this.busy.set(false);
     }
   }
+}
+
+/** One line of the page's log for a request or socket of an app's PebbleKit JS. */
+function describeActivity(activity: NetworkActivity): string {
+  const outcome =
+    activity.error ??
+    (activity.closeCode !== undefined
+      ? `closed ${activity.closeCode}`
+      : activity.status === 'open'
+        ? 'open'
+        : `${activity.status}${activity.bytes !== undefined ? `, ${activity.bytes} bytes` : ''}`);
+  return `[network] ${activity.synchronous ? 'sync ' : ''}${activity.method} ${activity.target} → ${outcome}`;
 }

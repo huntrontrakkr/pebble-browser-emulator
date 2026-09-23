@@ -1068,6 +1068,7 @@ export class App implements AfterViewInit, OnDestroy {
         qemu,
         { mode: this.phoneNetworkMode, relay: this.relay },
         this.appPlatform(),
+        this.demoSettings().location ? this.currentCoordinates() : null,
       );
     } catch (error) {
       this.error.set(

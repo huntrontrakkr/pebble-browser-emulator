@@ -3,7 +3,7 @@
 // library as one browser module, and the files they load.
 // Usage: node bundle.mjs <library dist> <sqlite-wasm package dir> <firmware dir> <out>
 import { build, stop } from 'esbuild-wasm';
-import { cp, mkdir } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { bundleLibrary } from './library.mjs';
 
@@ -15,6 +15,7 @@ await build({
     'qemu.worker': 'src/app/qemu.worker.ts',
     'libpebble.worker': 'src/app/libpebble.worker.ts',
     harness: 'tools/phone-spike/browser/harness.mjs',
+    survey: 'tools/phone-spike/browser/survey.mjs',
   },
   outdir: out,
   bundle: true,
@@ -34,5 +35,12 @@ await cp('public/wasm/qemu-emery.wasm', join(out, 'wasm/qemu-emery.wasm'));
 await cp(firmware, join(out, 'firmware'), { recursive: true });
 await cp('public/examples/clock-emery.pbw', join(out, 'clock-emery.pbw'));
 await cp('tools/phone-spike/browser/harness.html', join(out, 'harness.html'));
+await writeFile(
+  join(out, 'survey.html'),
+  (await readFile('tools/phone-spike/browser/harness.html', 'utf8')).replace(
+    'harness.js',
+    'survey.js',
+  ),
+);
 await cp('tools/phone-spike/browser/network-probe.js', join(out, 'network-probe.js'));
 console.log('browser run built in', out);

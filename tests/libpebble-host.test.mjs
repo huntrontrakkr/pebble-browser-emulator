@@ -146,3 +146,19 @@ test('installs wait for libpebble3 to finish connecting to the watch', async () 
   link.close();
   worker.close();
 });
+
+test('the phone reads the session location as JSON, or null when it is off', () => {
+  let position = { latitude: 51.4779, longitude: -0.0015, accuracy: 10, altitude: null };
+  const base = {
+    sqlite3: {},
+    fflate: { inflateSync() {} },
+    pkjs: { create() {} },
+    network: { request() {} },
+  };
+  provideLibPebbleDependencies({ ...base, location: () => position });
+  assert.deepEqual(JSON.parse(globalThis.pebblePhoneHost.location()), position);
+  position = null;
+  assert.equal(globalThis.pebblePhoneHost.location(), null);
+  provideLibPebbleDependencies(base);
+  assert.equal(globalThis.pebblePhoneHost.location(), null);
+});

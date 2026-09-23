@@ -14,9 +14,10 @@
  *
  * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl, network?} · network {id, setting}
  *     · link {port, platform?} (platform: the emulated watch's codename, e.g. 'flint')
+ *     · location {id, coordinates} (the session's location, or null when it is off)
  *     · unlink · install {id, bytes, name} · configure {id} · configuration-closed {id, url} · status {id}
  * Out: ready · done {id, value?} · failed {id?, message} · running-app {uuid}
- *     · pkjs-console {app, level, text}
+ *     · pkjs-console {app, level, text} · network-activity {activity}
  */
 import * as fflate from 'fflate';
 import { newQuickJSWASMModuleFromVariant, newVariant } from 'quickjs-emscripten-core';
@@ -26,6 +27,7 @@ import {
   asLibPebbleModule,
   provideLibPebbleDependencies,
 } from './libpebble-host.ts';
+import type { PhoneCoordinates } from './libpebble-host.ts';
 import { libPebbleNetworkHost, type PhoneNetworkSetting } from './libpebble-network.ts';
 import { quickJsPkjsHost } from './libpebble-pkjs.ts';
 
@@ -33,7 +35,11 @@ let link: LibPebbleLink | undefined;
 let starting: Promise<LibPebbleLink> | undefined;
 let runningApp = '';
 let watcher: ReturnType<typeof setInterval> | undefined;
-const network = libPebbleNetworkHost({ mode: 'disabled' });
+const network = libPebbleNetworkHost(
+  { mode: 'disabled' },
+  { onActivity: (activity) => postMessage({ type: 'network-activity', activity }) },
+);
+let coordinates: PhoneCoordinates | null = null;
 
 async function start(data: {
   bundleUrl: string;
@@ -59,6 +65,7 @@ async function start(data: {
       console: (app, level, text) => postMessage({ type: 'pkjs-console', app, level, text }),
     }),
     network,
+    location: () => coordinates,
   });
   const phone = new LibPebbleLink(
     asLibPebbleModule(await import(/* @vite-ignore */ data.bundleUrl)),
@@ -90,6 +97,10 @@ self.onmessage = async ({ data }: MessageEvent) => {
         starting ??= start(data);
         link = await starting;
         postMessage({ type: 'ready' });
+        break;
+      case 'location':
+        coordinates = data.coordinates ?? null;
+        postMessage({ type: 'done', id });
         break;
       case 'network':
         network.configure(data.setting);

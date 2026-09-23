@@ -1,0 +1,161 @@
+// Store apps that use the network, through the libpebble3 phone in Chromium.
+//
+// Input is a corpus from `npm run compatibility:corpus` (the store's Most Loved
+// collections, with package hashes). Apps qualify when their PebbleKit JS names
+// XMLHttpRequest or WebSocket and the package has an emery binary. Each runs in a
+// fresh page (survey.mjs): released qemu_emery firmware, the phone with the network on
+// (CORS) and the built-in phone's default location, install, then a minute of watching.
+// Nothing is answered for the app: requests go to the real services, and a service
+// the browser may not read fails as the app would see it.
+//
+// Usage: node store-survey.mjs <browser build (bundle.mjs output)> <corpus dir> [count] [out.json]
+import { readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { unzipSync, strFromU8 } from 'fflate';
+import { chromium } from 'playwright';
+import { serve } from './serve.mjs';
+
+const [build, corpus] = process.argv.slice(2, 4).map((p) => resolve(p));
+const count = Number(process.argv[4] ?? 12);
+const out = resolve(process.argv[5] ?? 'store-survey.json');
+const seconds = Number(process.env.SURVEY_SECONDS ?? 60);
+const manifest = JSON.parse(await readFile(join(corpus, 'manifest.json'), 'utf8'));
+
+const candidates = [];
+const skipped = { noPackage: 0, noJs: 0, noNetwork: 0, noEmery: 0, unreadable: 0 };
+for (const entry of manifest.entries) {
+  if (!entry.acquisition?.path) {
+    skipped.noPackage++;
+    continue;
+  }
+  let files;
+  try {
+    files = unzipSync(new Uint8Array(await readFile(join(corpus, entry.acquisition.path))));
+  } catch {
+    skipped.unreadable++;
+    continue;
+  }
+  const js = files['pebble-js-app.js'];
+  if (!js) {
+    skipped.noJs++;
+    continue;
+  }
+  const source = strFromU8(js);
+  const uses = ['XMLHttpRequest', 'WebSocket'].filter((name) => source.includes(name));
+  if (!uses.length) {
+    skipped.noNetwork++;
+    continue;
+  }
+  if (!Object.keys(files).some((name) => name.startsWith('emery/'))) {
+    skipped.noEmery++;
+    continue;
+  }
+  const info = JSON.parse(strFromU8(files['appinfo.json']));
+  candidates.push({ ...entry, uuid: info.uuid, uses, geolocation: source.includes('geolocation') });
+}
+// Most loved first, alternating watchfaces and apps.
+const byCategory = Object.groupBy(candidates, (c) => c.category);
+const chosen = [];
+for (let i = 0; chosen.length < count && i < candidates.length; i++)
+  for (const list of Object.values(byCategory))
+    if (list[i] && chosen.length < count) chosen.push(list[i]);
+console.log(
+  `corpus ${manifest.entries.length}; network apps with emery ${candidates.length}; running ${chosen.length}; skipped ${JSON.stringify(skipped)}`,
+);
+
+const { url, close } = await serve(build, (request, response) => {
+  const path = new URL(request.url, 'http://x').pathname;
+  const match = /^\/packages\/([a-f0-9]{24})\.pbw$/.exec(path);
+  if (!match) return false;
+  readFile(join(corpus, 'packages', `${match[1]}.pbw`)).then(
+    (body) => response.writeHead(200, { 'content-type': 'application/octet-stream' }).end(body),
+    () => response.writeHead(404).end(),
+  );
+  return true;
+});
+const browser = await chromium.launch({
+  headless: true,
+  ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
+});
+
+const results = [];
+for (const app of chosen) {
+  const page = await browser.newPage();
+  const messages = { sent: 0, acked: 0, nacked: 0 };
+  const exceptions = [];
+  page.on('console', (m) => {
+    const text = m.text();
+    if (/sending .*AppMessagePush/.test(text)) messages.sent++;
+    else if (/inbound .*AppMessageACK/.test(text)) messages.acked++;
+    else if (/inbound .*AppMessageNACK/.test(text)) messages.nacked++;
+    else if (/JS Exception/.test(text)) exceptions.push(text.slice(0, 300));
+  });
+  page.on('pageerror', (error) => exceptions.push(`page: ${error.message}`.slice(0, 300)));
+  const target = `${url}survey.html?pbw=/packages/${app.id}.pbw&uuid=${app.uuid}&seconds=${seconds}`;
+  let result;
+  try {
+    await page.goto(target);
+    await page.waitForFunction(() => window.__result, null, { timeout: (seconds + 300) * 1000 });
+    result = await page.evaluate(() => window.__result);
+  } catch (error) {
+    result = {
+      ok: false,
+      error: `no result: ${error.message.split('\n')[0]}`,
+      pkjs: [],
+      network: [],
+    };
+  }
+  await page.close();
+  const record = {
+    title: app.title,
+    id: app.id,
+    category: app.category,
+    rank: app.rank,
+    hearts: app.hearts,
+    version: app.version,
+    sha256: app.acquisition.sha256,
+    uses: app.uses,
+    geolocation: app.geolocation,
+    running: !!result.running,
+    error: result.error,
+    requests: result.network.filter((n) => n.kind === 'request'),
+    sockets: result.network.filter((n) => n.kind === 'socket'),
+    messages,
+    exceptions: exceptions.slice(0, 5),
+    pkjs: result.pkjs.slice(0, 30),
+  };
+  results.push(record);
+  const answered = record.requests.filter((r) => typeof r.status === 'number').length;
+  console.log(
+    `${record.category} #${record.rank} ${record.title}: ${record.running ? 'running' : 'NOT running'}, ` +
+      `${record.requests.length} requests (${answered} answered), ${record.sockets.length} socket events, ` +
+      `AppMessages ${messages.sent} sent / ${messages.acked} acked / ${messages.nacked} nacked` +
+      (record.error ? `, error: ${record.error}` : ''),
+  );
+  for (const request of record.requests)
+    console.log(
+      `    ${request.synchronous ? 'sync ' : ''}${request.method} ${request.target} → ${request.error ?? request.status}`,
+    );
+}
+await browser.close();
+close();
+await writeFile(
+  out,
+  JSON.stringify(
+    {
+      format: 'libpebble3-store-survey',
+      createdAt: new Date().toISOString(),
+      corpusCreatedAt: manifest.createdAt,
+      firmware: 'qemu_emery v4.37.0',
+      network: 'CORS (no relay)',
+      location: { latitude: 37.7749, longitude: -122.4194, accuracy: 10 },
+      observedSeconds: seconds,
+      skipped,
+      candidates: candidates.length,
+      results,
+    },
+    null,
+    2,
+  ),
+);
+console.log('SURVEY', out);

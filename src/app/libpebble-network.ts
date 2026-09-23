@@ -56,6 +56,32 @@ export interface LibPebbleNetworkOptions {
   socketFactory?: (url: string, protocols: string[]) => WebSocket;
   /** A blocking-capable XMLHttpRequest; by default the worker's own, none elsewhere. */
   syncRequest?: () => XMLHttpRequest;
+  /** Told how each request and socket ended, for the page's log. */
+  onActivity?: (activity: NetworkActivity) => void;
+}
+
+/** One request or socket as the page's log shows it: no query string or fragment. */
+export interface NetworkActivity {
+  kind: 'request' | 'socket';
+  method: string;
+  /** Origin and path only, so keys an app puts in its URLs stay out of logs. */
+  target: string;
+  /** The HTTP status, or for a socket 'open'. */
+  status?: number | 'open';
+  /** For a failure: the kind and reason. For a socket: the close code. */
+  error?: string;
+  closeCode?: number;
+  synchronous?: boolean;
+  bytes?: number;
+}
+
+function targetOf(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return parsed.origin + parsed.pathname;
+  } catch {
+    return '(invalid URL)';
+  }
 }
 
 const OFF_MESSAGE = 'Phone network access is off in this session.';
@@ -81,10 +107,40 @@ export function libPebbleNetworkHost(
 
   const later = (work: () => void) => queueMicrotask(work);
 
+  const described = new Map<number, { method: string; target: string; synchronous?: boolean }>();
+  function report(id: number, result: PhoneNetworkResult) {
+    const request = described.get(id);
+    described.delete(id);
+    if (!request || !options.onActivity) return;
+    options.onActivity({
+      kind: 'request',
+      ...request,
+      ...('error' in result
+        ? { error: `${result.error}: ${result.message}` }
+        : {
+            status: result.status,
+            bytes: result.bodyBase64 ? atob(result.bodyBase64).length : 0,
+          }),
+    });
+  }
+  function describe(id: number, json: string, synchronous = false) {
+    try {
+      const { method, url } = JSON.parse(json);
+      described.set(id, {
+        method: String(method).toUpperCase(),
+        target: targetOf(url),
+        synchronous,
+      });
+    } catch {
+      described.set(id, { method: '?', target: '(malformed)', synchronous });
+    }
+  }
+
   function settle(id: number, result: PhoneNetworkResult) {
     const done = waiting.get(id);
     if (!done) return;
     waiting.delete(id);
+    report(id, result);
     if ('error' in result) done(JSON.stringify({ error: result.error, message: result.message }));
     else
       done(
@@ -97,9 +153,19 @@ export function libPebbleNetworkHost(
       );
   }
 
+  const socketTargets = new Map<number, string>();
   function socketEvent(id: number, event: PhoneSocketEvent) {
     const listener = listeners.get(id);
     if (!listener) return;
+    const target = socketTargets.get(id) ?? '';
+    if (event.type === 'open')
+      options.onActivity?.({ kind: 'socket', method: 'OPEN', target, status: 'open' });
+    else if (event.type === 'error')
+      options.onActivity?.({ kind: 'socket', method: 'OPEN', target, error: event.message });
+    else if (event.type === 'close') {
+      socketTargets.delete(id);
+      options.onActivity?.({ kind: 'socket', method: 'CLOSE', target, closeCode: event.code });
+    }
     switch (event.type) {
       case 'open':
         listener(JSON.stringify({ type: 'open', protocol: event.protocol }));
@@ -257,6 +323,7 @@ export function libPebbleNetworkHost(
     request(json, done) {
       const id = nextId++;
       waiting.set(id, done);
+      describe(id, json);
       const refusal = refused();
       if (refusal) {
         later(() => settle(id, { error: 'disabled', message: refusal }));
@@ -298,6 +365,7 @@ export function libPebbleNetworkHost(
       let reply = '';
       const id = nextId++;
       waiting.set(id, (result) => (reply = result));
+      describe(id, json, true);
       settle(id, requestSync(json));
       return reply;
     },
@@ -309,6 +377,7 @@ export function libPebbleNetworkHost(
     openSocket(url, protocols, event) {
       const id = nextId++;
       listeners.set(id, event);
+      socketTargets.set(id, targetOf(url));
       const refusal = refused();
       if (refusal) {
         later(() => {

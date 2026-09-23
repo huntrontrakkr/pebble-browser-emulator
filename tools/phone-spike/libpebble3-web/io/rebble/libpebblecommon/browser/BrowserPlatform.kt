@@ -32,7 +32,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -103,13 +109,37 @@ internal class BrowserSystemMusicControl : SystemMusicControl {
     override val albumArtUpdated: Flow<Unit> = emptyFlow()
 }
 
-/** The virtual phone's location input is a later gate; until then location fails honestly. */
+/**
+ * The phone's position is the session's location setting, as for the built-in phone: the
+ * page supplies it (`pebblePhoneHost.location`, JSON with latitude, longitude and the
+ * optional accuracy, altitude, heading and speed), or nothing when location is off, which
+ * apps see as an error.
+ */
 internal class BrowserSystemGeolocation : SystemGeolocation {
-    private val unavailable = GeolocationPositionResult.Error("Location is not available in the browser phone")
-    override suspend fun getCurrentPosition(maximumAge: Duration?, timeout: Duration?, highAccuracy: Boolean) = unavailable
-    override suspend fun watchPosition(interval: Duration, highAccuracy: Boolean): Flow<GeolocationPositionResult> =
-        flowOf(unavailable)
+    private fun current(): GeolocationPositionResult {
+        val json = hostLocation() ?: return GeolocationPositionResult.Error("Location is off in this session")
+        val position = Json.parseToJsonElement(json).jsonObject
+        fun value(key: String) = position[key]?.jsonPrimitive?.doubleOrNull
+        val latitude = value("latitude") ?: return GeolocationPositionResult.Error("No latitude")
+        val longitude = value("longitude") ?: return GeolocationPositionResult.Error("No longitude")
+        return GeolocationPositionResult.Success(
+            Clock.System.now(), latitude, longitude,
+            value("accuracy"), value("altitude"), value("heading"), value("speed"),
+        )
+    }
+
+    override suspend fun getCurrentPosition(maximumAge: Duration?, timeout: Duration?, highAccuracy: Boolean) = current()
+
+    override suspend fun watchPosition(interval: Duration, highAccuracy: Boolean): Flow<GeolocationPositionResult> = flow {
+        while (true) {
+            emit(current())
+            delay(interval)
+        }
+    }
 }
+
+private fun hostLocation(): String? =
+    js("(globalThis.pebblePhoneHost && globalThis.pebblePhoneHost.location) ? globalThis.pebblePhoneHost.location() : null")
 
 internal class BrowserOtherPebbleApps : OtherPebbleApps {
     private val none = MutableStateFlow<List<OtherPebbleApp>>(emptyList())
