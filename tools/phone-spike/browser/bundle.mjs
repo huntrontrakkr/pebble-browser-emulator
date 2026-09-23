@@ -34,4 +34,5 @@ await cp('public/wasm/qemu-emery.wasm', join(out, 'wasm/qemu-emery.wasm'));
 await cp(firmware, join(out, 'firmware'), { recursive: true });
 await cp('public/examples/clock-emery.pbw', join(out, 'clock-emery.pbw'));
 await cp('tools/phone-spike/browser/harness.html', join(out, 'harness.html'));
+await cp('tools/phone-spike/browser/network-probe.js', join(out, 'network-probe.js'));
 console.log('browser run built in', out);

@@ -11,6 +11,7 @@
  * from libpebble3.
  */
 
+import type { LibPebbleNetworkHost } from './libpebble-network.ts';
 import type { PkjsHost } from './libpebble-pkjs.ts';
 
 /** The functions `browser/BrowserPhone.kt` exports. */
@@ -33,6 +34,8 @@ export interface LibPebbleDependencies {
   fflate: { inflateSync: unknown };
   /** Engines for apps' PebbleKit JS (`quickJsPkjsHost` in libpebble-pkjs.ts). */
   pkjs: PkjsHost;
+  /** Requests and WebSockets for apps' PebbleKit JS (`libPebbleNetworkHost`). */
+  network: LibPebbleNetworkHost;
 }
 
 /** The part of a MessagePort the link uses, so Node's worker ports work as well. */
@@ -61,10 +64,12 @@ export function provideLibPebbleDependencies(dependencies: LibPebbleDependencies
     throw new Error('libpebble3 needs fflate for app bundles.');
   if (typeof dependencies.pkjs?.create !== 'function')
     throw new Error('libpebble3 needs an engine host for PebbleKit JS.');
+  if (typeof dependencies.network?.request !== 'function')
+    throw new Error('libpebble3 needs a network host for PebbleKit JS.');
   const scope = globalThis as Record<string, unknown>;
   scope['sqlite3'] = dependencies.sqlite3;
   scope['fflate'] = dependencies.fflate;
-  scope['pebblePhoneHost'] = { pkjs: dependencies.pkjs };
+  scope['pebblePhoneHost'] = { pkjs: dependencies.pkjs, network: dependencies.network };
 }
 
 /** Checks that a loaded module is the libpebble3 build this glue was written for. */

@@ -1,8 +1,11 @@
 // The libpebble3 phone worker in a browser page, against the released firmware in the
 // QEMU worker. Both are the application's own workers; this page only wires them
 // together as the application will: QEMU's `phone-link` port to the phone's `link`.
-// It then installs Clock and runs Clock's settings round trip through its PebbleKit JS.
+// It then installs Clock and runs Clock's settings round trip through its PebbleKit JS,
+// and last installs the network probe (network-probe.js) with the phone's network on.
 // window.__result carries the outcome for tools/phone-spike/browser/run.mjs.
+import { strToU8, unzipSync, zipSync } from 'fflate';
+
 const CLOCK = 'c61ace0a-d61a-47ce-9d04-f46a78849ec6';
 const status = document.getElementById('status');
 const steps = [];
@@ -62,6 +65,24 @@ async function ask(message, transfer = [], timeout) {
   return (await reply).value;
 }
 const bytes = async (url) => new Uint8Array(await (await fetch(url)).arrayBuffer());
+
+/**
+ * Clock's package with the probe's PebbleKit JS in place of Clock's own, pointed at the
+ * run's server through another origin. Clock's watch binary, UUID and message keys stay;
+ * the version goes up so the phone installs it over Clock.
+ */
+async function probePackage() {
+  const files = unzipSync(await bytes('clock-emery.pbw'));
+  const script = (await (await fetch('network-probe.js')).text()).replace(
+    '__BASE__',
+    `http://localhost:${location.port}`,
+  );
+  const info = JSON.parse(new TextDecoder().decode(files['appinfo.json']));
+  info.versionLabel = '1.2';
+  files['appinfo.json'] = strToU8(JSON.stringify(info));
+  files['pebble-js-app.js'] = strToU8(script);
+  return zipSync(files);
+}
 
 try {
   step('loading the watch core');
@@ -128,7 +149,30 @@ try {
   });
   await acknowledged;
   step('Clock settings acknowledged by watch');
-  window.__result = { ok: true, steps };
+
+  await ask({ type: 'network', setting: { mode: 'cors' } });
+  const probeDone = wait(
+    'phone',
+    (d) => d.type === 'pkjs-console' && d.text.includes('PROBE done'),
+    120000,
+  );
+  const probeAcknowledged = wait(
+    'phone',
+    (d) => d.type === 'pkjs-console' && d.text.includes('Network probe acknowledged by watch'),
+    150000,
+  );
+  await ask({ type: 'install', bytes: await probePackage(), name: 'Network probe.pbw' }, [], 90000);
+  step('network probe installed');
+  const summary = (await probeDone).text;
+  await probeAcknowledged;
+  const probe = history
+    .filter(
+      (m) => m.from === 'phone' && m.data.type === 'pkjs-console' && m.data.text.includes('PROBE '),
+    )
+    .map((m) => m.data.text.slice(m.data.text.indexOf('PROBE ')));
+  step(`network probe: ${summary.slice(summary.indexOf('PROBE '))}, acknowledged by watch`);
+  const failures = probe.filter((line) => line.startsWith('PROBE fail'));
+  window.__result = { ok: failures.length === 0, steps, probe };
 } catch (error) {
   step(`failed: ${error.message}`);
   window.__result = { ok: false, error: error.message, steps };

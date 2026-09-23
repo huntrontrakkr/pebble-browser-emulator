@@ -6,13 +6,15 @@ import { pathToFileURL } from 'node:url';
 import { newQuickJSWASMModuleFromVariant, newVariant } from 'quickjs-emscripten-core';
 import RELEASE_SYNC from '@jitl/quickjs-wasmfile-release-sync';
 import { asLibPebbleModule, provideLibPebbleDependencies } from '../../src/app/libpebble-host.ts';
+import { libPebbleNetworkHost } from '../../src/app/libpebble-network.ts';
 import { quickJsPkjsHost } from '../../src/app/libpebble-pkjs.ts';
 
 /**
  * `dist` is the library distribution; `deps` holds @sqlite.org/sqlite-wasm and fflate.
- * `onConsole` receives what apps' PebbleKit JS writes to its console.
+ * `onConsole` receives what apps' PebbleKit JS writes to its console; `network` is the
+ * phone network setting (off by default, as in the application).
  */
-export async function loadPhone(dist, deps, onConsole = () => {}) {
+export async function loadPhone(dist, deps, onConsole = () => {}, network = { mode: 'disabled' }) {
   // Bare specifiers resolve from the importing file, so the imports live beside the packages.
   const loader = join(deps, 'deps.mjs');
   await writeFile(
@@ -26,6 +28,7 @@ export async function loadPhone(dist, deps, onConsole = () => {}) {
     sqlite3: await sqlite3InitModule(),
     fflate,
     pkjs: quickJsPkjsHost(quickjs, { console: onConsole }),
+    network: libPebbleNetworkHost(network),
   });
   console.log('SQLite', globalThis.sqlite3.version.libVersion);
 

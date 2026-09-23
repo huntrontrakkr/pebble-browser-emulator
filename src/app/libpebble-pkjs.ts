@@ -101,6 +101,15 @@ class QuickJsEngine implements PkjsEngine {
     assert.dispose();
     context.setProp(context.global, 'console', consoleObject);
     consoleObject.dispose();
+
+    const builtins = context.evalCode(BASE64_BUILTINS, 'base64-builtins.js');
+    if (builtins.error) {
+      const failure = describe(context.dump(builtins.error));
+      builtins.error.dispose();
+      this.destroy();
+      throw new Error(`The PebbleKit JS engine could not start: ${failure}`);
+    }
+    builtins.value.dispose();
   }
 
   eval(code: string, fileName: string): string {
@@ -140,6 +149,66 @@ class QuickJsEngine implements PkjsEngine {
     this.runtime = undefined;
   }
 }
+
+/**
+ * `Uint8Array.fromBase64` and `Uint8Array.prototype.toBase64` (ECMAScript 2026), which
+ * upstream's XMLHttpRequest and WebSocket use for binary data and which this QuickJS
+ * release lacks. Standard alphabets and padding; `lastChunkHandling` is `loose` only.
+ * Installed only where the engine has none.
+ */
+export const BASE64_BUILTINS = String.raw`(function () {
+  var tables = {
+    base64: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+    base64url: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
+  };
+  function alphabet(options) {
+    var name = options && options.alphabet !== undefined ? options.alphabet : 'base64';
+    if (!Object.prototype.hasOwnProperty.call(tables, name))
+      throw new TypeError('Invalid base64 alphabet');
+    return tables[name];
+  }
+  function define(target, name, fn) {
+    if (typeof target[name] === 'function') return;
+    Object.defineProperty(target, name, { value: fn, writable: true, configurable: true });
+  }
+  define(Uint8Array, 'fromBase64', function fromBase64(string, options) {
+    if (typeof string !== 'string') throw new TypeError('fromBase64 needs a string');
+    if (options && options.lastChunkHandling !== undefined && options.lastChunkHandling !== 'loose')
+      throw new TypeError('Only loose lastChunkHandling is supported');
+    var table = alphabet(options);
+    var text = string.replace(/[\t\n\f\r ]/g, '');
+    var padding = /=+$/.exec(text);
+    var body = padding ? text.slice(0, -padding[0].length) : text;
+    if ((padding && (padding[0].length > 2 || text.length % 4 !== 0)) || body.length % 4 === 1)
+      throw new SyntaxError('Invalid base64 string');
+    var out = new Uint8Array(Math.floor((body.length * 3) / 4));
+    var bits = 0, value = 0, offset = 0;
+    for (var i = 0; i < body.length; i++) {
+      var digit = table.indexOf(body[i]);
+      if (digit < 0) throw new SyntaxError('Invalid base64 character');
+      value = (value << 6) | digit;
+      bits += 6;
+      if (bits >= 8) {
+        bits -= 8;
+        out[offset++] = (value >> bits) & 255;
+      }
+    }
+    return out;
+  });
+  define(Uint8Array.prototype, 'toBase64', function toBase64(options) {
+    var table = alphabet(options);
+    var pad = !(options && options.omitPadding);
+    var out = '';
+    for (var i = 0; i < this.length; i += 3) {
+      var n = (this[i] << 16) | ((this[i + 1] || 0) << 8) | (this[i + 2] || 0);
+      var left = this.length - i;
+      out += table[(n >> 18) & 63] + table[(n >> 12) & 63];
+      out += left > 1 ? table[(n >> 6) & 63] : pad ? '=' : '';
+      out += left > 2 ? table[n & 63] : pad ? '=' : '';
+    }
+    return out;
+  });
+})();`;
 
 function describe(error: unknown): string {
   if (error && typeof error === 'object') {

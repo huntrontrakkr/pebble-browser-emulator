@@ -76,3 +76,25 @@ test('each app gets its own engine', () => {
   a.destroy();
   b.destroy();
 });
+
+test('the engine has the standard base64 methods upstream binary data uses', () => {
+  const engine = quickJsPkjsHost(quickjs).create('base64', () => JSON.stringify({ v: null }));
+  const run = (code) => JSON.parse(engine.eval(code, 'base64.js'));
+  assert.deepEqual(
+    run(`[
+      Array.from(Uint8Array.fromBase64('AQL/')),
+      Array.from(Uint8Array.fromBase64('4oKs\\n/w==')),
+      Array.from(Uint8Array.fromBase64('-_8', { alphabet: 'base64url' })),
+      Uint8Array.of(1, 2, 255).toBase64(),
+      Uint8Array.of(0xe2, 0x82, 0xac, 0xff).toBase64(),
+      Uint8Array.of(251, 255).toBase64({ alphabet: 'base64url', omitPadding: true }),
+      new Uint8Array(0).toBase64(),
+    ]`),
+    {
+      v: [[1, 2, 255], [0xe2, 0x82, 0xac, 0xff], [251, 255], 'AQL/', '4oKs/w==', '-_8', ''],
+    },
+  );
+  assert.match(run(`Uint8Array.fromBase64('A')`).e, /SyntaxError: Invalid base64/);
+  assert.match(run(`Uint8Array.fromBase64('AB*=')`).e, /SyntaxError: Invalid base64/);
+  engine.destroy();
+});

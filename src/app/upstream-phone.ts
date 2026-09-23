@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+import type { PhoneNetworkSetting } from './libpebble-network.ts';
 
 /**
  * Preview's experimental second phone: upstream's companion-app library (libpebble3),
@@ -59,13 +60,15 @@ export class UpstreamPhone {
   /**
    * Connects the upstream phone to the QEMU watch: starts the phone worker if needed and
    * hands it the QEMU worker's `phone-link` port. The built-in phone must already be
-   * off the link; the QEMU worker refuses the link otherwise.
+   * off the link; the QEMU worker refuses the link otherwise. Apps' PebbleKit JS gets
+   * the session's phone network setting, as the built-in phone's scripts do.
    */
-  async connect(qemu: Worker): Promise<void> {
+  async connect(qemu: Worker, network: PhoneNetworkSetting): Promise<void> {
     const manifest = this.manifest();
     if (!manifest) throw new Error('This build does not include the upstream phone.');
     await this.run('Starting the upstream phone…', async () => {
       await this.start(manifest);
+      await this.ask({ type: 'network', setting: network });
       const channel = new MessageChannel();
       const attached = new Promise<void>((resolve, reject) => {
         this.linkWaiter = { resolve, reject };

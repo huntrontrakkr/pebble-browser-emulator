@@ -6,7 +6,10 @@ import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-/** Upstream's iOS binding, with the browser runner in place of JavaScriptCore's. */
+/**
+ * Upstream's iOS binding, with the browser runner in place of JavaScriptCore's. The
+ * runner makes its own HTTP client over the page's phone network (HostHttpEngine).
+ */
 actual val pkjsPlatformModule: Module = module {
     factory { params ->
         BrowserJsRunner(
@@ -25,7 +28,6 @@ actual val pkjsPlatformModule: Module = module {
             httpInterceptorManager = get(),
             notificationConfigFlow = get(),
             pluginRegistry = get(),
-            httpClient = get(),
         )
     } bind JsRunner::class
 }

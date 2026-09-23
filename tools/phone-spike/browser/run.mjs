@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { handleProbe, handleUpgrade, seen } from './probe-server.mjs';
 
 const root = resolve(process.argv[2]);
 const seconds = Number(process.argv[3] ?? 300);
@@ -14,6 +15,7 @@ const types = {
   '.wasm': 'application/wasm',
 };
 const server = createServer(async (request, response) => {
+  if (handleProbe(request, response)) return;
   const path = normalize(decodeURIComponent(new URL(request.url, 'http://x').pathname));
   try {
     const body = await readFile(join(root, path));
@@ -23,7 +25,9 @@ const server = createServer(async (request, response) => {
     response.writeHead(404).end();
   }
 });
-await new Promise((ready) => server.listen(0, '127.0.0.1', ready));
+server.on('upgrade', handleUpgrade);
+// Both loopback names, so the page (127.0.0.1) reaches the probe server cross-origin (localhost).
+await new Promise((ready) => server.listen(0, ready));
 const url = `http://127.0.0.1:${server.address().port}/harness.html`;
 
 const browser = await chromium.launch({
@@ -46,6 +50,7 @@ try {
     steps: await page.evaluate(() => document.getElementById('status')?.textContent),
   };
 }
+console.log('PROBE SERVER SAW', JSON.stringify(seen));
 console.log('RESULT', JSON.stringify(result, null, 2));
 await browser.close();
 server.close();

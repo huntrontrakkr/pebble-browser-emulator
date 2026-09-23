@@ -43,8 +43,11 @@ import kotlin.uuid.Uuid
  * app, isolated from the page. Calls from the app's JS into Kotlin and back are
  * synchronous on this one thread.
  *
- * Not yet in the browser: WebSocket (apps that use it see no `WebSocket`), and
- * intercepted HTTP responses (as on iOS).
+ * `XMLHttpRequest` and `WebSocket` are upstream's classes and managers (the WebSocket
+ * manager ported from iOS); their requests go to the page's phone network, which
+ * follows the session's network setting and CORS, as the built-in phone's do.
+ * Not in the browser: synchronous XHR (the one thread cannot wait for the network; the
+ * app's `send` throws), and intercepted HTTP responses (as on iOS).
  */
 class BrowserJsRunner(
     private val appContext: AppContext,
@@ -61,11 +64,12 @@ class BrowserJsRunner(
     private val httpInterceptorManager: HttpInterceptorManager,
     private val notificationConfigFlow: NotificationConfigFlow,
     private val pluginRegistry: PluginRegistry,
-    private val httpClient: HttpClient,
 ) : JsRunner(appInfo, lockerEntry, jsPath, device, urlOpenRequests) {
     private val logger = Logger.withTag("BrowserJsRunner-${appInfo.longName}")
     private var engine: JsAny? = null
     private val interfaces = mutableMapOf<String, JsEngineInterface>()
+    private val httpEngine = HostHttpEngine()
+    private val httpClient = HttpClient(httpEngine) {}
 
     /** Statements for the engine to run when the current native call returns. */
     private val afterCall = mutableListOf<String>()
@@ -78,6 +82,7 @@ class BrowserJsRunner(
         evalNow("globalThis.navigator = { userAgent: 'PKJS', geolocation: {}, language: 'en-US' };", "navigator.js")
         evalNow(BASE64_JS, "base64.js")
         evalNow(XML_HTTP_REQUEST_JS, "xmlhttprequest.js")
+        evalNow(PKJS_WEBSOCKET_JS, "WebSocket.js")
         evalNow(PKJS_TIMEOUT_JS, "JSTimeout.js")
         evalNow(PKJS_STARTUP_JS, "startup.js")
         loadAppJs(jsPath.toString())
@@ -96,6 +101,7 @@ class BrowserJsRunner(
                 appUuid = Uuid.parse(appInfo.uuid),
                 client = httpClient,
             ),
+            BrowserWebSocketManager(scope) { evalNow(it, "websocket") },
             BrowserTimeout(scope) { evalNow(it, "timer") },
             JSCPKJSInterface(this, device, libPebble, jsTokenUtil),
             BrowserAppMessages(privateInterface),
@@ -155,6 +161,8 @@ class BrowserJsRunner(
         scope.cancel()
         interfaces.values.forEach { (it as? AutoCloseable)?.close() }
         interfaces.clear()
+        httpClient.close()
+        httpEngine.close()
         engine?.let { pkjsDestroy(it) }
         engine = null
     }

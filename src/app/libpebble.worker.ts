@@ -9,8 +9,11 @@
  * `phone-link` port. Everything the phone does on the wire comes from libpebble3 and
  * the firmware; this worker reports what libpebble3 reports.
  *
- * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl} · link {port} · unlink · install {id, bytes, name}
- *     · configure {id} · configuration-closed {id, url} · status {id}
+ * Apps' PebbleKit JS reaches the network only as the session's phone network setting
+ * allows (`network`, libpebble-network.ts): off unless it is `cors`.
+ *
+ * In: init {bundleUrl, sqliteUrl, quickjsWasmUrl, network?} · network {id, setting} · link {port}
+ *     · unlink · install {id, bytes, name} · configure {id} · configuration-closed {id, url} · status {id}
  * Out: ready · done {id, value?} · failed {id?, message} · running-app {uuid}
  *     · pkjs-console {app, level, text}
  */
@@ -22,18 +25,22 @@ import {
   asLibPebbleModule,
   provideLibPebbleDependencies,
 } from './libpebble-host.ts';
+import { libPebbleNetworkHost, type PhoneNetworkSetting } from './libpebble-network.ts';
 import { quickJsPkjsHost } from './libpebble-pkjs.ts';
 
 let link: LibPebbleLink | undefined;
 let starting: Promise<LibPebbleLink> | undefined;
 let runningApp = '';
 let watcher: ReturnType<typeof setInterval> | undefined;
+const network = libPebbleNetworkHost({ mode: 'disabled' });
 
 async function start(data: {
   bundleUrl: string;
   sqliteUrl: string;
   quickjsWasmUrl: string;
+  network?: PhoneNetworkSetting;
 }): Promise<LibPebbleLink> {
+  if (data.network) network.configure(data.network);
   const [sqliteModule, quickjsWasm] = await Promise.all([
     import(/* @vite-ignore */ data.sqliteUrl),
     fetch(data.quickjsWasmUrl).then((response) => {
@@ -50,6 +57,7 @@ async function start(data: {
     pkjs: quickJsPkjsHost(quickjs, {
       console: (app, level, text) => postMessage({ type: 'pkjs-console', app, level, text }),
     }),
+    network,
   });
   const phone = new LibPebbleLink(
     asLibPebbleModule(await import(/* @vite-ignore */ data.bundleUrl)),
@@ -81,6 +89,10 @@ self.onmessage = async ({ data }: MessageEvent) => {
         starting ??= start(data);
         link = await starting;
         postMessage({ type: 'ready' });
+        break;
+      case 'network':
+        network.configure(data.setting);
+        postMessage({ type: 'done', id });
         break;
       case 'link': {
         const phone = ready();
