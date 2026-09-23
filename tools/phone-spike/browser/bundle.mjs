@@ -27,6 +27,7 @@ await build({
 // The library imports npm modules by name, which a browser cannot resolve, so it is
 // bundled with them. `ws` is Node's WebSocket; in a browser ktor uses the page's own,
 // so it stands in as an empty module. skiko stands in as functions that throw.
+// Round 40: the import object also reaches Node's own modules; see `external` below.
 await stubMissingModules(dist);
 const entry = [];
 for (const name of await readdir(dist)) {
@@ -45,6 +46,10 @@ await build({
   platform: 'browser',
   target: 'es2022',
   alias: { ws: wsStub },
+  // Node's own modules, which the library's runtime imports only when it runs under
+  // Node (ktor's sockets, the require shim). Left as imports, a browser reaching one
+  // fails loudly there.
+  external: ['node:*'],
   logLevel: 'warning',
 });
 for (const name of await readdir(dist))
