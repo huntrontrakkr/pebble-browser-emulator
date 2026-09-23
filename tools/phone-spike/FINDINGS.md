@@ -16,6 +16,7 @@ own platform code. No bundle size yet: the browser compile does not finish.
 | 4–5 | Probe Maven | Room 2.8.x: JVM/native only. Room 3 (`androidx.room3`, stable 3.0.3) and `sqlite-web` 2.7.1: wasmJs and js |
 | 6–12 | Storage moved to Room 3 on every target | Room's browser processor: 2 errors. Without it: 103 errors in 20 files |
 | 13–25 | Room 2 kept; browser-only Room 2 shim | Shim and all generated database code compile; 99 errors in 20 files remain, all upstream platform gaps |
+| 26 | Platform `runBlocking` / `Dispatchers.IO` (import-line change) | 31 errors: kmp-io buffers and Okio file access only; the PebbleKit JS package compiles |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -29,21 +30,37 @@ instead of passing silently.
   source set, and the generated code reused from upstream's own targets.
 - `PHONE_SPIKE_ROOM=3`: the rounds 6–12 rewrite to Room 3 on every target.
 
-## Remaining gaps (round 25: 99 errors in 20 files)
+## Remaining gaps (round 26: 31 errors)
 
-All in upstream's shared code; none in storage:
-
-- `runBlocking` (18) and `Dispatchers.IO` (23), with follow-on errors. kotlinx.coroutines
-  has neither in the browser, and shared code cannot see a browser-only stand-in, so
-  these need changes to upstream code. The largest group is the PebbleKit JS bridge
-  (`js/PKJSInterface.kt`, 27 errors): JavaScript calls such as account and watch tokens
-  block for a suspend result. A browser cannot block, so the bridge needs asynchronous
-  calls or values prepared in advance. This is the one design question the spike has
-  found.
-- kmp-io buffers (`ByteBuffer`, `getShortAt`, `BitSet`) in BLE scan records, MTU and the
-  protocol runner, ~20 errors.
-- Okio `FileSystem.SYSTEM` / `openZip` for PBW and PBZ files, ~6 errors; needs a browser
+- kmp-io buffers (`ByteBuffer`, `getShortAt`, `BitSet`) in BLE scan records, MTU, pairing
+  and the protocol runner, ~25 errors.
+- Okio `FileSystem.SYSTEM` / `openZip` for PBW and PBZ files, 6 errors; needs a browser
   file system.
+
+## Blocking calls and the PebbleKit JS bridge (round 26)
+
+Shared code blocks in 12 places with `runBlocking`: the PebbleKit JS bridge (tokens,
+notifications, pins, URL opens, the AppMessage transaction ID), known-watch and
+vibe-pattern database reads, a synchronous-XHR path and `LazyLock`'s wait loop. It also
+names `Dispatchers.IO`, which the browser lacks.
+
+- Shared code imports libpebble3's own `runBlocking` and `Dispatchers.IO`
+  (`util/PlatformBlocking.kt`): an import-line change in 14 files. Android, desktop and
+  iOS delegate to kotlinx.coroutines unchanged. In the browser, `runBlocking` runs its
+  block immediately and requires it to finish without suspending; a block that would
+  wait fails instead of deadlocking. `Dispatchers.IO` is `Unconfined` there, so the
+  in-memory database, whose SQLite runs synchronously in the same thread, completes
+  inline.
+- The emulator already runs PebbleKit JS in QuickJS's synchronous build inside the
+  phone worker. With the Kotlin phone in that worker too, the app's calls into upstream's
+  `PKJSInterface` are same-thread calls. Tokens (database reads), notifications and pins
+  (database writes; watch sync is separate) and URL opens then work as upstream wrote
+  them. Only `sendAppMessageString` waits on other work (the AppMessage service assigns
+  the transaction ID), so the browser overrides it: it returns a local ID and maps the
+  ACK/NACK back to it, which is all `startup.js` uses the ID for. Synchronous XHR and
+  `LazyLock` need the same review before they run in the browser.
+
+Compile-level only: none of this has run in a browser yet.
 
 ## Room 2 in the browser (rounds 13–25)
 
