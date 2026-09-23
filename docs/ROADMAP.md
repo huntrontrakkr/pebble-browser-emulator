@@ -112,7 +112,7 @@ the app takes from Android (notifications, calls, contacts) come from a small br
 implementation of just the Android APIs upstream uses, so upstream's own Android code runs;
 that layer is modeled behavior and labeled as such.
 
-- [ ] Feasibility spike: `libpebble3` at a tagged release compiled with a browser target;
+- [x] Feasibility spike: `libpebble3` at a tagged release compiled with a browser target;
       every dependency and platform gap recorded, with bundle size. `tools/phone-spike/`.
 - [ ] Browser transport: `libpebble3` connected to the emulated watch over the existing
       firmware byte stream; Clock installs and launches through it with current gates passing.

@@ -6,10 +6,14 @@ the workflow's commits on this branch.
 
 ## Result so far
 
-libpebble3 compiles and links for the browser (round 29): 0 errors, with the Room 2
-upstream ships. No meaningful bundle size yet: the linked library exports nothing, so
-dead-code elimination leaves 66 KB (15 KB gzipped); a browser entry point that starts
-`LibPebble` is needed before its size means anything. Nothing has run in a browser.
+libpebble3 compiles, links and runs outside the JVM (round 32). Loaded in Node from the linked
+browser library, with SQLite Wasm and fflate provided as the page would provide them, it
+starts with upstream's own services and its in-memory Room 2 database. It connects to
+a watch at the emulator address through the browser serial transport and begins
+negotiation, sending the frame that opens a CommSession, its app version and a
+watch-version request. The linked bundle is 2,571,376 bytes (774,415 gzipped) of Wasm.
+No watch answered: connecting it to the emulated firmware is the next gate, and nothing
+has run in a browser page yet.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -21,6 +25,9 @@ dead-code elimination leaves 66 KB (15 KB gzipped); a browser entry point that s
 | 27 | kmp-io's buffers built for the browser; Okio `SYSTEM` / `openZip` import swap | 1 error: a `kotlinx.datetime.Instant` / `kotlin.time.Instant` mismatch |
 | 28 | That file moved to `kotlin.time.Instant` | Resolution complete; ~50 platform declarations missing |
 | 29 | Browser platform layer from upstream's desktop layer | 0 errors; production library links |
+| 30 | Browser entry point, platform module, serial transport | Links with LibPebble kept: 2.57 MB Wasm, 774 KB gzipped |
+| 31 | First run: imports listed | One skiko import (`skikoApi`, from Compose's `ImageBitmap`) |
+| 32 | The library's npm dependencies (js-joda, ws) installed | Starts, connects and begins negotiation |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -51,12 +58,39 @@ instead of passing silently.
   (none), and paths for the locker cache, temporary files, firmware downloads and
   developer-connection installs.
 
-Before anything runs, these need real browser behaviour rather than desktop stubs:
-the Koin `platformModule` (a `TODO()` on desktop), the PebbleKit JS engine (a no-op on
-desktop), and file access through kotlinx-io's `SystemFileSystem`, which upstream also
-uses and which does not work in a browser page; it must reach the same in-memory files
-as Okio. Bluetooth, battery, network and notification-icon declarations are desktop
-stubs, which suits the direct link; the simulated Bluetooth link replaces them later.
+## Browser entry point (rounds 30–32)
+
+`browser/BrowserPhone.kt` exports `phoneStart`, `phoneAttachSerial`,
+`phoneSerialFromWatch`, `phoneConnectWatch` and `phoneStatus`. `phoneStart` does what
+`LibPebble.create` does, with two changes made after upstream's bindings load and before
+anything reads them. First, settings live in memory: the library's browser default is
+`localStorage`, which would persist and does not exist in a worker. Second, a watch at a
+socket address is reached through `WatchSerialTransport`, upstream's QEMU transport with
+the emulator's serial channel in place of a TCP socket. It keeps the same framing code,
+the CommSession-open frame and SPP frames. It skips only Kable's central setup, which is
+iOS-only.
+
+- **Platform module**: upstream's Android and iOS modules have this same shape. The phone
+  identifies as Android and declares only the shared protocol capabilities. Calendar,
+  call log, contacts, music, location and notification listeners report nothing and no
+  permission, as an Android phone without those permissions does. Actions fail with
+  `Unsupported`. Nothing invents data; each becomes a simulation input behind its own
+  gate.
+- **Replaced desktop stubs**: the startup path reached four `TODO()`s. The BLE scanner
+  finds nothing (the direct link needs no Bluetooth), the time-change broadcast never
+  fires, and PebbleKit JS `localStorage` is in memory.
+- **No account**: no locker, no firmware-update service, no uploads, and no developer
+  token or transcription.
+- **Bundle dependencies**: `@js-joda/core` and `ws` (npm, from the distribution's
+  `package.json`) and one skiko import. The first run stands in for skiko with a function
+  that throws when called, and startup never called it. Before the bundle ships, either
+  skiko's runtime ships with it or the browser build leaves out the image paths that use
+  it.
+
+Still open: PebbleKit JS has no runner bound (desktop binds none), kotlinx-io's
+`SystemFileSystem` must reach the same in-memory files as Okio, and synchronous XHR and
+`LazyLock` need review. The page host must publish `globalThis.sqlite3` and
+`globalThis.fflate` before `phoneStart`.
 
 ## Blocking calls and the PebbleKit JS bridge (round 26)
 
