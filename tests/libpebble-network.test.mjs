@@ -309,3 +309,43 @@ test('activity reports each request without its query string', async () => {
   ]);
   assert.ok(!JSON.stringify(activity).includes('SECRET'));
 });
+
+test('a host the browser refuses is relayed when the session has a relay, and marked so', async () => {
+  const relay = { endpoint: 'https://relay.test', key: 'k'.repeat(32) };
+  const seen = [];
+  const fetcher = async (url, init) => {
+    seen.push({ url, key: init.headers['X-Pebble-Relay-Key'] });
+    if (!url.startsWith(relay.endpoint)) throw new TypeError('Failed to fetch');
+    const response = new Response('{"temp":20}', { status: 200 });
+    Object.defineProperty(response, 'url', { value: url });
+    return response;
+  };
+  const activity = [];
+  const host = libPebbleNetworkHost(
+    { mode: 'cors', relay },
+    { fetcher, onActivity: (entry) => activity.push(entry) },
+  );
+  const result = await request(host, {
+    method: 'GET',
+    url: 'https://no-cors.test/forecast?key=SECRET',
+    headers: {},
+    body: null,
+  });
+  assert.equal(result.status, 200);
+  assert.equal(
+    seen[1].url,
+    'https://relay.test/v1/app-fetch?url=https%3A%2F%2Fno-cors.test%2Fforecast%3Fkey%3DSECRET',
+  );
+  assert.equal(seen[1].key, relay.key);
+  assert.deepEqual(activity, [
+    {
+      kind: 'request',
+      method: 'GET',
+      target: 'https://no-cors.test/forecast',
+      synchronous: false,
+      status: 200,
+      relayed: true,
+      bytes: 11,
+    },
+  ]);
+});

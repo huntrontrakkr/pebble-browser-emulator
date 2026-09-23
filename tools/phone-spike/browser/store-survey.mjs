@@ -80,7 +80,7 @@ const browser = await chromium.launch({
 });
 
 const results = [];
-async function survey(app) {
+async function survey(app, relay) {
   const page = await browser.newPage();
   const messages = { sent: 0, acked: 0, nacked: 0 };
   const exceptions = [];
@@ -92,7 +92,10 @@ async function survey(app) {
     else if (/JS Exception/.test(text)) exceptions.push(text.slice(0, 300));
   });
   page.on('pageerror', (error) => exceptions.push(`page: ${error.message}`.slice(0, 300)));
-  const target = `${url}survey.html?pbw=/packages/${app.id}.pbw&uuid=${app.uuid}&seconds=${seconds}`;
+  const relayQuery = relay
+    ? `&relay=${encodeURIComponent(relay.endpoint)}&relayKey=${encodeURIComponent(relay.key)}`
+    : '';
+  const target = `${url}survey.html?pbw=/packages/${app.id}.pbw&uuid=${app.uuid}&seconds=${seconds}${relayQuery}`;
   let result;
   try {
     await page.goto(target);
@@ -125,18 +128,20 @@ async function survey(app) {
     exceptions: exceptions.slice(0, 5),
     pkjs: result.pkjs.slice(0, 30),
   };
-  results.push(record);
+  return record;
 }
 // A few pages at once; each is its own firmware, phone and QuickJS.
-const queue = [...chosen];
-await Promise.all(
-  Array.from({ length: parallel }, async () => {
-    while (queue.length) await survey(queue.shift());
-  }),
-);
-await browser.close();
-close();
-results.sort((a, b) => a.category.localeCompare(b.category) || a.rank - b.rank);
+async function surveyAll(apps, relay) {
+  const queue = [...apps];
+  const records = [];
+  await Promise.all(
+    Array.from({ length: parallel }, async () => {
+      while (queue.length) records.push(await survey(queue.shift(), relay));
+    }),
+  );
+  return records.sort((a, b) => a.category.localeCompare(b.category) || a.rank - b.rank);
+}
+results.push(...(await surveyAll(chosen)));
 
 // Why requests failed, asked from here, where CORS does not apply: does the host answer,
 // with what status, and does it allow a page on another origin to read the answer? One
@@ -188,6 +193,65 @@ for (const record of results) {
   for (const line of record.pkjs.slice(0, 6)) console.log(`    | ${line.slice(0, 160)}`);
   for (const line of record.exceptions.slice(0, 2)) console.log(`    ! ${line.slice(0, 200)}`);
 }
+
+// Second pass: apps whose failed hosts answer from here but do not let another origin
+// read the answer (CORS), again with the optional relay (services/resources,
+// /v1/app-fetch) started for the run with a fresh key, for this page's origin only.
+// The relay takes plain HTTPS GET and HEAD without a body, as in the application.
+const refusesCors = (target) =>
+  hosts[target] && !hosts[target].unreachable && hosts[target].allowOrigin === null;
+const relayApps = chosen.filter((app) =>
+  results.find((r) => r.id === app.id)?.requests.some((q) => q.error && refusesCors(q.target)),
+);
+const relayResults = [];
+if (relayApps.length && process.env.SURVEY_RELAY !== '0') {
+  const { spawn } = await import('node:child_process');
+  const { randomBytes } = await import('node:crypto');
+  const relayPort = 4318 + Math.floor(Math.random() * 1000);
+  const relay = { endpoint: `http://127.0.0.1:${relayPort}`, key: randomBytes(24).toString('hex') };
+  const service = spawn(process.execPath, ['services/resources/server.mjs'], {
+    env: {
+      ...process.env,
+      RESOURCE_PORT: String(relayPort),
+      RESOURCE_RELAY_KEY: relay.key,
+      RESOURCE_ALLOWED_ORIGINS: new URL(url).origin,
+      RESOURCE_CACHE_DIR: 'tmp/phone-spike/relay-cache',
+    },
+    stdio: ['ignore', 'inherit', 'inherit'],
+  });
+  try {
+    for (let tries = 0; ; tries++) {
+      try {
+        const status = await (await fetch(`${relay.endpoint}/v1/status`)).json();
+        if (!status.capabilities?.includes('app-relay')) throw new Error('relay not enabled');
+        break;
+      } catch (error) {
+        if (tries > 50) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+    relayResults.push(...(await surveyAll(relayApps, relay)));
+  } finally {
+    service.kill();
+  }
+  console.log(`\nWith the relay (${relayApps.length} apps whose hosts refuse CORS):`);
+  for (const record of relayResults) {
+    const before = results.find((r) => r.id === record.id);
+    const answered = (r) => r.requests.filter((q) => typeof q.status === 'number').length;
+    console.log(
+      `${record.category} #${record.rank} ${record.title}: ${record.running ? 'running' : 'NOT running'}, ` +
+        `${answered(record)}/${record.requests.length} answered (was ${answered(before)}/${before.requests.length}), ` +
+        `AppMessages ${record.messages.sent} sent / ${record.messages.acked} acked (was ${before.messages.sent} / ${before.messages.acked})`,
+    );
+    for (const request of record.requests)
+      console.log(
+        `    ${request.method} ${request.target} → ${request.error ?? request.status}${request.relayed ? ' (relayed)' : ''}`,
+      );
+    for (const line of record.pkjs.slice(0, 4)) console.log(`    | ${line.slice(0, 160)}`);
+  }
+}
+await browser.close();
+close();
 await writeFile(
   out,
   JSON.stringify(
@@ -203,6 +267,10 @@ await writeFile(
       candidates: candidates.length,
       results,
       failedTargets: hosts,
+      relay: {
+        endpoint: 'services/resources /v1/app-fetch, started for the run (GET and HEAD over HTTPS)',
+        results: relayResults,
+      },
     },
     null,
     2,

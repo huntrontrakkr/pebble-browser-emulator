@@ -72,6 +72,8 @@ export interface NetworkActivity {
   error?: string;
   closeCode?: number;
   synchronous?: boolean;
+  /** Answered by the optional relay, because the browser refused the host. */
+  relayed?: boolean;
   bytes?: number;
 }
 
@@ -119,10 +121,17 @@ export function libPebbleNetworkHost(
         ? { error: `${result.error}: ${result.message}` }
         : {
             status: result.status,
+            ...(relayedResult(result) ? { relayed: true } : {}),
             bytes: result.bodyBase64 ? atob(result.bodyBase64).length : 0,
           }),
     });
   }
+  // A relayed answer's final URL is the relay's own endpoint.
+  const relayedResult = (result: PhoneNetworkResult) =>
+    !!setting.relay?.endpoint &&
+    'url' in result &&
+    typeof result.url === 'string' &&
+    result.url.startsWith(`${setting.relay.endpoint}/v1/app-fetch`);
   function describe(id: number, json: string, synchronous = false) {
     try {
       const { method, url } = JSON.parse(json);
@@ -315,7 +324,13 @@ export function libPebbleNetworkHost(
       if (name === 'set-cookie' || name === 'set-cookie2') continue;
       headers[name] = line.slice(colon + 1).trim();
     }
-    return { status: xhr.status, statusText: xhr.statusText, headers, bodyBase64: toBase64(bytes) };
+    return {
+      status: xhr.status,
+      statusText: xhr.statusText,
+      headers,
+      bodyBase64: toBase64(bytes),
+      ...(relayed ? { url: xhr.responseURL } : {}),
+    };
   }
 
   start();

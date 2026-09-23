@@ -2,12 +2,17 @@
 // qemu_emery firmware in the application's QEMU worker, starts the phone worker with the
 // network on (CORS, as the session setting allows) and the built-in phone's default
 // location, links them, installs the package from ?pbw= and watches the app for ?seconds=.
+// With ?relay= and ?relayKey=, the phone's network may relay what the browser refuses.
 // It records what the app's PebbleKit JS logged and every request and socket it made,
 // as the phone worker reports them. It never answers a request itself.
 // window.__result carries the outcome.
 const params = new URL(location.href).searchParams;
 const uuid = params.get('uuid');
 const seconds = Number(params.get('seconds') ?? 60);
+// The optional relay (services/resources, /v1/app-fetch) for hosts that refuse CORS.
+const relay = params.get('relay')
+  ? { endpoint: params.get('relay'), key: params.get('relayKey') ?? '' }
+  : undefined;
 const status = document.getElementById('status');
 const steps = [];
 const step = (text) => {
@@ -89,7 +94,7 @@ try {
     bundleUrl: new URL('libpebble3/libpebble3.js', location.href).href,
     sqliteUrl: new URL('sqlite/index.mjs', location.href).href,
     quickjsWasmUrl: new URL('quickjs.wasm', location.href).href,
-    network: { mode: 'cors' },
+    network: { mode: 'cors', ...(relay ? { relay } : {}) },
   });
   await wait('phone', (d) => d.type === 'ready' || d.type === 'failed').then((d) => {
     if (d.type === 'failed') throw new Error(d.message);
