@@ -383,6 +383,12 @@ bounded settings port: native accounts, library/store, database, BLE and libpebb
 are not ported. External pages must honor `return_to`; universal custom-scheme interception
 is not possible. [Scope, source, limits and evidence](COMPANION_PORT.md).
 
+Separately, a feasibility spike ([tools/phone-spike](../tools/phone-spike/FINDINGS.md))
+compiles upstream's `libpebble3` for the browser, unmodified apart from import-line changes,
+and runs it outside the JVM. The QEMU worker has a `phone-link` command that carries raw
+Pebble Protocol UART bytes to it and keeps the built-in phone off the wire, and
+`libpebble-host.ts` is the host glue. None of this is loaded by the application yet.
+
 The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three
 current profiles in Chromium at a mobile viewport: its bundled Clay 1.0.8 form saves a
 background change, actual firmware acknowledges it, the framebuffer changes, saved settings

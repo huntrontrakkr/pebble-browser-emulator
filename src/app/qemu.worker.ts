@@ -110,6 +110,44 @@ function connectClockPort(port?: MessagePort) {
       phoneClock.acknowledge(data.sequence);
   };
 }
+/**
+ * The libpebble3 phone's raw link to the Pebble Protocol UART (port 1). While it is
+ * attached, the watch has that one phone: the built-in transport neither reads the
+ * port nor writes to it, and commands that would use it are refused.
+ */
+let phoneLink: MessagePort | undefined;
+const BUILT_IN_PHONE_COMMANDS = new Set([
+  'health-settings',
+  'weather',
+  'battery',
+  'connection',
+  'appmessage',
+  'appmessage-ack',
+  'packet',
+  'demo-settings',
+  'demo-notification',
+  'install',
+]);
+function closePhoneLink() {
+  phoneLink?.close();
+  phoneLink = undefined;
+}
+function connectPhoneLink(port?: MessagePort) {
+  closePhoneLink();
+  phoneLink = port;
+  if (!port) return;
+  const owner = generation;
+  port.onmessage = ({ data }) => {
+    if (phoneLink !== port || owner !== generation) return;
+    if (data?.type !== 'serial' || !(data.bytes instanceof Uint8Array)) return;
+    try {
+      uartWriter.enqueue(data.bytes);
+      flushUart();
+    } catch (e) {
+      postMessage({ type: 'error', command: 'phone-link', message: String(e) });
+    }
+  };
+}
 let cpuPump: Promise<unknown> = Promise.resolve();
 function flushUart() {
   uartWriter.flush((bytes) => {
@@ -260,7 +298,7 @@ async function tickOnce(count: number) {
     announceReady = false;
     if (startupOwner) {
       try {
-        if (linked || installing || demoApplying || phoneCoupled || uartWriter.pending)
+        if (linked || installing || demoApplying || phoneCoupled || phoneLink || uartWriter.pending)
           throw new Error('Startup state is no longer isolated.');
         const length = api.spike_checkpoint_save();
         if (!length) throw new Error('Firmware startup could not be captured.');
@@ -487,7 +525,10 @@ function serial() {
     if (!n) continue;
     const bytes = new Uint8Array(api.memory.buffer, api.spike_uart_tx_ptr(port), n).slice();
     api.spike_uart_tx_consume(port, n);
-    if (port === 1) transport?.feedUart(bytes);
+    if (port === 1) {
+      if (phoneLink) phoneLink.postMessage({ type: 'serial', bytes }, [bytes.buffer]);
+      else transport?.feedUart(bytes);
+    }
     if (port === 2) {
       const text = decoder.decode(bytes, { stream: true });
       consoleTail = (consoleTail + text).slice(-16384);
@@ -575,6 +616,7 @@ async function batch() {
 function resetSession() {
   generation++;
   closeClockPort();
+  closePhoneLink();
   phoneCoupled = false;
   paceStart = undefined;
   cpuPump = Promise.resolve();
@@ -651,6 +693,7 @@ async function bootWithStartup(data: any) {
   // Invalidate earlier installation/phone-clock awaits before asynchronous loading.
   generation++;
   closeClockPort();
+  closePhoneLink();
   phoneCoupled = false;
   transport?.dispose();
   transport = undefined;
@@ -741,6 +784,8 @@ self.onmessage = async ({ data }) => {
     }
     if (data.type === 'pause' && !api) return;
     if (!api) throw new Error('QEMU core is still loading.');
+    if (phoneLink && BUILT_IN_PHONE_COMMANDS.has(data.type))
+      throw new Error('The libpebble3 phone owns the watch link; detach it first.');
     switch (data.type) {
       case 'presentation':
         deltaFrames = !!data.deltaFrames;
@@ -1045,6 +1090,14 @@ self.onmessage = async ({ data }) => {
         }
         break;
       }
+      case 'phone-link':
+        if (data.port && !firmwareReady)
+          throw new Error('Wait for firmware boot before linking the phone.');
+        if (data.port && (linked || installing || demoApplying))
+          throw new Error('The built-in phone is using the watch link.');
+        connectPhoneLink(data.port ?? undefined);
+        postMessage({ type: 'phone-link', attached: !!phoneLink });
+        break;
       case 'uart':
         upload(data.bytes);
         const accepted = api.spike_receive_uart(data.port, data.bytes.length);
