@@ -43,7 +43,9 @@ export class UpstreamPhone {
     try {
       const response = await fetch(new URL('libpebble3/manifest.json', document.baseURI));
       if (!response.ok) throw new Error(String(response.status));
-      const manifest = (await response.json()) as UpstreamPhoneManifest;
+      // Every build publishes this file; one without the phone says `included: false`.
+      const manifest = (await response.json()) as UpstreamPhoneManifest & { included?: boolean };
+      if (manifest.included === false) throw new Error('not included');
       if (typeof manifest.bundle !== 'string' || typeof manifest.sqlite !== 'string')
         throw new Error('incomplete manifest');
       this.manifest.set(manifest);

@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "dev": "ng serve --host 0.0.0.0",
     "dev:resources": "node services/resources/server.mjs",
-    "build:web": "npm run build:checkpoints && ng build && node scripts/publish-notices.mjs && node scripts/write-service-config.mjs dist/client/service-config.json && node scripts/stamp-build.mjs && node scripts/build-pwa.mjs",
+    "build:web": "npm run build:checkpoints && ng build && node scripts/publish-notices.mjs && node scripts/write-service-config.mjs dist/client/service-config.json && node scripts/write-upstream-phone-manifest.mjs dist/client/libpebble3/manifest.json && node scripts/stamp-build.mjs && node scripts/build-pwa.mjs",
     "build:checkpoints": "node scripts/build-startup-checkpoints.mjs",
     "firmware:check": "node scripts/check-firmware-releases.mjs",
     "firmware:audit-physical": "node scripts/audit-sifli-images.mjs",
