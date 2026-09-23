@@ -88,7 +88,12 @@ async function run(profile, app) {
   const lifecycle = [];
   page.on('console', (m) => {
     const text = m.text();
-    if (/PKJSApp|JsRunner|CompanionApp|AppRunState|configuration/i.test(text))
+    if (
+      /PKJSApp|JsRunner|CompanionApp|AppRunState|configuration|BlobDB|AppFetch|PutBytes|sideload|Locker|time(d)? ?out/i.test(
+        text,
+      ) &&
+      !/^\(WatchManager\) watches:/.test(text)
+    )
       lifecycle.push(`${Math.round(performance.now())} ${text.slice(0, 240)}`);
   });
   // Records what the phone worker reports, as the page's own log does.
@@ -145,6 +150,7 @@ async function run(profile, app) {
       throw new Error(await status.textContent());
     step('upstream phone connected');
 
+    const lifecycleMark = lifecycle.length;
     await section.getByRole('button', { name: /^Install .* through it$/ }).click();
     await page.waitForFunction(
       () =>
@@ -162,24 +168,22 @@ async function run(profile, app) {
       { timeout: 60000 },
     );
     step(`installed through libpebble3; watch reports ${app.uuid} running`);
-    // Installing over a running app makes the watch restart it, and libpebble3 starts
-    // its PebbleKit JS again. Settings open once that has settled: the app's console
-    // has been quiet for 3 s after its last start.
-    await page.waitForFunction(
-      () => {
-        const lines = window.previewE2e.console;
-        const starts = lines.filter((line) => line.includes('Pebble JS Bridge initialized'));
-        if (!starts.length) return false;
-        if (window.previewE2e.lines !== lines.length) {
-          window.previewE2e.lines = lines.length;
-          window.previewE2e.quietSince = performance.now();
-          return false;
-        }
-        return performance.now() - window.previewE2e.quietSince >= 3000;
-      },
-      undefined,
-      { polling: 250, timeout: 60000 },
-    );
+    // The watch relaunches the app after the install, as it reports in its own run-state
+    // packets (it can show a system app for a while first), and libpebble3 starts the
+    // app's PebbleKit JS for that launch. Settings open once the watch's last report since
+    // the install starts this app and nothing has changed for 5 s.
+    const runState = /AppRunState(Start|Stop)\(uuid=.*value=([0-9a-f-]{36})/;
+    for (let quiet = 0, seen = -1, deadline = Date.now() + 120000; ;) {
+      if (Date.now() > deadline) throw new Error('the watch did not settle on the app');
+      const reports = lifecycle.slice(lifecycleMark).filter((line) => runState.test(line));
+      const last = reports.at(-1)?.match(runState);
+      if (reports.length !== seen) {
+        seen = reports.length;
+        quiet = 0;
+      } else if (last?.[1] === 'Start' && last[2] === app.uuid && (quiet += 500) >= 5000) break;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    step('the watch settled on the app after the install');
     await settled(page);
     const before = await frame(page);
 
