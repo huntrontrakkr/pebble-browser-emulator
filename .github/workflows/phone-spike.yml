@@ -52,6 +52,9 @@ jobs:
           [ -n "$dist" ] || { echo "no linked library"; exit 0; }
           npm install --silent --no-save --prefix tmp/phone-spike/run @sqlite.org/sqlite-wasm@3.53.4-build1 fflate@0.8.3
           ls -la "$(dirname "$dist")"
+          # The library's own npm dependencies (kotlinx-datetime's js-joda and the like).
+          cat "$(dirname "$dist")/package.json"
+          (cd "$(dirname "$dist")" && npm install --silent --no-save --no-package-lock)
           timeout 120 node tools/phone-spike/run.mjs "$(dirname "$dist")" tmp/phone-spike/run || echo "run exit $?"
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.
