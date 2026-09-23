@@ -3,10 +3,16 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { newQuickJSWASMModuleFromVariant, newVariant } from 'quickjs-emscripten-core';
+import RELEASE_SYNC from '@jitl/quickjs-wasmfile-release-sync';
 import { asLibPebbleModule, provideLibPebbleDependencies } from '../../src/app/libpebble-host.ts';
+import { quickJsPkjsHost } from '../../src/app/libpebble-pkjs.ts';
 
-/** `dist` is the library distribution; `deps` holds @sqlite.org/sqlite-wasm and fflate. */
-export async function loadPhone(dist, deps) {
+/**
+ * `dist` is the library distribution; `deps` holds @sqlite.org/sqlite-wasm and fflate.
+ * `onConsole` receives what apps' PebbleKit JS writes to its console.
+ */
+export async function loadPhone(dist, deps, onConsole = () => {}) {
   // Bare specifiers resolve from the importing file, so the imports live beside the packages.
   const loader = join(deps, 'deps.mjs');
   await writeFile(
@@ -14,7 +20,13 @@ export async function loadPhone(dist, deps) {
     "export { default as sqlite3InitModule } from '@sqlite.org/sqlite-wasm';\nexport * as fflate from 'fflate';\n",
   );
   const { sqlite3InitModule, fflate } = await import(pathToFileURL(resolve(loader)));
-  provideLibPebbleDependencies({ sqlite3: await sqlite3InitModule(), fflate });
+  // The same QuickJS build the emulator's phone worker uses.
+  const quickjs = await newQuickJSWASMModuleFromVariant(newVariant(RELEASE_SYNC, {}));
+  provideLibPebbleDependencies({
+    sqlite3: await sqlite3InitModule(),
+    fflate,
+    pkjs: quickJsPkjsHost(quickjs, { console: onConsole }),
+  });
   console.log('SQLite', globalThis.sqlite3.version.libVersion);
 
   const entries = [];

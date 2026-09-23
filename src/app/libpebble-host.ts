@@ -11,6 +11,8 @@
  * from libpebble3.
  */
 
+import type { PkjsHost } from './libpebble-pkjs.ts';
+
 /** The functions `browser/BrowserPhone.kt` exports. */
 export interface LibPebbleModule {
   phoneStart(): string;
@@ -19,6 +21,8 @@ export interface LibPebbleModule {
   phoneConnectWatch(): string;
   phoneInstall(bytes: Uint8Array, fileName: string): Promise<string>;
   phoneRunningApp(): string;
+  phoneRequestConfiguration(): Promise<string>;
+  phoneConfigurationClosed(url: string): string;
   phoneStatus(): string;
 }
 
@@ -27,6 +31,8 @@ export interface LibPebbleDependencies {
   sqlite3: unknown;
   /** fflate's module namespace; the phone inflates app bundles with `inflateSync`. */
   fflate: { inflateSync: unknown };
+  /** Engines for apps' PebbleKit JS (`quickJsPkjsHost` in libpebble-pkjs.ts). */
+  pkjs: PkjsHost;
 }
 
 /** The part of a MessagePort the link uses, so Node's worker ports work as well. */
@@ -53,9 +59,12 @@ export function provideLibPebbleDependencies(dependencies: LibPebbleDependencies
   if (!dependencies.sqlite3) throw new Error('libpebble3 needs the SQLite WebAssembly build.');
   if (typeof dependencies.fflate?.inflateSync !== 'function')
     throw new Error('libpebble3 needs fflate for app bundles.');
+  if (typeof dependencies.pkjs?.create !== 'function')
+    throw new Error('libpebble3 needs an engine host for PebbleKit JS.');
   const scope = globalThis as Record<string, unknown>;
   scope['sqlite3'] = dependencies.sqlite3;
   scope['fflate'] = dependencies.fflate;
+  scope['pebblePhoneHost'] = { pkjs: dependencies.pkjs };
 }
 
 /** Checks that a loaded module is the libpebble3 build this glue was written for. */
@@ -67,6 +76,8 @@ export function asLibPebbleModule(module: Record<string, unknown>): LibPebbleMod
     'phoneConnectWatch',
     'phoneInstall',
     'phoneRunningApp',
+    'phoneRequestConfiguration',
+    'phoneConfigurationClosed',
     'phoneStatus',
   ].filter((name) => typeof module[name] !== 'function');
   if (missing.length)
@@ -132,6 +143,22 @@ export class LibPebbleLink {
   /** The UUID of the app the watch reports running, or '' before it reports one. */
   runningApp(): string {
     return this.phone.phoneRunningApp();
+  }
+
+  /**
+   * Asks the running app's PebbleKit JS for its configuration page, as the phone app's
+   * settings button does. Resolves to the URL the app opens.
+   */
+  async requestConfiguration(): Promise<string> {
+    const url = await this.phone.phoneRequestConfiguration();
+    if (!url) throw new Error('The running app has no configuration page.');
+    return url;
+  }
+
+  /** Delivers a configuration page's `pebblejs://close#…` URL to the app's PebbleKit JS. */
+  configurationClosed(url: string): void {
+    const failure = this.phone.phoneConfigurationClosed(url);
+    if (failure) throw new Error(failure);
   }
 
   /** libpebble3's own description of its watches and their connection state. */

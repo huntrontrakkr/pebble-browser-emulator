@@ -16,7 +16,11 @@ const appUuid = JSON.parse(
 ).uuid;
 const seconds = Number(process.env.PHONE_E2E_SECONDS ?? 60);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const phone = await loadPhone(dist, deps);
+const pkjsConsole = [];
+const phone = await loadPhone(dist, deps, (label, level, text) => {
+  pkjsConsole.push(text);
+  console.log(`[${label}] ${level}: ${text}`);
+});
 const harness = new FirmwareHarness();
 let code = 1;
 try {
@@ -74,9 +78,42 @@ try {
     );
     console.log('status:\n' + status);
   }
+
+  // Clock's own settings flow through its PebbleKit JS: the phone asks for the
+  // configuration page (Clock's showConfiguration handler opens one), the page closes
+  // with new settings, Clock's JS stores them and sends them to the watch as an
+  // AppMessage, and the watch's ACK reaches Clock's callback, which logs it.
+  let acknowledged = false;
+  if (launched) {
+    let url = '';
+    for (let tries = 0; tries < 20 && !url; tries++) {
+      try {
+        url = await link.requestConfiguration();
+      } catch (error) {
+        if (tries === 19) console.log('configuration failed:', error.message);
+        await sleep(1000);
+      }
+    }
+    console.log('configuration page:', url ? url.slice(0, 60) + '…' : 'none');
+    if (url) {
+      const settings = { DARK_MODE: 1, SHOW_DATE: 1, SHOW_BATTERY: 0 };
+      link.configurationClosed('pebblejs://close#' + encodeURIComponent(JSON.stringify(settings)));
+      const until = Date.now() + 20000;
+      while (Date.now() < until && !acknowledged) {
+        acknowledged = pkjsConsole.some((line) =>
+          line.includes('Clock settings acknowledged by watch'),
+        );
+        if (pkjsConsole.some((line) => line.includes('Clock settings rejected by watch'))) break;
+        await sleep(250);
+      }
+      console.log(
+        acknowledged ? 'PKJS APPMESSAGE ACKNOWLEDGED' : 'no acknowledgement reached Clock',
+      );
+    }
+  }
   console.log('firmware console tail:\n' + harness.serial.slice(-4000));
   link.close();
-  code = negotiated && launched ? 0 : 1;
+  code = negotiated && launched && acknowledged ? 0 : 1;
 } catch (error) {
   console.log('e2e failed:', error);
   console.log('firmware console tail:\n' + harness.serial.slice(-3000));

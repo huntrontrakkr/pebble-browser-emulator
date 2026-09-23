@@ -134,6 +134,41 @@ fun phoneInstall(bytes: JsAny, fileName: String): Promise<JsAny?> {
 fun phoneRunningApp(): String =
     phone?.watches?.value?.filterIsInstance<ConnectedPebbleDevice>()?.firstOrNull()?.runningApp?.value?.toString() ?: ""
 
+/** The running app's PebbleKit JS session on the connected watch, as the phone app finds it. */
+private fun currentPkjsSession() = phone?.watches?.value
+    ?.filterIsInstance<ConnectedPebbleDevice>()
+    ?.firstOrNull { it.currentPKJSSession.value != null }
+    ?.currentPKJSSession?.value
+
+/**
+ * Opens the running app's configuration as the phone app's settings button does: the
+ * app's PebbleKit JS handles `showConfiguration` and names a URL. Resolves to that URL,
+ * or an empty string with no PebbleKit JS session or no URL.
+ */
+@JsExport
+fun phoneRequestConfiguration(): Promise<JsAny?> = hostCalls.promise {
+    try {
+        currentPkjsSession()?.requestConfigurationUrl() ?: ""
+    } catch (e: Throwable) {
+        e.stackTraceToString()
+    }.toJsString()
+}
+
+/**
+ * The configuration page closed at [url] (`pebblejs://close#<data>`). Delivers the data
+ * to the app's PebbleKit JS as the phone app's deep-link handler does. Returns an empty
+ * string, or why nothing was delivered.
+ */
+@JsExport
+fun phoneConfigurationClosed(url: String): String {
+    if (!url.startsWith("pebblejs://close")) return "Not a configuration close URL: $url"
+    val data = url.substringAfter('#', missingDelimiterValue = "")
+    if (data.isEmpty()) return "The page closed without data"
+    val session = currentPkjsSession() ?: return "No PebbleKit JS session is running"
+    session.triggerOnWebviewClosed(data)
+    return ""
+}
+
 /** LibPebble's own description of its watches and their connection state. */
 @JsExport
 fun phoneStatus(): String = phone?.watchesDebugState() ?: "not started"

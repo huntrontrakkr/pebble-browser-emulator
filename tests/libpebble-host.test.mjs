@@ -8,7 +8,7 @@ import {
 } from '../src/app/libpebble-host.ts';
 
 /** Stands in for the Kotlin build's exports; records what the glue does with them. */
-function fakePhone({ reading = true, install = '' } = {}) {
+function fakePhone({ reading = true, install = '', configUrl = 'data:text/html,x' } = {}) {
   const calls = [];
   let sink = null;
   return {
@@ -24,6 +24,11 @@ function fakePhone({ reading = true, install = '' } = {}) {
     phoneInstall: async (bytes, name) => (calls.push(['install', bytes.length, name]), install),
     phoneStatus: () => 'status',
     phoneRunningApp: () => 'c61ace0a-d61a-47ce-9d04-f46a78849ec6',
+    phoneRequestConfiguration: async () => (calls.push('configure'), configUrl),
+    phoneConfigurationClosed: (url) => (
+      calls.push(['closed', url]),
+      url.startsWith('pebblejs://close#') ? '' : 'Not a configuration close URL'
+    ),
   };
 }
 const nextMessage = (port) => new Promise((resolve) => port.once('message', resolve));
@@ -89,4 +94,18 @@ test('installs go through libpebble3 and report its failures', async () => {
   assert.deepEqual(phone.calls.at(-1), ['install', 2, 'Clock.pbw']);
   link.close();
   worker.close();
+});
+
+test('configuration goes through the running app PebbleKit JS', async () => {
+  const phone = fakePhone();
+  const link = new LibPebbleLink(asLibPebbleModule(phone));
+  assert.equal(await link.requestConfiguration(), 'data:text/html,x');
+  link.configurationClosed('pebblejs://close#%7B%7D');
+  assert.deepEqual(phone.calls.at(-1), ['closed', 'pebblejs://close#%7B%7D']);
+  assert.throws(
+    () => link.configurationClosed('https://example.com'),
+    /Not a configuration close URL/,
+  );
+  const none = new LibPebbleLink(asLibPebbleModule(fakePhone({ configUrl: '' })));
+  await assert.rejects(none.requestConfiguration(), /no configuration page/);
 });
