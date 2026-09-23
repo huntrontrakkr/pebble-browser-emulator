@@ -154,6 +154,24 @@ async function run(profile, app) {
       { timeout: 60000 },
     );
     step(`installed through libpebble3; watch reports ${app.uuid} running`);
+    // Installing over a running app makes the watch restart it, and libpebble3 starts
+    // its PebbleKit JS again. Settings open once that has settled: the app's console
+    // has been quiet for 3 s after its last start.
+    await page.waitForFunction(
+      () => {
+        const lines = window.previewE2e.console;
+        const starts = lines.filter((line) => line.includes('Pebble JS Bridge initialized'));
+        if (!starts.length) return false;
+        if (window.previewE2e.lines !== lines.length) {
+          window.previewE2e.lines = lines.length;
+          window.previewE2e.quietSince = performance.now();
+          return false;
+        }
+        return performance.now() - window.previewE2e.quietSince >= 3000;
+      },
+      undefined,
+      { polling: 250, timeout: 60000 },
+    );
     await settled(page);
     const before = await frame(page);
 
