@@ -5,6 +5,7 @@ package io.rebble.libpebblecommon.browser
 import com.russhwolf.settings.Settings
 import io.rebble.libpebblecommon.LibPebbleConfig
 import io.rebble.libpebblecommon.connection.AppContext
+import io.rebble.libpebblecommon.connection.ConnectedPebbleDevice
 import io.rebble.libpebblecommon.connection.FirmwareUpdateCheckResult
 import io.rebble.libpebblecommon.connection.LibPebble
 import io.rebble.libpebblecommon.connection.PebbleIdentifier
@@ -124,6 +125,14 @@ fun phoneInstall(bytes: JsAny, fileName: String): Promise<JsAny?> {
         }.toJsString()
     }
 }
+
+/**
+ * The app the connected watch reports running (AppRunState), as LibPebble tracks it,
+ * or an empty string with no connected watch or no report yet.
+ */
+@JsExport
+fun phoneRunningApp(): String =
+    phone?.watches?.value?.filterIsInstance<ConnectedPebbleDevice>()?.firstOrNull()?.runningApp?.value?.toString() ?: ""
 
 /** LibPebble's own description of its watches and their connection state. */
 @JsExport

@@ -18,6 +18,7 @@ export interface LibPebbleModule {
   phoneSerialFromWatch(bytes: Uint8Array): boolean;
   phoneConnectWatch(): string;
   phoneInstall(bytes: Uint8Array, fileName: string): Promise<string>;
+  phoneRunningApp(): string;
   phoneStatus(): string;
 }
 
@@ -65,6 +66,7 @@ export function asLibPebbleModule(module: Record<string, unknown>): LibPebbleMod
     'phoneSerialFromWatch',
     'phoneConnectWatch',
     'phoneInstall',
+    'phoneRunningApp',
     'phoneStatus',
   ].filter((name) => typeof module[name] !== 'function');
   if (missing.length)
@@ -125,6 +127,11 @@ export class LibPebbleLink {
     if (!this.port) throw new Error('Connect the phone to a watch before installing.');
     const failure = await this.phone.phoneInstall(bytes, fileName);
     if (failure) throw new Error(`libpebble3 did not install ${fileName}: ${failure}`);
+  }
+
+  /** The UUID of the app the watch reports running, or '' before it reports one. */
+  runningApp(): string {
+    return this.phone.phoneRunningApp();
   }
 
   /** libpebble3's own description of its watches and their connection state. */

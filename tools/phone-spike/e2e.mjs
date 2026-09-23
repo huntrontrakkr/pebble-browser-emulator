@@ -61,13 +61,17 @@ try {
     }
     const until = Date.now() + seconds * 1000;
     while (Date.now() < until) {
-      status = link.status();
-      if (status.includes(`runningApp=${appUuid}`)) break;
+      if (link.runningApp() === appUuid) break;
       await sleep(500);
     }
-    launched = status.includes(`runningApp=${appUuid}`);
+    launched = link.runningApp() === appUuid;
+    status = link.status();
     console.log('link bytes', JSON.stringify(link.counters));
-    console.log(launched ? `LAUNCHED ${appUuid}` : `${appUuid} not running within ${seconds} s`);
+    console.log(
+      launched
+        ? `LAUNCHED ${appUuid}`
+        : `${appUuid} not running within ${seconds} s (running: ${link.runningApp() || 'none reported'})`,
+    );
     console.log('status:\n' + status);
   }
   console.log('firmware console tail:\n' + harness.serial.slice(-4000));

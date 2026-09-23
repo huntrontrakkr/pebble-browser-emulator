@@ -23,6 +23,7 @@ function fakePhone({ reading = true, install = '' } = {}) {
     phoneConnectWatch: () => (calls.push('connect'), ''),
     phoneInstall: async (bytes, name) => (calls.push(['install', bytes.length, name]), install),
     phoneStatus: () => 'status',
+    phoneRunningApp: () => 'c61ace0a-d61a-47ce-9d04-f46a78849ec6',
   };
 }
 const nextMessage = (port) => new Promise((resolve) => port.once('message', resolve));
