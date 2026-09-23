@@ -21,6 +21,28 @@ for (const name of await readdir(dist)) {
   if ((await readFile(join(dist, name), 'utf8')).includes('phoneStart')) entries.push(name);
 }
 if (entries.length !== 1) throw new Error(`expected one entry module in ${dist}: ${entries}`);
+// Compose's ImageBitmap brings imports from skiko, the Compose graphics runtime, which a
+// library distribution does not ship. List what the bundle imports from it and stand in
+// with functions that throw when called, so a use of it fails loudly instead of passing.
+const present = new Set(await readdir(dist));
+for (const name of present) {
+  if (!name.endsWith('.import-object.mjs')) continue;
+  const source = await readFile(join(dist, name), 'utf8');
+  const missing = new Map();
+  const add = (module, names) => missing.set(module, new Set([...(missing.get(module) ?? []), ...names]));
+  for (const [, binding, module] of source.matchAll(/import \* as (\w+) from '\.\/([\w.-]+\.mjs)'/g))
+    if (!present.has(module)) add(module, [...source.matchAll(new RegExp(binding + '\\.(\\w+)', 'g'))].map((m) => m[1]));
+  for (const [, list, module] of source.matchAll(/import \{([^}]*)\} from '\.\/([\w.-]+\.mjs)'/g))
+    if (!present.has(module)) add(module, list.split(',').map((n) => n.trim().split(/\s+as\s+/)[0]).filter(Boolean));
+  for (const [module, set] of missing) {
+    const names = [...set].sort();
+    console.log(`missing ${module}: ${names.length} imports: ${names.join(' ')}`);
+    await writeFile(
+      join(dist, module),
+      names.map((n) => `export function ${n}() { throw new Error('${module} is not loaded: ${n}'); }`).join('\n') + '\n',
+    );
+  }
+}
 const phone = await import(pathToFileURL(resolve(dist, entries[0])));
 console.log('exports', Object.keys(phone).sort().join(', '));
 
