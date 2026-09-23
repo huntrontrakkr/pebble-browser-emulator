@@ -6,14 +6,21 @@ the workflow's commits on this branch.
 
 ## Result so far
 
-libpebble3 compiles, links and runs outside the JVM (round 32). Loaded in Node from the linked
-browser library, with SQLite Wasm and fflate provided as the page would provide them, it
-starts with upstream's own services and its in-memory Room 2 database. It connects to
-a watch at the emulator address through the browser serial transport and begins
-negotiation, sending the frame that opens a CommSession, its app version and a
-watch-version request. The linked bundle is 2,571,376 bytes (774,415 gzipped) of Wasm.
-No watch answered: connecting it to the emulated firmware is the next gate, and nothing
-has run in a browser page yet.
+libpebble3 connects to the emulated watch and completes negotiation with the released
+firmware (round 33). The QEMU worker runs `qemu_emery` 4.37.0 in the existing firmware
+harness. The phone is upstream's LibPebble from the linked browser library, on its own
+thread, and the host glue carries raw serial bytes between them. In half a second of
+wall time the phone and firmware exchange these, with the firmware answering each
+request itself:
+
+- the watch version (v4.37.0, 9399f56) and factory data;
+- the phone's app version (the firmware logs `Phone app: is_system=1, plf=0x2`, which is
+  Android);
+- time, the running app (the default watchface), the BlobDB version and the app order.
+
+The music service then connects, and libpebble3 records the watch as connected and known.
+The linked bundle is 2,571,376 bytes (774,415 gzipped) of Wasm. Nothing has run in a
+browser page yet, and no app has been installed through it.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -28,6 +35,7 @@ has run in a browser page yet.
 | 30 | Browser entry point, platform module, serial transport | Links with LibPebble kept: 2.57 MB Wasm, 774 KB gzipped |
 | 31 | First run: imports listed | One skiko import (`skikoApi`, from Compose's `ImageBitmap`) |
 | 32 | The library's npm dependencies (js-joda, ws) installed | Starts, connects and begins negotiation |
+| 33 | Host glue and the QEMU worker's `phone-link`, with v4.37.0 firmware | Negotiation completes; watch connected |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -91,6 +99,27 @@ Still open: PebbleKit JS has no runner bound (desktop binds none), kotlinx-io's
 `SystemFileSystem` must reach the same in-memory files as Okio, and synchronous XHR and
 `LazyLock` need review. The page host must publish `globalThis.sqlite3` and
 `globalThis.fflate` before `phoneStart`.
+
+## Host glue (round 33)
+
+- **QEMU worker `phone-link`** takes a MessagePort. While it is attached, UART port 1
+  (Pebble Protocol) goes raw to the port, and bytes from the port join the same FIFO
+  writer as hardware controls. The built-in transport neither reads the port nor
+  writes to it, and its commands (install, AppMessage, packets, weather, battery,
+  connection, demo data) are refused. The watch has one phone at a time, and
+  startup checkpoints are not taken while linked.
+- **`src/app/libpebble-host.ts`** publishes SQLite Wasm and fflate, checks the module's
+  exports, starts the phone and carries bytes both ways without reading them. It
+  counts bytes that no connection read as dropped instead of discarding them silently.
+  Unit tests use a stand-in phone; `e2e.mjs` runs the real one.
+- **Pacing**: the run uses Preview's real-time pacing. libpebble3's timeouts are
+  wall-clock, and a worker running flat out in Node services messages only every few
+  seconds.
+- **Hardware revision**: `qemu_emery` 4.37.0 reports hardware revision 245, which
+  libpebble3 1.13.0.2 does not list, so the platform reads as unknown. libpebble3 then
+  uses its own `WatchConfig.unknownWatchTypePlatform`, which defaults to Emery: right
+  for `qemu_emery`. For `qemu_flint` and `qemu_gabbro`, the host must set that
+  upstream option per profile before installing apps. No patch is needed.
 
 ## Blocking calls and the PebbleKit JS bridge (round 26)
 
