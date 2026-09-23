@@ -58,6 +58,29 @@ const addBrowserTarget = (s) =>
 await edit('libpebble3/build.gradle.kts', addBrowserTarget);
 await edit('blobannotations/build.gradle.kts', addBrowserTarget);
 
+// Round 26: shared code imports libpebble3's own runBlocking and Dispatchers.IO
+// (util/PlatformBlocking.kt), which delegate to kotlinx.coroutines on Android,
+// desktop and iOS and have browser versions. Only import lines change.
+{
+  const here = dirname(fileURLToPath(import.meta.url));
+  await cp(join(here, 'libpebble3-common'), join(dir, 'libpebble3/src/commonMain/kotlin'), { recursive: true });
+  await cp(join(here, 'libpebble3-nonweb'), join(dir, 'libpebble3/src/nonWebMain/kotlin'), { recursive: true });
+  const files = async function* (path) {
+    for (const entry of await readdir(join(dir, path), { withFileTypes: true })) {
+      const child = join(path, entry.name);
+      if (entry.isDirectory()) yield* files(child);
+      else if (entry.name.endsWith('.kt')) yield child;
+    }
+  };
+  for await (const file of files('libpebble3/src/commonMain/kotlin')) {
+    const source = await readFile(join(dir, file), 'utf8');
+    if (/^import kotlinx\.coroutines\.(runBlocking|IO)$/m.test(source))
+      await edit(file, (s) =>
+        s.replace(/^import kotlinx\.coroutines\.(runBlocking|IO)$/gm, 'import io.rebble.libpebblecommon.util.$1'),
+      );
+  }
+}
+
 // Libraries with no browser variant move to a source set only the Android,
 // desktop and iOS targets use (round 3), so the browser compile names every file
 // that depends on them. Room stays in common code as upstream has it: blobdbgen's
