@@ -43,6 +43,16 @@ jobs:
       - name: Blockers
         if: always()
         run: node tools/phone-spike/summarize.mjs tmp/phone-spike/build.log
+      # Round 30: the linked library's first run, with the SQLite Wasm build and fflate
+      # the page provides.
+      - name: First run
+        if: always()
+        run: |
+          dist=$(find tmp/phone-spike/upstream/libpebble3/build/dist -path '*productionLibrary*' -name '*.mjs' 2>/dev/null | head -1)
+          [ -n "$dist" ] || { echo "no linked library"; exit 0; }
+          npm install --silent --no-save --prefix tmp/phone-spike/run @sqlite.org/sqlite-wasm@3.53.4-build1 fflate@0.8.3
+          ls -la "$(dirname "$dist")"
+          timeout 120 node tools/phone-spike/run.mjs "$(dirname "$dist")" tmp/phone-spike/run || echo "run exit $?"
       # Annotation-processor failures name only the element, so the processor's
       # own output and the failing tasks are shown in full.
       - name: Processor output

@@ -96,6 +96,11 @@ await edit('blobannotations/build.gradle.kts', addBrowserTarget);
     'io/rebble/libpebblecommon/util/TempFile.jvm.kt',
     'io/rebble/libpebblecommon/web/FirmwareDownloader.jvm.kt',
     'io/rebble/libpebblecommon/connection/devconnection/DevConnectionTransport.jvm.kt',
+    // Round 30: what the browser entry point reaches while starting (TODO() on desktop).
+    'io/rebble/libpebblecommon/di/LibPebbleModule.jvm.kt',
+    'io/rebble/libpebblecommon/js/JSLocalStorageInterface.jvm.kt',
+    'io/rebble/libpebblecommon/time/TimeChanged.jvm.kt',
+    'io/rebble/libpebblecommon/connection/bt/ble/transport/impl/KableBleScanner.jvm.kt',
   ];
   const jvmMain = join(dir, 'libpebble3/src/jvmMain/kotlin');
   await cp(jvmMain, join(dir, 'libpebble3/src/wasmJsMain/kotlin'), {
