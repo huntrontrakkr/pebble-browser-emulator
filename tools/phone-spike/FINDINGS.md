@@ -54,6 +54,8 @@ with SQLite Wasm); other builds say it is not included.
 | 46–47 | Settings screen built; close URLs decoded as upstream does | Settings open and save; JustTheTime on `qemu_gabbro` passes; the others close into a restarting PebbleKit JS |
 | 48–49 | Waits; libpebble3's lifecycle lines recorded | The watch shows a system app for ~28 s after the install before relaunching the app |
 | 50 | The run waits for the watch's own relaunch | **6 of 6**: Clock and JustTheTime, all three profiles, through Preview's controls; probe 11/11 |
+| 51–52 | Binary request bodies; BlobDB timeline from Connect | Probe 13/13; the install ran before libpebble3 listed the watch as connected |
+| 53 | Connected means libpebble3 has connected | 6 of 6; the app relaunches right after the install (settled in 5.0 s, the run's quiet window, down from 36–38 s) |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -189,9 +191,16 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
   without CORS, abort, synchronous XHR, and a WebSocket with a subprotocol, text and
   binary both ways and a 4001 close. A refused upgrade was reported as `error` then
   `close` 1006. The probe then sent its summary to the watch.
-- **Not covered**: binary request bodies. Upstream's bridge passes text, and a typed
-  array reaches its manager as a JSON object, which it drops. The `timeout` property
-  (unimplemented upstream), and HTTP interception, also absent on iOS.
+- **Binary bodies (round 51)**: upstream's manager accepts a `ByteArray`, which
+  JavaScriptCore's bridge could not produce, so iOS drops them. The browser bridge
+  carries typed arrays and ArrayBuffers as bytes, and bodies that are not valid UTF-8
+  reach `fetch` as bytes. Valid UTF-8 goes as text, which gets text's default
+  content type, as a WebView's XMLHttpRequest does. The probe (now 13 checks) posts a
+  `Uint8Array` and an `ArrayBuffer` and compares the bytes the server received.
+- **Not covered**: the `timeout` property (unimplemented upstream), HTTP interception
+  (also absent on iOS), and unhandled promise rejections. quickjs-emscripten 0.32
+  leaves the rejection-tracker hook unimplemented (`promiseRejectionHandler` is a
+  `TODO` type), so they cannot be reported without replacing `Promise`.
 
 ## Watch platforms (round 45)
 
@@ -226,17 +235,27 @@ What the runs showed:
   phone now sends it as a URL-encoded `pebblejs://close#…`, and `phoneConfigurationClosed`
   matches and decodes it as upstream's `WatchappSettingsScreen` does, including the
   legacy `/?` and `/` forms.
-- **Relaunch after install**: installing over the running app (the built-in phone had
-  installed it) makes the watch stop it and show a system app (`dec0424c…`) for about
-  28 s. It then briefly shows `674271bc…` and restarts the app. From the install to a
-  settled watch took 36–38 s on every profile. libpebble3 starts the app's PebbleKit JS
-  for the relaunch, and settings requested before it report no configuration page. The
-  run waits for the watch's own run-state reports. **Open**: the cause of the 28 s.
-  Upstream's `sideloadApp` waits up to 40 s for the watch to report the app synced
-  before it launches it.
+- **Relaunch after install (rounds 49–53, resolved)**: Preview reported the upstream
+  phone connected as soon as the serial link was attached, and the install ran while
+  libpebble3 was still negotiating. `sideloadApp` syncs and launches only on watches
+  it lists as connected, so it found none, returned at once and never launched the
+  app. Meanwhile, libpebble3's first-connection wipe ("unfaithful: wiping DBs on
+  watch", right after the watch's WatchPrefs `SyncDone`) cleared the app database,
+  and the watch showed its default watchface (`dec0424c…`) until it fetched its
+  selected watchface itself about 28 s later (`674271bc…` is the fetch screen).
+  `phoneWatchConnected` now reports libpebble3's own state: the worker completes
+  `link` only when it is true, and `install` refuses before it. The app now relaunches
+  right after the install.
+- **Wipe on first connection**: libpebble3 clears the watch's databases the first
+  time it meets a watch (upstream behaviour), so an app another phone installed
+  stops until libpebble3 syncs its own locker. Preview's built-in phone and the
+  upstream phone are separate phones, so this is expected.
 - **Console errors**: libpebble3 logs one watch preference it cannot decode
-  (`automaticTimezoneID`) at error level on every connection. The run reports console
-  errors, and fails only on uncaught exceptions.
+  (`automaticTimezoneID`) at error level on every connection. Upstream does not sync
+  that preference on purpose (WatchPrefEntity.kt: "Not syncing right now …
+  automaticTimezoneID"), and acknowledges the write as a success, so this is upstream
+  behaviour with any firmware. The run reports console errors, and fails only on
+  uncaught exceptions.
 
 ## In Preview (rounds 42–43)
 

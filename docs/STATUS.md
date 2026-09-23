@@ -403,10 +403,11 @@ run and checked against its hash. It connects, installs through the upstream pho
 the app's own settings page. The watch acknowledges the settings and its framebuffer changes.
 Apps' PebbleKit JS gets upstream's `XMLHttpRequest` (including synchronous requests) and
 `WebSocket`, over the same network setting, limits, CORS and optional relay as the built-in
-phone. A cross-origin probe passed 11 of 11 checks. Known gaps: after an install over a running
-app, the watch shows a system app for about 28 s before relaunching it (cause not yet found).
-Binary request bodies are not supported, as in upstream's bridge. None of this is in the
-default site build.
+phone, including binary request bodies. A cross-origin probe passed 13 of 13 checks. Connect
+completes only once libpebble3 lists the watch as connected. Before that fix, an early install
+left the watch on its default watchface for about 28 s. Known gaps: XHR `timeout` and HTTP
+interception (both absent upstream), and unhandled promise rejections, which this QuickJS
+binding cannot report. None of this is in the default site build.
 
 The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three
 current profiles in Chromium at a mobile viewport: its bundled Clay 1.0.8 form saves a
