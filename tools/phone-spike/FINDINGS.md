@@ -6,9 +6,10 @@ the workflow's commits on this branch.
 
 ## Result so far
 
-Every dependency resolves for the browser, and storage, the one deep blocker in round 3,
-now compiles for the browser with the Room 2 upstream ships. What remains is upstream's
-own platform code. No bundle size yet: the browser compile does not finish.
+libpebble3 compiles and links for the browser (round 29): 0 errors, with the Room 2
+upstream ships. No meaningful bundle size yet: the linked library exports nothing, so
+dead-code elimination leaves 66 KB (15 KB gzipped); a browser entry point that starts
+`LibPebble` is needed before its size means anything. Nothing has run in a browser.
 
 | Round | Change | Browser compile |
 |---|---|---|
@@ -17,6 +18,9 @@ own platform code. No bundle size yet: the browser compile does not finish.
 | 6–12 | Storage moved to Room 3 on every target | Room's browser processor: 2 errors. Without it: 103 errors in 20 files |
 | 13–25 | Room 2 kept; browser-only Room 2 shim | Shim and all generated database code compile; 99 errors in 20 files remain, all upstream platform gaps |
 | 26 | Platform `runBlocking` / `Dispatchers.IO` (import-line change) | 31 errors: kmp-io buffers and Okio file access only; the PebbleKit JS package compiles |
+| 27 | kmp-io's buffers built for the browser; Okio `SYSTEM` / `openZip` import swap | 1 error: a `kotlinx.datetime.Instant` / `kotlin.time.Instant` mismatch |
+| 28 | That file moved to `kotlin.time.Instant` | Resolution complete; ~50 platform declarations missing |
+| 29 | Browser platform layer from upstream's desktop layer | 0 errors; production library links |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -30,12 +34,29 @@ instead of passing silently.
   source set, and the generated code reused from upstream's own targets.
 - `PHONE_SPIKE_ROOM=3`: the rounds 6–12 rewrite to Room 3 on every target.
 
-## Remaining gaps (round 26: 31 errors)
+## Browser platform layer (rounds 27–29)
 
-- kmp-io buffers (`ByteBuffer`, `getShortAt`, `BitSet`) in BLE scan records, MTU, pairing
-  and the protocol runner, ~25 errors.
-- Okio `FileSystem.SYSTEM` / `openZip` for PBW and PBZ files, 6 errors; needs a browser
-  file system.
+- **kmp-io**: upstream uses only its byte buffers, `BitSet` and byte-array extensions,
+  four plain-Kotlin files that `kmpio-web` compiles from kmp-io's released 0.3.0 sources
+  (Apache-2.0). kmp-io stays in common code; only the browser target resolves it to
+  kmpio-web.
+- **Okio**: the two `DiskUtil` files import libpebble3's own `FileSystem.SYSTEM` and
+  `openZip`, which delegate to Okio on Android, desktop and iOS. In the browser, files
+  live in Okio's in-memory `FakeFileSystem`, and `openZip` extracts an archive into
+  another one, inflating with fflate (already shipped by the emulator). Zip64 and
+  encrypted entries are rejected.
+- **Platform declarations**: upstream's desktop (JVM) layer, 464 lines and mostly stubs,
+  is copied from the checkout, so it tracks upstream. The browser supplies its own
+  `DataBuffer` (pure Kotlin, `java.nio.ByteBuffer` behaviour), bundled-app lookups
+  (none), and paths for the locker cache, temporary files, firmware downloads and
+  developer-connection installs.
+
+Before anything runs, these need real browser behaviour rather than desktop stubs:
+the Koin `platformModule` (a `TODO()` on desktop), the PebbleKit JS engine (a no-op on
+desktop), and file access through kotlinx-io's `SystemFileSystem`, which upstream also
+uses and which does not work in a browser page; it must reach the same in-memory files
+as Okio. Bluetooth, battery, network and notification-icon declarations are desktop
+stubs, which suits the direct link; the simulated Bluetooth link replaces them later.
 
 ## Blocking calls and the PebbleKit JS bridge (round 26)
 
