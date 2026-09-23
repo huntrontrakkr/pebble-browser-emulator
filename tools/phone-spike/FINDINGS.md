@@ -150,6 +150,35 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
   and links the phone, installs Clock and runs its settings round trip. Chromium runs it
   through Playwright in the spike workflow.
 
+## In Preview (rounds 42–43)
+
+- **Publishing** (`publish.mjs`): writes `public/libpebble3/`, which holds the bundled
+  library and its Wasm, SQLite's WebAssembly build, upstream's licence, a `NOTICE.md` with
+  the upstream, Room and kotlinx-io versions, and a `manifest.json` naming the release
+  tag and commit. That is 6.1 MB. The directory is ignored by git. A build without it
+  still writes `manifest.json` (`{"included": false}`, from
+  `scripts/write-upstream-phone-manifest.mjs`), so Preview never requests a missing file.
+- **Phone tab** (`src/app/upstream-phone.ts`, "Upstream phone app (experimental)"): reads
+  the manifest and shows the build or "Not included in this build". **Connect** takes the
+  built-in phone off the watch link and hands the QEMU worker's `phone-link` port to the
+  phone worker. After that:
+  - **Install … through it** sideloads the last opened package through libpebble3.
+  - **App configuration** opens the page that the running app's PebbleKit JS returns, in
+    the same sandboxed settings frame as the built-in phone. The page's return data goes
+    back to the app as `pebblejs://close#…`; a cancellation delivers nothing, as upstream's
+    app does.
+  - **Disconnect**, a reset or a new session hands the link back.
+
+  While it is connected, the built-in install path is refused, so one watch never has
+  two phones.
+- **Check** (`browser/preview-check.mjs`, CI): publishes, builds the site, serves
+  `dist/client`, and opens the developer tools' Phone tab. It then reads the section:
+  `{"status":"Not connected","build":"coredevices/mobileapp 1.13.0.2"}`. The worker
+  chunk is 41 kB, and the library loads only on **Connect**. The main site build does
+  not publish libpebble3. Whether it should (6.1 MB plus a ~5 minute upstream
+  compile in CI) is still undecided. Connect, install and configuration from Preview's
+  own buttons are exercised by the harness flow, not yet through the Preview UI.
+
 ## PebbleKit JS (round 39)
 
 Upstream runs PebbleKit JS in a WebView on Android and in a bare JavaScriptCore engine on
