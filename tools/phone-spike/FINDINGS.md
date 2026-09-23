@@ -56,6 +56,7 @@ with SQLite Wasm); other builds say it is not included.
 | 50 | The run waits for the watch's own relaunch | **6 of 6**: Clock and JustTheTime, all three profiles, through Preview's controls; probe 11/11 |
 | 51–52 | Binary request bodies; BlobDB timeline from Connect | Probe 13/13; the install ran before libpebble3 listed the watch as connected |
 | 53 | Connected means libpebble3 has connected | 6 of 6; the app relaunches right after the install (settled in 5.0 s, the run's quiet window, down from 36–38 s) |
+| 54 | Location for apps; network activity; store survey | 12 of 12 store apps install and run; TimeStyle and Maptastic get real data to the watch; old hosts fail |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -201,6 +202,42 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
   (also absent on iOS), and unhandled promise rejections. quickjs-emscripten 0.32
   leaves the rejection-tracker hook unimplemented (`promiseRejectionHandler` is a
   `TODO` type), so they cannot be reported without replacing `Promise`.
+
+## Store apps that use the network (rounds 54–55)
+
+`browser/store-survey.mjs` uses the store's Most Loved collections, the corpus tool's
+download of 100 watchfaces and 100 apps with package hashes. It keeps the apps whose
+PebbleKit JS names `XMLHttpRequest` or `WebSocket` and that ship an emery binary. Each
+runs in a fresh Chromium page (`browser/survey.mjs`):
+
+- the released `qemu_emery` 4.37.0 firmware;
+- the libpebble3 phone with the network on (CORS, no relay);
+- the built-in phone's default location (37.7749, −122.4194).
+
+After the install it watches for 45 s. Requests go to the apps' real services, and
+nothing is answered locally. The packages are fetched for the run only, not kept or
+published.
+
+Geolocation now reads the session's location (`pebblePhoneHost.location`), as the
+built-in phone does. Most weather faces ask for a position before they make a request.
+The page's network reports each request and socket (method, origin and path, never the
+query string) with its outcome, and Preview logs them.
+
+Round 54, the first 12 of 44 qualifying apps:
+
+| App | Result |
+|---|---|
+| TimeStyle (watchface #3) | `api.open-meteo.com` 200 twice; 2 AppMessages, both acknowledged by the watch |
+| Maptastic (app #16) | OpenStreetMap tiles 200 twice; 19 AppMessages, all acknowledged; `x.setpebble.com` failed |
+| Real Weather, Weather Land, Love Weather (watchfaces #2, #5, #13) | `renowatch.herokuapp.com` failed; each sent 1 AppMessage, acknowledged |
+| Obelisk (app #29) | `leaderboards-pabjn.rhcloud.com` failed |
+| Watchie-Talkie (app #38) | `watchie-talkie.herokuapp.com` failed 5 times (PUT and GET) |
+| Timer, Weather, Note To Self, Thin, Clean & Smart | no request within 45 s |
+
+All 12 installed through libpebble3 and ran. A browser reports a refused or unreachable
+host only as "Failed to fetch", so round 55 asks each failed target again from the CI
+host, where CORS does not apply, to tell a service that is gone from one that refuses
+cross-origin reads.
 
 ## Watch platforms (round 45)
 

@@ -19,6 +19,7 @@ const [build, corpus] = process.argv.slice(2, 4).map((p) => resolve(p));
 const count = Number(process.argv[4] ?? 12);
 const out = resolve(process.argv[5] ?? 'store-survey.json');
 const seconds = Number(process.env.SURVEY_SECONDS ?? 60);
+const parallel = Number(process.env.SURVEY_PARALLEL ?? 1);
 const manifest = JSON.parse(await readFile(join(corpus, 'manifest.json'), 'utf8'));
 
 const candidates = [];
@@ -79,7 +80,7 @@ const browser = await chromium.launch({
 });
 
 const results = [];
-for (const app of chosen) {
+async function survey(app) {
   const page = await browser.newPage();
   const messages = { sent: 0, acked: 0, nacked: 0 };
   const exceptions = [];
@@ -125,20 +126,68 @@ for (const app of chosen) {
     pkjs: result.pkjs.slice(0, 30),
   };
   results.push(record);
+}
+// A few pages at once; each is its own firmware, phone and QuickJS.
+const queue = [...chosen];
+await Promise.all(
+  Array.from({ length: parallel }, async () => {
+    while (queue.length) await survey(queue.shift());
+  }),
+);
+await browser.close();
+close();
+results.sort((a, b) => a.category.localeCompare(b.category) || a.rank - b.rank);
+
+// Why requests failed, asked from here, where CORS does not apply: does the host answer,
+// with what status, and does it allow a page on another origin to read the answer? One
+// plain GET per distinct target, without the app's query string.
+const failed = [
+  ...new Set(results.flatMap((r) => r.requests.filter((q) => q.error).map((q) => q.target))),
+];
+const hosts = {};
+for (const target of failed) {
+  try {
+    const response = await fetch(target, {
+      headers: { Origin: 'https://example.invalid' },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(15000),
+    });
+    await response.body?.cancel();
+    hosts[target] = {
+      status: response.status,
+      allowOrigin: response.headers.get('access-control-allow-origin'),
+    };
+  } catch (error) {
+    hosts[target] = { unreachable: String(error.cause?.code ?? error.cause ?? error) };
+  }
+}
+const verdict = (target) => {
+  const host = hosts[target];
+  if (!host) return '';
+  if (host.unreachable) return ` [server side: unreachable, ${host.unreachable}]`;
+  return ` [server side: ${host.status}, allow-origin ${host.allowOrigin ?? 'none'}]`;
+};
+
+for (const record of results) {
   const answered = record.requests.filter((r) => typeof r.status === 'number').length;
   console.log(
     `${record.category} #${record.rank} ${record.title}: ${record.running ? 'running' : 'NOT running'}, ` +
       `${record.requests.length} requests (${answered} answered), ${record.sockets.length} socket events, ` +
-      `AppMessages ${messages.sent} sent / ${messages.acked} acked / ${messages.nacked} nacked` +
+      `AppMessages ${record.messages.sent} sent / ${record.messages.acked} acked / ${record.messages.nacked} nacked` +
       (record.error ? `, error: ${record.error}` : ''),
   );
   for (const request of record.requests)
     console.log(
-      `    ${request.synchronous ? 'sync ' : ''}${request.method} ${request.target} → ${request.error ?? request.status}`,
+      `    ${request.synchronous ? 'sync ' : ''}${request.method} ${request.target} → ${request.error ?? request.status}` +
+        (request.error ? verdict(request.target) : ''),
     );
+  for (const socket of record.sockets)
+    console.log(
+      `    socket ${socket.method} ${socket.target} → ${socket.error ?? socket.status ?? socket.closeCode}`,
+    );
+  for (const line of record.pkjs.slice(0, 6)) console.log(`    | ${line.slice(0, 160)}`);
+  for (const line of record.exceptions.slice(0, 2)) console.log(`    ! ${line.slice(0, 200)}`);
 }
-await browser.close();
-close();
 await writeFile(
   out,
   JSON.stringify(
@@ -153,6 +202,7 @@ await writeFile(
       skipped,
       candidates: candidates.length,
       results,
+      failedTargets: hosts,
     },
     null,
     2,
