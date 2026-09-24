@@ -412,7 +412,8 @@ emery binaries ran them through the upstream phone. 43 run, and 8 get real data 
 directly. With the optional relay, the three watchfaces behind `renowatch.herokuapp.com`, Rain,
 Maptastic and Touchy Weather get the rest of their GET requests answered. The survey found
 that the relay's preflight had refused its own key header in every browser. That is fixed,
-with a Verify gate that relays from a real page. On an HTTPS site, apps' `http://` requests are
+with a Verify gate that relays from a real page. A target's own error status through the relay
+now reaches the app as that status (Watchie-Talkie's 404), not as the relay refusing. On an HTTPS site, apps' `http://` requests are
 blocked as mixed content, which is an open decision. None of this is in the default site build.
 
 The original **JustTheTime** store PBW also passes the live HTTPS workflow on all three

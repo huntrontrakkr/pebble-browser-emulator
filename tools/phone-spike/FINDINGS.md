@@ -60,6 +60,7 @@ with SQLite Wasm); other builds say it is not included.
 | 55 | All 44 qualifying store apps; failed targets checked from the CI host | 43 of 44 run; 8 get real data to the watch directly |
 | 56 | The relay for hosts that refuse CORS | No change: the relay's preflight refused its own key header in every browser |
 | 57 | The relay's preflight fixed | Relayed answers reach 8 apps (Real Weather, Weather Land, Love Weather, Rain, Maptastic, Touchy Weather and two error statuses) |
+| 58 | The target's own status marked through the relay (`X-Relay-Status`) | Watchie-Talkie's 4 relayed GETs reach the app as the target's 404; the other relayed results repeat round 57; 43 of 44 run |
 
 ## What the patch does (`patch.mjs`, `build.sh`)
 
@@ -206,7 +207,7 @@ rounds 34–36 and PebbleKit JS in round 39. The page host must publish `globalT
   leaves the rejection-tracker hook unimplemented (`promiseRejectionHandler` is a
   `TODO` type), so they cannot be reported without replacing `Promise`.
 
-## Store apps that use the network (rounds 54–57)
+## Store apps that use the network (rounds 54–58)
 
 `browser/store-survey.mjs` uses the store's Most Loved collections, the corpus tool's
 download of 100 watchfaces and 100 apps with package hashes. It keeps the apps whose
@@ -283,7 +284,7 @@ With the fix (round 57):
 | Maptastic | 2 of 3 | 3 of 3 (`x.setpebble.com` 200) |
 | Touchy Weather | 3 of 5 | 4 of 5 (pollen 200) |
 | Solanum, Weathergraph | failed | the target's own 403 and 400 reach the app |
-| Watchie-Talkie | failed | reported as the relay refusing (below) |
+| Watchie-Talkie | failed | the target's own 404 on its 4 GETs (round 58; round 57 reported it as the relay refusing, below) |
 
 The relay does not carry POST or PUT (Muninn, Touchy Weather's track call,
 Watchie-Talkie's upload) or `http://` URLs (nominatim). That is its policy, not a fault.
@@ -293,6 +294,9 @@ the app as "the download service is not relaying app requests". The phone read e
 relayed 401 or 404 as the relay's refusal. The relay marks the target's answers with
 `X-Relay-Status`, and its own refusals lack it. The service now exposes that header, and
 both phones' networks treat 401, 404 and 502 as the relay's own only when it is absent.
+Round 58 (commit 260a8a6) confirmed it: Watchie-Talkie's four relayed GETs report 404,
+the PUT still fails (the relay takes no bodies), and Maptastic, Rain, Touchy Weather,
+the three `renowatch` faces, Solanum and Weathergraph repeat round 57.
 
 **HTTPS sites and `http://` apps.** The survey page is served over HTTP. On the
 application's HTTPS site, browsers block an app's `http://` requests as mixed content,
