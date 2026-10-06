@@ -183,6 +183,8 @@ pub struct Devices {
     pub sync_len: u32,
     pub touch: [u32; 5],
     pub audio: Audio,
+    pub watchdog: crate::watchdog::Watchdog,
+    pub reset_reason: u32,
     pub irq_levels: u32,
 }
 impl Default for Devices {
@@ -228,6 +230,8 @@ impl Devices {
             sync_len: 0,
             touch: [0; 5],
             audio: Audio::default(),
+            watchdog: crate::watchdog::Watchdog::default(),
+            reset_reason: 1, // Power on; subsequent reset causes accumulate (W1C).
             irq_levels: 0,
         }
     }
@@ -268,6 +272,7 @@ impl Devices {
     }
     pub fn advance(&mut self, ticks: u64) {
         self.ticks = ticks;
+        self.watchdog.advance(ticks);
         if self.profile.audio {
             self.audio.advance(ticks);
         }
@@ -367,6 +372,7 @@ impl Devices {
                 8 => self.profile.width as u32,
                 12 => self.profile.height as u32,
                 16 => self.profile.guest_bpp,
+                0x14 => self.reset_reason,
                 _ => 0,
             },
             0x40008000 => self.display.get((off / 4) as usize).copied().unwrap_or(0),
@@ -380,6 +386,7 @@ impl Devices {
                 self.touch.get((off / 4) as usize).copied().unwrap_or(0)
             }
             0x40012000 if self.profile.audio => self.audio.read(off),
+            0x40013000 => self.watchdog.read(off),
             _ => return None,
         })
     }
@@ -443,7 +450,11 @@ impl Devices {
                 8 => self.gpio_ctrl = v & 1,
                 _ => {}
             },
-            0x40007000 => {}
+            0x40007000 => {
+                if off == 0x14 {
+                    self.reset_reason &= !v;
+                }
+            }
             0x40008000 => match off {
                 0 => {
                     self.display[0] = v & 1;
@@ -484,6 +495,7 @@ impl Devices {
                 _ => {}
             },
             0x40012000 if self.profile.audio => self.audio.write(off, v, self.ticks),
+            0x40013000 => self.watchdog.write(off, v, self.ticks),
             _ => return false,
         }
         true

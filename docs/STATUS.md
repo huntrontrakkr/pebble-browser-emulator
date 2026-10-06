@@ -7,6 +7,21 @@ boards run verified firmware; physical-watch firmware remains incomplete.
 See the [product and board matrix](PRODUCT_MATRIX.md) for every model, including the distinct
 2016 and current Pebble Time 2 generations.
 
+## v4.39.0 generic watchdog compatibility
+
+The generic-board CMSDK watchdog and SYSCTRL reset causes are modeled, with
+checkpoint serialization and guest watchdog/software reset coverage. The new
+firmware had faulted at its first watchdog unlock access; the checker now reports
+guest CPU faults promptly with UART/register evidence instead of a two-minute
+timeout. [Reference contract and local validation](WATCHDOG.md) record successful
+boot and checkpoint continuation for v4.39.0, v4.38.4, and bundled v4.37.0 on all
+three profiles. The bundled default remains v4.37.0. Rust checks and Wasm builds
+pass on Windows and Ubuntu WSL. The Ubuntu Node suite passes, and the browser
+suite records 14 passes, no failures, and 12 explicit prerequisite/manual skips.
+Production packaging passes using a checksum-verified existing companion build;
+a fresh companion compile still needs JDK 17. Live native-QEMU comparison remains
+a separate verification gate.
+
 ## Browser-suite CI prerequisites
 
 The discovered browser suite includes the phone port contract and download-service

@@ -10,6 +10,7 @@ import { readLimited } from '../src/app/projects.ts';
 const directory = resolve('tmp/firmware-releases');
 await mkdir(directory, { recursive: true });
 await rm(join(directory, 'validation.json'), { force: true });
+await rm('tmp/startup-checkpoints/failure.json', { force: true });
 const profiles = ['qemu_emery', 'qemu_flint', 'qemu_gabbro'];
 const requested = process.env.PEBBLE_FIRMWARE_TAG?.trim();
 if (requested && !/^v\d+\.\d+\.\d+(?:[-.][a-zA-Z0-9.-]+)?$/.test(requested))
