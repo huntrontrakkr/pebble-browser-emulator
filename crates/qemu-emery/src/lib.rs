@@ -4,6 +4,7 @@ pub mod checkpoint;
 pub mod peripherals;
 pub mod profile;
 pub mod trace;
+pub mod watchdog;
 use profile::BoardProfile;
 
 const RAM: u32 = 0x2000_0000;
@@ -130,9 +131,15 @@ impl PebbleBus {
 }
 impl CoreBus for PebbleBus {
     fn read8(&mut self, a: u32, _: u8) -> u8 {
+        if a & 0xfffff000 == 0x40013000 {
+            return (self.devices.watchdog.read((a & 0xfff) & !3) >> ((a & 3) * 8)) as u8;
+        }
         self.read_byte(a)
     }
     fn read16(&mut self, a: u32, _: u8) -> u16 {
+        if a & 0xfffff000 == 0x40013000 && a & 1 == 0 {
+            return (self.devices.watchdog.read((a & 0xfff) & !3) >> ((a & 3) * 8)) as u16;
+        }
         u16::from_le_bytes([self.read_byte(a), self.read_byte(a.wrapping_add(1))])
     }
     fn read32(&mut self, a: u32, _: u8) -> u32 {
@@ -149,9 +156,25 @@ impl CoreBus for PebbleBus {
         }))
     }
     fn write8(&mut self, a: u32, v: u8, _: u8) {
+        if a & 0xfffff000 == 0x40013000 {
+            self.devices.watchdog.write(
+                (a & 0xfff) & !3,
+                u32::from(v) << ((a & 3) * 8),
+                self.devices.ticks,
+            );
+            return;
+        }
         self.write_byte(a, v)
     }
     fn write16(&mut self, a: u32, v: u16, _: u8) {
+        if a & 0xfffff000 == 0x40013000 && a & 1 == 0 {
+            self.devices.watchdog.write(
+                (a & 0xfff) & !3,
+                u32::from(v) << ((a & 3) * 8),
+                self.devices.ticks,
+            );
+            return;
+        }
         for (i, b) in v.to_le_bytes().iter().enumerate() {
             self.write_byte(a.wrapping_add(i as u32), *b)
         }
@@ -465,9 +488,20 @@ pub fn board_step_before(cpu: &mut CortexM33, bus: &mut PebbleBus, deadline: u64
                     .max(1),
             );
         }
+        if let Some(watchdog_deadline) = bus.devices.watchdog.deadline() {
+            elapsed = elapsed.min(watchdog_deadline.saturating_sub(bus.devices.ticks).max(1));
+        }
         elapsed = elapsed.min(deadline.saturating_sub(bus.devices.ticks));
     }
     bus.devices.advance(bus.devices.ticks + elapsed);
+    // The watchdog timeout is wired to sysctrl, not to an NVIC interrupt.
+    // AIRCR writes are retained by the CPU model; honor only a keyed SYSRESETREQ.
+    if bus.devices.watchdog.reset_requested()
+        || (cpu.ppb.aircr >> 16 == 0x05fa && cpu.ppb.aircr & 4 != 0)
+    {
+        reset_board(cpu, bus, false);
+        return;
+    }
     let source = cpu.ppb.syst_csr & 4;
     if source != bus.devices.systick_source {
         bus.devices.systick_fraction = 0;
@@ -929,6 +963,10 @@ pub extern "C" fn spike_hfsr() -> u32 {
     MACHINE.with(|m| m.borrow().as_ref().map_or(0, |(c, _)| c.ppb.hfsr))
 }
 #[unsafe(no_mangle)]
+pub extern "C" fn spike_bfar() -> u32 {
+    MACHINE.with(|m| m.borrow().as_ref().map_or(0, |(c, _)| c.ppb.bfar))
+}
+#[unsafe(no_mangle)]
 pub extern "C" fn spike_set_epoch(epoch: f64) -> u32 {
     if !epoch.is_finite() || epoch < 0.0 || epoch > u32::MAX as f64 {
         return 0;
@@ -1042,6 +1080,55 @@ mod board_tests {
     }
 }
 
+fn reset_board(cpu: &mut CortexM33, bus: &mut PebbleBus, host_restart: bool) {
+    // RTC time is epoch + (ticks - rtc_set_at) / nominal_clock. Keeping
+    // these three scalars preserves the next second boundary exactly.
+    let reason = bus.devices.reset_reason
+        | if bus.devices.watchdog.interrupt() {
+            4
+        } else {
+            2
+        };
+    let rtc = (bus.devices.epoch, bus.devices.rtc_set_at, bus.devices.ticks);
+    let backup = bus.devices.backup;
+    let atomics = std::sync::Arc::new(CoreAtomics::default());
+    bus.atomics = atomics.clone();
+    // Guest resets retain SRAM and RTC backup registers like generic QEMU.
+    // The explicit host restart keeps its existing clean-RAM contract.
+    if host_restart {
+        bus.ram.fill(0);
+    }
+    bus.frame.fill(0);
+    bus.presented_frame.fill(0);
+    bus.devices = peripherals::Devices::with_profile(bus.profile);
+    bus.devices.reset_reason = reason;
+    if !host_restart {
+        bus.devices.backup = backup;
+    }
+    bus.devices.epoch = rtc.0;
+    bus.devices.rtc_set_at = rtc.1;
+    bus.devices.ticks = rtc.2;
+    bus.active_pc = 0;
+    bus.failed = None;
+    bus.cycle_remainder = 0;
+    bus.wait = 0;
+    bus.fetch = 0;
+    bus.observed_pending_irqs = 0;
+    bus.observed_pending_system = 0;
+
+    // A new core also discards instruction-cache and exclusive-monitor
+    // state. Reusing the bus retains both flash allocations without copies.
+    let mut fresh = CortexM33::new(0, atomics);
+    fresh.ppb.cpuid = bus.profile.cpuid;
+    fresh.regs.msp = bus.read32(0, 0);
+    fresh.regs.r[13] = fresh.regs.msp;
+    fresh.regs.r[14] = u32::MAX;
+    fresh.regs.r[15] = bus.read32(4, 0) & !1;
+    fresh.ppb.vtor = 0;
+    fresh.ppb.syst_csr = 0;
+    *cpu = fresh;
+}
+
 /// Restart the loaded virtual board without replacing its persistent storage.
 ///
 /// Returns 1 on success, 0 when no image is loaded. The firmware vector table,
@@ -1060,36 +1147,7 @@ pub extern "C" fn spike_restart() -> u32 {
             return 0;
         };
 
-        // RTC time is epoch + (ticks - rtc_set_at) / nominal_clock. Keeping
-        // these three scalars preserves the next second boundary exactly.
-        let rtc = (bus.devices.epoch, bus.devices.rtc_set_at, bus.devices.ticks);
-        let atomics = std::sync::Arc::new(CoreAtomics::default());
-        bus.atomics = atomics.clone();
-        bus.ram.fill(0);
-        bus.frame.fill(0);
-        bus.presented_frame.fill(0);
-        bus.devices = peripherals::Devices::with_profile(bus.profile);
-        bus.devices.epoch = rtc.0;
-        bus.devices.rtc_set_at = rtc.1;
-        bus.devices.ticks = rtc.2;
-        bus.active_pc = 0;
-        bus.failed = None;
-        bus.wait = 0;
-        bus.fetch = 0;
-        bus.observed_pending_irqs = 0;
-        bus.observed_pending_system = 0;
-
-        // A new core also discards instruction-cache and exclusive-monitor
-        // state. Reusing the bus retains both flash allocations without copies.
-        let mut fresh = CortexM33::new(0, atomics);
-        fresh.ppb.cpuid = bus.profile.cpuid;
-        fresh.regs.msp = bus.read32(0, 0);
-        fresh.regs.r[13] = fresh.regs.msp;
-        fresh.regs.r[14] = u32::MAX;
-        fresh.regs.r[15] = bus.read32(4, 0) & !1;
-        fresh.ppb.vtor = 0;
-        fresh.ppb.syst_csr = 0;
-        *cpu = fresh;
+        reset_board(cpu, bus, true);
         1
     });
     if restarted == 1 {

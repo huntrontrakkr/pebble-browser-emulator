@@ -8,7 +8,7 @@ use rp2350_emu::{
     CortexM33,
     core::checkpoint::{Reader, Result, StateValue},
 };
-const MAGIC: &[u8] = b"PEBBLE-QEMU-STATE\x02";
+const MAGIC: &[u8] = b"PEBBLE-QEMU-STATE\x03";
 pub const MAXIMUM: usize = 40 * 1024 * 1024;
 macro_rules! fields {
     ($ty:ty { $($field:ident),+ $(,)? }) => { impl StateValue for $ty {
@@ -54,6 +54,19 @@ fields!(Audio {
     active_rate,
     samples_sent
 });
+fields!(crate::watchdog::Watchdog {
+    load,
+    count,
+    value,
+    control,
+    raw,
+    reset,
+    locked,
+    itcr,
+    itop,
+    running,
+    next_tick
+});
 fields!(Devices {
     profile,
     systick_fraction,
@@ -75,6 +88,8 @@ fields!(Devices {
     sync_len,
     touch,
     audio,
+    watchdog,
+    reset_reason,
     irq_levels
 });
 
@@ -161,6 +176,8 @@ pub fn decode(bytes: &[u8], expected: BoardProfile) -> Result<(CortexM33, Pebble
         || bus.flash.len() != 32 * 1024 * 1024
         || bus.devices.profile != profile
         || bus.devices.rtc_set_at > bus.devices.ticks
+        || !bus.devices.watchdog.valid(bus.devices.ticks)
+        || bus.devices.reset_reason & !7 != 0
         || bus.devices.audio.ring.len() != 4096 * 2
         || bus.devices.audio.ring_read >= 4096
         || bus.devices.audio.ring_write >= 4096

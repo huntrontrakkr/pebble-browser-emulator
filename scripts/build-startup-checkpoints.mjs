@@ -2,13 +2,14 @@
 // Compare continuation against the still-running cold-boot instance before publishing.
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir, rename, rm } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { resolve, join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { bundledFirmware } from '../src/app/preview-firmware.ts';
 import { FIRMWARE_PROFILES } from '../src/app/watch-profiles.ts';
 import { PebbleTransport, encodeQemuPacket } from '../src/app/pebble-transport.ts';
 import { isWasmRunFailure } from '../src/app/wasm-abi.ts';
+import { bootFailureReason, bootDiagnostics } from './firmware-boot-diagnostics.mjs';
 import {
   encodeStartupCheckpoint,
   startupIdentity,
@@ -16,13 +17,15 @@ import {
 } from '../src/app/startup-checkpoint.ts';
 
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const failurePath = 'tmp/startup-checkpoints/failure.json';
+await rm(failurePath, { force: true });
 const wasm = await readFile('public/wasm/qemu-emery.wasm');
 const core = hash(wasm);
 const output = resolve(process.env.PEBBLE_CHECKPOINT_OUTPUT ?? 'public/checkpoints');
 const candidateManifest = process.env.PEBBLE_FIRMWARE_MANIFEST
   ? JSON.parse(await readFile(process.env.PEBBLE_FIRMWARE_MANIFEST, 'utf8'))
   : undefined;
-if (candidateManifest && !output.startsWith(resolve('tmp') + '/'))
+if (candidateManifest && !output.startsWith(resolve('tmp') + sep))
   throw new Error(
     'Candidate checkpoints must stay in tmp until provenance and independent reference review.',
   );
@@ -112,11 +115,30 @@ for (const profile of ['qemu_flint', 'qemu_emery', 'qemu_gabbro']) {
     serial = '';
   const decoder = new TextDecoder();
   while (!serial.includes('Ready for communication.')) {
-    assert.ok(performance.now() - started < 120000, 'Firmware boot exceeded two minutes');
-    steps += advance(api, 50000);
+    const done = api.spike_run_until(50000, Number.MAX_SAFE_INTEGER);
+    if (!isWasmRunFailure(done)) steps += done;
     const ports = drain(api);
     if (ports[1].length) transport.feedUart(ports[1]);
     serial = (serial + decoder.decode(ports[2], { stream: true })).slice(-8000);
+    const elapsedMs = performance.now() - started;
+    const reason = bootFailureReason(api, done, elapsedMs);
+    if (reason) {
+      const diagnostic = bootDiagnostics(api, {
+        profile,
+        firmware: candidateManifest?.version ?? 'v4.37.0',
+        coreSha256: core,
+        steps,
+        elapsedMs,
+        serial,
+        reason,
+      });
+      await mkdir('tmp/startup-checkpoints', { recursive: true });
+      await writeFile(failurePath, JSON.stringify(diagnostic, null, 2) + '\n');
+      console.error(JSON.stringify(diagnostic, null, 2));
+      throw new Error(
+        `${profile}: ${reason}; PC=${diagnostic.pc}, CFSR=${diagnostic.cfsr}, HFSR=${diagnostic.hfsr}. See ${failurePath}`,
+      );
+    }
   }
   const bootMs = performance.now() - started;
   const machine = snapshot(api);

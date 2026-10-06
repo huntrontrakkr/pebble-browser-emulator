@@ -38,4 +38,5 @@ jobs:
           path: |
             tmp/firmware-releases/catalog.json
             tmp/firmware-releases/validation.json
+            tmp/startup-checkpoints/failure.json
           if-no-files-found: warn
